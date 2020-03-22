@@ -12,12 +12,18 @@ namespace CovidEnquirer
     public partial class MainForm : Form
     {
         private List<Article> FoundArticles;
+        private List<Article> AllArticles = new List<Article>();
         private int MarginRight;
         private int MarginBottom;
 
         public MainForm()
         {
             InitializeComponent();
+
+            var threadStarter = new ThreadStart(GetAllArticles);
+            var thread = new Thread(threadStarter);
+            thread.IsBackground = true;
+            thread.Start();
         }
 
         private void PhraseToSearchButton_Click(object sender, EventArgs e)
@@ -45,41 +51,48 @@ namespace CovidEnquirer
             SetProgressBarValue(0);
             FoundArticles = new List<Article>();
 
-            var files = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory + "Articles\\").GetFiles("*.json");
             var textToFind = PhraseToSearchTextBox.Text.ToLower();
             
             int progressValue = 0;
-            SetProgressBarMaximum(files.Count());
-            foreach (var file in files)
+            SetProgressBarMaximum(AllArticles.Count);
+
+            var wordsToFind = textToFind.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            List<KnuthPrattMorris> kmpList = new List<KnuthPrattMorris>();
+            foreach(var word in wordsToFind)
+            {
+                var kmp = new KnuthPrattMorris(word.ToLower());
+                kmpList.Add(kmp);
+            }
+
+            foreach (var article in AllArticles)
             {
                 progressValue++;
+
+                SetOptionalMessage(string.Format("Analysing article {0} out of {1} articles", progressValue, AllArticles.Count));
                 SetProgressBarValue(progressValue);
                 
-                var article = JsonArticleToDocument.GetArticle(file.FullName);
-
                 if (String.IsNullOrWhiteSpace(article.Title))
                 {
                     continue;
                 }
 
                 int howManyWordsFound = 0;
-                var wordsToFind = textToFind.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var word in wordsToFind)
+                foreach (var kmp in kmpList)
                 {
                     bool wasWordFound = false;
-                    if (article.Title.ToLower().IndexOf(word) != -1)
+                    if (kmp.Search(article.Title.ToLower()))
                     {
                         howManyWordsFound++;
                         continue;
                     }
 
-                    if (!wasWordFound && article.Abstract.ToLower().IndexOf(word) != -1)
+                    if (!wasWordFound && kmp.Search(article.Abstract.ToLower()))
                     {
                         howManyWordsFound++;
                         continue;
                     }
 
-                    if (!wasWordFound && article.Content.ToLower().IndexOf(word) != -1)
+                    if (!wasWordFound && kmp.Search(article.Content.ToLower()))
                     {
                         howManyWordsFound++;
                     }
@@ -200,15 +213,14 @@ namespace CovidEnquirer
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            MarginRight = Width - ArticleRichTextBox.Right;
-            MarginBottom = Height - ArticleRichTextBox.Bottom;
+            MarginRight = Width - ResultsSplitContainer.Right;
+            MarginBottom = Height - ResultsSplitContainer.Bottom;
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
         {
-            ArticleRichTextBox.Width = Width - MarginRight - ArticleRichTextBox.Left;
-            ArticleRichTextBox.Height = Height - MarginBottom - ArticleRichTextBox.Top;
-            SearchResultsListBox.Height = Height - MarginBottom - SearchResultsListBox.Top;
+            ResultsSplitContainer.Width = Width - MarginRight - ResultsSplitContainer.Left;
+            ResultsSplitContainer.Height = Height - MarginBottom - ResultsSplitContainer.Top;
         }
 
         private void searchForArticleInGoogleToolStripMenuItem_Click(object sender, EventArgs e)
@@ -278,7 +290,57 @@ namespace CovidEnquirer
             openArticleInWordPadToolStripMenuItem_Click(this, null);
         }
 
+        private void GetAllArticles()
+        {
+            SetSearchResultsContextMenEnabled(false);
+            SetSearchResultsListBoxEnabled(false);
+            SetGoogleButtonEnabled(false);
+            SetSaveArticleButtonEnabled(false);
+            SetOpenArticleButtonEnabled(false);
+            SetPhraseToSearchButtonEnabled(false);
+
+            var files = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory + "Articles\\").GetFiles("*.json");
+            AllArticles.Clear();
+
+            int progressValue = 0;
+            SetProgressBarMaximum(files.Count());
+            foreach (var file in files)
+            {
+                progressValue++;
+                SetOptionalMessage(string.Format("Creating database - article {0} out of {1} articles", progressValue, files.Count()));
+
+                SetProgressBarValue(progressValue);
+
+                var article = JsonArticleToDocument.GetArticle(file.FullName);
+                AllArticles.Add(article);
+            }
+
+            SetSearchResultsContextMenEnabled(true);
+            SetSearchResultsListBoxEnabled(true);
+            SetGoogleButtonEnabled(true);
+            SetSaveArticleButtonEnabled(true);
+            SetOpenArticleButtonEnabled(true);
+            SetPhraseToSearchButtonEnabled(true);
+        }
+
         #region Mutlithreaded Access To Visual Elements
+
+        private void SetOptionalMessage(string message)
+        {
+            MethodInvoker mi = new MethodInvoker(() =>
+            {
+                OptionalMessageLabel.Text = message;
+            });
+            if (OptionalMessageLabel.InvokeRequired)
+            {
+                OptionalMessageLabel.Invoke(mi);
+            }
+            else
+            {
+                mi.Invoke();
+            }
+        }
+
         private void SetSearchResultsContextMenEnabled(bool enabled)
         {
             MethodInvoker mi = new MethodInvoker(() =>

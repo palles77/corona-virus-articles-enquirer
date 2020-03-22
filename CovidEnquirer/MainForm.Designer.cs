@@ -45,13 +45,19 @@
             this.GoogleButton = new System.Windows.Forms.Button();
             this.SaveArticleButton = new System.Windows.Forms.Button();
             this.OpenArticleButton = new System.Windows.Forms.Button();
+            this.OptionalMessageLabel = new System.Windows.Forms.Label();
+            this.ResultsSplitContainer = new System.Windows.Forms.SplitContainer();
             this.SearchResultsContextMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ResultsSplitContainer)).BeginInit();
+            this.ResultsSplitContainer.Panel1.SuspendLayout();
+            this.ResultsSplitContainer.Panel2.SuspendLayout();
+            this.ResultsSplitContainer.SuspendLayout();
             this.SuspendLayout();
             // 
             // PhraseToSearchLabel
             // 
             this.PhraseToSearchLabel.AutoSize = true;
-            this.PhraseToSearchLabel.Location = new System.Drawing.Point(12, 9);
+            this.PhraseToSearchLabel.Location = new System.Drawing.Point(4, 12);
             this.PhraseToSearchLabel.Name = "PhraseToSearchLabel";
             this.PhraseToSearchLabel.Size = new System.Drawing.Size(43, 13);
             this.PhraseToSearchLabel.TabIndex = 0;
@@ -77,10 +83,11 @@
             // SearchResultsListBox
             // 
             this.SearchResultsListBox.ContextMenuStrip = this.SearchResultsContextMenu;
+            this.SearchResultsListBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SearchResultsListBox.FormattingEnabled = true;
-            this.SearchResultsListBox.Location = new System.Drawing.Point(7, 110);
+            this.SearchResultsListBox.Location = new System.Drawing.Point(0, 0);
             this.SearchResultsListBox.Name = "SearchResultsListBox";
-            this.SearchResultsListBox.Size = new System.Drawing.Size(329, 368);
+            this.SearchResultsListBox.Size = new System.Drawing.Size(257, 424);
             this.SearchResultsListBox.TabIndex = 2;
             this.SearchResultsListBox.SelectedIndexChanged += new System.EventHandler(this.SearchResultsListBox_SelectedIndexChanged);
             // 
@@ -117,7 +124,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 89);
+            this.label1.Location = new System.Drawing.Point(12, 101);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 4;
@@ -126,7 +133,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(343, 89);
+            this.label2.Location = new System.Drawing.Point(265, 101);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(39, 13);
             this.label2.TabIndex = 5;
@@ -134,22 +141,23 @@
             // 
             // ArticleRichTextBox
             // 
-            this.ArticleRichTextBox.Location = new System.Drawing.Point(346, 110);
+            this.ArticleRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ArticleRichTextBox.Location = new System.Drawing.Point(0, 0);
             this.ArticleRichTextBox.Name = "ArticleRichTextBox";
-            this.ArticleRichTextBox.Size = new System.Drawing.Size(434, 368);
+            this.ArticleRichTextBox.Size = new System.Drawing.Size(512, 424);
             this.ArticleRichTextBox.TabIndex = 3;
             this.ArticleRichTextBox.Text = "";
             // 
             // ProgressBar
             // 
-            this.ProgressBar.Location = new System.Drawing.Point(15, 48);
+            this.ProgressBar.Location = new System.Drawing.Point(7, 62);
             this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.Size = new System.Drawing.Size(765, 23);
+            this.ProgressBar.Size = new System.Drawing.Size(773, 23);
             this.ProgressBar.TabIndex = 7;
             // 
             // GoogleButton
             // 
-            this.GoogleButton.Location = new System.Drawing.Point(417, 84);
+            this.GoogleButton.Location = new System.Drawing.Point(322, 96);
             this.GoogleButton.Name = "GoogleButton";
             this.GoogleButton.Size = new System.Drawing.Size(75, 23);
             this.GoogleButton.TabIndex = 8;
@@ -159,7 +167,7 @@
             // 
             // SaveArticleButton
             // 
-            this.SaveArticleButton.Location = new System.Drawing.Point(498, 84);
+            this.SaveArticleButton.Location = new System.Drawing.Point(403, 96);
             this.SaveArticleButton.Name = "SaveArticleButton";
             this.SaveArticleButton.Size = new System.Drawing.Size(75, 23);
             this.SaveArticleButton.TabIndex = 9;
@@ -169,7 +177,7 @@
             // 
             // OpenArticleButton
             // 
-            this.OpenArticleButton.Location = new System.Drawing.Point(579, 84);
+            this.OpenArticleButton.Location = new System.Drawing.Point(484, 96);
             this.OpenArticleButton.Name = "OpenArticleButton";
             this.OpenArticleButton.Size = new System.Drawing.Size(75, 23);
             this.OpenArticleButton.TabIndex = 10;
@@ -177,20 +185,45 @@
             this.OpenArticleButton.UseVisualStyleBackColor = true;
             this.OpenArticleButton.Click += new System.EventHandler(this.OpenArticleButton_Click);
             // 
+            // OptionalMessageLabel
+            // 
+            this.OptionalMessageLabel.AutoSize = true;
+            this.OptionalMessageLabel.Location = new System.Drawing.Point(4, 42);
+            this.OptionalMessageLabel.Name = "OptionalMessageLabel";
+            this.OptionalMessageLabel.Size = new System.Drawing.Size(101, 13);
+            this.OptionalMessageLabel.TabIndex = 11;
+            this.OptionalMessageLabel.Text = "<optional message>";
+            // 
+            // ResultsSplitContainer
+            // 
+            this.ResultsSplitContainer.Location = new System.Drawing.Point(7, 125);
+            this.ResultsSplitContainer.Name = "ResultsSplitContainer";
+            // 
+            // ResultsSplitContainer.Panel1
+            // 
+            this.ResultsSplitContainer.Panel1.Controls.Add(this.SearchResultsListBox);
+            // 
+            // ResultsSplitContainer.Panel2
+            // 
+            this.ResultsSplitContainer.Panel2.Controls.Add(this.ArticleRichTextBox);
+            this.ResultsSplitContainer.Size = new System.Drawing.Size(773, 424);
+            this.ResultsSplitContainer.SplitterDistance = 257;
+            this.ResultsSplitContainer.TabIndex = 12;
+            // 
             // MainForm
             // 
             this.AcceptButton = this.PhraseToSearchButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 491);
-            this.Controls.Add(this.OpenArticleButton);
-            this.Controls.Add(this.SaveArticleButton);
-            this.Controls.Add(this.GoogleButton);
-            this.Controls.Add(this.ProgressBar);
-            this.Controls.Add(this.ArticleRichTextBox);
-            this.Controls.Add(this.label2);
+            this.ClientSize = new System.Drawing.Size(784, 561);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.SearchResultsListBox);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.GoogleButton);
+            this.Controls.Add(this.ResultsSplitContainer);
+            this.Controls.Add(this.OpenArticleButton);
+            this.Controls.Add(this.OptionalMessageLabel);
+            this.Controls.Add(this.SaveArticleButton);
+            this.Controls.Add(this.ProgressBar);
             this.Controls.Add(this.PhraseToSearchButton);
             this.Controls.Add(this.PhraseToSearchTextBox);
             this.Controls.Add(this.PhraseToSearchLabel);
@@ -200,6 +233,10 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.SearchResultsContextMenu.ResumeLayout(false);
+            this.ResultsSplitContainer.Panel1.ResumeLayout(false);
+            this.ResultsSplitContainer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.ResultsSplitContainer)).EndInit();
+            this.ResultsSplitContainer.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -222,5 +259,7 @@
         private System.Windows.Forms.Button GoogleButton;
         private System.Windows.Forms.Button SaveArticleButton;
         private System.Windows.Forms.Button OpenArticleButton;
+        private System.Windows.Forms.Label OptionalMessageLabel;
+        private System.Windows.Forms.SplitContainer ResultsSplitContainer;
     }
 }
