@@ -1,0 +1,813 @@
+{
+    "paper_id": "3d026627a1f1f6af6f6fbb07bbcb84d917c7c946",
+    "metadata": {
+        "title": "CodSeqGen: A tool for generating synonymous coding sequences with desired GC-contents",
+        "authors": [
+            {
+                "first": "Abdulrakeeb",
+                "middle": [
+                    "M"
+                ],
+                "last": "Al-Ssulami",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "King Saud University",
+                    "location": {
+                        "postCode": "11543",
+                        "settlement": "Riyadh",
+                        "country": "Saudi Arabia"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Aqil",
+                "middle": [
+                    "M"
+                ],
+                "last": "Azmi",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "King Saud University",
+                    "location": {
+                        "postCode": "11543",
+                        "settlement": "Riyadh",
+                        "country": "Saudi Arabia"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Muhammad",
+                "middle": [],
+                "last": "Hussain",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "King Saud University",
+                    "location": {
+                        "postCode": "11543",
+                        "settlement": "Riyadh",
+                        "country": "Saudi Arabia"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Identification of regulatory elements is essential for understanding the mechanism behind regulating gene expression. These regulatory elements-located in or near gene-bind to proteins called transcription factors to initiate the transcription process. Their occurrences are influenced by the GC-content or nucleotide composition. For generating synthetic coding sequences with pre-specified amino acid sequence and desired GC-content, there exist two stochastic methods, multinomial and maximum entropy. Both methods rely on the probability of choosing the codon synonymous for usage in regard to a specific amino acid. In spite the latter exhibited unbiased manner, the produced sequences are not exactly obeying the GC-content constraint. In this paper, we present an algorithmic solution to produce coding sequences that follow exactly a primary amino acid sequence and a desired GC-content. The proposed tool, namely CodSeqGen, depends on random selection for smaller subsets to be traversed using the backtracking approach.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "The two regulatory elements, promoters which are near the coded area and enhancers which are further upstream or downstream, are DNA sequences located in the non-coding regions and bind to proteins called transcription factors. These interactions enable RNA polymerase from transcribing the related gene to produce mRNA which in turn is translated to a specific protein. Identifying such sequences is important to understand the mechanism of regulating gene expression. The occurrences of regulatory elements are highly influenced by common features such as GC-content [1] , di-nucleotide profile [2] , and codon bias [3, 4] . Thus, identifying over/under-represented regulatory elements or genome-scale patterns relies on generating random sequences that obey the pre-specified amino acid sequence and GC-content constraints.",
+            "cite_spans": [
+                {
+                    "start": 569,
+                    "end": 572,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 597,
+                    "end": 600,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 618,
+                    "end": 621,
+                    "text": "[3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 622,
+                    "end": 624,
+                    "text": "4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "There are many tools that are used to generate random sequences with various constrains. The well-known ones include: SMS [5] , FaBox [6] , and GenRGenS [7] . SMS tool generates random coding sequences of specific length given the translation table. The primary goal of this tool is evaluating the results of sequence analysis. FaBox is used to construct random DNA sequences with a predefined nucleotide composition. GenRGenS creates random sequences with several models, such as Markov chains, hidden Markov models, weighted context-free grammars, and others. The sequences generated by GenRGenS are essentially used for structural motif evaluation. Although, these tools generate random DNA and coding sequences, none of them are capable of producing coding sequences given the amino acid sequence and GC-content.",
+            "cite_spans": [
+                {
+                    "start": 122,
+                    "end": 125,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 134,
+                    "end": 137,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 153,
+                    "end": 156,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Generating random coding sequences in response to complicated constraints is computationally expensive. This is because the number of codons are 1 \u223c 6 for each amino acid. Thus, for a particular protein sequence of length n, we have to test at most 6 n coding sequences to find those satisfying the desired amino acid sequence and GC-content constraints. That is, the time complexity is exponential with respect to the length of amino acid sequence. Currently, there are two solutions to solve this problem, multinomial [8, 9] and NullSeq [10] . Multinomial method chooses the synonymous codon C of amino acid a with probability P a (C) given the nucleotide composition. The probability P a (C) is computed as a normalized product of probability distribution of the individual nucleotides within the codon C. As shown in [10] , the multinomial method generates unbiased coding sequences. A more restricted method was presented recently, which the authors named NullSeq. NullSeq [10] uses the maximum entropy approach where the synonymous codon usage probability is derived from a strict function that expresses the expected GC-content in the reference amino acid sequence. However, majority of the resulting coding sequences defy the GC-content constraints.",
+            "cite_spans": [
+                {
+                    "start": 520,
+                    "end": 523,
+                    "text": "[8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 524,
+                    "end": 526,
+                    "text": "9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 539,
+                    "end": 543,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 821,
+                    "end": 825,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 978,
+                    "end": 982,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper, we present CodSeqGen, the first exact solution to produce synonymous coding sequences with the desired GC-contents accurately. The proposed method uses the backtracking approach which is smarter than an exhaustive search, where only promising candidate solutions are tracked instead of all possible combinations. The rest of the paper is divided as follows. Section 2 covers the implementation details of CodSeqGen. The results of testing our method on different set of proteins and comparison against NullSeq is in Section 3. The last section concludes the paper.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our proposed method utilizes the backtracking approach. Backtracking is more efficient than the exhaustive search when there is a very large search space where not all combinations of raw components are inspected. This technique is similar to tree depth-first search and depends on adding one component to the candidate solution at a time. Where, as soon as a violation for constraints is detected, the algorithm discards the current solution and backtracks to the parent to seek another candidate solution, see e.g., [11] . Since the reference amino acid sequence is long, it is infeasible to apply the backtracking approach directly. This is because a very large amount of memory will be required to generate the coding sequences. For tackling this problem, we devised a trick to permute the indices of the reference amino acid sequence. Thus, random sets are selected without interferences and backtracked to produce coding sequences with a random distribution for the GC-content over the whole sequence, Fig. 1 depicts our methodology.",
+            "cite_spans": [
+                {
+                    "start": 518,
+                    "end": 522,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1008,
+                    "end": 1014,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Methods"
+        },
+        {
+            "text": "Formally, let P refer to the reference amino acid sequence of length n, and P refer to the corresponding DNA coding sequence of length 3n. Assuming \u03c6 is the GC-content of P , then the problem is to generate a random set of synonymous coding sequences each of \u03c6 GC-content which in turn could be translated to P. Let \u03a6 be the set of indices of P, where \u03a6 = {0, 1, \u2026 , n \u2212 1}. By maintaining the set of indices, amino acids within the reference amino acid sequence can be accessed easily. According to the proposed methodology in Fig. 1 , \u03a6 is divided into smaller subsets each of size s, with the last subset being a fraction of s. Thus, the total number of subsets \u0393 = \u2308n/s\u2309. Each subset G i is constructed by randomly selecting n indices, where the subsets are disjoint. In other words, the constructed subsets must satisfy three conditions. First, the union of all constructed subsets equals \u03a6, which is the set of indices of reference amino acid sequence P (Eq. (1)). Second, the sum of all subsets' lengths equals the same as the length of P (Eq. (2)). And finally, the subsets are disjoint (Eq. (3)), Setting s = 10, means that an array of size 59,049 on average is required to hold the coding subsequences. The worst case is that when all the indices in the subset are pointing to Leucine, Serine, or Arginine. In this case, the search space will be large, 60,466,176 coding subsequences. But, with backtracking and GC-content constraint, this large search space will be pruned to about 100,000, which is feasible for memory limitations. With more complicated constraints such as nucleotide composition, this search space will be further pruned to about 10,000. Our algorithm reads amino acid sequence symbols one by one from left to right and is checked each time the amino acid is replaced with the corresponding codon synonyms and the GC-content constraint. If the total GC-content so far for subset G i is greater than C i and the end of sequence is not reached, the current path is discarded and the algorithm backtracks to find a more promising path. Fig. 2 illustrates the backtracking with a tree of height s + 1. The nodes at level 2 represent the codons of the first amino acid in the subset and the variable C i refers to the GC-content so far, where each node has its own C i that accumulates the GC-content of the path from the second level to the node. Algorithms 1 and 2 further elaborate our method. Note that the total GC-content of all subsets equal \u03c6.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 528,
+                    "end": 534,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 2063,
+                    "end": 2069,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Methods"
+        },
+        {
+            "text": "For lines 3-13 in Algorithm1, the GC-content is provided either by the input coding sequence that corresponds to the primary amino acid sequence or GC-content value in the interval (0,100). In the second case, initial coding sequence is created and adjusted to contain the desired GC-content.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "Unlike stochastic methods, CodSeqGen is easy to modify for accommodating more complicated constraints such as nucleotide composition and di-nucleotide profile by simply altering the GC-content constraint to a new constraint.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "We tested CodSeqGen on a set of proteins in various species: Human, Saccharomyces cerevisiae S288c, Bovine popular stomatitis virus, Zika virus, SARS coronavirus, and Hantavirus. Table 1 , lists these proteins with their NCBI accession numbers and their size, in term of the number of amino acids. For each protein, the GC-content is computed for the reference coding sequence. For instance, the reference coding sequence of human Titin protein has a GC-content of 44.04%, whereas Zika virus's reference coding sequence has 49.60%, and so on. In addition, we measured the possible range of the GC-content for each amino acid sequence. This range indicates the minimum and maximum amount of GC-content allowed to create coding sequences. As an example, the primary amino acid sequence of human Titin protein has the possible range 30.42-66.67% of GC-content. Therefore, it is infeasible to create coding sequences of GC-content less than 30.42% or over 66.67%.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 179,
+                    "end": 186,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Results and discussion"
+        },
+        {
+            "text": "We ran both tools, CodSeqGen and NullSeq [10] , to generate 1000 coding sequences given the primary amino acid sequence and the target GC-content of the reference coding sequence. Results in Table 2 show that CodSeqGen is more accurate in generating 1000 sequences with exactly the desired GC-content of the reference coding sequence, while NullSeq produced coding sequences that do not exactly match the targeted GC-content. For example, the coding sequences that are generated for Titin protein to match the GC-content of its reference coding sequence (DNA nucleotides) do not match the target GC-content of 44.04% but rather vary in range 43.54-44.68%. Scatter plots in Fig. 3 , and Fig. 4 for human Titin protein and Zika virus protein, clearly, show GC-contents of the 1000 generated random sequences by both tools. These figures evidently display that sequences generated by CodSeqGen tool fit with the GC-content constraint. All sequences have the precise GC-contents of 44.04% and 49.60%, as shown by the red vertical lines in Fig. 3 and Fig. 4 , respectively.",
+            "cite_spans": [
+                {
+                    "start": 41,
+                    "end": 45,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 191,
+                    "end": 198,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 673,
+                    "end": 679,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 686,
+                    "end": 692,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 1035,
+                    "end": 1041,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1046,
+                    "end": 1052,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results and discussion"
+        },
+        {
+            "text": "Since CodSeqGen tool generates random synonymous coding sequences having the exact GC-content, it is important to test how GCcontent is distributed over complete sequences. This was tested by dividing the complete sequence into subsets and then computing the GCcontents for all subsets. Thus, standard deviation (STD) and average (Avg) are computed for each generated sequence. Finally, a range is computed over 1000 random coding sequences. The same experiment was repeated for 1000 random coding sequences generated by NullSeq. Table 3 lists the ranges of STD and Avg for both tools over 1000 generated coding sequences in addition to the STD and Avg for the reference coding sequences. Since it is a single reference coding sequence for each protein, no ranges are shown. Smaller STD means that all subsets have similar GC-content and larger STD means that GC-content is non-uniformly distributed over subsets. Thus, larger STD and Avg ranges means that a diversity of random sequences are produced. Both tools generate sequences with a good STD and Avg ranges. However, random sequences by NullSeq originally have GC-content smaller or greater than targeted GC-contents which cause the ranges of STD and Avg for subsets GC-content to be a bit larger.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 530,
+                    "end": 537,
+                    "text": "Table 3",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Results and discussion"
+        },
+        {
+            "text": "Graphically, Figs. 5-6 depict GC-content distribution for subsets over five randomly selected sequences on Titin protein by CodSeqGen (Fig. 5) and NullSeq (Fig. 6) . As another example, Figs. 7-8 show As has been shown from results, CodSeqGen is a powerful tool to achieve the exact target GC-content with all generated synonymous coding sequences where GC-content is distributed more randomly over whole generated sequences. Moreover, our tool can be adjusted easily when we have more complicated constraints and it can be useful in generating random RNA structures with pre-specified constraints.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 134,
+                    "end": 142,
+                    "text": "(Fig. 5)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 155,
+                    "end": 163,
+                    "text": "(Fig. 6)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Results and discussion"
+        },
+        {
+            "text": "In this paper, we presented a tool called CodSeqGen. The proposed tool produces synonymous coding sequences following pre-specified amino acid sequence and desired GC-content. Our approach uses the backtracking technique to produce exact coding subsequences and these subsequences are aggregated to produce the desired synonymous coding sequences. The proposed tool will help researchers for identifying accurate protein-DNA binding sites and producing sequences with more complicated constraints. Table 2 The GC-content achieved by NullSeq [10] vs CodSeqGen (our approach) for 1000 generated synonymous coding sequences based on primary reference coding sequences. ",
+            "cite_spans": [
+                {
+                    "start": 541,
+                    "end": 545,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 498,
+                    "end": 505,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Conclusion"
+        },
+        {
+            "text": "CodSeqGen executable is available for free download at: https:// github.com/Abdulrakeeb/CodSeqGen",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Availability"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "GC-content evolution in bacterial genomes: the biased gene conversion hypothesis expands",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Lassalle",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "P\u00e9rian",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Bataillon",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Nesme",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Duret",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Daubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PLoS Genet",
+            "volume": "11",
+            "issn": "2",
+            "pages": "1--20",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Codon pair bias is a direct consequence of dinucleotide bias",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Kunec",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Osterrieder",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Cell Rep",
+            "volume": "14",
+            "issn": "1",
+            "pages": "55--67",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Codon influence on protein expression in E. coli correlates with mRNA levels",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Bo\u00ebl",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Letso",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Neely",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Price",
+                    "suffix": ""
+                },
+                {
+                    "first": "K.-H",
+                    "middle": [],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Su",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Luff",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Valecha",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Everett",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Acton",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Xiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Montelione",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Aalberts",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Hunt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Nature",
+            "volume": "529",
+            "issn": "7586",
+            "pages": "358--363",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Codon usage affects the structure and function of the drosophila circadian clock protein PERIOD",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Fu",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Murphy",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lam",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Tabuloc",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Chiu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Genes Dev",
+            "volume": "30",
+            "issn": "15",
+            "pages": "1761--1775",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "The sequence manipulation suite: JavaScript programs for analyzing and formatting protein and DNA sequences",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Stothard",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "BioTechniques",
+            "volume": "28",
+            "issn": "6",
+            "pages": "1102--1104",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "FaBox: an online toolbox for FASTA sequences",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Villesen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Mol. Ecol. Notes",
+            "volume": "7",
+            "issn": "6",
+            "pages": "965--968",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "GenRGenS: software for generating random genomic sequences and structures",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Ponty",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Termier",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Denise",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Bioinformatics",
+            "volume": "22",
+            "issn": "12",
+            "pages": "1534--1535",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "The 'effective number of codons' used in a gene",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Wright",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Gene",
+            "volume": "87",
+            "issn": "1",
+            "pages": "23--29",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Accounting for background nucleotide composition when measuring Codon usage bias",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Novembre",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Mol. Biol. Evol",
+            "volume": "19",
+            "issn": "8",
+            "pages": "1390--1394",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "NullSeq: a tool for generating random coding sequences with desired amino acid and GC contents",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hockenberry",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Lancichinetti",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jewett",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Amaral",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "PLoS Comput. Biol",
+            "volume": "12",
+            "issn": "11",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Introduction to the Design and Analysis of Algorithms",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Levitin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "https://doi.org/10.1016/j.ygeno.2019.02.002 Received 30 October 2018; Received in revised form 29 January 2019; Accepted 2 February 2019",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "The framework of our proposed method (CodSeqGen).A.M. Al-Ssulami et al.Genomics 112 (2020) 237-242",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Backtracking the coding subsequences for subset G i .A.M. Al-Ssulami et al. Genomics 112 (2020) 237-242 subsets' GC-content distribution on Zika virus by CodSeqGen and NullSeq, respectively. The Figures show that the produced sequences have different GC-content distributions over the whole sequences as the sizes of the four quartiles in box plots differ among the five sequences.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "The GC-contents of 1000 random coding sequences generated by NullSeq[10], and CodSeqGen on Titin Homo sapiens protein. All the random sequences generated by CodSeqGen fall exactly with the same GC-content of 44.04% (red vertical line). The distorted random sequences generated by NullSeq have GC-contents oscillate between 43.54% and 44.68% (scattered circles in blue). (For interpretation of the references to colour in this figure legend, the reader is referred to the web version of this article.) The GC-contents of 1000 random coding sequences generated by NullSeq and CodSeqGen on Zika virus protein. Again, all the random sequences generated by CodSeqGen fall with the same GC-content of 49.60% (vertical line), while NullSeq generated random sequences with GC-contents that oscillate between 46.10% and 53.97% (scattered circles).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Box plot indicates the GC-content distribution for 5 Titin synonymous coding sequences (Seq-1, \u2026, Seq-5) generated by CodSeqGen over subsets of size 1000 amino acids (aa) versus GC-content of the reference coding sequence (the leftmost box). In each box, the central line marks the median, while the bottom and top edges of the box indicate the 25th and 75th percentiles, respectively. The whiskers extend to the most extreme data points that are not considered outliers. The latter are marked using solid dots.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "The GC-content distribution for 5 Titin synonymous coding sequences (Seq-1, \u2026, Seq-5) generated by NullSeq[10] over subsets of size 1000 aa versus GC-content of the reference coding sequence.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "The GC-content distribution for 5 Saccharomyces cerevisiae synonymous coding sequences (Seq-1, \u2026, Seq-5) generated by CodSeqGen over subsets of size 100 aa versus GC-content of the reference coding sequence.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "The GC-content distribution for 5 Saccharomyces cerevisiae synonymous coding sequences (Seq-1, \u2026, Seq-5) generated by NullSeq over subsets of size 100 aa versus GC-content of the reference coding sequence.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "List of proteins in our experiment. The Size refers to that of protein in term of the number of amino acids (aa).",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Standard deviation (STD) and average (Avg) of GC-contents over subsets for 1000 randomly generated coding sequences using NullSeq and CodSeqGen. TheTable listsranges, minimum and maximum, of STD and Avg. The subset size is measured in term of the number of aa. The Ref. Seq. denotes the reference coding sequence.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors extend their appreciation to the Deanship of Scientific Research at King Saud University for funding this work through research group no. RG-1439-067.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

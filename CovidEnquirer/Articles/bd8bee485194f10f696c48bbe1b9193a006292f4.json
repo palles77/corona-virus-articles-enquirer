@@ -1,0 +1,2231 @@
+{
+    "paper_id": "bd8bee485194f10f696c48bbe1b9193a006292f4",
+    "metadata": {
+        "title": "Bahri), f.tabataba@ec.iut.ac.ir (F.S. Tabataba)",
+        "authors": [
+            {
+                "first": "Sayyed",
+                "middle": [
+                    "Rasoul"
+                ],
+                "last": "Mousavi",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Isfahan University of Technology",
+                    "location": {
+                        "postCode": "84156-83111",
+                        "settlement": "Isfahan",
+                        "country": "Iran"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Fateme",
+                "middle": [],
+                "last": "Bahri",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Isfahan University of Technology",
+                    "location": {
+                        "postCode": "84156-83111",
+                        "settlement": "Isfahan",
+                        "country": "Iran"
+                    }
+                },
+                "email": "f.bahri@ec.iut.ac.ir"
+            },
+            {
+                "first": "Farzaneh",
+                "middle": [],
+                "last": "Sadat Tabataba",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Isfahan University of Technology",
+                    "location": {
+                        "postCode": "84156-83111",
+                        "settlement": "Isfahan",
+                        "country": "Iran"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The Shortest Common Supersequence Problem asks to obtain a shortest string that is a supersequence of every member of a given set of strings. It has applications, among others, in data compression and oligonucleotide microarray production. The problem is NP-hard, and the existing exact solutions are impractical for large instances. In this paper, a new beam search algorithm is proposed for the problem, which employs a probabilistic heuristic and uses the dominance property to further prune the search space. The proposed algorithm is compared with three recent algorithms proposed for the problem on both random and biological sequences, outperforming them all by quickly providing solutions of higher average quality in all the experimental cases. The Java source and binary files of the proposed IBS_SCS algorithm and our implementation of the DR algorithm and all the random and real datasets used in this paper are freely available upon request.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "The Shortest Common Supersequence (SCS) problem asks to obtain a shortest string that is a supersequence of every member of a given set of strings. A supersequence of a given string is a string that can be obtained by inserting zero or more characters anywhere in the given string. Among various applications of this problem are data compression (Storer, 1988; Timkovskii, 1989) , AI planning (Foulser et al., 1992) , query optimization in databases (Chaudhuri and Bruno, 2008; Sellis, 1988) , and bioinformatics, particularly DNA oligonucleotide microarray production (Hubbell et al., 1996; Kasif et al., 2002; Ning et al., 2005; Rahmann, 2003; Sankoff and Kruskal, 1983) . Microarrays are precious tools successfully used, among others, in gene clustering and identification, SNP detection, and fusion transcript detection (Ning et al., 2005; Rahmann, 2003; Skotheim et al., 2009) . Two well-known types of microarrays are cDNA and oligonucleotide microarrays (Kasif et al., 2002; Ning et al., 2005) , the latter known to be of higher sensitivity due to its lower cross-hybridization possibility (Kasif et al., 2002; Ning et al., 2005) . Oligonucleotide microarrays are usually manufactured by the photolithographic method. This method involves several synthesis steps, each to append a same nucleotide, which corresponds to a letter in {A,T,C,G}, to several designated probes. Since the process is accomplished by means of light exposure, the other probes, which are not to receive the nucleotide, are protected by a mask. The sequence of the nucleotides used in the synthesis steps is called the deposition string, whose length determines the number of the synthesis steps. For several reasons, it is desirable to keep the deposition string as short as possible (Kasif et al., 2002; Ning et al., 2005; Rahmann, 2003) . First, the masks and the synthesis steps are expensive. Even a small reduction in the length of the deposition string could lead to a significant reduction in the production cost (Rahmann, 2003) . Second, the total manufacturing time is increased as the number of synthesis steps is raised. Third, there exist possibilities for errors in microarray fabrication, because the masking task is not perfect; the probability for a masked probe to be exposed to the light is nonzero. Consequently, the probability for fabrication errors is usually increased as the number of the synthesis steps is raised. Therefore, a shorter deposition sequence is desirable to reduce the manufacturing cost, time, and error. On the other hand, the deposition sequence is a common supersequence of the underlying probes. This motivates the design of high quality algorithms for the SCS problem. Fig. 1 illustrates how the use of a shorter deposition sequence can lead to fewer synthesis steps, hence reducing the production cost, time, and error.",
+            "cite_spans": [
+                {
+                    "start": 346,
+                    "end": 360,
+                    "text": "(Storer, 1988;",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 361,
+                    "end": 378,
+                    "text": "Timkovskii, 1989)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 393,
+                    "end": 415,
+                    "text": "(Foulser et al., 1992)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 450,
+                    "end": 477,
+                    "text": "(Chaudhuri and Bruno, 2008;",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 478,
+                    "end": 491,
+                    "text": "Sellis, 1988)",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 569,
+                    "end": 591,
+                    "text": "(Hubbell et al., 1996;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 592,
+                    "end": 611,
+                    "text": "Kasif et al., 2002;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 612,
+                    "end": 630,
+                    "text": "Ning et al., 2005;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 631,
+                    "end": 645,
+                    "text": "Rahmann, 2003;",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 646,
+                    "end": 672,
+                    "text": "Sankoff and Kruskal, 1983)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 825,
+                    "end": 844,
+                    "text": "(Ning et al., 2005;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 845,
+                    "end": 859,
+                    "text": "Rahmann, 2003;",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 860,
+                    "end": 882,
+                    "text": "Skotheim et al., 2009)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 962,
+                    "end": 982,
+                    "text": "(Kasif et al., 2002;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 983,
+                    "end": 1001,
+                    "text": "Ning et al., 2005)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1098,
+                    "end": 1118,
+                    "text": "(Kasif et al., 2002;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1119,
+                    "end": 1137,
+                    "text": "Ning et al., 2005)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1766,
+                    "end": 1786,
+                    "text": "(Kasif et al., 2002;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1787,
+                    "end": 1805,
+                    "text": "Ning et al., 2005;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1806,
+                    "end": 1820,
+                    "text": "Rahmann, 2003)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 2002,
+                    "end": 2017,
+                    "text": "(Rahmann, 2003)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 2696,
+                    "end": 2702,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "The SCS problem can be optimally solved in polynomial time for a fixed number of input strings, but it is NP-hard in general (Maier, 1978) . Consequently, it is highly unlikely to obtain a polynomial-time exact algorithm for the problem, unless P\u00bcNP (Garey and Johnson, 1979) . Exact algorithms proposed for the problem include a dynamic programming algorithm (Jiang and Li, 1995) and a branch and bound algorithm (Fraser, 1995) , which are both exponential, the former in the number of strings and the latter in the size of the corresponding alphabet. Therefore, these algorithms are especially beneficial when, respectively, the number of strings or the alphabet size is restricted. Other research has aimed at devising approximation and (meta) heuristic algorithms, which achieve 'good', but not necessarily optimal, solutions in acceptable time. Approximation algorithms for the SCS include Alphabet (Barone et al., 2001) , an approximate A n algorithm (Nicosia and Oriolo, 2003) , Reduce_Expand (Barone et al., 2001) , and Deposition and Reduction (DR) (Ning and Leong, 2006) . The approximation ratio of the algorithms Alphabet, Redu-ce_Expand, and DR is 9S9, which is not appealing. The algorithm DR is in fact a trivial combination of a heuristic mechanism with Alphabet, which, therefore, guarantees the approximation ratio of 9S9. The approximate A n algorithm provides a 1\u00fee approximation ratio, for any fixed e40, particularly e\u00bc0.2 in the experiments in Nicosia and Oriolo (2003) . However, the algorithm is not efficient (i.e. is not of polynomial time complexity) and the size of the search tree can grow exponentially with the size of the given problem instance.",
+            "cite_spans": [
+                {
+                    "start": 125,
+                    "end": 138,
+                    "text": "(Maier, 1978)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 250,
+                    "end": 275,
+                    "text": "(Garey and Johnson, 1979)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 360,
+                    "end": 380,
+                    "text": "(Jiang and Li, 1995)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 414,
+                    "end": 428,
+                    "text": "(Fraser, 1995)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 904,
+                    "end": 925,
+                    "text": "(Barone et al., 2001)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 957,
+                    "end": 983,
+                    "text": "(Nicosia and Oriolo, 2003)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1000,
+                    "end": 1021,
+                    "text": "(Barone et al., 2001)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1058,
+                    "end": 1080,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1467,
+                    "end": 1492,
+                    "text": "Nicosia and Oriolo (2003)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Among (meta) heuristic algorithms for the SCS are Tournament and Greedy (Irving and Fraser, 1993) , Majority Merge (Branke et al., 1998) , algorithms based on Genetic Algorithms (Branke and Middendorf, 1996; Branke et al., 1998) , Ant System and Ant Colony Optimization (Michel and Middendorf, 1998; Michel and Middendorf, 1999) , and Min_Height and Sum_Height (Kasif et al., 2002) ; the latter two specifically proposed for DNA sequences. More recent metaheuristic algorithms include a hybridization of Memetic Algorithms with Beam Search called Hybrid MA_BS , to which we simply refer as MA_BS, and a randomized Beam Search called Probabilistic Beam Search (PBS) (Blum et al., 2007) . Another recent algorithm POEMS, together with its variants POEMS_f and POEMS_fw, was also proposed in Kubalik (2010) . However, as reported in Kubalik (2010) , it was outperformed by MA_BS in all the experimental cases. Based on the results reported in Blum et al. (2007) , PBS outperforms MA_BS in most the experimental cases. On the other hand, DR outperforms Alphabet, Tournament, Greedy, and Majority merge in all the experimental cases as reported in Ning and Leong (2006) . DR also outperforms Reduce_Expand for strings of length 50-100 (Ning and Leong, 2006) . However, no comparison of DR and PBS has yet been made, leaving unclear which one is the state-of-the-art. The time complexity of DR, as specified in Ning and Leong (2006) , is O(9S9 3 nm 2 ), where 9S9, n and m are, respectively, the size of the alphabet, the number of strings and the maximum length of the strings. No complexity of PBS or Hybrid MA_BS was reported in their proposing papers Blum et al., 2007) .",
+            "cite_spans": [
+                {
+                    "start": 72,
+                    "end": 97,
+                    "text": "(Irving and Fraser, 1993)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 115,
+                    "end": 136,
+                    "text": "(Branke et al., 1998)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 178,
+                    "end": 207,
+                    "text": "(Branke and Middendorf, 1996;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 208,
+                    "end": 228,
+                    "text": "Branke et al., 1998)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 270,
+                    "end": 299,
+                    "text": "(Michel and Middendorf, 1998;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 300,
+                    "end": 328,
+                    "text": "Michel and Middendorf, 1999)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 361,
+                    "end": 381,
+                    "text": "(Kasif et al., 2002)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 665,
+                    "end": 684,
+                    "text": "(Blum et al., 2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 789,
+                    "end": 803,
+                    "text": "Kubalik (2010)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 830,
+                    "end": 844,
+                    "text": "Kubalik (2010)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 940,
+                    "end": 958,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1143,
+                    "end": 1164,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1230,
+                    "end": 1252,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1405,
+                    "end": 1426,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1649,
+                    "end": 1667,
+                    "text": "Blum et al., 2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper, we provide an improved beam search algorithm called IBS_SCS for the SCS problem, which, on average, outperforms all the three recent algorithms, namely DR, MA_BS, and PBS, in all experimental cases. A similar approach has been successfully used for the Longest Common Subsequence (LCS) problem in Mousavi and Tabataba (2012). The proposed IBS_SCS algorithm has been inspired by the Blum et al.'s PBS algorithm but has the following distinct characteristics. First, it employs a different probability-based heuristic function than the one used in PBS. Using dynamic programming and at polynomial time and space costs, an array of probabilistic values is populated to facilitate the calculation of the heuristic values. Second, we use a technique called domination to further prune the search tree. The domination pruning technique has been inspired by Easton and Singireddy (2007) and Blum et al., (2009) used for the purpose of the LCS problem. However, our usage of this technique is different from those in Easton and Singireddy (2007) and Blum et al. (2009)) . To be precise, in Blum et al. (2009) , a candidate solution is checked for being dominated by every existing candidate solution, which is rather time-consuming. On the other hand, in Easton and Singireddy (2007) , only the 'best-so-far' solution is used as the potential dominator for a new candidate solution. In our algorithm, we use the k best-so-far solutions for this purpose, where k is a control parameter in the algorithm. This approach gives us a control to achieve a good amount of pruning in reasonable time. Finally, given the same beam size, PBS does more work than IBS_SCS, which implies that IBS_SCS can benefit from a larger beam size than that of PBS, given the same amount of execution time. The IBS_SCS algorithm outperforms PBS in all the experimental cases, as reported in this paper. It also outperforms MA_BS by providing solutions of the same or higher (average) quality in all the experimental cases, including the cases where PBS was outperformed by MA_BS as reported in Blum et al. (2007) .",
+            "cite_spans": [
+                {
+                    "start": 866,
+                    "end": 894,
+                    "text": "Easton and Singireddy (2007)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 899,
+                    "end": 918,
+                    "text": "Blum et al., (2009)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1024,
+                    "end": 1052,
+                    "text": "Easton and Singireddy (2007)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1057,
+                    "end": 1076,
+                    "text": "Blum et al. (2009))",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1097,
+                    "end": 1115,
+                    "text": "Blum et al. (2009)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1262,
+                    "end": 1290,
+                    "text": "Easton and Singireddy (2007)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 2076,
+                    "end": 2094,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Finally, IBS_SCS outperforms DR in all the experimental cases, which were set up based on the experiments conducted in Ning and Leong (2006) . The DR algorithm consists of two stages called deposition and reduction. In the deposition stage, a number of candidate supersequences are created, which are then (tried to be) improved in the reduction stage. It uses Alphabet and a variant of Majority Merge in the deposition stage to generate the candidate supersequence. In fact, the use of Alphabet makes DR to be an approximation algorithm, which guarantees an approximation ratio of 9 P 9. The DR algorithm is not deterministic only because of using a random tie braking; the rest of the logic is deterministic.",
+            "cite_spans": [
+                {
+                    "start": 119,
+                    "end": 140,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The proposed algorithm IBS_SCS is scalable. Its time complexity is polynomial in input size, and its computational cost can be arbitrarily reduced by reducing the beam size. The heuristic function used in the algorithm to evaluate candidate solutions does not suffer from the scalability issue of the heuristic proposed in Mousavi and Tabataba (2012) as an estimation mechanism is used for long strings. While the algorithm is significantly faster than other recent algorithm for the SCS, it yields superior solution quality in most of the cases. Because the proposed algorithm is scalable and sufficiently fast compared to other recent algorithms for the SCS, the main concentration of the reported experimental results is on the solution quality, i.e. on the length of the returned supersequences.",
+            "cite_spans": [
+                {
+                    "start": 323,
+                    "end": 350,
+                    "text": "Mousavi and Tabataba (2012)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The rest of the paper is organized as follows. Section 2.1 provides the basic notations and definitions used in the paper. In Section 2.2, we describe how candidate solutions are evaluated and compared using the employed heuristic function. The proposed algorithm, together with its complexity analysis, is presented in Section 2.3. Section 3 reports the experimental results, and Section 4 concludes the paper.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Let s be a string of length m. We denote the length of s by 9s9. We use s[k], where k is an integer between 1 and m inclusive, to denote the kth character of s. We also use s[k 1 ..k 2 ], where 1rk 1 rk 2 r9s9, to indicate the substring of s obtained by removing its first k 1 \u00c0 1 characters and its last 9s9 \u00c0 k 2 characters. Let s 1 and s 2 be two strings, A 1 \u00bc fi9i A N \u00fe ,ir 9s 1 9g and A 2 \u00bc fi9i A N \u00fe ,i r 9s 2 9g, where N \u00fe is the set of integers greater than zero.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Basic notations and definitions"
+        },
+        {
+            "text": "We say that s 2 is a supersequence of s 1 , and write s 1 !s 2 , if there exists a monotone increasing total function g from A 1 to A 2 such that s 1 \u00bdk \u00bc s 2 \u00bdg\u00f0k\u00de,8kA A 1 . We call such a function g a map of s 1 to s 2 . Note that such a map is not necessarily unique. Every string is considered to be a supersequence of the null string, i.e. the string of zero length. Finally, we say that s 1 is a subsequence of s 2 if s 2 is a supersequence of s 1 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Basic notations and definitions"
+        },
+        {
+            "text": "Let x be a string and S\u00bc{s 1 , y, s n } be a nonempty set of n strings over the alphabet S. We write S!x if 8s i A S,s i !x. The Shortest",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Basic notations and definitions"
+        },
+        {
+            "text": "Common Supersequence (SCS) problem is then defined, given an input set S of strings, as to obtain a string x of the minimum length such that S!x. By an input string, we mean a string in S. Since the SCS can be efficiently solved for n\u00bc2, we assume n42. We use m i to mean 9s i 9 and assume m i 4 0,8iA f1,:::,ng. We use m to denote",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Basic notations and definitions"
+        },
+        {
+            "text": "Max i A f1,:::,ng fm i g. A candidate solution is a string over S. We use (possibly indexed) x to denote a candidate solution. A candidate solution x is called feasible if S!x; it is otherwise called infeasible. A feasible candidate solution x is optimal if no feasible solution of a shorter length exists. Let x be a candidate solution. We use p i (x) to denote the maximum possible integer k such that s i [1..k]!x. By r i (x), we mean the string obtained by deleting the first p i (x) characters from s i (see Fig. 2 ), and R(x) is defined as the set (r i (x), i\u00bc1, y, n). By a random string, we mean a string each character of which is obtained by selecting uniformly at random one of the characters in S. Finally, we use pr(.) to denote the statistical probability function. Although there are two types of beam search, namely constructive and perturbative (local search), we use beam search in this paper to refer to the former.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 513,
+                    "end": 519,
+                    "text": "Fig. 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Basic notations and definitions"
+        },
+        {
+            "text": "In this section, we explain how candidate solutions are evaluated and compared. The method used here to evaluate candidate solutions is adapted from Mousavi and Tabataba (2012) where a similar problem, the LCS, was addressed. To evaluate a candidate solution x, we use the probability of R(x)!y, where y is a random string and the strings in R(x) are assumed to be independent in the sense that Pr\u00f0r i \u00f0x\u00de!y\u00de \u00bc Pr\u00f0r i \u00f0x\u00de!y9r j \u00f0x\u00de!y\u00de,8i,j A f1,. . .,ng,i a j. Our intuition for this heuristic function is that a candidate solution x 1 is likely to be superior to another candidate solution x 2 (of the same length) if, given a random string y of length k, x 1 .y is more likely than x 2 .y to be a common supersequence of the input strings, where x i .y, i\u00bc 1 or 2, indicates the string obtained by appending y at the end of x i . Of course, the probability of R(x)!y depends on the candidate solution x. In the extreme case where x is a supersequence of all the input strings, i.e., when S!x, this probability is 1 because R(x) would only include null strings. Fig.2 . The values p i (x) and the strings r i (x), i\u00bc 1,2,3, are illustrated for three input strings s 1 , s 2 , and s 3 , and a candidate (infeasible) solution x\u00bc CATA.",
+            "cite_spans": [
+                {
+                    "start": 149,
+                    "end": 176,
+                    "text": "Mousavi and Tabataba (2012)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1063,
+                    "end": 1068,
+                    "text": "Fig.2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "In another extreme, where x is the null string, it become the probability of a random string being a supersequence of the input strings. As a rule of thumb, a higher value of Pr(R(x)!y) is expected for a longer random string y, although this does not necessarily hold. We use h k (x) to denote the heuristic value of a candidate solution x. we have used the subscript k to emphasis the dependency of heuristic values on the length k of the random string y. Of course, if k is less than the length of the longest string in R(x), the heuristic value, i.e. the probability of R(x)!y, will be zero. For a fair comparison of candidate solutions, we use the same value of k when evaluating the candidate solutions that are to be compared. A formula used to determine k is presented further in this section. We now show how to calculate heuristic values.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "Theorem 1. Let r be a string of length q and y be a random string of length k. Then:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "Proof. First note that in the third case (the otherwise case), 0 oqrk, and the strings r[2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": ".q] and y[2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": ".k] are well-defined. By the definition of supersequence, every string is a supersequence of the null string and a string cannot be a supersequence of a longer one. Therefore, the first two cases of q\u00bc0 and q4k hold trivially. In the remaining case, because 0 oqrk, the strings r and y are of at least length 1 and both r[1] and y[1] exist. Depending on whether or not the characters r[1] and y[1] are equal, exactly one of the following two cases holds:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "In this case, we will prove that r!y3 r[2..q]!y[2..k]. To than end, we will use the following property, to which we refer as the concatenation property: 8s 1 ,8s 2 ,8s 3 , 8s 4 ,\u00f0s 1 !s 2 \u00de4\u00f0s 3 !s 4 \u00de3s 1 :s 2 !s 3 :s 4 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "The ''if'' direction. We assume r[2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": ".q]!y[2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": ".k] and show r!y:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "r\u00bd2::q!y\u00bd2::q ) r\u00bd1:r\u00bd2::q!y\u00bd1:y\u00bd2::q\u00f0by the concatenation property\u00de ) r\u00bd1::q!y\u00bd1::q ) r!y",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "The ''only if'' direction. We now assume r!y and show r[2..q]!y[2..k]. Because r!y, there is, by the definition of supersequence, a total monotone increasing function g(.) from A 1 \u00bc{1, y, q} to A 2 \u00bc{1, y, k} such that r[i]\u00bcy[g(i)], 8i \u00bc 1,:::,q. There are two possible cases: either g(1)\u00bc1 or g(1) 41. In either case, g(i)41,8i \u00bc 2,:::,q (note that g(.) is monotone increasing). Now let g 0 (.) be a total function from {1,y,q\u00c0 1} to {1,y,k \u00c0 1} defined as g 0 (i)\u00bcg(i\u00fe 1) \u00c01, 8i \u00bc 1,:::,q\u00c01. Of course, g 0 (.) is also monotone increasing. Let r 0 and y 0 denote, respectively, r[2..q] and y[2..k]. Then, we will have r 0 [i] \u00bcr[i\u00fe1], 8i \u00bc 1,:::,q\u00c01, and y 0 [i]\u00bcy[i\u00fe 1], 8i \u00bc 1,:::,k\u00c01. Therefore, 8i \u00bc 1,:::,q\u00c01,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "\u00bc r\u00bdi \u00fe 1 \u00f0because y is a supersequence of r using the mapping g\u00f0:\u00de\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "This means y 0 is a supersequence of r 0 using the mapping g 0 (. The ''if'' direction. We assume r!y[2yq] and show r!y: r!y\u00bd2::q ) e:r!y\u00bd1:y\u00bd2::q \u00f0because e!y \u00bd1 and by the concatenation property\u00de ) r!y\u00bd1::q ) r!y",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "The ''only-if'' direction. We assume r!y and show r!y[2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": ".q]. Because r!y, there is a total monotone increasing function g(.) from A 1 \u00bc{1,y,q} to A 2 \u00bc{1,y,k} such that r[i] \u00bcy[g(i)], 8i \u00bc 1,:::,q. However, g(1) a1 because r[1]ay[1]. Therefore, g(i)41,8i \u00bc 1,:::,q (note that g(.) is monotone increasing). Now let g 0 (.) be a total function from {1,y, q} to {1,y, k\u00c0 1} defined as g 0 (i)\u00bcg(i) -1, 8i \u00bc 1,:::,q. Of course, g 0 (.) is also monotone increasing. Let y 0 denote y[2..k]. Then, we will have y 0 [i]\u00bcy[i\u00fe1], 8i \u00bc 1,:::,k\u00c01. Therefore, 8i \u00bc 1,:::,q, y 0 \u00bdg 0 \u00f0i\u00de \u00bc y\u00bdg 0 \u00f0i\u00de\u00fe1 \u00bc y\u00bdg\u00f0i\u00de21 \u00fe 1 \u00f0by the definition of g 0 \u00f0:\u00de\u00de \u00bc y\u00bdg\u00f0i\u00de \u00bc r\u00bdi \u00f0because y is a supersequence of r using the mapping g\u00f0:\u00de\u00de This means y 0 is a supersequence of r using the mapping g 0 (.). That is, r!y[2..k].",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "We have so far shown that in",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "On the other hand, y is a random string based on the uniform probability distribution and the probability for case (i) is 1/9S9. Consequently, the probability for case (ii) is 1\u00c0 1/9S9 \u00bc(9S9 \u00c01)/9S9. Therefore,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "Proposition. Given a candidate solution x and a positive integer k, the heuristic value for a candidate solution x is calculated as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "where y is a random string of length k.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "Proof. By the definition of the heuristic function, we have h k (x)\u00bcPr(R(x)!y), where y is a random string of length k, and it is assumed Pr\u00f0r i \u00f0x\u00de!y\u00de \u00bc Pr\u00f0r i \u00f0x\u00de!y9r j \u00f0x\u00de!y\u00de,8i,j A f1,. . .,ng,i aj. Therefore,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "Let C be a set of candidate solutions that are to be compared. Then, we use the formula Max i A f1,:::,ng",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "x A C fr i \u00f0x\u00deg \u00c2 lg9S9to determine the value for k. We have used the fact that a greater alphabet size and longer strings in R(x) usually correspond to a longer supersequence of them. However, how to determine the best value for k requires further investigation and remains as an open question.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation of candidate solutions"
+        },
+        {
+            "text": "In this section the proposed algorithm IBS_SCS is proposed, which is a constructive beam search metaheuristic algorithm. The standard beam search algorithm is a deterministic heuristic tree search. It is similar to the breadth-first search in the sense that it incrementally constructs partial solutions and explores the search tree one level at a time. However, contrary to breadth-first search, it does not keep all the candidate solutions. The maximum number of candidate solutions to keep is called beam size, which we denote as b. Informally speaking, in the extreme case where the beam size is sufficiently large, the algorithm will act as the breadth-first search. Another extreme case is when the beam size is only 1, in which case it will act as a purely greedy algorithm. The beam search algorithm is also similar to the best-first search in the sense that it also uses a heuristic function to evaluate and compare candidate solutions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Finally, there exists a scalability issue with the described heuristic function for large problem instances. To be precise, the probability Pr(r!y) decreases rapidly as the length of r becomes close to the length of y, especially when r and y are long strings. To overcome this issue, we estimate P(q,k) with P(q \u00c0 cut, k\u00c0 cut), where cut is dynamically determined in such a way that q \u00c0 cut is positive and is either less than or as close as possible to 100. This approximation overcomes the scalability issue of the heuristic function and makes the algorithm sufficiently robust for long biological sequences.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Algorithm 1 presents a high-level pseudo-code of our proposed IBS_SCS algorithm for the SCS. As a beam search, the algorithm starts with an initially-singleton (the null string) set B of candidate solutions and incrementally builds longer ones by appending to them alphabet characters from the alphabet S, until a feasible candidate solution is obtained; the feasible solution is then returned and the algorithm terminates. However, (at most) b best candidate solutions are kept, using a heuristic function, and the others are eliminated.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "The algorithm consists of an initialization section followed by a while loop, which consists of four steps. In the initialization section, the algorithm constructs an efficient data structure to speed up the calculation of heuristic values. The core idea behind using this data structure is the property of the heuristic function h k (.), described in the previous section, that, given an alphabet S, a string r of length q and a random string y of length k, both over S, the probability of r!y is only dependent on q and k (see Theorem 1). Therefore, we construct a two-dimensional array P such that P[q][k] holds the probability Pr(r!y). Using dynamic programming, and based on Theorem 1, the array P is populated by the following recurrence:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "In the initialization section, the set B of candidate solutions is also initialized to a singleton containing the null string only. Having completed the initialization section, the while loop is run, which consists of four steps. In Step 1, each candidate solution x in B is extended by appending at its right end a character drawn from S, so obtaining 9S9 new candidate solutions. The algorithm ends as soon as a feasible solution, determined using the function feasible(.), is obtained. Every (infeasible) candidate solution is added to a set C, provided that it is 'usable'. More specifically, a candidate solution x new obtained by appending a character l to a string x is called usable if the first character of at least one of the strings r i (x), i\u00bc1, y, n, is l. This is checked by the function usable(.) in the algorithm. Therefore, the set C contains at most b \u00c2 9S9 (infeasible yet usable) candidate solutions. In Step 2, the heuristic values of the candidate solutions in C are computed, based on which the k best candidate solutions comprise a list k_Best_List of potential dominators to be used for dominance pruning. That is, in Step 3, each member of C is checked against the designated best solutions to decide whether it is dominated by any of them, in which case it is discarded from C. A candidate solution x k is dominated by another candidate solution x j if p i \u00f0x k \u00de r p i \u00f0x j \u00de,8i \u00bc 1,:::,n. Finally, in Step 4, the (remaining) candidate solutions in C are compared and the best b of them are selected to construct the new set B of candidate solutions. The proposed algorithm runs in polynomial time in its input size (n, m, and 9S9) and the values of the parameters b and k.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Algorithm 1: The basic IBS_SCS algorithm for the SCS problem Input: S\u00bc{s 1 ,s 2 ,y,s n }, each s i is a string of at least one character the alphabet of characters used in any of the strings is denoted by S Output: a string x such that S! Proof. In the initialization section before the While loop, the two-dimensional array P is populated using dynamic programming. The value of each entry is determined in Y(1), in terms of two entries in its previous rows and columns. As can be seen, there are two nested loops and it takes Y(m \u00c2 M) to populate the array. Because M is the maximum value used for k, and that we have used the formula k \u00bc Max i A f1,:::,ng",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "x A C fr i \u00f0x\u00deg \u00c2 lg9S9 to determine the values of k (see Step 2 inside the While loop), M \u00bc m \u00c2 lg9S9. Therefore, the array P is populated in",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "There are four Steps inside the While loop, which we analyze in turn.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Step 1 consists of two nested For loops, one iterating O(b) times and the other iterating 9S9 times. Inside these loops, a feasibility check (using the function feasible(.)) and a usability check (using the function usable(.)) are performed. The feasibility check involves checking whether a given candidate solution, here x new , is a supersequence of the input strings. If we keep n indices of p i (x) associated with each candidate solution x in B, then we only need to update these indices for x new and check whether p i (x new )\u00bcm i , 8i\u00bc1,y,n (recall that m i \u00bc9s i 9), which are performed in Y(n). The usability check returns true if, and only if, p i (x new )\u00bcp i (x)\u00fe1, (i\u00bc 1,y,n, which is also performed in Y(n). Therefore, Step 1 is run in O(b9S9n).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Step 2 determines the heuristic values for all candidate solutions in C, the number of which is O(b9S9). For each candidate solution x in C, the For loop iterates n times. Because of using the array P, each probability value (i.e., (r i (x)!y)) is determined in Y(1) inside the For loop, which are all multiplied together, making the heuristic value h k (x) for the candidate solution x. Therefore, Step 2 requires O(b9S9n) (which is the same as that of",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Step 1).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Step 3 first determines the k best solutions in C (stored in the k_Best_List) and then examines each member of C against the designated best solutions for dominance pruning. Recall that there are at most b \u00c2 9S9 candidate solutions in C. Therefore, to determine the k_Best_List can be performed in O(kb9S9). To check whether a candidate solution in C is dominated by a member of k_Best_List is performed in O(n); hence all the dominance checks are performed in O(b9S9kn). Therefore, the total complexity of Step 3 is O(b9S9kn).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The IBS_SCS algorithm"
+        },
+        {
+            "text": "Step 4 selects the best (at-most) b members of C to construct the new B, which can also be performed in O(b9S9lg(b9S9)) using red-black trees. 1 Therefore, Steps 1-4 inside the while loop are performed in O(b9S9n\u00fe b9S9n\u00feb9S9kn\u00feb9S9lg(b9S9)). Because the initialization section is run in Y(m 2 lg9S9) and the While loop iterates L n times, the whole algorithm is run in O(m 2 lg9S9\u00fe L n (b9S9kn \u00fe b9S9lg(b9S9)), which completes the proof. & Note that the time complexity of the algorithm is polynomial in the input size (n, m, and 9S9). Also note that L n \u00bcO(nm) (recall that m is the length of the longest input string), because, informally speaking-each character of a candidate solution must contribute to covering a character of at least one input string and there are at most a total of n \u00c2 m such characters. Therefore, the time complexity of the algorithm may also be presented as O(m 2 lg9S9\u00fe n 2 mb9S9k\u00fenmb9S9lg(b9S9), although this does not provide a tight bound.",
+            "cite_spans": [
+                {
+                    "start": 143,
+                    "end": 144,
+                    "text": "1",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Finally,"
+        },
+        {
+            "text": "How to determine the appropriate values for the parameters k and b depends on the underlying problem. In particular, a larger beam size b usually, but not necessarily, corresponds to a more accurate solution at a greater computational cost. However, if the solution quality using a specific beam size is near the optimal value, there will be not much point further increasing the beam size. On the other hand, using a ''too small'' beam size may adversely affect the solution quality. In fact, it depends on the underlying problem instance and such factors as what level of accuracy is required and how much run-time is affordable. Similarly, there is no strict rule for determining the best value for k. A larger k corresponds to a more computational time spent for dominance pruning. However, the pruning can lead to the reduction of computational cost that would otherwise be required for processing the pruned sub trees.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Finally,"
+        },
+        {
+            "text": "In this section, we report the results of comparing our proposed algorithm with DR (Ning and Leong, 2006) , MA_BS , and PBS (Blum et al., 2007) , as three recent algorithms proposed for the SCS problem. Although there are other algorithms proposed in the literature as mentioned earlier in this paper, we do not compare our algorithm with them, because the most significant of them have already been shown to be outperformed by these three recent algorithms as reported in Ning and Leong (2006) , Gallardo et al. (2007) , and Blum et al. (2007) .",
+            "cite_spans": [
+                {
+                    "start": 83,
+                    "end": 105,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 124,
+                    "end": 143,
+                    "text": "(Blum et al., 2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 473,
+                    "end": 494,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 497,
+                    "end": 519,
+                    "text": "Gallardo et al. (2007)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 526,
+                    "end": 544,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "The implementations of DR, MA_BS, and PBS were not available. The whole datasets used in Gallardo et al. (2007) and Blum et al. (2007) were available, and we used the reported results in Gallardo et al. (2007) , and (Blum et al., 2007) to compare our algorithms with MA_BS and PBS. However, only real instances used in (Ning and Leong, 2006) were available (http://www.biomedcentral.com/ content/supplementary/1471-2105-7-S4-S12-S1.zip; http://www. biomedcentral.com/content/supplementary/1471-2105-7-S4-S12-S2. zip). For random instances, we used their random instance generator (http://www-personal.umich.edu/$kning/random.html), and to compare IBS_SCS with DR on random instances, we implemented DR, precisely based on its specifications in (Ning and Leong, 2006) . We implemented DR and IBS_SCS in Java using the Eclipse Platform on a Pentium IV machine with 2.4 GHz clock speed, 2 GB of RAM, and 2 MB of L2 cache. We allowed Java to use (at most) 1 GB of RAM.",
+            "cite_spans": [
+                {
+                    "start": 89,
+                    "end": 111,
+                    "text": "Gallardo et al. (2007)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 116,
+                    "end": 134,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 187,
+                    "end": 209,
+                    "text": "Gallardo et al. (2007)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 216,
+                    "end": 235,
+                    "text": "(Blum et al., 2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 319,
+                    "end": 341,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 744,
+                    "end": 766,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "In order to compare IBS_SCS with DR, the random instances were generated with exactly the same values for the parameters n, m, and 9S9 as used in (Ning and Leong, 2006) . There are altogether sixteen problem instances; the first eight, which are of relatively smaller numbers and lengths of strings, correspond to those in Table 4 and the other eight correspond to those in Table 1 of Ning and Leong (2006) . The real instances are the DNA/ protein instances used, respectively, in Tables 3 and 5 of (Ning and Leong, 2006) . There are altogether 11 datasets, the first six for DNA and the other five for protein sequences, and each datasets includes ten instances. It is important to note that in some of the sequences in the real data, there were characters such as noutside the underlying alphabet. Such characters were randomly replaced with one of their candidate characters. We ran IBS_SCS with the parameters b\u00bc100 and k\u00bc7. We ran our implementation of DR on the random instances but used the reported results in Ning and Leong (2006) for real instances. Table 1 provides the comparison of IBS_SCS with DR on random DNA sequences. The first and the second columns show, respectively, the number and the length of the sequences in each problem instance. Each row of the table corresponds to ten problem instances of the specified n and m. The third and the fourth columns report the average length of the string returned by DR and IBS_SCS, respectively, over the ten instances of each row. The fifth column reports the average run-time of IBS_SCS, including the time needed to read in the data files. Finally, the last column calculates the (average) reduction percentage r% in the length of the string by IBS_SCS, defined as r%\u00bc(L DR \u00c0 L IBS_SCS )/ L DR \u00c2 100, where L DR and L IBS_SCS denote the average lengths of the strings returned by DR and IBS_SCS, respectively.",
+            "cite_spans": [
+                {
+                    "start": 146,
+                    "end": 168,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 385,
+                    "end": 406,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 500,
+                    "end": 522,
+                    "text": "(Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1019,
+                    "end": 1040,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 323,
+                    "end": 330,
+                    "text": "Table 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 374,
+                    "end": 381,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 482,
+                    "end": 496,
+                    "text": "Tables 3 and 5",
+                    "ref_id": "TABREF7"
+                },
+                {
+                    "start": 1061,
+                    "end": 1068,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "As can be seen in Table 1 , IBS_SCS outperforms DR by achieving shorter strings in all the sixteen cases. The reduction percentage r% varies from 0.21 (for the case n \u00bc5000 and m\u00bc100) to 7.18 (for the case n \u00bc10 and m \u00bc100), with an average of 2.95 (not shown in the table). No complete run-time report was provided in Ning and Leong (2006) ; it was only mentioned that DR took less than 10 s for the random instance (n \u00bc100, m\u00bc100) and an average of 5-10 min for the random instance (n \u00bc1000, m\u00bc1000). The run-time of our (efficient) implementation of DR observed for these two cases are 20 s and 18091 s (about 30 min), respectively. However, the run-times of IBS_SCS for the corresponding instances are 1 s and 81 s (less than two minutes). This suggests that IBS_SCS should be significantly faster than DR. It is important to note the DR was observed to take more than 27 h for the last instance (n \u00bc5000, m\u00bc1000), for which no run-time was reported in Ning and Leong (2006) . The time taken by IBS_SCS for that instance was 469 s (less than 8 min). Fig. 3 depicts the growth of run-time for both our implemented DR and IBS_SCS with the number of strings n for a fixed sequence length of m\u00bc100 (our implemented DR and IBS_SCS algorithms are available on request). Table 2 provides the comparison of IBS_SCS with DR on real biological sequences. The first column in this table represents the dataset name. The definitions for the second to the seventh columns are as those for the first to the sixth columns of Table 1 . As indicated by Table 2 , IBS_SCS outperforms DR by obtaining shorter strings in all the eleven cases. The reduction percentage r% ranges from 2.93 (for DNA-6) to 9.72 (for PROT-1 and PROT-4), with an average of 5.98 (not shown in the table). Again IBS_SCS was observed to be significantly faster than DR. An interesting observation is that the reduction percentage gained by IBS_SCS is significantly higher for real than random biological sequences. The minimum r% for real instances is, as already-mentioned, 2.93, which is about the average r% (2.95) for random instances. This indicates that IBS_SCS is promising for practical use and further research for this purpose.",
+            "cite_spans": [
+                {
+                    "start": 319,
+                    "end": 340,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 957,
+                    "end": 978,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 18,
+                    "end": 25,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1054,
+                    "end": 1060,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1268,
+                    "end": 1275,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 1514,
+                    "end": 1521,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1540,
+                    "end": 1547,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "To compare our algorithm with PBS and MA_BS, we used the same random and real instances as used in Blum et al. (2007) .The datasets consist of one random and five biological benchmarks. The random datasets are categorized into 5 classes, each of which is specified with a different alphabet size, namely 2, 4, 8, 16, and Table 1 Comparison of IBS_SCS with DR on random DNA datasets (hence 9S9 \u00bc4). Each row corresponds to a dataset of ten random problem instances, and the average length of the solutions is reported for each algorithm. IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The run-time (in seconds) of IBS_SCS and the improvement percentage (r%) are also reported (the last two columns). The improvement percentage, obtained by IBS_SCS, is defined as the reduction percentage in the average length of the solution. There are a total of sixteen datasets. The first eight, which contain relatively small instances, are of the same specifications (i.e., the same number n and length m of strings) as those in Table 4 ( Ning and Leong, 2006) . The other eight datasets are of the same specifications as those in Table 1 of Ning and Leong (2006) . As can be seen, IBS_SCS outperforms DR by providing solutions of higher quality (i.e. with shorter lengths) in all the sixteen cases. Table 1 , where m\u00bc100. For these datasets, 9S9 \u00bc4, and the number of strings n are 5, 10, 50, 100, 500, 1000, and 5000. IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. Table 2 Comparison of IBS_SCS with DR on real DNA and protein sequences (9S9\u00bc 4 for DNA instances, and 9S9\u00bc 20 for protein instances). The datasets are those used in Tables 3 and 5 in Ning and Leong (2006) , whose names are specified in the first column. Each row corresponds to ten instances, and the average length of the solutions returned by each algorithm is reported. IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The run-time (in seconds) of IBS_SCS and the improvement percentage (r%) are also reported. The improvement percentage is defined as the reduction percentage in the average length of the solutions, obtained by IBS_SCS. There are a total of 11 datasets, the first six for DNAs and the other for protein sequences. The results for DR are directly taken from Tables 3 and 5 in Ning and Leong (2006) . As can be seen, IBS_SCS outperforms DR by obtaining higher quality solutions in all the eleven cases. 24. Each class contains five instances, and each instance consists of eight strings, four of length 40 and the other four of length 80. On the other hand, each biological instance is characterized by a biological sequence s and a probability p. More specifically, the strings within each instance are obtained from the same biological sequence s by removing each of its symbols with a fixed probability p. The number of the strings in each instance is 10. Five biological sequences each with three probabilities of 0.1, 0.15, and 0.20 have been used to construct a total of 15 instances. The five biological sequences are two SARS Coronavirus DNA sequences obtained from a genomic database (http:// gel.ym.edu.tw/sars/genomes.html) and three protein sequences obtained from Swiss-Prot (http://www.expasy.org/sprot). The DNA sequences are of the lengths 158 and 1269, and the protein sequences are Oxytocin, p53 and Estrogen, which are of the lengths 125, 393, and 595, respectively. The lengths of the optimal SCSs for these instances are, respectively, 158, 1269, 125, 393, and 595 (Blum et al., 2007) .",
+            "cite_spans": [
+                {
+                    "start": 99,
+                    "end": 117,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1031,
+                    "end": 1052,
+                    "text": "Ning and Leong, 2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1134,
+                    "end": 1155,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1647,
+                    "end": 1668,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 2262,
+                    "end": 2283,
+                    "text": "Ning and Leong (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 3471,
+                    "end": 3490,
+                    "text": "(Blum et al., 2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 321,
+                    "end": 328,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1021,
+                    "end": 1028,
+                    "text": "Table 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 1123,
+                    "end": 1130,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1292,
+                    "end": 1299,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1463,
+                    "end": 1470,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 1629,
+                    "end": 1643,
+                    "text": "Tables 3 and 5",
+                    "ref_id": "TABREF7"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "For MA_BS and PBS, we used the reported results in (Blum et al., 2007) . Contrary to IBS_SCS, MA_BS and PBS are not deterministic; they were run more than once in Blum et al. (2007) , and the best, the mean, and the standard deviation of their solution quality and run-time were reported. However, we ran only IBS_SCS once on each instance. We used k\u00bc7 and b\u00bc700 for random and b\u00bc100 for real instances. Table 3 compares IBS_SCS with MA_BS and PBS on the random datasets. The first column shows the alphabet size. The second and the third columns show the length of the solutions returned by MA_BS and PBS, respectively. The fourth column reports the length of the solutions returned by IBS_SCS. The fifth column reports the average run-time of IBS_SCS. Finally, the last column calculates the reduction percentage r% achieved by IBS_SCS with respect to PBS (which is almost superior to MA_BS), defined as r%\u00bc(L PBS \u00c0L IBS_SCS )/L PBS \u00c2 100, where L PBS and L IBS_SCS denote the (average) length of the solutions returned by PBS and IBS_SCS, respectively.",
+            "cite_spans": [
+                {
+                    "start": 51,
+                    "end": 70,
+                    "text": "(Blum et al., 2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 163,
+                    "end": 181,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 404,
+                    "end": 411,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "As can be seen in Table 3 , in all the five cases, IBS_SCS outperforms MA_BS and PBS, even with respect to their best runs. We do not intend to provide a precise run-time comparison, because of using different machines. However, it can be inferred that IBS_SCS should not be any slower than the other two algorithms; the run-time limit for PBS and MA_BS were reported in Blum et al. (2007) and Gallardo et al. (2007) as to be 350 and 600 s, respectively, whereas the longest run-time of IBS_SCS is only 8 s (the last row of Table 3 ). Note that with a smaller beam size of 200, the longest run-time of our algorithm was even less than 1.5 s (not shown in the table), while it still outperformed PBS in all the five cases. Finally, as can be seen in the last column of Table 3 , IBS_SCS achieves the reduction percentage of 1.35-3.52 over PBS, with an average of more than 2.5%. Note that MA_BS outperforms PBS with respect to the average length of the solutions for the case 9S9 \u00bc2, but it is still outperformed by IBS_SCS in this case.",
+            "cite_spans": [
+                {
+                    "start": 371,
+                    "end": 389,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 394,
+                    "end": 416,
+                    "text": "Gallardo et al. (2007)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 18,
+                    "end": 25,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 524,
+                    "end": 531,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 768,
+                    "end": 775,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "The results of experiments over the biological sequences are reported in Tables 4-8. The first columns in these tables show the value for the probability p. The next column shows the maximum length m of input strings. The next three columns show the results of the algorithms MA_BS, PBS, and IBS_SCS, respectively. The last column shows the run-time of IBS_SCS. Tables 4 and 5   Table 3 Comparison of IBS_SCS with MA_BS and PBS on random instances. There are five different alphabet sizes (first column), for each of which there are five instances. Each instance consists of eight strings (hence n\u00bc 8), four of length 40 and the other four of length 80 (hence m\u00bc 80 -recall that m is the length of the longest input string). These instances are exactly the random instances used in Blum et al. (2007) . The results of MA_BS and PBS are taken from Blum et al. (2007) . Because MA_BS and PBS are not deterministic, their reported results are statistical values of the best, the mean, and the standard deviation of their several runs on the same instance, which are then averaged on all the 5 instances for each row. However, IBS_SCS is deterministic and is run only once on each instance. IBS_SCS was run with the parameters b\u00bc700 and k\u00bc7. The run-time of IBS_SCS (in seconds) and the reduction percentage r% are also reported in the last two columns. As can be seen, in all of the five cases, IBS_SCS outperforms MA_BS and PBS, even with respect to their best runs. Table 4 Comparison of IBS_SCS with MA_BS and PBS on the 158-Nucleotide SARS dataset (hence 9S9\u00bc4). The dataset and the results for MA_BS and PBS are those in Blum et al. (2007) . The first column shows p, the probability of each letter in a sequence being deleted. The number of strings is n\u00bc 10. Because MA_BS and PBS are not deterministic, their reported results are statistical values of the best, the mean, and the standard deviation of their several runs on the same instance. However,",
+            "cite_spans": [
+                {
+                    "start": 782,
+                    "end": 800,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 847,
+                    "end": 865,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1623,
+                    "end": 1641,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 362,
+                    "end": 386,
+                    "text": "Tables 4 and 5   Table 3",
+                    "ref_id": "TABREF7"
+                },
+                {
+                    "start": 1465,
+                    "end": 1472,
+                    "text": "Table 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "IBS_SCS is deterministic and is run only once on each instance. IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The last column shows the run-time of IBS_SCS (in seconds). As can be seen, IBS_SCS obtains the optimal solution, within 1 s, in all of the cases. (Blum et al., 2007 ). The first column shows p, the probability of each letter in a sequence being deleted. The number of strings is n\u00bc10. Because MA_BS and PBS are not deterministic, their reported results are statistical values of the best, the mean, and the standard deviation of their several runs on the same instance. However, IBS_SCS is deterministic and is run only once on each instance.",
+            "cite_spans": [
+                {
+                    "start": 262,
+                    "end": 280,
+                    "text": "(Blum et al., 2007",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Number of strings"
+        },
+        {
+            "text": "IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The last column shows the run-time of IBS_SCS (in seconds). It can be seen that IBS_SCS achieves the optimal solution, within 2 s, in all the cases. As can be seen in Tables 4-8, both MA_BS and PBS obtain optimal solutions in all but the last two datasets of Table 5 and  the last dataset of Table 8 , where PBS is outperformed by MA_BS. However, IBS_SCS obtains optimal solutions in all the cases in these tables. As shown in the last columns of Tables 4-8, IBS_SCS needs, at worst, about a couple of seconds to find the optimal solutions; the run-time limit reported in Gallardo et al. (2007) and Blum et al. (2007) are 600 and 350 s, respectively.",
+            "cite_spans": [
+                {
+                    "start": 623,
+                    "end": 645,
+                    "text": "Gallardo et al. (2007)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 650,
+                    "end": 668,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 310,
+                    "end": 350,
+                    "text": "Table 5 and  the last dataset of Table 8",
+                    "ref_id": "TABREF7"
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "Finally, to observe how the performance of IBS_SCS varies with the parameters k and b, we conducted two more types of experiments, on the datasets of Table 3 . In the first series of experiments, we used the same value of 7 for k but used the values 100, 400, 700, 1000, and 1300 for b. We used the results for the case b\u00bc700 as the reference and calculated the percentages of the changes due to using the other values of b. To be precise, for each value v \u00bc100, 400, 1000, 1300, we calculated (L 2 \u00c0 L 1 )/ L 1 \u00c2 100, where L 2 and L 1 are the lengths of the solutions obtained using, respectively, b\u00bcv and b\u00bc700. Because there are five instances for each alphabet size 9S9 in Table 3 , we then averaged the percentages of changes over the five instances of each alphabet size.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 150,
+                    "end": 157,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 678,
+                    "end": 685,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "The results are shown in Table 9 . The first column in this table shows the alphabet size. The second and the third columns show, respectively, the average and the variance of the percentages of changes due to using b\u00bc100, as opposed to 700, over the five instances with 9S9 \u00bc2. These values are denoted by D and V, respectively. The next three pairs of columns report the respective values for the other beam sizes of 400, 1000, and 1300. The last row shows the average of the values D over all the instances.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 25,
+                    "end": 32,
+                    "text": "Table 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "It can be observed from Table 9 that the results are not much sensitive to the specified beam size values in that the average percentage of the changes (D) is under 1% in majority of cases. It is also observed that there is no obvious pattern for changing the results with the beam size. However, on average (shown in the last row of the table), the worst results correspond to the smallest beam size 100 (with the average D of 1.28%). Fig. 4 depicts how the average percentage of changes D varies with the beam size, for different values of alphabet size. As can be seen in Fig. 4 , the curves tend to fall with increasing the beam size, but a number of exceptions are also observed, e.g. for 9S9\u00bc 24.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 24,
+                    "end": 31,
+                    "text": "Table 9",
+                    "ref_id": null
+                },
+                {
+                    "start": 436,
+                    "end": 442,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 575,
+                    "end": 581,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "In the second series of experiments, we used the same beam size of b\u00bc700 but different values of 3, 5, 7, 9, and 11 for the parameter k. Similarly, we used the results for the case (b\u00bc 700 and) k\u00bc7 as the reference and calculated the percentages of the changes due to using the other values of k. More specifically, for each value v\u00bc3, 5, 9, 11, we calculated (L 2 \u00c0L 1 )/L 1 \u00c2 100, where L 2 and L 1 are the lengths of the solutions obtained using, respectively k\u00bcv and k\u00bc7. Then, we averaged the percentages of changes D over the five instances of each alphabet size. The results are presented in Table 10 . The layout of Table 10 is similar to that of Table 9 , except that the results in Table 10 are presented for different values of k, as opposed to b. As shown in Table 10 , except for two cases of k\u00bc3 and k\u00bc5 in the last row Table 6 Comparison of IBS_SCS with MA_BS and PBS on the 125-Aminoacid Oxytocin dataset (hence 9S9\u00bc 20). The dataset and the results for MA_BS and PBS are those in Blum et al. (2007) . The first column shows p, the probability of each letter in a sequence being deleted. The number of strings is n\u00bc 10. Because MA_BS and PBS are not deterministic, their reported results are statistical values of the best, the mean, and the standard deviation of their several runs on the same instance. However, IBS_SCS is deterministic and is run only once on each instance.",
+            "cite_spans": [
+                {
+                    "start": 997,
+                    "end": 1015,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 599,
+                    "end": 607,
+                    "text": "Table 10",
+                    "ref_id": null
+                },
+                {
+                    "start": 624,
+                    "end": 632,
+                    "text": "Table 10",
+                    "ref_id": null
+                },
+                {
+                    "start": 655,
+                    "end": 662,
+                    "text": "Table 9",
+                    "ref_id": null
+                },
+                {
+                    "start": 692,
+                    "end": 704,
+                    "text": "Table 10 are",
+                    "ref_id": null
+                },
+                {
+                    "start": 771,
+                    "end": 779,
+                    "text": "Table 10",
+                    "ref_id": null
+                },
+                {
+                    "start": 834,
+                    "end": 841,
+                    "text": "Table 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The last column shows the run-time of IBS_SCS (in seconds). IBS_SCS obtains the optimal solution, within 1 s, in all of the cases. (Blum et al., 2007 ). The first column shows p, the probability of each letter in a sequence being deleted. The number of strings is n\u00bc 10. Because MA_BS and PBS are not deterministic, their reported results are statistical values of the best, the mean, and the standard deviation of their several runs on the same instance. However, IBS_SCS is deterministic and is run only once on each instance. Table 9 The average and the variance of the percentage of changes in the length of the returned solution by IBS_SCS, for different beam sizes of 100, 400, 1000, and 1300, with a fixed k\u00bc7, in comparison with that for the reference beam size of 700. The dataset is the simulated biological sequences used in Blum et al. (2007) , with n\u00bc8, m\u00bc 80, and 9S9\u00bc 2, 4, 8, 16, and 24, which is also used in Table 3 .",
+            "cite_spans": [
+                {
+                    "start": 182,
+                    "end": 200,
+                    "text": "(Blum et al., 2007",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 887,
+                    "end": 905,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 580,
+                    "end": 587,
+                    "text": "Table 9",
+                    "ref_id": null
+                },
+                {
+                    "start": 977,
+                    "end": 984,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of strings"
+        },
+        {
+            "text": "b\u00bc100 b\u00bc400 b\u00bc1000 b\u00bc1300 This is better observed in Fig. 5 , which shows how the average percentage of changes D varies with k, for different values of alphabet size. As can be seen in Fig. 5 , the curves tend to fall with increasing k, although there are still exceptions, e.g. for the case 9S9\u00bc8.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 53,
+                    "end": 59,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 186,
+                    "end": 192,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "9S9"
+        },
+        {
+            "text": "In this paper, a deterministic heuristic algorithm for the shortest common supersequence problem was proposed. The algorithm is a constructive beam search and uses a heuristic function different from those already proposed in the literature for the SCS problem. The algorithm also uses the dominance property to effectively prune the search tree. However, it does not check for dominance with respect to every existing candidate solution as it would lead to a significant time-consumption. Neither is it restricted to using only the best solution found so far as it would then be not using the true power of dominance pruning. Instead, it selects the k best solutions found so far as potential dominators of candidate solutions at each iteration, where k is a control parameter in the algorithm. The proposed algorithm was compared with three recent algorithms proposed for the problem on both simulated and real biological sequences. It outperformed all the three algorithms in all of the experimental cases. This justifies that the proposed algorithm is promising for further research and improvements.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Possible avenues for future work include (i) to devise a method to determine appropriate values for k (see Eq. (3)), because its proper setting can significantly improve the solution quality and there is enough room for improvement in this regard, (ii) to generalize the employed heuristic to the case where the input strings are correlated to further improve the performance of the algorithm in such domains, and (iii) to dynamically determine the appropriate values for the control parameters k and b. IBS_SCS on the datasets of Table 3 , with n\u00bc 8 and m\u00bc 80. The beam sizes are 100, 400, 1000, and 1300, with the beam size 700 as the reference. The parameter k is fixed to 7. For each alphabet size 9S9, a separate curve is shown.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 531,
+                    "end": 538,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Conclusion"
+        },
+        {
+            "text": "The average D and the variance V of the changes in the length of the returned solution by IBS_SCS, for different values of 3, 5, 9, and 11 for the parameter k, with a fixed beam size of 700, in comparison with that for the reference value 7 for k. The dataset is the simulated biological sequences used in Blum et al. (2007) , with n\u00bc 8, m\u00bc 80, and 9S9 \u00bc2, 4, 8, 16, and 24, which is also used in Table 3 . Table 3 , with n\u00bc8 and m\u00bc 80. The values of k are 3, 5, 9, and 11, with k\u00bc7 as the reference. A fix beam size of 700 is used, and a curve is depicted for each alphabet size 9S9.",
+            "cite_spans": [
+                {
+                    "start": 306,
+                    "end": 324,
+                    "text": "Blum et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 397,
+                    "end": 404,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 407,
+                    "end": 414,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Table 10"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "An approximation algorithm for the shortest common supersequence problem: an experimental analysis",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Barone",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bonizzoni",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Della Vedova",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Mauri",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Proceedings of the 2001 ACM Symposium on Applied Computing. ACM",
+            "volume": "",
+            "issn": "",
+            "pages": "56--60",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Beam search for the longest common subsequence problem",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Blum",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Blesa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Computers & Operations Research",
+            "volume": "36",
+            "issn": "",
+            "pages": "3178--3186",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "A Probabilistic Beam Search Approach to the Shortest Common Supersequence Problem, Evolutionary Computation in Combinatorial Optimization",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Blum",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cotta",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Fern\u00e1 Ndez",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gallardo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "36--47",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Searching for shortest common supersequences by means of a heuristic based genetic algorithm",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Branke",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Middendorf",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Proceedings of the Second Nordic Workshop on Genetic Algorithms and their Applications",
+            "volume": "",
+            "issn": "",
+            "pages": "105--114",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Improved heuristics and a genetic algorithm for finding short supersequences",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Branke",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Middendorf",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Schneider",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "OR Spectrum",
+            "volume": "20",
+            "issn": "",
+            "pages": "39--45",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Method and Apparatus for Generating Statistics on Query Expressions for Optimization",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Chaudhuri",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Bruno",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "A specialized branching and fathoming technique for the longest common subsequence problem",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Easton",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Singireddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Int. J. Opera. Res",
+            "volume": "4",
+            "issn": "",
+            "pages": "98--104",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Theory and algorithms for plan merging",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Foulser",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Artif. Intell",
+            "volume": "57",
+            "issn": "",
+            "pages": "143--181",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Subsequences and Supersequences of Strings",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Fraser",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "On the hybridization of memetic algorithms with branch-and-bound techniques",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Gallardo",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cotta",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Fernandez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "IEEE Trans. Syst. Man Cybern. B: Cybern",
+            "volume": "37",
+            "issn": "",
+            "pages": "77--83",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Computers and Intractability: A Guide to the Theory of NP-Completeness",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Garey",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1979,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Computer-Aided Engineering System for Design of Sequence Arrays and Lithographic Masks",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Hubbell",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Morris",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Winkler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Affymax Technologies N.V",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "On the worst-case behaviour of some approximation algorithms for the shortest common supersequence of k strings",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Irving",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Proceedings of the 4th Annual Symposium on Combinatorial Pattern Matching",
+            "volume": "",
+            "issn": "",
+            "pages": "63--73",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "On the approximation of shortest common supersequences and longest common subsequences",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "SIAM Journal on Computing",
+            "volume": "24",
+            "issn": "",
+            "pages": "1122--1139",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "A computational framework for optimal masking in the synthesis of oligonucleotide microarrays",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kasif",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Weng",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Derti",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Beigel",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Delisi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Nucleic Acids Res",
+            "volume": "30",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Efficient stochastic local search algorithm for solving the shortest common supersequence problem",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kubalik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 12th Annual Conference on Genetic and Evolutionary Computation, GECCO '10",
+            "volume": "",
+            "issn": "",
+            "pages": "249--256",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "The complexity of some problems on subsequences and supersequences",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Maier",
+                    "suffix": ""
+                }
+            ],
+            "year": 1978,
+            "venue": "J. ACM",
+            "volume": "25",
+            "issn": "",
+            "pages": "322--336",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "An island Model Based Ant System with Lookahead for the Shortest Supersequence Problem, Parallel Problem Solving from Nature-PPSN V",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Michel",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Middendorf",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "692--701",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "An ACO Algorithm for the Shortest Common Supersequence Problem, New Ideas in Optimization",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Michel",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Middendorf",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "51--62",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "An improved algorithm for the longest common subsequence problem",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Mousavi",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Tabataba",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Comput. Oper. Res",
+            "volume": "39",
+            "issn": "",
+            "pages": "512--520",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "An approximate A n algorithm and its application to the SCS problem",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Nicosia",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Oriolo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Theor. Comput. Sci",
+            "volume": "290",
+            "issn": "",
+            "pages": "2021--2029",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "A post-processing method for optimizing synthesis strategy for oligonucleotide microarrays",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Ning",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Choi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Leong",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Res",
+            "volume": "33",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Towards a better solution to the shortest common supersequence problem: the deposition and reduction algorithm",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Ning",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Leong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinformatics",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "The shortest common supersequence problem in a microarray production setting",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Rahmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "19",
+            "issn": "",
+            "pages": "156--161",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Time Warps, String Edits and Macromolecules: the Theory and Practice of Sequence Comparisons",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sankoff",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kruskal",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Multiple-query optimization",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Sellis",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "ACM Trans. Database Syst. (TODS)",
+            "volume": "13",
+            "issn": "",
+            "pages": "23--52",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "A universal assay for detection of oncogenic fusion transcripts by oligo microarray analysis",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Skotheim",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Thomassen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Eken",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Lind",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Micci",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Ribeiro",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Cerveira",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Teixeira",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Heim",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Rognes",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lothe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mol. Cancer",
+            "volume": "8",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Data Compression: Methods and Theory",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Storer",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Complexity of common subsequence and supersequence problems and related problems",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Timkovskii",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Cybern. Syst. Anal",
+            "volume": "25",
+            "issn": "",
+            "pages": "565--580",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "(a) a given set of 3mer oligonucleotides: TTA, GTG, CGA and GCT. (b-g) A step by step illustration of the synthesis process for these oligos. Partially constructed oligos are shown below the black line. The order of adding nucleotides is: AGTCGT (6 steps). If the alphabet method is used, it takes 8 steps (A,C,G,T,A,C,G,T) to build the complete oligos.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "If x is dominated by some member of k_Best_List Then C\u00bc C-{x} //Step 4: selection B \u00bca set of b members of C with the highest heuristic values //in the case 9C9ob, let B \u00bcC } Proposition. Algorithm IBS_SCS (Algorithm 1) is of complexity O(m 2 lg9S9 \u00feL n (nkb9S9\u00feb9S9lg(b9S9))) in computing time, where L n is the length of the returned solution.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "The growth of run-time for both DR and IBS-SCS with n, for the eight (middle) cases of",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The last column shows the run-time of IBS_SCS (in seconds). IBS_SCS obtains the optimal solution, within 1 s, in all the cases.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "The average percentage of changes D versus the beam size b, by running",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "The average percentage of changes D versus k, by running IBS_SCS on the datasets of",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Contents lists available at SciVerse ScienceDirect journal homepage: www.elsevier.com/locate/engappai Engineering Applications of Artificial Intelligence 0952-1976/$ -see front matter & 2011 Elsevier Ltd. All rights reserved. doi:10.1016/j.engappai.2011.08.006",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Parameter: the beam size b Parameter: the number k of best solutions used for Then C \u00bcC[{x new }//add it to C only if it contributes to covering a letter in some input strings //Step 2: Evaluation of candidate solutions k \u00bc Max i A f1,:::,ng x A C fr i \u00f0x\u00deg \u00c2 lg9S9//determine k",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF7": {
+            "text": "Comparison of IBS_SCS with MA_BS and PBS on the 1269-Nucleotide SARS dataset (hence 9S9\u00bc 4). The dataset and the results for MA_BS and PBS are those in",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF9": {
+            "text": "Comparison of IBS_SCS with MA_BS and PBS on the 393-Aminoacid p53 dataset (hence 9S9 \u00bc20). The dataset and the results for MA_BS and PBS are those inBlum et al. (2007). The first column shows p, the probability of each letter in a sequence being deleted. The number of strings is n\u00bc10. Because MA_BS and PBS are not deterministic, their reported results are statistical values of the best, the mean, and the standard deviation of their several runs on the same instance. However, IBS_SCS is deterministic and is run only once on each instance. IBS_SCS was run with the parameters b\u00bc100 and k\u00bc7. The last column shows the run-time of IBS_SCS (in seconds). It is observed that IBS_SCS obtains the optimal solution, within 1 s, in all the cases.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF10": {
+            "text": "Comparison of IBS_SCS with MA_BS and PBS on the 595-Aminoacid Estrogen dataset (hence 9S9\u00bc 20). The dataset and the results for MA_BS and PBS are those in",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF11": {
+            "text": "9S9\u00bc24, the percentage of the changes is under 1%. This suggests that the algorithm is sufficiently tolerant to the choice of k. However, the solution quality usually increases with increasing k.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors would like to thank Dr. C. Blum, Dr. J.E. Gallardo and Dr. C. Cotta for kindly providing us with their random and real datasets. We would also like to thank Dr. K. Ning and Dr. H.W. Leong for their real benchmarks and random-instance generator. Thanks are also due to the anonymous reviewers for their constructive comments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgment"
+        },
+        {
+            "text": "Supplementary data associated with this article can be found in the online version at doi:10.1016/j.engappai.2011.08.006.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix A. Supplementary materials"
+        }
+    ]
+}

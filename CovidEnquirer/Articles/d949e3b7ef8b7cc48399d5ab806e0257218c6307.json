@@ -1,0 +1,2252 @@
+{
+    "paper_id": "d949e3b7ef8b7cc48399d5ab806e0257218c6307",
+    "metadata": {
+        "title": "A high-throughput approach to profile RNA structure",
+        "authors": [
+            {
+                "first": "Riccardo",
+                "middle": [],
+                "last": "Delli Ponti",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "Centre for Genomic Regulation (CRG)",
+                    "institution": "The Barcelona Institute of Science and Technology",
+                    "location": {
+                        "addrLine": "Dr Aiguader 88",
+                        "postCode": "08003",
+                        "settlement": "Barcelona",
+                        "country": "Spain"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Stefanie",
+                "middle": [],
+                "last": "Marti",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "Centre for Genomic Regulation (CRG)",
+                    "institution": "The Barcelona Institute of Science and Technology",
+                    "location": {
+                        "addrLine": "Dr Aiguader 88",
+                        "postCode": "08003",
+                        "settlement": "Barcelona",
+                        "country": "Spain"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Alexandros",
+                "middle": [],
+                "last": "Armaos",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "Centre for Genomic Regulation (CRG)",
+                    "institution": "The Barcelona Institute of Science and Technology",
+                    "location": {
+                        "addrLine": "Dr Aiguader 88",
+                        "postCode": "08003",
+                        "settlement": "Barcelona",
+                        "country": "Spain"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Gian",
+                "middle": [],
+                "last": "Gaetano Tartaglia",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "Centre for Genomic Regulation (CRG)",
+                    "institution": "The Barcelona Institute of Science and Technology",
+                    "location": {
+                        "addrLine": "Dr Aiguader 88",
+                        "postCode": "08003",
+                        "settlement": "Barcelona",
+                        "country": "Spain"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Here we introduce the Computational Recognition of Secondary Structure (CROSS) method to calculate the structural profile of an RNA sequence (singleor double-stranded state) at single-nucleotide resolution and without sequence length restrictions. We trained CROSS using data from high-throughput experiments such as Selective 2 -Hydroxyl Acylation analyzed by Primer Extension (SHAPE; Mouse and HIV transcriptomes) and Parallel Analysis of RNA Structure (PARS; Human and Yeast transcriptomes) as well as high-quality NMR/X-ray structures (PDB database). The algorithm uses primary structure information alone to predict experimental structural profiles with >80% accuracy, showing high performances on large RNAs such as Xist (17 900 nucleotides; Area Under the ROC Curve AUC of 0.75 on dimethyl sulfate (DMS) experiments). We integrated CROSS in thermodynamics-based methods to predict secondary structure and observed an increase in their predictive power by up to 30%.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "RNA molecules (29). We envisage that the combination of CROSS with thermodynamics-based approaches will be the key ingredient to improve predictions of RNA structure.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "CROSS is freely available at http://service.tartaglialab.com/ new submission/cross.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "The structure of an RNA determines its interactions and functions (1, 2) . RNA structure can be studied using lowthroughput techniques such as nuclear magnetic resonance (NMR) and X-ray crystallography. More recent approaches have started to exploit biochemical reactions to perform high-throughput profiling of the RNA structure: Parallel Analysis of RNA Structure (PARS) distinguishes doubleand single-stranded regions using the catalytic activity of two enzymes, RNase V1 (able to cut double-stranded nucleotides) and S1 (able to cut single-stranded nucleotides) (3, 4) , while Selective 2 -Hydroxyl Acylation analyzed by Primer Extension (SHAPE) (5,6) employs highly reactive chemical probes such as 1M6, NMIA (SHAPE) and NAI-N 3 (icSHAPE) to characterize RNA backbone flexibility. Another technique based on dimethyl sulfate (DMS) (7) is often used for in vivo probing of transcriptomes (8, 9) . DMS experiments are of high quality due to the smaller size of the (CH 3 O) 2 SO 2 probe, yet have low coverage, since the alkylating agent only reacts to adenine and cytosine.",
+            "cite_spans": [
+                {
+                    "start": 66,
+                    "end": 69,
+                    "text": "(1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 70,
+                    "end": 72,
+                    "text": "2)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 566,
+                    "end": 569,
+                    "text": "(3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 570,
+                    "end": 572,
+                    "text": "4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 892,
+                    "end": 895,
+                    "text": "(8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 896,
+                    "end": 898,
+                    "text": "9)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Transcriptomic studies require intense experimental work that could be substantially reduced by using computational approaches. We built Computational Recognition of Secondary Structure (CROSS) to perform high-throughput predictions of transcript structure using the information contained in RNA sequences. The algorithm predicts the structural profile (single-and double-stranded state) of a transcript at single-nucleotide resolution using sequence information only and without sequence length restrictions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "We trained CROSS on data from high-throughput [PARS: yeast and human transcriptomes (3, 4) and ic-SHAPE: mouse transcriptome (5) ] and low-throughput [SHAPE: HIV RNA (10) ] experiments as well as highquality NMR/X-ray structures (11) . We did not use DMS experiments because they do not provide information on the structural state of all the nucleotides (1, 5) . Each of the five models reflects the specificities of the experimental technique used to generate the data. Since each approach has practical limitations and a different range of applicability, we also evaluated different methods to integrate the five models into a single algorithm, Global Score, to provide a consensus prediction.",
+            "cite_spans": [
+                {
+                    "start": 84,
+                    "end": 87,
+                    "text": "(3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 88,
+                    "end": 90,
+                    "text": "4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 125,
+                    "end": 128,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 166,
+                    "end": 170,
+                    "text": "(10)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 229,
+                    "end": 233,
+                    "text": "(11)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 354,
+                    "end": 357,
+                    "text": "(1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 358,
+                    "end": 360,
+                    "text": "5)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The core of CROSS is an artificial neural network yielding a propensity score ranging from \u22121 (bottom values; single-stranded RNA) to 1 (top values; double-stranded RNA). CROSS was designed to investigate large-scale data sets and to provide information that can be integrated in methods for prediction of RNA secondary structure (12) as well as interactions with other molecules (13) .",
+            "cite_spans": [
+                {
+                    "start": 330,
+                    "end": 334,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 380,
+                    "end": 384,
+                    "text": "(13)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "We trained CROSS models using an artificial neural network with one hidden layer and two adaptive weight matrices \u03c9 i k and k that are optimized using backpropagation. In our approach, we use the 4-mer notation to represent each nucleotide: A = (1, 0, 0, 0), C = (0, 1, 0, 0), G = (0, 0, 1, 0) and U = (0, 0, 0, 1). The input of our method (Supplementary Material: Data sets) is the vector F i encoding the information on fragments of fixed length (Supplementary Material: Selection of the optimal window). The input information required to predict the structural state of a specific nucleotide was extracted using a sliding window spanning the precedent and subsequent 6 residues (i.e. 13 nucleotides; longer fragments do not substantially improve the method; Supplementary Material: Selection of the optimal window; Supplementary Table S1 ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 832,
+                    "end": 840,
+                    "text": "Table S1",
+                    "ref_id": null
+                }
+            ],
+            "section": "CROSS architecture"
+        },
+        {
+            "text": "This input F i is propagated to the first hidden layer of k nodes as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CROSS architecture"
+        },
+        {
+            "text": "where tanh(x) is the hyperbolic tangent of x and the sum follows Einstein's notation. The score of the nucleotide in the center of the window is then given by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CROSS architecture"
+        },
+        {
+            "text": "where the contributions h k of the hidden layer are weighted by k .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CROSS architecture"
+        },
+        {
+            "text": "To avoid over-fitting when optimizing \u03c9 i k and k , we varied the number of nodes proportionally to the size of the training set and performed a 5-fold cross-validation at each optimization. For k = 20 we obtain the performances reported in the Supplementary Figures S1 and S2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CROSS architecture"
+        },
+        {
+            "text": "Since one technique might not be sufficient to capture structural properties of long transcripts (14) , we evaluated different approaches to combine the five CROSS models (PARS-Human, PARS-Yeast, SHAPE-HIV, icSHAPE-Mouse and NMR/X-ray) into a consensus prediction. To this aim, we measured the performances of the models on an independent test set of 67 NMR/X-ray structures (15) for which SHAPE data are available (17 145 fragments in total), evaluating precision (PPV) and Area Under the ROC Curve (AUC; Supplementary Figure S3 ). Consistently with the type of information contained in the training set, we observed the best performances for the NMR/X-ray model (PPV: 0.69; AUC: 0.64) followed by HIV-SHAPE (PPV: 0.64; AUC: 0.63). Comparing the scores of the five models, we did not find strong correlations (Supplementary Table S2), except for PARS-Human and PARS-Yeast (Pearson's correlation = 0.50) that were trained on data obtained with the same experimental techniques (Figure 1 ; Supplementary Figures S1 and S2 ).",
+            "cite_spans": [
+                {
+                    "start": 97,
+                    "end": 101,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 375,
+                    "end": 379,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 520,
+                    "end": 529,
+                    "text": "Figure S3",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 977,
+                    "end": 986,
+                    "text": "(Figure 1",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1003,
+                    "end": 1020,
+                    "text": "Figures S1 and S2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Consensus models"
+        },
+        {
+            "text": "We combined the five CROSS models into a Z-Score variable. For each nucleotide in the sequence, the Z-Score is computed using the mean of the individual scores and the associated standard deviation: the double-stranded propensity is proportional to the Z-Score. We used this method to predict the structural profile of the Xist non-coding RNA (17 900 nt) and found an AUC of 0.75 on data from DMS experiments (16) .",
+            "cite_spans": [
+                {
+                    "start": 409,
+                    "end": 413,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Z-Score"
+        },
+        {
+            "text": "We employed the scores of the five CROSS models to train a single classifier. The training set comprised 43 sequences (11 670 fragments) and the test set was composed of 24 transcripts (5 475 fragments; not in the training set of any of the CROSS models) (15) . Among different classifiers the support vector machine with radial basis function kernel shows the best performances (Supplementary Table S3 ).",
+            "cite_spans": [
+                {
+                    "start": 255,
+                    "end": 259,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 394,
+                    "end": 402,
+                    "text": "Table S3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Global Score"
+        },
+        {
+            "text": "The Z-Score and Global Score predictions show a correlation of 0.85 (0.97 with a smoothing window of 200 nt) when applied to the Xist non-coding RNA (17 900 nt) (Supplementary Table S4 ). The high correlation indicates that the five models are assigned similar weights by Global Score and thus have similar performances. Since CROSS Z-Score and Global Score are correlated, we only provide Global Score on our webserver.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 176,
+                    "end": 184,
+                    "text": "Table S4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Global Score"
+        },
+        {
+            "text": "We used RNAstructure with the Fold module and the minimum free energy flag to predict the best RNA secondary structure of each RNA sequence (17, 18) . To mimic experimental constraints in the RNAstructure algorithm, CROSS Global scores were normalized to lie in the range of SHAPE reactivities: first the scores were multiplied by \u22121, then linearly mapped to [0,1]. Scores >0.65 were then assigned a SHAPE reactivity of 1; scores <0.35 were assigned a reactivity of 0; scores >0.35 and <0.65 were linearly mapped to (0,1). We used the Partition and Probability Plot (with -text flag) modules of RNAstructure to compute the AUC based on the probabilities (17, 18) . We employed the package Scorer to calculate the positive predictive values (PPVs) and true positive rates (TPRs) for the specific structures.",
+            "cite_spans": [
+                {
+                    "start": 140,
+                    "end": 144,
+                    "text": "(17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 145,
+                    "end": 148,
+                    "text": "18)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 654,
+                    "end": 658,
+                    "text": "(17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 659,
+                    "end": 662,
+                    "text": "18)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "RNAstructure"
+        },
+        {
+            "text": "We used DREME from the MEME suite (http://memesuite.org/doc/dreme.html) to search for patterns in the positive and negative fragment sets (19) . The flag -n was selected to specify a negative data set as comparison during the search of the motives.",
+            "cite_spans": [
+                {
+                    "start": 138,
+                    "end": 142,
+                    "text": "(19)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Sequence patterns"
+        },
+        {
+            "text": "The CROSS algorithm CROSS predicts the structural profile of an RNA sequence at single-nucleotide resolution and without sequence length restrictions. The algorithm is an artificial neural network with one hidden layer and two adaptive weight matrices to predict the structural state of a nucleotide considering its flanking residues (Materials and Methods: CROSS architecture; Supplementary Material: Selection of the optimal window). We built five independent models using data from SHAPE ( either single-stranded (negative cases) or double-stranded (positive cases) configuration. Each model was then tested on all the other data sets. Negligible overlap exists between training and testing sets (Jaccard index < 0.002 between each couple of sets analyzed; Supplementary Table S5) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 491,
+                    "end": 492,
+                    "text": "(",
+                    "ref_id": null
+                },
+                {
+                    "start": 760,
+                    "end": 783,
+                    "text": "Supplementary Table S5)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "From low-(top and bottom 50% of the CROSS score distribution) to high-confidence (top and bottom 5%) predictions, we observed an increase in the accuracies of our models, which indicates good ability to capture strong-signal regions. For instance, the accuracy of the icSHAPE-Mouse model applied to the SHAPE-HIV data set improves from 0.63 (low-confidence) to 0.81 (high-confidence; Figure 1B) , and the same trend is found with respect to other data sets (Supplementary Figures S4 and S5 We observed comparable cross-validation performances on the PARS datasets (area under the ROC curve AUC of 0.89 for PARS-Yeast applied to PARS-Human, and 0.90 for PARS-Human applied to PARS-Yeast), even though the experiments were carried out in different organisms and with slightly modified protocols, confirming the high quality of our predictions (Figures 2 and 3) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 384,
+                    "end": 394,
+                    "text": "Figure 1B)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 472,
+                    "end": 489,
+                    "text": "Figures S4 and S5",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 841,
+                    "end": 858,
+                    "text": "(Figures 2 and 3)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "From low-(top and bottom 50% of the PARS score distribution) to high-confidence (top and bottom 1%) experimental values, we found a consistent increase in the performances of all models (Supplementary Tables S6 and S7) , thus providing strong evidence on the reliability of CROSS predictions. For instance, the SHAPE-HIV model predicts the whole PARS-Human data set with an AUC of 0.70 and the top and bottom 1% of the scores are with an AUC of 0.80 (Supplementary Table S6 ). We note that very negligible overlap exists between yeast and human fragment sets (overlap: 0.001%; Jaccard index: 0.001; Supplementary Figure S6 ), which indicates that our method is not biased by specific sequences. On the same sets, approaches based on thermodynamic principles (15, 18) show lower performances (Yeast: accuracies in the range 0.72-0.74, Human: accuracies in the range 0.67-0.69) than CROSS (Yeast: 0.80 accuracy using PARS-Human model; Human: 0.81 accuracy using PARS-Yeast model; Supplementary Table S8), indicating that our method is particularly useful for predictions on high-throughput data sets.",
+            "cite_spans": [
+                {
+                    "start": 758,
+                    "end": 762,
+                    "text": "(15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 763,
+                    "end": 766,
+                    "text": "18)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 186,
+                    "end": 218,
+                    "text": "(Supplementary Tables S6 and S7)",
+                    "ref_id": null
+                },
+                {
+                    "start": 465,
+                    "end": 473,
+                    "text": "Table S6",
+                    "ref_id": null
+                },
+                {
+                    "start": 613,
+                    "end": 622,
+                    "text": "Figure S6",
+                    "ref_id": "FIGREF11"
+                }
+            ],
+            "section": "RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "The model built on PARS-Human is able to predict SHAPE-HIV data with an AUC of 0.75 ( Figure 4A and B) . Increasing the confidence threshold of SHAPE data (from Figures S4 and S5) . The plot illustrates the performances of the icSHAPE-Mouse model tested on the SHAPE-HIV data set. (C) High-confidence predictions: the arrows connect the training and testing sets along withrelative accuracies (cross-validation on training sets are marked with circular arrows). We used the same number of nucleotides with high (doublestranded) and low (single-stranded) propensity scores for comparison with experimental data. Negligible overlap exists between training and testing sets (Jaccard index < 0.002 between each couple of sets analyzed; Supplementary Figure 4B ). We compared experimental and predicted values on fragments of 200 nucleotides, reporting an average correlation of 0.60 (peak of 0.86 in the region 3 800-4 000) for the HIV transcriptome ( Figure 4A and C) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 86,
+                    "end": 102,
+                    "text": "Figure 4A and B)",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 161,
+                    "end": 179,
+                    "text": "Figures S4 and S5)",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 746,
+                    "end": 755,
+                    "text": "Figure 4B",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 948,
+                    "end": 964,
+                    "text": "Figure 4A and C)",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "The HIV-1 case: correlation between in silico and in vitro data"
+        },
+        {
+            "text": "CROSS is able to identify sequence patterns that cannot be captured by a position weight matrix approach. We searched the positive and negative fragment sets extracted from icSHAPE-Mouse and PARS-Human data for sequence patterns (Supplementary Table S9 ) using DREME (Materials and Methods: Sequence patterns) (19) . In icSHAPE-Mouse sequences, the G/GC/ACGU/GC motif occurs with frequencies of 63% and 43% in the positive (556 645 fragments) and negative (355 740 fragments) sets (Supplementary Table S9 ), indicating poor discrimination. As for PARS-Human, the top motif in the positive fragment set GCU/GC/AG/G (71% frequency) is also non-specific (frequency of 47% in the negative set). This observation indicates that the neural network approach is particularly suitable to identifying complex patterns in biological sequences, which is key to discover trends in large data sets (20) . We also note that CROSS models are sensitive to single point mutations: the signal drops progressively upon insertion of random mutations in the original sequences (PARS-Yeast; Supplementary Figure S7 ). As expected, mutations in the central position of the fragment produce the most dramatic reduction in the predictive power of the method (Supplementary Figure S8 ).",
+            "cite_spans": [
+                {
+                    "start": 310,
+                    "end": 314,
+                    "text": "(19)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 884,
+                    "end": 888,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 244,
+                    "end": 252,
+                    "text": "Table S9",
+                    "ref_id": null
+                },
+                {
+                    "start": 481,
+                    "end": 504,
+                    "text": "(Supplementary Table S9",
+                    "ref_id": null
+                },
+                {
+                    "start": 1082,
+                    "end": 1091,
+                    "text": "Figure S7",
+                    "ref_id": "FIGREF12"
+                },
+                {
+                    "start": 1247,
+                    "end": 1256,
+                    "text": "Figure S8",
+                    "ref_id": null
+                }
+            ],
+            "section": "Recognition of complex patterns"
+        },
+        {
+            "text": "The consensus model Global Score was trained and tested on independent sets of NMR/X-ray structures ( Table S2 ), we decided to train the method without PARS-Yeast or PARS-Human. The procedure reduces Global Score performances (without PARS-Yeast: AUC from 0.72 to 0.65, PPV from 0.74 to 0.68; without PARS-Human AUC from 0.72 to 0.66, PPV from 0.74 to 0.65), which indicates that the methods should be used together.",
+            "cite_spans": [
+                {
+                    "start": 100,
+                    "end": 101,
+                    "text": "(",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 102,
+                    "end": 110,
+                    "text": "Table S2",
+                    "ref_id": null
+                }
+            ],
+            "section": "The consensus model Global Score"
+        },
+        {
+            "text": "As previously done with experimental SHAPE data, we used Global Score as a constraint in RNAstructure (12) . On the test set (15) , Global Score increases the PPV of RNAstructure from 0.68 to 0.72, with remarkable improvements in 13 cases (from 0.44 to 0.72; Supplementary Table S10; Figure 6A Performance comparison of SHAPE data and CROSS predictions (Global Score) on sequences with available structural information derived from NMR/X-ray data (21) . The performances are calculated on 24 RNAs that were not employed for training (15) . The precision is measured at Youden's cut-off.",
+            "cite_spans": [
+                {
+                    "start": 102,
+                    "end": 106,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 125,
+                    "end": 129,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 447,
+                    "end": 451,
+                    "text": "(21)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 533,
+                    "end": 537,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 284,
+                    "end": 293,
+                    "text": "Figure 6A",
+                    "ref_id": "FIGREF11"
+                }
+            ],
+            "section": "Global score as experimental constraint for thermodynamic approaches"
+        },
+        {
+            "text": "Methods: RNAstructure), and decreases the PPV in three cases for which real SHAPE data does not improve perfor- Table S10) , we randomized the Global Score input and observed an overall PPV decrease to 0.64. Moreover, using the partition function computed with RNAstructure, we calculated the AUC for each structure with and without CROSS constraints and observed an improvement from 0.81 to 0.86 when CROSS is integrated in the algorithm ( Figure 6B ). On the test set (15), we found a similar trend using RNAfold (15) (the PPV increases from 0.67 to 0.70 using Global Score and the AUC remains at 0.85).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 112,
+                    "end": 122,
+                    "text": "Table S10)",
+                    "ref_id": null
+                },
+                {
+                    "start": 441,
+                    "end": 450,
+                    "text": "Figure 6B",
+                    "ref_id": "FIGREF11"
+                }
+            ],
+            "section": "Global score as experimental constraint for thermodynamic approaches"
+        },
+        {
+            "text": "Due to the complexity of the configuration space, the structural profile of sequences >1 000-1 500 nucleotides is extremely difficult to predict with thermodynamic approaches (22) , which makes CROSS a valid alternative to study long non-coding RNAs (23) . To illustrate CROSS performances on large RNAs, we predicted the structural profile of murine Xist non-coding RNA (17 900 nt) using the consensus of our five models (Materials and Methods: Consensus models; Figure 7A ). Xist was analyzed using DMS probing (16) , an independent technique not used in the training of Figure S10 ). Although the method slightly overestimates the structural content of Rep E, it is able to accurately predict its profile (correlation of 0.63, Supplementary Figure S10 ). While the sequences of Rep A and B are conserved across species and show a high degree of structural content, the 3 region of Xist is variable (24) and predicted by CROSS to be more single-stranded.",
+            "cite_spans": [
+                {
+                    "start": 175,
+                    "end": 179,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 250,
+                    "end": 254,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 513,
+                    "end": 517,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 901,
+                    "end": 905,
+                    "text": "(24)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 464,
+                    "end": 473,
+                    "text": "Figure 7A",
+                    "ref_id": "FIGREF12"
+                },
+                {
+                    "start": 573,
+                    "end": 583,
+                    "text": "Figure S10",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 744,
+                    "end": 754,
+                    "text": "Figure S10",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "The Xist case and comparison with DMS experiments"
+        },
+        {
+            "text": "We employed CROSS to analyze the structural differences between human coding DNA sequences (CDSs), untranslated regions (UTRs) (total of 217 000 non-redundant sequences each with 3 and 5 UTRs; ENSEMBL 82) and long intergenic non-coding transcripts (14 000 non-redundant sequences; ENSEMBL 82; Supplementary Material; Figure 7B ). In agreement with previous evidence (1), we predict that UTRs are more structured than CDSs (P-value < 2.2e-16; Kolmogorov-Smirnov). Long intergenic noncoding transcripts (see Supplementary Material: Long intergenic non-coding RNAs) are found to be less structured, as reported in other studies (25) (P-value < 2.2e-16; Kolmogorov-Smirnov). Indeed, long non-coding RNAs have complex regulatory abilities and their structure could be more flexible and less structured to provide a wide range of interactions (26) . In agreement with previous data (27) , we also observe that the 5 UTR of the amyloid precursor Figure S10 . We note that Rep B contains regions with insufficient sequencing data to determine DMS reactivity (16) that were excluded from the analysis. Our predictions indicate lower structural content at 3 , in line with previous reports indicating poor sequence conservation (only Rep A and B are highly conserved) (24) . The ROC curve of the Z-Score predictions on high-confidence DMS data (10% top and bottom nucleotides, 3 580 fragments) is reported in the corner (AUC 0.75). (B) Predictions of human coding DNA sequences (CDSs), untranslated regions (UTRs) and long-intergenic non-coding RNA (lincRNA) (ENSEMBL version 82; total number of transcripts: 50 000; 14 000 lincRNA isoforms). We predict that the UTRs are more structured than the CDSs, in agreement with previous studies (P-value < 2.2e-16, Kolmogorov-Smirnov) (1) . For each set we show a known example [the APP 5 UTR is more structured, as shown in previous studies (27) ; SERPINE3 has a structured CDS in agreement with PARS data (4); Xist structural content is in agreement with DMSdata (16)].",
+            "cite_spans": [
+                {
+                    "start": 837,
+                    "end": 841,
+                    "text": "(26)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 876,
+                    "end": 880,
+                    "text": "(27)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1258,
+                    "end": 1262,
+                    "text": "(24)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 1768,
+                    "end": 1771,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1875,
+                    "end": 1879,
+                    "text": "(27)",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 317,
+                    "end": 326,
+                    "text": "Figure 7B",
+                    "ref_id": "FIGREF12"
+                },
+                {
+                    "start": 939,
+                    "end": 949,
+                    "text": "Figure S10",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Structural differences in human CDS, UTRs and lincRNAs"
+        },
+        {
+            "text": "protein APP transcript is highly structured (>65% doublestranded). Similarly, the mRNA of serpin peptidase inhibitor SERPINE3 is predicted to be highly structured (>55%), as reported in PARS screenings (4) . We predict that 45% of Xist is structured in domains, as revealed by DMS profiling (16) .",
+            "cite_spans": [
+                {
+                    "start": 202,
+                    "end": 205,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 291,
+                    "end": 295,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Structural differences in human CDS, UTRs and lincRNAs"
+        },
+        {
+            "text": "The study of large transcripts requires intense experimental work that could be substantially reduced by using computational approaches to characterize their structural features (16) . Methods based on thermodynamic principles (18, 28) can be employed for RNAs < 1 000-1 500 nucleotides and do not work for larger molecules because of the complexity of the configuration space (22) . In our approach, we use local sequence properties of RNAs, which is key to perform fast high-throughput profiling of sequences, since the computational load scales linearly with the sequence length. Therefore, CROSS allows the prediction of the structural profile without sequence length restrictions.",
+            "cite_spans": [
+                {
+                    "start": 178,
+                    "end": 182,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 227,
+                    "end": 231,
+                    "text": "(18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 232,
+                    "end": 235,
+                    "text": "28)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 377,
+                    "end": 381,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "We built CROSS using data from SHAPE (5,6) and PARS (3, 4) studies as well as NMR/X-ray experiments. Models based on PARS and icSHAPE experiments show the highest predictive power with an average accuracy of 0.77 and 0.76, and a positive predictive value PPV of 0.8 and 0.77. The different algorithms can be used independently or combined together to obtain insights into the secondary structure of a transcript. Since each technique has its specificities and biases, the combination of multiple approaches is recommendable to achieve a better understanding of structural properties (14) .",
+            "cite_spans": [
+                {
+                    "start": 52,
+                    "end": 55,
+                    "text": "(3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 56,
+                    "end": 58,
+                    "text": "4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 583,
+                    "end": 587,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "On high-throughput experimental data sets CROSS outperforms RNAstructure (18) and RNAfold (15) (CROSS: ac-curacy of 0.80 for PARS-Yeast and 0.81 for PARS-Human; RNAstructure and RNAfold: 0.72-0.74 for PARS-Yeast, 0.67-0.69 for PARS-Human). Yet, previous studies indicate that thermodynamic methods have a higher predictive power when the information derived from SHAPE experiments is integrated (12) . Comparing SHAPE experiments and CROSS predictions on RNA molecules for which NMR/X-ray data are available (15), we found similar performances with an average precision of 0.74 (CROSS) and 0.76 (SHAPE), and an area under the receiver operating characteristics of 0.72 (CROSS) and 0.76 (SHAPE). Thus, CROSS can be considered an in silico alternative to SHAPE experiments (5,6) and its integration in RNAstructure (17, 18) shows performances (PPV: 0.72; AUC: 0.85) that are comparable to those achieved using real SHAPE data (PPV: 0.80, AUC: 0.88).",
+            "cite_spans": [
+                {
+                    "start": 73,
+                    "end": 77,
+                    "text": "(18)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 395,
+                    "end": 399,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 813,
+                    "end": 817,
+                    "text": "(17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 818,
+                    "end": 821,
+                    "text": "18)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "Since CROSS is fast (less than 2 min to profile a transcript of 20 000 nucleotides), it can be used for highthroughput predictions of the RNA secondary structure. We used CROSS to investigate profiles of sequences taken from CDSs as well as untranslated regions UTRs > 200 000 isoforms (calculated in <72 h) reporting a structural content that is compatible with what is available in literature (1) . We also studied the structural profile of Xist and identified specific regions in agreement with DMS experiments [correlations of 0.63 and 0.75 for Rep E and Rep F (16) ].",
+            "cite_spans": [
+                {
+                    "start": 395,
+                    "end": 398,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 565,
+                    "end": 569,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "Our predictions of structural features will facilitate the design of experimental studies on long transcripts by revealing the structural state of their regions. The calculations can be employed to shed light on the evolution of RNA molecules and on their interactions with other molecules. Our approach can be also exploited to improve the predictive power of algorithms such as for instance catRAPID, which computes the interaction propensity of protein and",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Insights into RNA structure and function from genome-wide studies",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mortimer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kidwell",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Doudna",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nat. Rev. Genet",
+            "volume": "15",
+            "issn": "",
+            "pages": "469--479",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "The grand challenge of characterizing ribonucleoprotein networks",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Tartaglia",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Front. Mol. Biosci",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.3389/fmolb.2016.00024"
+                ]
+            }
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Genome-wide measurement of RNA secondary structure in yeast",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kertesz",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wan",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Mazor",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Rinn",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Nutter",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Segal",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Nature",
+            "volume": "467",
+            "issn": "",
+            "pages": "103--107",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Landscape and variation of RNA secondary structure across the human transcriptome",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Qu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Flynn",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Manor",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Ouyang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Spitale",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Snyder",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Segal",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nature",
+            "volume": "505",
+            "issn": "",
+            "pages": "706--709",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Structural imprints in vivo decode RNA regulatory mechanisms",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Spitale",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Flynn",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Crisalli",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-W",
+                    "middle": [],
+                    "last": "Jung",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Kuchelmeister",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Batista",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Torre",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Kool",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nature",
+            "volume": "519",
+            "issn": "",
+            "pages": "486--490",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Selective 2'-hydroxyl acylation analyzed by primer extension (SHAPE): quantitative RNA structure analysis at single nucleotide resolution",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Merino",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Nat. Protoc",
+            "volume": "1",
+            "issn": "",
+            "pages": "1610--1616",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Quantitative dimethyl sulfate mapping for automated RNA secondary structure inference",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Cordero",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Kladwang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Vanlang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Das",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Biochemistry",
+            "volume": "51",
+            "issn": "",
+            "pages": "7037--7039",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Genome-wide probing of RNA structure reveals active unfolding of mRNA structures in vivo",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Rouskin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zubradt",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Washietl",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kellis",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Weissman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nature",
+            "volume": "505",
+            "issn": "",
+            "pages": "701--705",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Use of dimethyl sulfate to probe RNA structure in vivo",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Wells",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hughes",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Igel",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ares",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Methods Enzymol",
+            "volume": "318",
+            "issn": "",
+            "pages": "479--493",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Architecture and secondary structure of an entire HIV-1 RNA genome",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Dang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gorelick",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Leonard",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Bess",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Swanstrom",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Burch",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Nature",
+            "volume": "460",
+            "issn": "",
+            "pages": "711--716",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "RNA STRAND: the RNA secondary structure and statistical analysis database",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Andronescu",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Bereg",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Hoos",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Condon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "BMC Bioinformatics",
+            "volume": "9",
+            "issn": "",
+            "pages": "340--349",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Accurate SHAPE-directed RNA structure determination",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Deigan",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proc. Natl. Acad. Sci. U.S.A",
+            "volume": "106",
+            "issn": "",
+            "pages": "97--102",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Predicting protein associations with long noncoding RNAs",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bellucci",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Agostini",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Masin",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Tartaglia",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Nat. Methods",
+            "volume": "8",
+            "issn": "",
+            "pages": "444--445",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Structural architecture of the human long non-coding RNA, steroid receptor RNA activator",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Novikova",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Hennelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Sanbonmatsu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Nucleic Acids Res",
+            "volume": "40",
+            "issn": "",
+            "pages": "5034--5051",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "SHAPE directed RNA folding",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lorenz",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Luntzer",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Wolfinger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Bioinformatics",
+            "volume": "32",
+            "issn": "",
+            "pages": "145--147",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Probing Xist RNA structure in cells using targeted structure-seq",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Fang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Moss",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Rutenberg-Schoenberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Simon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PLoS Genet",
+            "volume": "11",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Expanded sequence dependence of thermodynamic parameters improves prediction of RNA secondary structure",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sabina",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. Mol. Biol",
+            "volume": "288",
+            "issn": "",
+            "pages": "911--940",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "RNAstructure: software for RNA secondary structure prediction and analysis",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Reuter",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "BMC Bioinformatics",
+            "volume": "11",
+            "issn": "",
+            "pages": "129--138",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "The MEME Suite",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Bailey",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Grant",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Noble",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nucleic Acids Res",
+            "volume": "43",
+            "issn": "",
+            "pages": "39--49",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Predicting the sequence specificities of DNA-and RNA-binding proteins by deep learning",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Alipanahi",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Delong",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Weirauch",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Frey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nat. Biotech",
+            "volume": "33",
+            "issn": "",
+            "pages": "831--838",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Improved prediction of RNA secondary structure by integrating the free energy model with restraints derived from experimental probing data",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Shi",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Ding",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Yip",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nucleic Acids Res",
+            "volume": "43",
+            "issn": "",
+            "pages": "7247--7259",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Global or local? Predicting secondary structure and accessibility in mRNAs",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lange",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Maticzka",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "M\u00f6hl",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Gagnon",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Brown",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Backofen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Nucleic Acids Res",
+            "volume": "40",
+            "issn": "",
+            "pages": "5215--5226",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "lincRNAs: genomics, evolution, and mechanisms",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Ulitsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Bartel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Cell",
+            "volume": "154",
+            "issn": "",
+            "pages": "26--46",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Characterization of the genomic Xist locus in rodents reveals conservation of overall gene structure and tandem repeats but rapid evolution of unique sequence",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Nesterova",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Slobodyanyuk",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Elisaphenko",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Shevchenko",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Johnston",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Pavlova",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Rogozin",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Kolesnikov",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Brockdorff",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Zakian",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Genome Res",
+            "volume": "11",
+            "issn": "",
+            "pages": "833--849",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Genome-wide measurement of RNA folding energies",
+            "authors": [],
+            "year": null,
+            "venue": "Mol. Cell",
+            "volume": "48",
+            "issn": "",
+            "pages": "169--181",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Genome regulation by long noncoding RNAs",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Rinn",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "81",
+            "issn": "",
+            "pages": "145--166",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Cellular strategies for regulating functional and nonfunctional protein aggregation",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gsponer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Babu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Cell Rep",
+            "volume": "2",
+            "issn": "",
+            "pages": "1425--1437",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "The Vienna RNA Websuite",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Gruber",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lorenz",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Bernhart",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Neubock",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Nucleic Acids Res",
+            "volume": "36",
+            "issn": "",
+            "pages": "70--74",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "catRAPID omics: a web server for large-scale prediction of protein-RNA interactions",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Agostini",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Zanzoni",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Klus",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Marchese",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cirillo",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Tartaglia",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Bioinformatics",
+            "volume": "29",
+            "issn": "",
+            "pages": "2928--2930",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Mouse and HIV transcriptomes (5,10): icSHAPE-Mouse and SHAPE-HIV) and PARS experiments (Human and Yeast transcriptomes (3,4): PARS-Human and PARS-Yeast) as well as data from NMR/X-ray studies (PDB database: NMR/X-ray) (Figure 1A). The training of each model was carried out on strong-signal sequences (Supplementary Material: Data sets) with the central nucleotide",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "). High-confidence predictions of PARS-Human (training fragments: 26 444; testing fragments: 77 476) and icSHAPE-Mouse (711 480 training fragments, 35 516 testing fragments) models on all the other sets reach accuracies of 0.77 and 0.76, PPVs of 0.80 and 0.77, TPRs of 0.76 and 0.76 and true negative rates of 0.79 and 0.77, respectively (Figure 1C; Supplementary Figures S1 and S2). As for PARS-Yeast, the accuracy, PPV and TPR are 0.64, 0.68 and 0.64, respectively. The model trained on NMR/X-ray data (29 428 training fragments, 77 176 testing fragments) shows an accuracy of 0.76, a PPV of 0.73 and a TPR of 0.79. SHAPE-HIV (fragments: 6 474 for training, 410 578 for testing) has an average accuracy, PPV and TPR of 0.66, 0.64 and 0.69.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "(A) To build the Computational Recognition of Secondary Structure (CROSS) models we used experimental data from four transcriptomewide studies (H. sapiens, M. musculus, S. cerevisiae and HIV-1) as well as NMR/X-ray structures (3,5,4-11). Each model was trained on one data set (PARS-Human, PARS-Yeast, icSHAPE-Mouse, SHAPE-HIV and NMR/X-ray) and tested on the others. (B) Performances increase from low-(median) to high-confidence (top and bottom 5%) values of the CROSS scores distribution (Supplementary",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Performances on complete data sets. Testing performances with AUC > 0.70 are highlighted in bold (intra-set 5-fold cross-validations are in grey).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "11 670 training fragments, 5 475 testing fragments; Supplementary Material: Data sets; Materials and Methods: Consensus models) (15,21). In the testing phase, single and doublestranded nucleotides were recognized with an AUC of 0.72 and a PPV of 0.74. Comparing the structures with experimental SHAPE data, we observed similar performances (AUC of 0.76 and PPV of 0.76 on the same data set; Figure 5). As PARS-Yeast and PARS-Human models show a 0.5 correlation (Supplementary",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "and C; Supplementary Figure S9; Materials and",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Receiver Operating Characteristic (ROC) curves reveal significant cross-validation performances on the complete data sets of PARS-Human (left panel; area under the ROC curve (AUC) = 0.90) and PARS-Yeast (right panel; AUC = 0.89).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "(A) Example of the secondary structure profile of the HIV transcriptome (nucleotides 3 800-4 000) calculated with the PARS-Human model. CROSS predictions show a correlation of 0.86 with the experimental Selective 2 -Hydroxyl Acylation analyzed by Primer Extension (SHAPE) profile. (B) ROC curves of CROSS-Human applied to HIV-SHAPE data. The performances increase when selecting a high confidence threshold (>1 for singlestranded; <0.1 for double-stranded) on SHAPE experimental data. (C) Pearson correlations between experimental and predicted data for the HIV transcriptome calculated on 200-nucleotide regions using a smoothing window of 7 nucleotides. The average correlation is 0.6.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Figure 5. Performance comparison of SHAPE data and CROSS predictions (Global Score) on sequences with available structural information derived from NMR/X-ray data (21). The performances are calculated on 24 RNAs that were not employed for training (15). The precision is measured at Youden's cut-off.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "mances (PPV: Group II intron O. iheyensis: 0.97 with RNAstructure versus 0.84 with SHAPE data; HIV-1 5 pseudoknot domain: 0.62 versus 0.55; SARS corona virus pseudoknot: 0.90 versus 0.75). To assess to what extent Global Score improves RNAstructure (Supplementary",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "the transcript was not present in any training set of CROSS). Using the top and bottom 10% of the experimental DMS data on Xist profile (3 580 fragments removing regions with unreliable scores in Rep B) the Z-Score shows an AUC of 0.75 (Figure 7A, right corner). In agreement with DMS experiments(16), CROSS identifies the structural elements associated with repetitive regions Rep A, B and F and resolves their internal structures with correlations of 0.35, 0.46 and 0.75, respectively (see Supplementary",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "(A and B) Performances of RNAstructure (12,18) without constraints and using either CROSS Global Score predictions or SHAPE data. Precision (PPV) and area under the ROC curve (AUC) increase when CROSS predictions are employed as constraints in RNAstructure, indicating a global improvement of predictive power. Randomizing the CROSS signal (in the range of SHAPE data) decreases the performances of RNAstructure. (C) Prediction of the structure of the P546 domain bI3 group I intron using CROSS predictions as constraints to RNAstructure: Sensitivity (TPR) (without CROSS: TPR = 0.43; with CROSS: TPR = 0.63) and precision (without CROSS: PPV = 0.44; with CROSS: PPV = 0.71) are reported.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "(A) CROSS Z-Score consensus prediction of the secondary structure profile of murine Xist long non-coding RNA (a 200 nt window is employed for smoothing). Structured regions, in correspondence to known repetitive domains (Rep A, B and F), are highlighted and the correlations with dimethyl sulfate (DMS) data (16) are reported on top. A detailed view of the CROSS and DMS profiles for Rep A, B, F and E is provided in Supplementary",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": ">0.5 for single-stranded, <0.2 for double-stranded to >1 for single-stranded and <0.1 for double-stranded) improves CROSS performances to an AUC of 0.80 (",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors thank Philipp Germann, Irene Julca, Davide Cirillo and the other members of our group for useful comments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        },
+        {
+            "text": "Supplementary Data are available at NAR Online. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUPPLEMENTARY DATA"
+        }
+    ]
+}

@@ -1,0 +1,2660 @@
+{
+    "paper_id": "0e1c055e39c45d7cef611b6bd17fb67c249ed742",
+    "metadata": {
+        "title": "Unifying evolutionary and thermodynamic information for RNA folding of multiple alignments",
+        "authors": [
+            {
+                "first": "Stefan",
+                "middle": [
+                    "E"
+                ],
+                "last": "Seemann",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Copenhagen",
+                    "location": {
+                        "addrLine": "Groenneg\u00e5 rdsvej 3",
+                        "postCode": "DK-1870",
+                        "settlement": "Frederiksberg",
+                        "country": "Denmark"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Jan",
+                "middle": [],
+                "last": "Gorodkin",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Copenhagen",
+                    "location": {
+                        "addrLine": "Groenneg\u00e5 rdsvej 3",
+                        "postCode": "DK-1870",
+                        "settlement": "Frederiksberg",
+                        "country": "Denmark"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Rolf",
+                "middle": [],
+                "last": "Backofen",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Georges-Koehler-Allee",
+                    "location": {
+                        "addrLine": "Geb. 106",
+                        "postCode": "D-79110",
+                        "settlement": "Freiburg",
+                        "country": "Germany"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Computational methods for determining the secondary structure of RNA sequences from given alignments are currently either based on thermodynamic folding, compensatory base pair substitutions or both. However, there is currently no approach that combines both sources of information in a single optimization problem. Here, we present a model that formally integrates both the energy-based and evolution-based approaches to predict the folding of multiple aligned RNA sequences. We have implemented an extended version of Pfold that identifies base pairs that have high probabilities of being conserved and of being energetically favorable. The consensus structure is predicted using a maximum expected accuracy scoring scheme to smoothen the effect of incorrectly predicted base pairs. Parameter tuning revealed that the probability of base pairing has a higher impact on the RNA structure prediction than the corresponding probability of being single stranded. Furthermore, we found that structurally conserved RNA motifs are mostly supported by folding energies. Other problems (e.g. RNA-folding kinetics) may also benefit from employing the principles of the model we introduce. Our implementation, PETfold, was tested on a set of 46 well-curated Rfam families and its performance compared favorably to that of Pfold and RNAalifold.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "With the recent focus on nonprotein coding RNA (ncRNA) genes, interest in detecting novel ncRNAs has rapidly emerged. Since the structure of RNA is evolutionarily more conserved than its sequence, predicting the RNA's secondary structure is one of the most important steps towards its functional analysis. There are two fundamentally different approaches to predicting RNA secondary structures, namely free-energy minimization and probabilistic approaches, which often use phylogenetic information given by a multiple sequence alignment. This duality of approaches represents two different types of RNA structure information, the former relies on the physical properties of single sequences, while the latter uses evolutionary information in the form of compensatory base pair substitutions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The advantage of energy minimization is that it relies on experimentally determined parameters. On the other hand, it is known that methods such as RNAfold (1) and Mfold (2) achieve an overall sensitivity of about 70% (3). For example, H/ACA snoRNAs usually do not produce the characteristic two-stem when the energy minimization alone is used to determine the structure. Instead, information on the functional sites have to be used as additional constraints to the thermodynamic folding (4) (5) (6) . In general, there are several reasons for the inaccuracy of energy minimization. First, the energy model is incomplete, especially for multi-loop structures. Second, there can be alternative structures with similar free energies. And third, true structures are often stabilized by bound molecules. The only feasible way to determine the effects of these inaccuracies is to include phylogenetic information by looking for conserved substructures that cannot be accounted for by thermodynamic folding alone.",
+            "cite_spans": [
+                {
+                    "start": 488,
+                    "end": 491,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 492,
+                    "end": 495,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 496,
+                    "end": 499,
+                    "text": "(6)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Hence, it is desirable to combine this duality of RNA structure information into a single optimization problem. This was probably addressed for the first time in 1985 by David Sankoff (7) , who introduced an algorithm that solved the problem of simultaneously aligning and folding a set of unaligned RNA sequences. While, this is a kind of gold standard for comparative RNA secondary structure prediction, the 'algorithm requires extreme amounts of memory and time' (8) . Thus, practical implementations of the Sankoff algorithm like FOLDALIGN (9-12), Dynalign (13, 14) , PMcomp (15) , LocARNA (16, 17) and PARTS (18) , published more than 20 years later, introduce different constraints and somewhat arbitrary choices in their scoring schemes to make the approach tractable for realistic input sizes.",
+            "cite_spans": [
+                {
+                    "start": 184,
+                    "end": 187,
+                    "text": "(7)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 466,
+                    "end": 469,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 561,
+                    "end": 565,
+                    "text": "(13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 566,
+                    "end": 569,
+                    "text": "14)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 579,
+                    "end": 583,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 594,
+                    "end": 598,
+                    "text": "(16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 599,
+                    "end": 602,
+                    "text": "17)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 613,
+                    "end": 617,
+                    "text": "(18)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Probabilistic approaches to the problem of simultaneously aligning and folding a set of RNA sequences, e.g. Stemloc (19) and Consan (20) , are usually based on stochastic context-free grammars (SCFG). Unlike the aforementioned Sankoff-like methods where the energy is explicitly reflected in the scoring scheme, these approaches rely purely on statistical learning methods to determine their parameters. A mixed approach is employed by CMfinder (21) that implicitly combines energy contributions with an SCFG. As a seed CMfinder uses energetically folded structures from which a covariance model (SCFG) is constructed in successive rounds of optimization. Another approach is SimulFold (22) , which simultaneously infers structures (including pseudoknots), alignments and trees. There are no sequence-dependent energy contributions, but an energy term that depends on the topology of the consensus structure.",
+            "cite_spans": [
+                {
+                    "start": 116,
+                    "end": 120,
+                    "text": "(19)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 132,
+                    "end": 136,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 686,
+                    "end": 690,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The main disadvantage of the Sankoff-like approaches is their high-computational cost. For this reason, a class of methods was developed that saves computational resources by predicting the optimal structure from given RNA alignments, which are usually produced by multiple sequence alignment methods. This approach has proven useful in genomic screens for ncRNAs (23, 24) , despite their limitations in finding RNA structures in more divergent sequences (25) . It has been shown that the quality of the predictions breaks down in cases where sequence identity is <60% (26) . On the other hand, these methods can also be applied to improve the consensus structure prediction in Sankoff-like approaches. The reason is simply that the Sankoff-like approaches usually apply a progressive strategy by combining pairwise alignments to build the final multiple alignment. Thus, consensus structure prediction can be improved when considering the complete phylogenetic information.",
+            "cite_spans": [
+                {
+                    "start": 364,
+                    "end": 368,
+                    "text": "(23,",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 369,
+                    "end": 372,
+                    "text": "24)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 455,
+                    "end": 459,
+                    "text": "(25)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 569,
+                    "end": 573,
+                    "text": "(26)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "In this article, we extend Pfold (27) to simultaneously use evolutionary and energetic information while searching for the common structure in a set of prealigned sequences. The probabilistic approach underlying Pfold combines an explicit evolutionary model of the RNA sequences with a probabilistic model of the secondary structures. When trying to extend this approach to incorporate thermodynamic folding, the first idea was to develop a combined probabilistic model for evolution and folding, using the partition function approach of McCaskill (28) as a probabilistic model for thermodynamic folding.",
+            "cite_spans": [
+                {
+                    "start": 33,
+                    "end": 37,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "There are two main problems for a combined probabilistic model. First, there is no simple way to weight the different information sources in such a combined model. And second, the structure prediction would be based on a maximum likelihood or maximum a posteriori (MAP) approach. Recent work by Carvalho and Lawrence (29) has shown that this approach often does not yield to the desired result. Basically, the implicit assumption of a maximum likelihood or MAP approach is that the structure with the highest probability is also the structure where the ensemble of close neighbors has the highest probability mass, which is often not the case. Hence, Carvalho and Lawrence proposed different new classes of estimators, which included estimators already used in sequence alignment and RNA secondary structure prediction.",
+            "cite_spans": [
+                {
+                    "start": 295,
+                    "end": 321,
+                    "text": "Carvalho and Lawrence (29)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "One example is the maximum expected accuracy (MEA) method originally introduced by ref. (30) and successfully applied to sequence alignment in ProbCons (31) and to RNA structure prediction in CONTRAfold (3). A partition function version of the Sankoff algorithm (which is related to MEA scoring) was introduced in ref. (32) . Another example is Pfold itself, since the current implementation does not use the maximum likelihood approach originally introduced in ref. (33) , but is based on reliability scores (27) , which can be interpreted as a variant of MEA scoring.",
+            "cite_spans": [
+                {
+                    "start": 88,
+                    "end": 92,
+                    "text": "(30)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 319,
+                    "end": 323,
+                    "text": "(32)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 467,
+                    "end": 471,
+                    "text": "(33)",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 509,
+                    "end": 513,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Hence, our approach is based on a combined MEA score. The combined score is based on both base pair and single-strand probabilities as calculated by RNAfold and the reliabilities of base pairs and single-stranded positions as extracted from Pfold. The combined MEA scoring has the advantage that it allows for an explicit weighting of the contribution of phylogenetic and thermodynamic information and smoothens the effects of incorrectly predicted base pair probabilities. The latter is due to the fact that the algorithm searches for a structure that shares as many base pairs as possible with all alternative structures. We implemented this Probabilistic Evolutionary and Thermodynamic folding algorithm (PETfold) for multiple RNA sequence alignments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Recently, several methods for finding the common structure in a set of sequences that are either unaligned or aligned have been published (34) (35) (36) (37) . Essentially, they all carry out a global alignment or predict a common structure on a set of globally aligned sequences. RNAalifold (38) basically applies energy minimization to a complete alignment. In addition, it introduces an evolutionarily motivated score to measure sequence covariation for base pairs. Since it is widely used and applies a thermodynamic-based scoring scheme, it was chosen as a benchmark method in addition to Pfold.",
+            "cite_spans": [
+                {
+                    "start": 138,
+                    "end": 142,
+                    "text": "(34)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 143,
+                    "end": 147,
+                    "text": "(35)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 148,
+                    "end": 152,
+                    "text": "(36)",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 153,
+                    "end": 157,
+                    "text": "(37)",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "We now recall the Pfold (33) model. In the following, a secondary structure is a set of base pairs that do not cross. Let A be a multiple alignment of the sequences s 1 . . . s n . Furthermore, let T be a given evolutionary tree and M be a prior model for the secondary structures. Thus the model provides a probability distribution on the structures, given the data (i.e. the alignment A) and the background information (i.e. the secondary structure background model M and the tree T):",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "Since Pr\u00bdAjT; M is independent from the structure , we need to optimize only Pr\u00bdAjT; ; MP\u00bdjT; M:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "Here, P\u00bdjT; M is the prior distribution over all secondary structures. M is given by the following simple SCFG, which is taken from Pfold:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "It has been shown by Dowell and Eddy (39) that this grammar performs best on a given benchmark data set. Furthermore, this grammar is unambiguous, i.e. every structure is generated in a unique way. For each structure , let M () be the associated parse tree that produces the structure using the grammar M. With r() we denote the root node of M \u00f0\u00de.",
+            "cite_spans": [
+                {
+                    "start": 21,
+                    "end": 41,
+                    "text": "Dowell and Eddy (39)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "The term Pr\u00bdAjT; ; M provides a distribution over alignments. Here, only the sequences evolve and the common structure (adopted by all sequences) determines the mode of evolution. The alignment probability is calculated as the product of alignment column probabilities, which are calculated using Felsenstein's dynamic programming for phylogenetic trees (see Supplementary Material for details).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "The full term Pr\u00bdAjT; ; MP\u00bdjT; M now can be calculated with a combined SCFG by multiplying the probabilities for the secondary structure rules in Equation (2) with the probabilities for generating the associated alignment columns (see Supplementary Material again). In the following, we will denote it with Pr(r(), A).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "Originally, Pfold (33) used a MAP approach for calculating the consensus structure . Thus, was defined to be the structure that maximizes Pr(r(), A). This maximization problem can be solved using the CYK algorithm. Later, this was replaced in Pfold by a more successful MEA approach discussed in the next section.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Pfold model"
+        },
+        {
+            "text": "The basic idea of MEA scoring is to consider Pr(r(), A) as a probability distribution over consensus structures, where higher probabilities denote a better fit to the alignment and its associated evolutionary history. We write position i 6 2 as short for 'position i is not involved in a base pair in ' [i.e. 8j : \u00f0i; j\u00de 6 2 ^\u00f0j; i\u00de 6 2 \u00f0 \u00de ]. Given the structure and an alignment A with m columns, the set of all unpaired positions in the consensus structure is denoted as \u00bc fi 6 2 j 1 i mg. Then, we can compute the expected overlap ex-over evo () of a specific consensus structure with all possible consensus structures, weighted according to their probabilities. This can be done as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Maximum expected accuracy"
+        },
+        {
+            "text": "where the term \u00f0 \u00de for a proposition \u00f0\u00f0i; j\u00de 2 0 \u00de or \u00f0i 2 sg\u00f0 0 \u00de\u00de is 1 if the is true and 0 otherwise. is a free parameter that weights single stranded against base pair positions. Since a base pair occupies two positions, should be smaller than 1\\2 (where =1\\2 means that prediction errors on base pairs and single stranded positions are weighted equally).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Maximum expected accuracy"
+        },
+        {
+            "text": "We now define the reliability scores for a base pair (i, j) and for a single-stranded base i as in Pfold by which allows us to calculate the consensus structure with the maximal expected overlap using a Nussinov style algorithm.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Maximum expected accuracy"
+        },
+        {
+            "text": "Before we can extend the model, we have to more precisely define what it means that two sequences can adopt the same consensus structure under a given alignment matrix A \u00bc \u00f0a u;l \u00de, where u denotes the number of sequences and l the number of alignment columns. This is necessary because a consensus structure is defined as a set of paired alignment columns. Hence, let n be the number of sequences and let f u A \u00f0i\u00de \u00bc l be the alignment column corresponding to position i in sequence s u . The mapping f u A can be extended to structures: f u A \u00f0\u00de \u00bc f\u00f0f u A \u00f0i\u00de; f u A \u00f0j\u00de\u00de j \u00f0i; j\u00de 2 g: In the previous section, we searched for a consensus structure that had the maximal expected overlap with other possible consensus structures defined by the probabilistic evolutionary model, thus minimizing the expected number of evolutionary prediction errors. Now, we also want to evaluate the expected overlap for each sequence s with its ensemble of structures as given by the energy model. This implies that for each sequence s, we consider the distribution of structures as introduced by McCaskill (28). For this purpose, let p s k;l \u00bc P \u00f0k;l\u00de2 Pr\u00bdjs be the base pair probabilities for a sequence s as calculated by, e.g. RNAfold \u00c0p (1) and q s k \u00bc 1 \u00c0 P l6 \u00bck p s k;l the probability for position k being single stranded in sequence s. The combined expected overlap now consists of two parts, generally weighted with 1 for the conservation part and for the thermodynamic overlap:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Extension by folding energies"
+        },
+        {
+            "text": "where ex-over str () is the expected overlap of with all structures from all sequences. Formally, this is defined by ex-over str \u00f0\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Extension by folding energies"
+        },
+        {
+            "text": "Here, p u ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Extension by folding energies"
+        },
+        {
+            "text": "The consensus structure maximizing this expectation can again be calculated by a Nussinov-style algorithm.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Extension by folding energies"
+        },
+        {
+            "text": "Highly conserved substructures are under strong evolutionary pressure, possibly caused by interactions with bound molecules or other functional constraints. As mentioned in the Introduction section, these substructures cannot be accounted for in thermodynamic folding algorithms. We refer to them as a reliably conserved substructure rel , which is defined as follows. A substructure is a structure that fixes only some of the positions in a sequence, hence being a partial structure. A partial structure p is a tuple \u00f0B; S\u00de consisting of a set of base pairs B and a set of single-stranded positions S such that no single-stranded position in S is part of a base pair in B. Then, a partial structure p is a substructure of a structure if B and S sg\u00f0\u00de. The reliably conserved substructure rel is a substructure of that is determined by the evolutionarily highly reliable positions. They are selected by using thresholds on the reliability scores of single-stranded (p threshold ss ) and base-paired positions (p threshold bp ). We get rel by using a Nussinov-style approach with the additional condition that There are two possible approaches to determine these thresholds. First, they can be estimated through parameter tuning using a data set of known RNA families to predict RNA structures most similar to their structure annotations (see Result section). Second, a statistical approach can be applied by determining positions whose reliability is significantly better than the average (see Supplementary Material). Our observation was that in practice the first approach worked better than the second.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reliably conserved substructure"
+        },
+        {
+            "text": "For specific cases where there are many additional constraints imposed on the structure, it is a good strategy to identify the reliably conserved substructure rel first, and then search for the consensus structure that maximizes ex-over\u00f0\u00de and contains rel as a substructure. Reliably conserved substructures are easily integrated into the earlier described Nussinov-style algorithm by setting the weighting factor of thermodynamic overlap to zero in Equation ( 2) (see Supplementary Material for details).",
+            "cite_spans": [
+                {
+                    "start": 459,
+                    "end": 460,
+                    "text": "(",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Reliably conserved substructure"
+        },
+        {
+            "text": "Gaps are treated in a two-step procedure. First, all columns are removed from the alignment where 75% of the sequences have nucleotides. These columns are integrated as gaps in the consensus secondary structure at the end, a strategy that is adapted from Pfold. Second, sequencedependent probabilities p s u k;l and q s u k are calculated without gaps and probabilities of gaps are estimated as the average in the appropriate column of the alignment.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Gaps"
+        },
+        {
+            "text": "Rfam (40) is the most up-to-date comprehensive and freely accessible RNA structure database, so we used 46 Rfam (version 8.0) seed alignments for parameter tuning and for PETfold benchmarking. Our data set consists of 17 RNA families recommended by refs. (21) and (11) and 29 additional families possessing a high-quality alignment documented by the SARSE project (41) . The alignments of the second set of data are characterized by a score for inconsistent base pairs 4 and a score for novel base pairs 4. These criteria are satisfied by 43 families, of which two families overlap the first set and 12 were rejected because of an annotated structure with <40% of bases being involved in base pairs. Large alignments were reduced by sequence similarity as in (41) . An overview of all RNA families in the data set is given in Supplementary  Table 1 .",
+            "cite_spans": [
+                {
+                    "start": 364,
+                    "end": 368,
+                    "text": "(41)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 759,
+                    "end": 763,
+                    "text": "(41)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 826,
+                    "end": 848,
+                    "text": "Supplementary  Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Data"
+        },
+        {
+            "text": "The RNA structure predictions of PETfold, Pfold and RNAalifold are evaluated by looking for their correlation to the related Rfam structure annotation, ignoring noncanonical base pairs. Therefore, we used the Matthews correlation coefficient (42) defined as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Performance evaluation"
+        },
+        {
+            "text": "where P t is the number of mutual base pairs in the two assignments (true positives), N t the number of mutual pairs of bases not base pairing (true negatives), P f the number of predicted base pairs not in the Rfam assignment (false positives) and N f the number of base pairs in the Rfam assignment not predicted to pair (false negatives). We also calculated sensitivity, SEN \u00bc P t =\u00f0P t \u00fe N f \u00de and positive predictive value, PPV \u00bc P t =\u00f0P t \u00fe P f \u00de. Their geometric mean is a good approximation to the MCC for base pair prediction (43) . The parameter tuning was done by optimizing the MCC to get a best possible tradeoff between sensitivity and PPV. In addition, we used the more stringent structure evaluation scheme R 5 introduced by Gorodkin et al. ",
+            "cite_spans": [
+                {
+                    "start": 535,
+                    "end": 539,
+                    "text": "(43)",
+                    "ref_id": "BIBREF42"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Performance evaluation"
+        },
+        {
+            "text": "PETfold without thermodynamic probabilities (set parameter = 0) calculates exactly the same most reliable structure as Pfold. We interpret highly conserved parts of this RNA structure as evolutionary substructure rel .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Pfold similarity"
+        },
+        {
+            "text": "The default parameters of PETfold are set by optimizing the MCC of predicted RNA secondary structure to the related Rfam structure annotation over all RNA families in our data set. Hence, we ran PETfold with different values for the single-stranded probability weighting factor ( 0:5) and different reliability thresholds for evolutionary highly conserved single-stranded (p threshold ss ) and base-paired positions (p threshold bp ). The latter two values determine the reliably conserved substructure rel . The conservation part and thermodynamic overlap are equally weighted ( = 1) as PETfold should not be overfitted to RNA families with strong conservation and lower thermodynamic stability or vice versa.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Parameter tuning"
+        },
+        {
+            "text": "As shown in Figure 1 , PETfold with = 0.2 and p threshold ss \u00bc 1 predicts the best RNA structure as compared to the Rfam annotated structure. These settings optimize the structure of 30 RNA families. The total rejection of the reliably conserved substructure rel (p threshold ss \u00bc p threshold bp \u00bc 1) or p threshold bp < 0:9 slightly decreases the performance of PETfold. Therefore, we are pragmatic and use p threshold bp \u00bc 0:9, which predicts the best RNA structure for 38 families. In summary, we choose = 0.2, = 1, p threshold ss \u00bc 1 and p threshold bp \u00bc 0:9 as default parameters for PETfold having optimized the structures of 25 RNA families that comprise 54% of the data set.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 12,
+                    "end": 20,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Parameter tuning"
+        },
+        {
+            "text": "The parameter tuning of PETfold showed that in many cases the quality improves by adding thermodynamic probabilities even when there are highly conserved substructures. PETfold produces the highest MCCs when single-stranded positions are not considered as part of the reliably conserved substructure rel . Furthermore, defining rel which consists of evolutionarily conserved base pairs with high reliability resulted only in a minor improvement. This emphasizes that phylogenetic structure information is mostly supported by folding energy. Another unexpected result was the poor weighting of single stranded against base pair positions ( = 0.2), i.e. base pair probabilities have a larger impact on RNA structure prediction.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Parameter tuning"
+        },
+        {
+            "text": "Next, we compared the RNA structure predictions of PETfold with Pfold and RNAalifold, using the default parameters for each program. On average over the entire data set, PETfold performed better than the other methods for a wide range of parameter settings. PETfold with default parameters predicts base pairs with 0.85 PPV, 0.88 SEN and 0.86 accuracy. Its mean MCC to the Rfam annotations of 0.85 is significantly higher than the 0.71 MCC obtained for Pfold and the 0.79 obtained for RNAalifold ( Table 1) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 498,
+                    "end": 506,
+                    "text": "Table 1)",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Performance"
+        },
+        {
+            "text": "The MCCs for PETfold, Pfold and RNAalifold are listed for all families in the data set in Supplementary Table 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 90,
+                    "end": 111,
+                    "text": "Supplementary Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Performance"
+        },
+        {
+            "text": "PETfold predicts a structure that is better than the ones predicted by Pfold and RNAalifold for 18 RNA families. In contrast, Pfold achieves this for only 7 families and RNAalifold for 16 families. Considering a confidence interval of 0.01, we observed 27 of the most accurate predictions by PETfold, 15 by Pfold and 18 by RNAalifold. These include cases where two or three methods predicted the same structure. More specifically, seven structures were predicted by PETfold and Pfold, three by PETfold and RNAalifold and two structures [Histone3 (45) and Rhino_CRE (46) ] were predicted by all three methods.",
+            "cite_spans": [
+                {
+                    "start": 546,
+                    "end": 550,
+                    "text": "(45)",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 565,
+                    "end": 569,
+                    "text": "(46)",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Performance"
+        },
+        {
+            "text": "Concerning the structure predictions that completely agreed with the Rfam annotations, the three methods correctly predict the Histone3 structure. In addition, Pfold predicts the exact structure of mir-194 (47) (54) . The accuracy of the predicted structure for this element increases by 30% when using PETfold (MCC=0.90).",
+            "cite_spans": [
+                {
+                    "start": 211,
+                    "end": 215,
+                    "text": "(54)",
+                    "ref_id": "BIBREF54"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Performance"
+        },
+        {
+            "text": "PETfold takes O(L 2 ) space and O\u00f0L 3 \u00de time when the number of sequences N is much smaller than the sequence length L. The most time-consuming parts of the algorithm are the calculation of evolutionarily reliabilities using Pfold (O\u00f0L 3 \u00de \u00fe O\u00f0L 2 \u00de), the calculation of energy-based probabilities of N sequences using RNAfold (N \u00c2 O\u00f0L 3 \u00de) and the Nussinov-style algorithm (O\u00f0L 3 \u00de). In practice, the running time of PETfold is approximately twice that of Pfold and much longer than that of RNAalifold (see Table 1 for details). Major reasons for the longer runtimes are the implementation of PETfold in Perl and the external calls to Pfold and RNAfold.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 508,
+                    "end": 515,
+                    "text": "Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Performance"
+        },
+        {
+            "text": "The suggested PETfold parameters are based on the average performance over all RNA families in the data set. We observed a common distribution of PETfold performance for different parameter settings in which low-reliability thresholds for evolutionary substructures rel decrease the prediction accuracy ( Figure 1) . Thus, the general application of evolutionary constraints has negative influences on the structure prediction.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 305,
+                    "end": 314,
+                    "text": "Figure 1)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Family specific parameter settings"
+        },
+        {
+            "text": "Nevertheless, several RNA families show a different performance distribution. For instance, PETfold with default parameters performs worse than RNAalifold for the Rotavirus cis-acting replication element (Rota_CRE) (55) . However, if we lower the threshold for conserved base pairs, then PETfold predicts a structure with MCC=0.84 compared to the MCC=0.76 achieved by RNAalifold.",
+            "cite_spans": [
+                {
+                    "start": 215,
+                    "end": 219,
+                    "text": "(55)",
+                    "ref_id": "BIBREF55"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Family specific parameter settings"
+        },
+        {
+            "text": "We could not find a general correlation of the best performing reliability thresholds with previously used alignment features such as the structural conservation index (SCI) (23) or mean pairwise sequence identity (MPI). However, structurally diverse alignments tend to benefit from lower reliability thresholds due to a higher evolutionary information content. The alignment diversity can be measured by Pcluster (41) , which divides the sequences of an RNA alignment into subgroups with different consensus structures. On average, PETfold performs best with high-reliability thresholds for RNA families with low number of structural clusters. This correlation is shown in Figure 2 . For instance, the best performing reliability thresholds for Rota_CRE, whose alignment is divided in three clusters by Pcluster, are well described by Figure 2 .",
+            "cite_spans": [
+                {
+                    "start": 174,
+                    "end": 178,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 414,
+                    "end": 418,
+                    "text": "(41)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 674,
+                    "end": 682,
+                    "text": "Figure 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 836,
+                    "end": 844,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Family specific parameter settings"
+        },
+        {
+            "text": "In summary, PETfold's default parameters should be regarded as a reasonable approximation for the RNA family alignments with different levels of diversity. Figure 2 . Correlation between alignment diversity and evolutionary constraint substructures. The correlation between the diversity (number of structural clusters per family calculated by Pcluster) of alignments and the reliability thresholds used by PETfold to predict the best RNA structure, averaged over all families in the data set. We can see that less diverse alignments perform best almost without evolutionary constraints. Intron_gpII (57) is excluded because of its exceedingly high number of 10 structural clusters. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 156,
+                    "end": 164,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Family specific parameter settings"
+        },
+        {
+            "text": "We presented a new method, named PETfold, which unifies probabilistic evolutionary and thermodynamic models to predict global RNA structures from multiple alignments. Highly conserved RNA structures are probably naturally selected due to their functional relevance, while less conserved sequences tend to fold in a state of minimum free energy. Combining both types of information increases the predictive power: we rely on phylogenetic information if the structure elements are highly conserved and extend the model by including folding energies to build the surrounding structure. The 46 Rfam seed alignments used for benchmarking are selected for their consistency. They might include manually optimized structure information, that are not achieved by sequence alignment algorithms. However, we are interested in the best possible structure prediction, which is often only found using conserved structure information in the alignment. The analyses of PETfold revealed that the selection of a reliably conserved substructure rel is less important than expected. This has been confirmed by estimating the statistical significance of the reliability scores, which shows that only high-reliability scores are significant. On the other hand, the combination of an evolutionary model with a thermodynamic model outperforms the widely used RNA structure predictors Pfold and RNAalifold.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Nevertheless, there are cases where the evolutionary conservation is more important. Especially for RNA families with an active site like H/ACA snoRNAs, the usage of reliably conserved substructures improves the predictions. A first guess, namely that the impact of the evolutionary substructure might be negatively correlated with the SCI, could not be confirmed. However, we observed a correlation to the number of structural clusters in an alignment as measured by Pcluster. This should be investigated in greater detail since it provides a new possibility to classify multiple RNA alignments. Currently, the measurements as used, e.g. in BRAliBase (26) are MPI and SCI.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "There are two possible improvements. One could be the application of stacking base pair probabilities (56) . These probabilities can be easily integrated in the MEA approach if the rule F ! dFd of the SCFG is applied. Nevertheless, a first trial of this extension using the stacking base pair probabilities calculated by RNAfold (1) did not improve the performance of PETfold and may be due to the fact that these are not independent of the simple base pair probabilities.",
+            "cite_spans": [
+                {
+                    "start": 102,
+                    "end": 106,
+                    "text": "(56)",
+                    "ref_id": "BIBREF56"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "A second possible improvement considers the fact that structural stability is at least partially accounted twice since Pfold already favors stable base pairs such as G-C. This does not pose a major problem since the thermodynamic part adds a lot of new information like sequence-dependent stacking or properties of the complete structure ensemble (encoded in base pair probabilities). Nevertheless, it would be nice to explicitly separate these different information sources in a future version.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Supplementary Data are available at NAR Online. The source code of PETfold is available under the GNU Public License at http://genome.ku.dk/resources/ petfold.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUPPLEMENTARY DATA"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Fast Folding and Comparison of RNA Secondary Structures",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Fontana",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bonhoeffer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Tacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Schuster",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Monatsh. Chemie",
+            "volume": "125",
+            "issn": "",
+            "pages": "167--188",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Prediction of RNA secondary structure by energy minimization",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Methods Mol. Biol",
+            "volume": "25",
+            "issn": "",
+            "pages": "267--294",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "CONTRAfold: RNA secondary structure prediction without physics-based models",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Do",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Woods",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Batzoglou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Bioinformatics",
+            "volume": "22",
+            "issn": "",
+            "pages": "90--98",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "A computational screen for mammalian pseudouridylation guide H/ACA RNAs",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Schattner",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Barberan-Soler",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Lowe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "RNA",
+            "volume": "12",
+            "issn": "",
+            "pages": "15--25",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "SnoReport: computational identification of snoRNAs with unknown targets",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hertel",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Bioinformatics",
+            "volume": "24",
+            "issn": "",
+            "pages": "158--164",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "PSSMTS: position specific scoring matrices on tree structures",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Sato",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Morita",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Sakakibara",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Math. Biol",
+            "volume": "56",
+            "issn": "",
+            "pages": "201--214",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Simultaneous solution of the RNA folding, alignment and protosequence problems",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sankoff",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "SIAM J. Appl. Math",
+            "volume": "45",
+            "issn": "",
+            "pages": "810--825",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "A comprehensive comparison of comparative RNA structure prediction approaches",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Gardner",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "BMC Bioinformatics",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Finding the most significant common sequence and structure motifs in a set of RNA sequences",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Heyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Stormo",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Nucleic Acids Res",
+            "volume": "25",
+            "issn": "",
+            "pages": "3724--3732",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "The FOLDALIGN web server for pairwise structural RNA alignment and mutual motif search",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Havgaard",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Lyngso",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Res",
+            "volume": "33",
+            "issn": "",
+            "pages": "650--653",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Multiple structural alignment and clustering of RNA sequences",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Torarinsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Havgaard",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Bioinformatics",
+            "volume": "23",
+            "issn": "",
+            "pages": "926--932",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Fast pairwise structural RNA alignments by pruning of the dynamical programming matrix",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Havgaard",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Torarinsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "PLoS Comput. Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "1896--1908",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Dynalign: an algorithm for finding the secondary structure common to two RNA sequences",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Mol. Biol",
+            "volume": "317",
+            "issn": "",
+            "pages": "191--203",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Efficient pairwise RNA structure prediction using probabilistic alignment constraints in Dynalign",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Harmanci",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sharma",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "BMC Bioinformatics",
+            "volume": "8",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Alignment of RNA base pairing probability matrices",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Bernhart",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Bioinformatics",
+            "volume": "20",
+            "issn": "",
+            "pages": "2222--2227",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Local Sequence-Structure Motifs in RNA",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Backofen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Will",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Bioinform. Comput. Biol. (JBCB)",
+            "volume": "2",
+            "issn": "",
+            "pages": "681--698",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Inferring Non-Coding RNA families and classes by means of genome-scale structure-based clustering",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Will",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Reiche",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Backofen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "PLOS Comput. Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "PARTS: probabilistic alignment for RNA joinT secondary structure prediction",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Harmanci",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sharma",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Nucleic Acids Res",
+            "volume": "36",
+            "issn": "",
+            "pages": "2406--2417",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Accelerated probabilistic inference of RNA structure evolution",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Holmes",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "BMC Bioinformatics",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Efficient pairwise RNA structure prediction and alignment using sequence alignment constraints",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinformatics",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "CMfinder -a covariance model based RNA motif finding algorithm",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Yao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Weinberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Ruzzo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Bioinformatics",
+            "volume": "22",
+            "issn": "",
+            "pages": "445--452",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "SimulFold: simultaneously inferring RNA structures including pseudoknots, alignments and trees using a Bayesian MCMC framework",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Meyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Miklos",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "PLoS Comput. Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Fast and reliable prediction of noncoding RNAs",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Washietl",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proc. Natl Acad. Sci. USA",
+            "volume": "102",
+            "issn": "",
+            "pages": "2454--2459",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Identification and classification of conserved RNA secondary structures in the human genome",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Pedersen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Bejerano",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Siepel",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Rosenbloom",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Lindblad-Toh",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Lander",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kent",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Miller",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Haussler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "PLoS Comput. Biol",
+            "volume": "2",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Thousands of corresponding human and mouse genomic regions unalignable in primary sequence contain common RNA structure",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Torarinsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sawera",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Havgaard",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fredholm",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Genome Res",
+            "volume": "16",
+            "issn": "",
+            "pages": "885--889",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "A benchmark of multiple sequence alignment programs upon structural RNAs",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Gardner",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Wilm",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Washietl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Res",
+            "volume": "33",
+            "issn": "",
+            "pages": "2433--2439",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Pfold: RNA secondary structure prediction using stochastic context-free grammars",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Knudsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hein",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nucleic Acids Res",
+            "volume": "31",
+            "issn": "",
+            "pages": "3423--3428",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "The equilibrium partition function and base pair binding probabilities for RNA secondary structure",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Mccaskill",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Biopolymers",
+            "volume": "29",
+            "issn": "",
+            "pages": "1105--1119",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Centroid estimation in discrete high-dimensional spaces with applications in biology",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Carvalho",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Lawrence",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proc. Natl. Acad. Sci. USA, 105",
+            "volume": "",
+            "issn": "",
+            "pages": "3209--3214",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "A reliable sequence alignment method based on probabilities of residue correspondences",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Miyazawa",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Protein Eng",
+            "volume": "8",
+            "issn": "",
+            "pages": "999--1009",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "ProbCons: probabilistic consistency-based multiple sequence alignment",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Do",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S P"
+                    ],
+                    "last": "Mahabhashyam",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Brudno",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Batzoglou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Genome Res",
+            "volume": "15",
+            "issn": "",
+            "pages": "330--340",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "The Partition Function Variant of Sankoff's Algorithm. Lecture Notes in Computer Science LNCS 3039",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "RNA secondary structure prediction using stochastic context-free grammars and evolutionary history",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Knudsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hein",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Bioinformatics",
+            "volume": "15",
+            "issn": "6",
+            "pages": "446--454",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Robust prediction of consensus secondary structures using averaged base pairing probability matrices",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kiryu",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kin",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Asai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Bioinformatics",
+            "volume": "23",
+            "issn": "",
+            "pages": "434--441",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Identification of consensus RNA secondary structures using suffix arrays",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Anwar",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Nguyen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Turcotte",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinformatics",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Consensus folding of unaligned RNA sequences revisited",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Bafna",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Comput. Biol",
+            "volume": "13",
+            "issn": "",
+            "pages": "283--295",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Mining frequent stem patterns from unaligned RNA sequences",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hamada",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Tsuda",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kudo",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kin",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Asai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Bioinformatics",
+            "volume": "22",
+            "issn": "",
+            "pages": "2480--2487",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Secondary structure prediction for aligned RNA sequences",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fekete",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Mol. Biol",
+            "volume": "319",
+            "issn": "",
+            "pages": "1059--1066",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Evaluation of several lightweight stochastic context-free grammars for RNA secondary structure prediction",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "BMC Bioinformatics",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Rfam: annotating non-coding RNAs in complete genomes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Griffiths-Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Moxon",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Marshall",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Khanna",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bateman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Research",
+            "volume": "33",
+            "issn": "",
+            "pages": "121--124",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Semiautomated improvement of RNA alignments",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Andersen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Lind-Thomsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Knudsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Kristensen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Havgaard",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Torarinsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Larsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zwieb",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Sestoft",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kjems",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "RNA",
+            "volume": "13",
+            "issn": "",
+            "pages": "1850--1859",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Comparison of the predicted and observed secondary structure of T4 phage lysozyme",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Matthews",
+                    "suffix": ""
+                }
+            ],
+            "year": 1975,
+            "venue": "Biochim. Biophys. Acta",
+            "volume": "405",
+            "issn": "",
+            "pages": "442--451",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Discovering Common Stem-Loop Motifs in Unaligned RNA Sequences",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Stricklin",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Stormo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Nucleic Acids Res",
+            "volume": "29",
+            "issn": "",
+            "pages": "2135--2144",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Comparing two K-category assignments by a K-category correlation coefficient",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gorodkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Comput. Biol. Chem",
+            "volume": "28",
+            "issn": "",
+            "pages": "367--374",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "The sequence of the stem and flanking sequences at the 3 0 end of histone mRNA are critical determinants for the binding of the stem-loop binding protein",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Williams",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Marzluff",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Nucleic Acids Res",
+            "volume": "23",
+            "issn": "",
+            "pages": "654--662",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "The rhinovirus type 14 genome contains an internally located RNA structure that is required for viral replication",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Mcknight",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Lemon",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "RNA",
+            "volume": "4",
+            "issn": "",
+            "pages": "1569--1584",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "New microRNAs from mouse and human",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lagos-Quintana",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rauhut",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Meyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Borkhardt",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Tuschl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "RNA",
+            "volume": "9",
+            "issn": "",
+            "pages": "175--179",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "A common RNA motif in the 3 0 end of the genomes of astroviruses, avian infectious bronchitis virus and an equine rhinovirus",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Jonassen",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Jonassen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Grinde",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "J. Gen. Virol",
+            "volume": "79",
+            "issn": "",
+            "pages": "715--718",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "A cis-acting replication element in the sequence encoding the nS5B RNA-dependent RNA polymerase is required for hepatitis c virus RNA replication",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "You",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Stump",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Branch",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Rice",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Virol",
+            "volume": "78",
+            "issn": "",
+            "pages": "1352--1366",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Cis-acting sequences required for coronavirus infectious bronchitis virus defective-RNA replication and packaging",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Dalton",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Casais",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Shaw",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Stirrups",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Evans",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Brown",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cavanagh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "J. Virol",
+            "volume": "75",
+            "issn": "",
+            "pages": "125--133",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "Biased hypermutagenesis associated with mutations in an untranslated hairpin of an RNA virus",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Mccormack",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Simon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Virol",
+            "volume": "78",
+            "issn": "14",
+            "pages": "7813--7817",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Differentially expressed snoRNAs in Bungarus multicinctus",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Human box h/ aca pseudouridylation guide RNA machinery",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kiss",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Jdy",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Bertrand",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kiss",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Mol. Cell. Biol",
+            "volume": "24",
+            "issn": "",
+            "pages": "5797--5807",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "RNA molecules with structure dependent functions are uniquely folded",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Le",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "V J"
+                    ],
+                    "last": "Maizel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Nucleic Acids Res",
+            "volume": "30",
+            "issn": "",
+            "pages": "3574--2582",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Features of the 3 0 -consensus sequence of rotavirus mRNAs critical to minus strand synthesis",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Barros",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Spencer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Patton",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Virology",
+            "volume": "282",
+            "issn": "",
+            "pages": "221--229",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Coaxial stacking of helixes enhances binding of oligoribonucleotides and improves predictions of RNA folding",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Walter",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Turner",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lyttle",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Muller",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Proc. Natl Acad. Sci. USA",
+            "volume": "91",
+            "issn": "",
+            "pages": "9218--9222",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "The ins and outs of group II introns",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Bonen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vogel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Trends Genet",
+            "volume": "17",
+            "issn": "",
+            "pages": "322--331",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "8\u00f0i; j\u00de 2 rel : R A;T;M \u00f0i; j\u00de > p threshold bp 8i 2 rel : R A;T;M \u00f0i\u00de > p threshold ss",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "(44) (see Supplementary Material for full details). This was necessary because MCC does not evaluate whether or not two positions coincide in their base pair partners when the two positions do base pair.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Parameter tuning to optimize mean MCC. The mean MCCs to Rfam structures of all RNA families in the data set are shown for structure predictions by PETfold with numerous parameter settings, which include the weighting factor for single-stranded positions , reliability thresholds for evolutionary constrained single-stranded p threshold ss as well as paired bases p threshold bp . (a) 0:1 p threshold ss 1 and 0:1 p threshold bp 1, which are plotted on the x-axis as well as y-axis, and = 0.2; (b) 0:9 p threshold ss 1 and p threshold bp \u00bc 0:9 and several . (b) also shows the mean MCC of Pfold and RNAalifold.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "microRNA precursor and RNAalifold of the viral 3 0 -UTR stem-loop s2m (48). In contrast, PETfold provides accurate structure predictions for four viral RNA families [HepC_CRE (49), IBV_D-RNA (50), TCV_H5 (51) and TCV_Pr (51)]. Their alignments contain between 3 and 64 sequences and have mean pairwise identities (MPI) ranging from 77% to 95%, showing that PETfold is not overfitted to certain alignment features. Furthermore, a scan of all 574 seed alignments in Rfam version 8.0 results in the best performance by PETfold (MCC \u00bc 0:63), followed by Pfold (MCC \u00bc 0:62) and RNAalifold (MCC \u00bc 0:58). However, it should be noted that a large number of annotated RNA structures in Rfam are themselves predictions, many by Pfold. The performance of PETfold increases greatly in the case of several H/ACA snoRNAs, the already mentioned example of ncRNAs that often do not fold into the structure of lowest free energy, e.g. HACA_sno_snake (52) (MCC with PETfold: 0.79, Pfold: 0.25, RNAalifold: 0.41) as a member of our data set and SNORA51 (53) (MCC with PETfold: 0.91, Pfold: 0.13, RNAalifold: 0.57). The functional RNA element of HIV-1 mRNA, Rev response element (RRE), has a verified RNA secondary structure of 337 nt in length",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "R A;T;M \u00f0i; j\u00de \u00bc X \u00f0\u00f0i; j\u00de 2 \u00de \u00c2 Pr\u00f0r\u00f0\u00de; A\u00de; R sg A;T;M \u00f0i\u00de \u00bc X \u00f0i 2 sg\u00f0\u00de\u00de \u00c2 Pr\u00f0r\u00f0\u00de; A\u00de:Both can be calculated by an inside/outside algorithm. Using the terms in Equation(3), we can redefine the expected overlap of a consensus structure as ex-over evo \u00f0\u00de \u00bc X",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "\u00f0i;j\u00de denotes the base pair probability for sequence s u , written by alignment columns:",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Reliability threshold for single-stranded with best performance",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Performance on data set",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work was supported by the Danish Research Council for Technology and Production (FTP) and the Danish Center for Scientific Computation. S.E.S was supported by the Lundbeck foundation. The authors thank the anonymous referees for their detailed comments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        },
+        {
+            "text": "FUNDING Funding for open access charge: Albert-Ludwigs-Universita\u00a8t Freiburg.Conflict of interest statement. None declared.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "annex"
+        }
+    ]
+}

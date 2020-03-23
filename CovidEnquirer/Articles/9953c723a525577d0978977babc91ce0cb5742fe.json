@@ -1,0 +1,1534 @@
+{
+    "paper_id": "9953c723a525577d0978977babc91ce0cb5742fe",
+    "metadata": {
+        "title": "Mining association rules with multiple minimum supports: a new mining algorithm and a support tuning mechanism",
+        "authors": [
+            {
+                "first": "Ya-Han",
+                "middle": [],
+                "last": "Hu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Central University",
+                    "location": {
+                        "addrLine": "Chung-Li 320",
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Yen-Liang",
+                "middle": [],
+                "last": "Chen",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Central University",
+                    "location": {
+                        "addrLine": "Chung-Li 320",
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Mining association rules with multiple minimum supports is an important generalization of the association-rule-mining problem, which was recently proposed by Liu et al. Instead of setting a single minimum support threshold for all items, they allow users to specify multiple minimum supports to reflect the natures of the items, and an Apriori-based algorithm, named MSapriori, is developed to mine all frequent itemsets. In this paper, we study the same problem but with two additional improvements. First, we propose a FP-tree-like structure, MIS-tree, to store the crucial information about frequent patterns. Accordingly, an efficient MIS-tree-based algorithm, called the CFP-growth algorithm, is developed for mining all frequent itemsets. Second, since each item can have its own minimum support, it is very difficult for users to set the appropriate thresholds for all items at a time. In practice, users need to tune items' supports and run the mining algorithm repeatedly until a satisfactory end is reached. To speed up this time-consuming tuning process, an efficient algorithm which can maintain the MIS-tree structure without rescanning database is proposed. Experiments on both synthetic and real-life datasets show that our algorithms are much more efficient and scalable than the previous algorithm. D",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Data mining has recently attracted considerable attention from database practitioners and researchers because of its applicability in many areas such as decision support, market strategy and financial fore-casts. Many approaches have been proposed to find out useful and invaluable information from huge databases [2, 7] . One of the most important approaches is mining association rules, which was first introduced in Ref. [1] and can be stated as follows.",
+            "cite_spans": [
+                {
+                    "start": 314,
+                    "end": 317,
+                    "text": "[2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 318,
+                    "end": 320,
+                    "text": "7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 424,
+                    "end": 427,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Let I={i 1 , i 2 ,. . ., i m } be a set of items and D be a set of transactions, where each transaction T (a data case) is a set of items so that TpI. An association rule is an implication of the form, XYY, where XoI, YoI and X\\Y=f. The rule XYY holds in the transaction set T with confidence c, if c% of transactions in T that support X also support Y. The rule has support s in T if s% of the transactions in T contains X[Y. Given a set of transactions D (the database), the problem of mining association rules is to discover all association rules that have support and confidence greater than the user-specified minimum support (called minsup) and minimum confidence (called minconf ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The key element that makes association-rule mining practical is minsup. It is used to prune the search space and to limit the number of rules generated. However, using only a single minsup implicitly assumes that all items in the database are of the same nature or of similar frequencies in the database. This is often not the case in real-life applications [10, 14] . In the retailing business, customers buy some items very frequently but other items very rarely. Usually, the necessities, consumables and low-price products are bought frequently, while the luxury goods, electric appliance and high-price products infrequently. In such a situation, if we set minsup too high, all the discovered patterns are concerned with those low-price products, which only contribute a small portion of the profit to the business. On the other hand, if we set minsup too low, we will generate too many meaningless frequent patterns and they will overload the decision makers, who may find it difficult to understand the patterns generated by data mining algorithms.",
+            "cite_spans": [
+                {
+                    "start": 358,
+                    "end": 362,
+                    "text": "[10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 363,
+                    "end": 366,
+                    "text": "14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The same difficulty may occur when we are about to mine medical records. Mining medical records is a very important issue in real-life application and it can reveal which symptoms are related to which disease. However, many important symptoms and diseases are infrequent in medical records. For example, flu occurs much more frequent than severe acute respiratory syndrome (SARS), and both have symptoms of fever and persistent cough. If the value of minsup is set high, though the rule bfluYfever, coughQ can be found, we would never find the rule bSARSYfever, cough.Q To find this SARS rule, we need to set the value of minsup very low. However, this will cause lots of meaningless rules to be found at the same time.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The dilemma faced in the two applications above is called the rare item problem [11] . In view of this, researchers either (A) split the data into a few blocks according to the frequencies of the items and then mine association rules in each block with a different minsup [9] , or (B) group a number of related rare items together into an abstract item so that this abstract item is more frequent [6, 9] . The first approach is not satisfactory because rules that involve items across different blocks are difficult to find. Similarly, the second approach is unable to find rules that involve individual rare items and the more frequent items. Clearly, both approaches are ad hoc and bapproximateQ [9] .",
+            "cite_spans": [
+                {
+                    "start": 80,
+                    "end": 84,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 272,
+                    "end": 275,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 397,
+                    "end": 400,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 401,
+                    "end": 403,
+                    "text": "9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 698,
+                    "end": 701,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To solve this problem, Liu et al. [10] have extended the existing association rule model to allow the user to specify multiple minimum supports to reflect different natures and frequencies of items. Specifically, the user can specify a different minimum item support for each item. Thus, different rules may need to satisfy different minimum supports depending on what items are in the rules. This new model enables users to produce rare item rules without causing frequent items to generate too many meaningless rules. However, the proposed algorithm in Liu et al. [10] , named the MSapriori algorithm, adopts an Apriori-like candidate set generation-and-test approach and it is always costly and time-consuming, especially when there exist long patterns. In this study, we propose a novel multiple item support tree (MIS-tree for short) structure, which extends the FP-tree structure [8] for storing compressed and crucial information about frequent patterns, and we develop an efficient MIS-tree-based mining method, the CFP-growth algorithm, for mining the complete set of frequent patterns with multiple minimum supports. The experimental result shows that the CFP-growth algorithm is efficient and scalable on both synthetic data and real-life data, and that it is about an order of magnitude faster than the MSapriori algorithm.",
+            "cite_spans": [
+                {
+                    "start": 34,
+                    "end": 38,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 566,
+                    "end": 570,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 886,
+                    "end": 889,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In real-life applications, users cannot find applicable support value at once and always tune its support value constantly. To do this, every time when users change the items' minsup, they must rescan database and then execute the mining algorithm once again. It is very time-consuming and costly. Thus, it is attractive to consider the possibility of designing a maintenance algorithm for tuning minimum supports (MS for short). In the past, although there were few researches dealing with this problem [3] for single MS scenario, most of previous researches are concerned with how to maintain the knowledge in correctness after the database is updated [4, 5, 12, 13] .",
+            "cite_spans": [
+                {
+                    "start": 504,
+                    "end": 507,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 654,
+                    "end": 657,
+                    "text": "[4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 658,
+                    "end": 660,
+                    "text": "5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 661,
+                    "end": 664,
+                    "text": "12,",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 665,
+                    "end": 668,
+                    "text": "13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The problem addressed above will become even more serious for frequent pattern mining with multiple MS, because previously users only need to tune a single MS threshold but now they need to tune many MS thresholds. Thus, it is even more demanding to have a maintenance algorithm for MS tuning. This paper proposes, therefore, a maintenance algorithm to keep our MIS-tree in correct status after tuning MS. The experimental evaluation shows that our MIS-tree maintenance method can react almost instantaneously when tuning MS.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The remaining of the paper is organized as follows. In Section 2, we briefly review the Apriori algorithm [1] , the MSapriori algorithm [10] and the FP-growth algorithm [8] . Some of those concepts will be used in developing our algorithm. Section 3 introduces the MIS-tree structure and its construction method. Then, we develop a MIS-tree-based frequent pattern mining algorithm, the CFP-growth algorithm, in Section 4. In Section 5, we propose the maintenance algorithm for MS tuning. The performance evaluation is done in Section 6. Finally, the conclusion is drawn in Section 7.",
+            "cite_spans": [
+                {
+                    "start": 106,
+                    "end": 109,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 136,
+                    "end": 140,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 169,
+                    "end": 172,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In the section, three algorithms, including the Apriori algorithm, the MSapriori algorithm and the FP-growth algorithms, are briefly reviewed. The Apriori algorithm is the most popular algorithm for mining frequent itemsets. However, it has two problems: (1) it only allows a single MS threshold, and (2) its efficiency is usually not satisfactory. As to the first problem, the MSapriori algorithm extends the Apriori algorithm so that it can find frequent patterns with multiple MS thresholds. As for the second problem, many algorithms have been proposed to improve the efficiency. The FP-growth algorithm is one of these improved algorithms and is probably the most well-known. The FP-growth algorithm contains two phases, where the first phase constructs an FPtree, and the second phase recursively projects the FPtree and outputs all frequent patterns. In the following, we review them in order.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Related work"
+        },
+        {
+            "text": "The Apriori algorithm [1] discovers frequent itemsets from databases by iteration. Basically, iteration i computes the set of frequent i-itemsets (frequent patterns with i items.) In the first iteration, the set of candidate 1-itemsets contains all items in the database. Then, the algorithm counts their supports by scanning the database, and those 1-itemsets whose supports satisfy the MS threshold are selected as frequent 1-itemsets.",
+            "cite_spans": [
+                {
+                    "start": 22,
+                    "end": 25,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The Apriori algorithm"
+        },
+        {
+            "text": "In the kth (kz2) iteration, the algorithm consists of two steps. First, the set of frequent itemsets L k\u00c01 found in the (k\u00c01)th iteration is used to generate the set of candidate itemsets C k . Next, we compute the supports of candidate itemsets in C k by scanning the database and then we obtain the set L k of frequent k-itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Apriori algorithm"
+        },
+        {
+            "text": "The iteration will be repeatedly executed until no candidate patterns can be found.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Apriori algorithm"
+        },
+        {
+            "text": "The MSapriori algorithm [10] can find rare item rules without producing a huge number of meaningless rules. In this model, the definition of the minimum support is changed. Each item in the database can have its minsup, which is expressed in terms of minimum item support (MIS). In other words, users can specify different MIS values for different items. By assigning different MIS values to different items, we can reflect the natures of the items and their varied frequencies in the database. If the support of itemset{clothes, bread} is 0.15%, then itemset{clothes, bread} is infrequent because the MIS value of itemset{clothes, bread} is equal to min[MIS(clothes), MIS(bread)]=0.2%, which is larger than 0.15%.",
+            "cite_spans": [
+                {
+                    "start": 24,
+                    "end": 28,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The MSapriori algorithm"
+        },
+        {
+            "text": "The task of mining association rules is usually decomposed into two steps:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The MSapriori algorithm"
+        },
+        {
+            "text": "(1) Frequent itemset generation: to find all frequent itemsets with supports exceeding minsup. (2) Rule generation: to construct from the set of frequent itemsets all association rules with confidences exceeding the minimum confidence.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The MSapriori algorithm"
+        },
+        {
+            "text": "Note that, in order to generate the association rules from a frequent itemset, not only we need to know the support of this itemset, but the supports of all its subsets must also be known. Otherwise, it would be impossible to compute the confidences of all related rules.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The MSapriori algorithm"
+        },
+        {
+            "text": "When there is only one single MS, the above two steps satisfy the downward closure property. That is, if an itemset is frequent, then all its subsets are also frequent. Therefore, after applying the Apriori algorithm we can find the support values of all subsets of frequent itemset{A, B, C, D} and all related rules as well. On the contrary, when there are multiple MS, the downward closure property no longer holds. That is, some subsets of a frequent itemset may not be frequent and their supports will be missing. The above example indicates that a subset of a frequent itemset may be not frequent. Thus, the fact that the support of a frequent itemset is known does not necessarily imply that the supports of all its subsets are known. As a result, knowing the supports of all frequent itemsets is not enough to generate association rules.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The MSapriori algorithm"
+        },
+        {
+            "text": "The MSapriori algorithm aims to find all frequent itemsets by modifying the well-known Apriori algo-rithm. These modifications include presorting all the items according to their MIS values and modifying the candidate set generation procedure. After the application of the MSapriori algorithm, all frequent itemsets are found but the supports of some subsets may be still unknown. Thus, if we intend to generate association rules, we need a post-processing phase to find the supports of all subsets of frequent itemsets. This procedure is time-consuming because we need to scan the database again and compute the supports of all subsets of frequent itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The MSapriori algorithm"
+        },
+        {
+            "text": "An FP-tree is an extended prefix-tree structure for storing compressed and crucial information about frequent patterns, while the FP-growth algorithm uses the FP-tree structure to find the complete set of frequent patterns [8] .",
+            "cite_spans": [
+                {
+                    "start": 223,
+                    "end": 226,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The FP-growth algorithm"
+        },
+        {
+            "text": "An FP-tree consists of one root labeled as bnullQ, a set of item prefix subtrees as the children of the root and a frequent-item header table. Each node in the prefix subtree consists of three fields: item-name, count and node-link. The count of a node records the number of transactions in the database that share the prefix represented by the node, and node-link links to the next node in the FP-tree carrying the same item-name. Each entry in the frequent-item header table consists of two fields: item-name and head of node-link, which points to the first node in the FPtree carrying the item-name. Besides, the FP-tree assumes that the items are sorted in decreasing order of their support counts, and only frequent items are included.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The FP-growth algorithm"
+        },
+        {
+            "text": "After the FP-tree is built, the FP-growth algorithm recursively builds conditional pattern base and conditional FP-tree for each frequent item from the FP-tree and then uses them to generate all frequent itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The FP-growth algorithm"
+        },
+        {
+            "text": "In this section, a new tree structure, named the MIS-tree, is proposed for mining frequent pattern with multiple MS. It is an extended version of the FP-tree structure.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "According to Definition 1, let DB={T 1 , T 2 ,. . ., T n } be a transaction database, where T j ( ja[1. . .n]) is a transaction containing a set of items in I. The support of an itemset A is the percentage of transactions containing A in DB. If itemset A's support is no less than MIS(A), then pattern A is a frequent pattern.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "Let Then each item in L k (kN1) must be in F.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "There is a very important difference between the FP-tree and the MIS-tree: the FP-tree only contains frequent items, but the MIS-tree consists of not only all frequent items but also those infrequent items with supports no less than MIN. Based on Lemma 1, each item in L k must belong to F. We must retain those infrequent items which belong to F because their supersets may be frequent itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "Example 4. In Example 3, we know that A.sup-port=3%, B.support=20%, C.support=25%, D.sup-port=50%, and the set of MIN _ frequent items F={B, C, D}. Consider the infrequent item C, where the support of item C=25% and MIS(C)=30%. We must retain the infrequent item C because the itemset{B, C} may be frequent. However, if the support of infrequent item C is less than MIN (not belonging to F), we can discard item C immediately.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "Definition 2 (MIS-tree). A multiple item support tree is a tree structure defined as follows.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "(1) It consists of one root labeled as bnullQ, a set of item prefix subtrees as the children of the root, and a MIN _ frequent item header table which contains all items in F. (2) Each node in the item prefix subtree consists of three fields: item-name, count and nodelink, where item-name registers which item this node presents, count registers the number of transactions represented by the portion of the path reaching this node, and node-link links to the next node in the MIS-tree carrying the same item-name, or null if there is none. According to Definition 2, we have the following MIS-tree construction algorithm and each function used in Algorithm 1 is shown in Fig. 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 672,
+                    "end": 678,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "We use the following example to illustrate the MIS-tree construction process. Table 2 The MIS value of each item in DB Example 5 (The construction of MIS-tree). Let us consider the transaction database DB shown in Table  1 . The MIS value of each item is shown in Table 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 78,
+                    "end": 85,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 214,
+                    "end": 222,
+                    "text": "Table  1",
+                    "ref_id": "TABREF0"
+                },
+                {
+                    "start": 264,
+                    "end": 271,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "According to Algorithm 1, the order of the items in the MIS-tree is arranged according to their MIS values in non-increasing order. For ease of discussion, the rightmost column of Table 1 lists all the items in each transaction following this order.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 180,
+                    "end": 187,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "To create the MIS-tree, we first create the root of the tree, labeled as bnullQ. The scan of the first transaction leads to the construction of the first branch 1)). Notice that all items in the transaction would be inserted into the tree according to their MIS values in non-increasing order. The second transaction (a, c, e, f, g) shares the same prefix (a, c) with the existing path (a, c, d, f). So, the count of each node along the prefix is increased by 1 and the remaining item list (e, f, g) in the second transaction would be created as the new nodes. The new node (e:1) is linked as a child of (c:2); node (f:1) as a child of (e:1); node (g:1) as a child of (f:1). For the third transaction (a, b, c, f, h), it shares only the node (a). Thus, a's count is increased by 1, and the remaining item list (b, c, f, h) in the third transaction would be created just like the second transaction. The remaining transactions in DB can be done in the same way.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "To facilitate tree traversal, a MIN _ frequent item header table is built in which each item points to its occurrences in the tree via the head of node-link. Nodes with the same item-name are linked in sequence via such node-links. After all the transactions are scanned, the tree with the associated nodelinks is shown in Fig. 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 323,
+                    "end": 329,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "After scanning all the transactions, we will get the count of each item as (a:3, b:3, c:4, d:1, e:1, f:4, g:2, h:1) and the initial MIS-tree shown in Fig. 2 . According to Lemma 1, we only need to retain those items with supports no less than MIN=2 (all items in F) in our MIS-tree. So, we remove the nodes with item-name=(d, e, h) and the result is shown in Fig. 3 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 150,
+                    "end": 156,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 359,
+                    "end": 365,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "After these nodes are removed, the remaining nodes in the MIS-tree may contain child nodes carrying the same item-name. For the sake of compactness, we traverse the MIS-tree and find that node (c:2) has two child nodes carrying the same item-name f. We merge these two nodes into a single node with item-name=f, and its count is set as the sum of counts of these two nodes (shown in Fig. 4 ). At last, the complete and compact MIS-tree is shown in Fig. 5 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 383,
+                    "end": 389,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 448,
+                    "end": 454,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "To construct the MIS-tree, our algorithm only needs one scan of the transaction database. This scan happens when we insert every transaction into the tree. After insertion, we delete those superfluous items from MIS-tree and merge nodes for compactness. Next, we will show that the MIS-tree contains the complete information for frequent pattern mining with multiple MS. Rationale: In the MIS-tree's construction process, each transaction in DB is mapped to one path in the MIS-tree. And all MIN _ frequent items information in each transaction is completely stored in the MIS-tree. Notice that we retained those infrequent items with supports no less than MIN in our MIS-tree because Lemma 1 indicates that these items' supersets may be frequent.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multiple Item Support tree (MIS-tree): design and construction"
+        },
+        {
+            "text": "In this section, we will propose the CFP-growth method for mining the complete set of frequent patterns. Before presenting the algorithm, we observe some interesting properties of the MIS-tree structure. Property 1 (Node-link property). For any frequent item a i , all the possible a i 's conditional frequent patterns can be obtained by following a i 's node-link, starting from a i 's head in the MIS-tree header.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The CFP-growth algorithm"
+        },
+        {
+            "text": "This property is directly based on the construction process of the MIS-tree. Through the a i 's node-link, all the transactions (built in the MIS-tree) related to a i would be traversed. Hence, it will find all the pattern information related to a i by following a i 's node-link, and then all the a i 's conditional frequent patterns can be obtained.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The CFP-growth algorithm"
+        },
+        {
+            "text": "To calculate the a i 's conditional frequent patterns in a path P, only the prefix subpath of node a i in P needs to be accumulated, and the frequency count of every node in the prefix path should carry the same count as node a i .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "Rationale: Let the nodes along the path P be labeled as a 1 , a 2 ,. . ., a n in such an order that a 1 is the root of the prefix subtree, a n is the leaf of the subtree in P, and a i (1ViVn) is the node being referenced. Based on the process of constructing MIS-tree presented in Algorithm 1, for each prefix node a k (1Vkbi), the prefix subpath of the node a i in P occurs together with a k exactly a i .count times. Thus, every such prefix node should carry the same count as node a i . Notice that a postfix node a m (ibmVn) along the same path also co-occurs with node a i . However, the patterns with a m will be generated at the examination of the postfix node a m , and enclosing them here will lead to redundant generation of the patterns that would have been generated for a m .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "The MIS-tree itself does not give the frequent itemsets directly. Nevertheless, the CFP-growth algorithm recursively builds bconditional MIS-treesQ, from the MIS-tree, which results in the set of all frequent itemsets. Let us illustrate the procedure by an example.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "Example 8. According to Property 1, we collect all the patterns that a node a i participates in by starting from a i 's head (in the MIN _ frequent header table) and following a i 's node-link. We examine the CFP-growth algorithm by starting from the bottom of the header table.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "For the MIS-tree in Fig. 5 , let us consider how to build a conditional pattern base and conditional MIStree for item g. First, the node-link of item g is followed. Each such path in the MIS-tree ends at a node bgQ. However, we exclude the node bgQ itself and add it to the conditional pattern base and the conditional MIS-tree for item g. Counter of each node in the path is set to that of the node bgQ itself. In this example, following the node-link for g, we get two paths in the MIS-tree: (a:3, c:2, f:2, g:1) and (b:2, f:1, g:1). To build the conditional pattern base and conditional MIS-tree for g, we exclude the node g in these two paths, (a:1, c:1, f:1) and (b:1, f:1). Notice that counters of the nodes in these two paths are all set to 1, because the counter values of both nodes g in the paths (a:3, c:2, f:2, g:1) and (b:2, f:1, g:1) are 1. After adding these two paths, the conditional MIS-tree for item g is shown in Fig. 6(a) . Whether an item is frequent in the g's conditional MIS-tree is checked by following the node-link of each item, summing up the counts along the link and seeing whether it exceeds the MIS value of item g. In the conditional MIS-tree for g, the support count of a is 1, that of b is 1, that of c is 1 and that of f is 2. Since the MIS value of item g is 2, only item f is frequent in the g's conditional MIStree here. So we find g's conditional frequent pattern (fg:2). It is important that the CFP-growth method would not terminate here. After finding all the g's conditional patterns (ag, bg, cg, fg) at level 2, it will build ag, bg, cg and fg's conditional pattern base and conditional MIS-tree, respectively. For ag and bg's conditional pattern bases, they contain no items and would be terminated. For cg and fg's conditional pattern bases and conditional MIS-trees, we will find all the g's conditional patterns (acg, afg, cfg, bfg) at level 3 and then try to construct their conditional pattern bases, respectively. The CFP-growth method for item g will not be terminated until all g's conditional pattern bases contain no items. Repeatedly doing this for all items in the header table, we can get the whole conditional pattern base in Table 3 and all conditional patterns in Table 4 . Fig. 7 shows the detailed steps of the CFP-growth algorithm. In the following theorem, we show that the CFP-growth algorithm is both correct and complete. Here, bcorrectQ means every pattern output by the algorithm is correct and bcompleteQ means that every correct pattern will be output by the algorithm. However, to streamline the presentation we move the proof to Appendix A.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 20,
+                    "end": 26,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 933,
+                    "end": 942,
+                    "text": "Fig. 6(a)",
+                    "ref_id": "FIGREF12"
+                },
+                {
+                    "start": 2187,
+                    "end": 2194,
+                    "text": "Table 3",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 2227,
+                    "end": 2234,
+                    "text": "Table 4",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 2237,
+                    "end": 2243,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF13"
+                }
+            ],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "Theorem 1. The CFP-growth algorithm is correct and complete.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "Note that, when we have multiple MS, knowing the support of a frequent itemset does not imply that the supports of all its subsets are known. Thus, the MIS-tree differs from the FP-tree in that the FP-tree only contains frequent items in the tree while MIStree may contain infrequent items. If we only want to find all frequent patterns without considering the problem of rule generation, we can discard those infrequent items in the MIS-tree. However, in our CFP-growth method, we do the pattern growth for each item in the MIS-tree, so that not only frequent patterns but also the support values of all their subsets are found. Doing this enables us to obtain the support values of all conditional patterns.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 2 (Prefix path property)."
+        },
+        {
+            "text": "The primary challenge of devising an effective maintenance algorithm for association rules is how to reuse the original frequent itemsets and avoid the possibility of rescanning the original database DB [4] . In this study, we focus on the maintenance of the MIStree, so that every time after we tune the items' supports, we can keep our MIS-tree in correct status without rescanning DB. The maintenance process can be stated as follows.",
+            "cite_spans": [
+                {
+                    "start": 203,
+                    "end": 206,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "First, after the user tunes the items' supports, we will get the new item order list in the MIS-tree. We need to determine which items should be moved up so that items in the MIS-tree can match the new item order. Notice that the MIN value is unchangeable during the support tuning process, and the MS of an item is not allowed to become either greater than MIN when it is smaller than MIN, or smaller than MIN when it is greater than MIN. In other words, all the items in the MIS-tree must be kept the same after the tuning process.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "We add this restriction for two reasons. First, with this restriction we do not need to access the database again when we change the minimum supports, because all the data needed to find frequent patterns are kept in the MIS-tree. This can greatly improve the performance of the support tuning mechanism. Second, this restriction does not present any real problem to the maintenance algorithm, because none of the important patterns would be missing if we use a low MIN value. (This restriction does not harm the applicability of the tuning algorithm, because by setting a low value of MIN the items' supports can be tuned in a wide range).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "In Table 5 , we scan the items from the smallest old order to the largest one. If we find an item whose new order is smaller than its preceding items, then this item should be moved up. Continuously doing this, we can find all items that should be moved up. In Table 5 , items c and f are two such items. As to item c, we see that the new order is 1. The items preceding c are items a and b, and their new orders Table 6 Parameter settings for synthetic data generation are 2 and 4. So we find that the new order of item c is smaller than that of item b and should be moved up.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Table 5",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 261,
+                    "end": 268,
+                    "text": "Table 5",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 413,
+                    "end": 420,
+                    "text": "Table 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "As to item f, we see that the new order of item f is 3.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "The items preceding f are items c, a and b, and their new orders are 1, 2 and 4. Since the new order of item f is smaller than item b, it should be moved up.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "After this scanning, we know we must do the moveup operation twice: firstly, to move-up item c, and, secondly, to move-up item f. After the first move-up operation, its order becomes the one shown in the first column of the right table in Table 5 . Finally, the second move-up makes it become the one shown in the last column in Table 5 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 239,
+                    "end": 246,
+                    "text": "Table 5",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 329,
+                    "end": 336,
+                    "text": "Table 5",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "Note that an item may occur several times in the MIS-tree, where all of them are linked together through its node-link. When we decide to move up an item a i , we first find the entry with item-name=a i in the MIN_frequent item header table and the head of its node-link. By traversing the node-link, we can visit all the nodes carrying the same item-name. In each visit, we move up the node of this item to the correct position. Let the node we are currently visiting be node i, and let node f be the parent node of node i and node gf the grandparent of node i. If the new order of node f is smaller than that of node i, then the work is over. On the contrary, node i should be moved up above node f.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "Here, if f.support=i.support, then we can directly swap these two nodes without any other modifications. However, if f.supportNi.support, then we split node f into two nodes, node f 1 and node f 2 , where f 1 .suppor-t=i.support and f 2 .support=f.support\u00c0i.support. As for node f 1 , we make node i as its only child node, and then we swap node f 1 and node i; as for node f 2 , we make all child nodes of node f except node i as its child nodes; as for node gf, we make f 1 and f 2 as his children. This ascending process will be run repeatedly until the new order of the parent node is smaller than the currently visited node or until the parent node is the root. Fig. 8 shows how we finish the two move-up operations above.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 667,
+                    "end": 673,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF16"
+                }
+            ],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "After moving up these nodes, the nodes in MIStree may contain child nodes carrying the same itemname. For the sake of compactness, we use MIS _ merge method to merge those nodes. Following the example in Fig. 8 , the MIS _ merge method can be illustrated in Fig. 9 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 204,
+                    "end": 210,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF16"
+                },
+                {
+                    "start": 258,
+                    "end": 264,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "Tuning MS"
+        },
+        {
+            "text": "This section compares the performance of the MIStree algorithm and that of the MSapriori algorithm on both synthetic and real-life datasets. However, to understand more about the actual performance of these two algorithms we also include their counterparts, i.e., the Apriori and the FP-growth algorithms, into our simulation. Since the last two algorithms are used for the single MS, we set all items' supports as MIN when executing them. In addition, we also investigated the performance of the maintenance algorithm for updating the MIS-tree when tuning MS. All experiments are performed on a Pentium 4 Celeron 1.8G PC with 768MB main memory, running on Microsoft Windows 2000 server. All the programs are written in Borland JBuilder7.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experimental evaluation"
+        },
+        {
+            "text": "The synthetic data is generated by using the IBM data generator [1] , which is widely used for evaluating association rule mining algorithms. The parameters of the experiments are shown in Table 6 . Besides, we use two datasets, BMS-POS and BMS-Webview-1, as our real-life dataset which was used in the KDD-Cup 2000 competition [15] . The BMS-POS dataset contains pointof-sale data from a large electronics retailer over several years. The transaction in this dataset is a customers' purchase transaction, which consists of all the product categories purchased in a single round of shopping. The BMS-Webview-1 dataset contains several months of click stream data from an e-commerce website. Each transaction in this dataset is a web session consisting of all the product detail pages viewed in that session. That is, each product detail view is an item. We select these two datasets for comparison because they are representative of the typical data mining applications. So, they are suitable to measure the performance of the algorithm in a practical situation.",
+            "cite_spans": [
+                {
+                    "start": 64,
+                    "end": 67,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 328,
+                    "end": 332,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 189,
+                    "end": 196,
+                    "text": "Table 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Experimental evaluation"
+        },
+        {
+            "text": "In our experiments, we use the method proposed in Ref. [10] to assign MIS values to items. We use the all these figures, we see that our CFP-growth algorithm is about an order of magnitude faster than the MSapriori algorithm in all datasets.",
+            "cite_spans": [
+                {
+                    "start": 55,
+                    "end": 59,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experimental evaluation on four algorithms"
+        },
+        {
+            "text": "To test the scalability with the number of transactions, we used the N1000-T10-I4-D0200K, N1000-T10-I4-D0400K and N1000-T10-I4-D0600K for our experiments. The MIN value is set to 1% in Fig. 25(a) , 0.75% in Fig. 25(b) and 0.5% in Fig. 25(c) . The reported run time is the average of the 20 tests for r from 0.05 to 1 (0.05, 0.1, 0.15,. . ., 0.95, 1) . The experiments show that the run times of these four algorithms (Apriori, FP-tree, MSapriori, MIS-tree) grow linearly when the number of transactions is increased form 200K to 600K. However, as the number of transactions is increased, the difference between (Apriori, MSapriori) and (FP-tree, MIS-tree) gets larger.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 185,
+                    "end": 195,
+                    "text": "Fig. 25(a)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 207,
+                    "end": 217,
+                    "text": "Fig. 25(b)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 230,
+                    "end": 240,
+                    "text": "Fig. 25(c)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 317,
+                    "end": 349,
+                    "text": "(0.05, 0.1, 0.15,. . ., 0.95, 1)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Experimental evaluation on four algorithms"
+        },
+        {
+            "text": "To test the scalability with MIN, we used the N1000-T10-I4-D0200K, N1000-T10-I4-D0400K and N1000-T10-I4-D0600K for our experiments. As in the preceding paragraph, the reported run time is the average value for 20 cases. Fig. 25 (d-f) shows that the FP-growth and the CFP-growth algorithms have good scalability with respect to MIN. Besides, the FPgrowth and CFP-growth algorithms perform much better than the Apriori and MSapriori algorithm in scalability. This is because as we decrease the support threshold, the number of frequent itemsets increases dramatically; in turn, this makes the set of candidate itemsets used in the Apriori algorithm and the MSapriori algorithm become extremely large. So, the time increases rapidly as well.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 220,
+                    "end": 227,
+                    "text": "Fig. 25",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Experimental evaluation on four algorithms"
+        },
+        {
+            "text": "All the experiments show that the CFP-growth algorithm is only a little slower than the FP-growth method. This result is quite encouraging, for our algorithm does two more things than the FP-growth algorithm does-(1) we find frequent itemsets with multiple MS and (2) we find not only the supports of frequent itemsets but also the supports of all subsets of frequent itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experimental evaluation on four algorithms"
+        },
+        {
+            "text": "To test the performance of our tree maintenance algorithm when tuning MS, we compare it with the new construction of the MIS-tree. The reported run time is the average of the times spent in both synthetic and real-life datasets. The MIN value and r are set to 0.5% and 0.5, respectively. We randomly choose items in F with probability varied from 5% to 80%. The new MIS value of each chosen item will be set by randomly selecting a value from the range [old\u00c2(1\u00c00.05), old\u00c2(1+0.05)], where old denotes the original MIS value. The results in Fig. 26 show that in average using our MIS-tree maintenance method is able to save more than 70% run time of re-constructing the MIS-tree. Fig. 27 shows the scalability with MS tuning process. All experiments show that the saving is very significant in practice.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 540,
+                    "end": 547,
+                    "text": "Fig. 26",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 679,
+                    "end": 686,
+                    "text": "Fig. 27",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Experiments for MS tuning"
+        },
+        {
+            "text": "In this paper, we have developed an efficient algorithm for mining association rules with multiple MS and presented a maintenance mechanism for MS tuning without rescanning database. We have implemented the CFP-growth method and studied its performance in comparison with several frequent pattern mining algorithms. The results indicate that in all cases our algorithm is faster than the MSapriori algorithm. Besides, we also examined our maintenance algorithm for MS tuning. Experimental results show that our method is faster than the method of reconstructing the MIS-tree.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "In short, the paper has three main results. First, we have developed an efficient algorithm for mining frequent patterns with multiple MS. Second, we solve the problem occurred in the MSapriori algorithm that it cannot generate association rules unless a post-processing phase is executed. Our method finds not only all frequent itemsets but also all subsets needed for generating association rules. Finally, we develop an efficient maintenance algorithm for updating the MIS-tree when the user tunes items' MIS values.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "The paper can be extended in several ways. First, we only consider the MIS-tree maintenance problem after the minimum supports are changed. Since the database is subject to update in practice, an interesting problem arising immediately is how to maintain the MIS-tree after the database is updated. In addition, we may consider how to mine other kinds of knowledge under the constraint of multiple MS rather than setting a single MS threshold for all items. Because many kinds of knowledge that can be discovered from databases contain multiple items, all these types of knowledge can be extended naturally by setting different support thresholds for different items.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "pattern in X is MIN _ frequent and every pattern in Y is frequent.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Theorem A.1. The patterns obtained by the CFPgrowth algorithm are correct.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Proof. Because of the examination done in step 2, every pattern in X must be MIN _ frequent. Further, because of the examination done in step 4, every pattern in Y must be frequent. 5",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Next, the following theorems show that the algorithm is complete, meaning that every MIN _ frequent pattern and every frequent pattern will be found by the algorithm.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Theorem A.2. The CFP-growth algorithm can find every MIN _ frequent pattern.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Proof. Let (b 1 , b 2 ,. . ., b k ) denote the set of all MIN _ frequent items and they are arranged in nonincreasing order according to their MIS values. Suppose X denote the set of MIN _ frequent patterns in MIS-tree Tree. Then, we can partition X into k subsets:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "(1) the set of b 1 's conditional MIN _ frequent patterns; (include b 1 only) (2) the set of b 2 's conditional MIN _ frequent patterns; (must include b 2 ; may include item b i , where ib2; but exclude all the others); (3) the set of b 3 's conditional MIN _ frequent patterns; (must include b 3 ; may include item b i , where ib3; but exclude all the others);. . . (k) the set of b k 's conditional MIN _ frequent patterns.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "For each MIN _ frequent item b i (ia[1. . .k]), we build b i 's conditional MIS-tree, denoted as Treejb i , from Tree.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "We now prove this theorem by induction. Suppose we are given a MIN _ frequent pattern denoted as x=(bi 1 , bi 2 ,. . ., bi r ), where i 1 bi 2 b. . .bi r . First, if r=1, then there is only one single item in x. Since step 2 of the CFP-growth algorithm finds all MIN _ frequent items, the algorithm will output x as a MIN _ frequent item.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Next, assume the algorithm can find all MIN _ frequent patterns of no more than r\u00c01 items. And we now consider if the algorithm can find pattern x, which has r items. Since x is a MIN _ frequent pattern, the support of bi r must be no less than MIN. This means step 3.1 of the algorithm will construct bi r 's conditional MIS-tree Treejbi r . In constructing the tree, by going through the bi r 's node-link, all the transactions (built in the MIS-tree) related to bi r would be traversed. Hence, all the pattern information related to bi r will be kept in Treejbi r . Further, by induction hypothesis, all the MIN _ frequent patterns with no more than r\u00c01 items can be found from the tree. Thus, step 3.2 of the algorithm can find xV=(bi 1 , bi 2 ,. . ., bi r\u00c01 ) from Treejbi r . Finally, step 3.3 will put these two parts, i.e., xV and bi r , together; so, we can find pattern x.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "5",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Theorem A.2 shows that the algorithm can find all MIN _ frequent itemsets. Since a frequent itemset must be a MIN _ frequent itemset, we can find all frequent itemsets by checking if every MIN _ frequent itemset satisfies the minimum item support constraint. Since we did so in step 4, the algorithm can find all frequent patterns. We list this result as the following theorem.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Theorem A.3. The CFP-growth algorithm can find every frequent pattern.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Based on the three theorems above, we have the conclusion that the CFP-growth algorithm is correct and complete.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Fast algorithms for mining association rules",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Agrawal",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Srikant",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Proceedings of the 20th Very Large DataBases Conference (VLDB'94)",
+            "volume": "",
+            "issn": "",
+            "pages": "487--499",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Data mining: an overview from a database perspective",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "IEEE Transactions on Knowledge and Data Engineering",
+            "volume": "8",
+            "issn": "",
+            "pages": "866--883",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Incremental mining of frequent patterns without candidate generation or support constraint",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Cheung",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Zaiane",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Proceedings of the 7th International Database Engineering and Applications Symposium (IDEAS'03)",
+            "volume": "",
+            "issn": "",
+            "pages": "111--116",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Maintenance of discovered association rules in large databases: an incremental updating technique",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cheung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Ng",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Proceedings of International Conference on Data Engineering (ICDE'96)",
+            "volume": "",
+            "issn": "",
+            "pages": "106--114",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Efficient algorithm for discovering frequent sets in incremental databases",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Feldman",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Aumann",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Amir",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Mannila",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Proceedings of SIGMOD Workshop on Research Issues in Data Mining and Knowledge Discovery (DMKD'97)",
+            "volume": "",
+            "issn": "",
+            "pages": "59--66",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Discovery of multiple-level association rules from large databases",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Fu",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Proceedings of the 21th Very Large DataBases Conference (VLDB'95)",
+            "volume": "",
+            "issn": "",
+            "pages": "420--431",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Data Mining: Concepts and Techniques",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kamber",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Mining frequent patterns without candidate generation",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Proceedings 2000 ACM-SIGMOD International Conference on Management of Data (SIG-MOD'00)",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Mining audit data to build intrusion detection models",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Stolfo",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Mok",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Proceedings of the 4th International Conference on Knowledge Discovery and Data Mining (KDD '98)",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Mining association rules with multiple minimum supports",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Hsu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD-99)",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Database methods for data mining",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Mannila",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Proceedings of the 4th International Conference on Knowledge Discovery and Data Mining (KDD '98) tutorial",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Quantifying the utility of the past in mining large databases",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Pudi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Haritsa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Information Systems",
+            "volume": "25",
+            "issn": "5",
+            "pages": "323--343",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "An efficient algorithm for the incremental update of association rules in large database",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Thomas",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bodagala",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Alsabti",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ranka",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "International Conference on Knowledge Discovery and Data Mining (KDD'97)",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Mining generalized association rules with multiple minimum supports",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Tseng",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "International Conference on Data Warehousing and Knowledge Discovery (DaWaK'01)",
+            "volume": "",
+            "issn": "",
+            "pages": "11--20",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Real world performance of association rule algorithms",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Kohavi",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Mason",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proceedings of the 7th ACM-SIGKDD International Conference on Knowledge Discovery and Data Mining",
+            "volume": "",
+            "issn": "",
+            "pages": "401--406",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Let I={a 1 , a 2 ,. . ., a m } be a set of items and MIS(a i ) denote the MIS value of item a i . Then the MIS value of itemset A={a 1 , a 2 ,. . ., a k } (1VkVm) is equal to: min MIS a 1 \u00f0 \u00de; MIS a 2 \u00f0 \u00de; . . . ; MIS a k \u00f0 \u00de \u00bd Example 1. Consider the following items in a database, bread, shoes and clothes. The user-specified MIS values are as follows:",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Consider four items A, B, C and D in a database. Their MIS values are: If the support of itemset{B, C} is 13% and that of itemset{B, D} is 14%, then both itemsets {B, C} and {B, D} are infrequent; for they do not satisfy their MIS values (MIS(B, C)=min[MIS(B), MIS(C)]=15% and MIS(B, D)=min[MIS(B), MIS(D)]=15%). Suppose the support of itemset{A, B, C, D} is 8%. Then itemset{A, B, C, D} is frequent because MIS(A) is only 5%.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "MIN denote the smallest MIS value of all items (MIN=min[MIS(a 1 ), MIS(a 2 ),. . ., MIS(a m )]), and let the set of MIN _ frequent items F denote the set of those items with supports no less than MIN.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "In Example 2, we have four items as well as their MIS values. The value of MIN is equal to min[MIS(A), MIS(B), MIS(C), MIS(D)]=5%. If A.support=3%, B.support=20%, C.support=25%, D.support=50%, then the set of MIN _ frequent items F={B, C, D} Fig. 1. MIS-tree construction algorithm.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Each entry in the MIN_frequent item header table consists of three fields: item-name, item's minsup MIS(a i ) and head of node-link which points to the first node in the MIS-tree carrying the item-name. (4) All the items in the table are sorted in non-increasing order in terms of their MIS values.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "The incompact MIS-tree (before MIS_Pruning and MIS_Merge).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "MIS _ Pruning process of MIS-tree. of the MIS-tree: ((a:1), (c:1), (d:1), (f:",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "MIS _ Merge process of MIS-tree.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "The complete and compact MIS-tree.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "Given a transaction database DB and a support threshold MIS(a i ) of each item a i , the constructed MIS-tree contains the complete information about frequent patterns in DB.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Conditional pattern). A pattern x is called a i 's conditional pattern if a i is in x and satisfies MIS(x)=MIS(a i ).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "In Example 2, itemset{A, B, C, D} is an A's conditional pattern because MIS(A)=MIS({A, B, C, D}). Definition 4 (Conditional frequent pattern). A frequent pattern x is called a i 's conditional frequent pattern if a i is in x and satisfies MIS(x)=MIS(a i ).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "In Example 2, itemset{A, B, C, D} is an A's conditional frequent pattern because itemset{A, B, C, D} is frequent and MIS(A)=MIS({A, B, C, D}).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF14": {
+            "text": "g's conditional MIS-tree.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF16": {
+            "text": "Move-up method in MS tuning process.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF17": {
+            "text": "continued).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF19": {
+            "text": "size of the transactions |I| Average size of the maximal potentially frequent itemsets |L| Number of maximal potentially frequent itemsets N Number of items Fig. 9. MIS _ merge method in MS tuning process.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF20": {
+            "text": "N1000-T10-I4-D0200K (MIN=0.01).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF21": {
+            "text": "N1000-T10-I4-D0200K (MIN=0.0075).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF22": {
+            "text": "N1000-T10-I4-D0400K (MIN=0.01).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF23": {
+            "text": "N1000-T10-I4-D0200K (MIN=0.005). actual frequencies of the items in the DB as the basis for MIS assignments. The formula can be stated as follows: M(a i ) is the actual frequency of item a i in the DB. MIN denotes the smallest MIS value of all items. r(0VrV1) is a parameter that controls how the MIS value for items should be related to their frequencies. If r=0, we have only one MS, MIN, which is the same as the traditional association rule mining. In the experiments, dataset N1000-T10-I4-D0200K is used in Figs. 10-12, N1000-T10-I4-D0400K used in Figs. 13-15, and N1000-T10-I4-D0600K used in Figs. 16-18. These figures compare the run times of the four algorithms with respect to r. In addition, the two real datasets are compared in Figs. 19-24. From Fig. 16. N1000-T10-I4-D0600K (MIN=0.01).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF24": {
+            "text": "N1000-T10-I4-D0400K (MIN=0.005).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF25": {
+            "text": "N1000-T10-I4-D0400K (MIN=0.0075).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF26": {
+            "text": "BMS-POS dataset (MIN=0.01).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF27": {
+            "text": "N1000-T10-I4-D0600K (MIN=0.005).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF28": {
+            "text": "N1000-T10-I4-D0600K (MIN=0.0075).Fig. 20. BMS-POS dataset (MIN=0.0075).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF29": {
+            "text": "BMS-Webview1 dataset (MIN=0.01).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF30": {
+            "text": "BMS-Webview1 dataset (MIN=0.0075).Fig. 24. BMS-Webview1 dataset (MIN=0.005).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF31": {
+            "text": "BMS-POS dataset (MIN=0.005).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF32": {
+            "text": "Scalability with number of transactions and support thresholds.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF33": {
+            "text": "Experimental results with MS tuning process.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "transaction database DB Lemma 1. Let L k be the set of frequent k-itemsets.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Conditional pattern base",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "All conditional patterns and conditional frequent patterns",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "The old and the new item order in the MIS-tree",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This research was supported in part by the Ministry of Education (MOE) Program for Promoting Academic Excellence of Universities under Grant No. 91-H-FA07-1-4. We would like to thank anonymous referees for their helpful comments and suggestions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Before giving the proof, we need to define the following terms.Definition A.1. Let MIN denote the smallest MIS value of all items. Then an item (itemset) is called MIN _ frequent if its support is no less than MIN.In addition, we briefly summarize the major steps of the CFP-growth algorithm as follows. This will enable us to ignore those details that are not related to the proof.(1) Let Tree denote the current MIS-tree, X denote the set of MIN _ frequent patterns in Tree and Y denote the set of frequent patterns in Tree.Put all those patterns x in X whose supports are no less than MIS(x) into Y. (5) Return X.First, the following theorem shows that the patterns found by the algorithm are correct, meaning that every ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix A"
+        }
+    ]
+}

@@ -1,0 +1,1377 @@
+{
+    "paper_id": "141bb78c68caf0302c6f31eac91d1ff5197d5771",
+    "metadata": {
+        "title": "EpiJSON: A unified data-format for epidemiology",
+        "authors": [
+            {
+                "first": "Thomas",
+                "middle": [
+                    "J R"
+                ],
+                "last": "Finnie",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Public Health England",
+                    "location": {
+                        "addrLine": "Porton Down",
+                        "settlement": "Salisbury",
+                        "country": "United Kingdom"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Andy",
+                "middle": [],
+                "last": "South",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Consultancy",
+                    "location": {
+                        "settlement": "Norwich",
+                        "country": "United Kingdom"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Ana",
+                "middle": [],
+                "last": "Bento",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "MRC Centre for Outbreak Analysis and Modelling",
+                    "institution": "Imperial College London",
+                    "location": {
+                        "settlement": "London",
+                        "country": "United Kingdom"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Ellie",
+                "middle": [],
+                "last": "Sherrard-Smith",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "MRC Centre for Outbreak Analysis and Modelling",
+                    "institution": "Imperial College London",
+                    "location": {
+                        "settlement": "London",
+                        "country": "United Kingdom"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Thibaut",
+                "middle": [],
+                "last": "Jombart",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "MRC Centre for Outbreak Analysis and Modelling",
+                    "institution": "Imperial College London",
+                    "location": {
+                        "settlement": "London",
+                        "country": "United Kingdom"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Epidemiology relies on data but the divergent ways data are recorded and transferred, both within and between outbreaks, and the expanding range of data-types are creating an increasingly complex problem for the discipline. There is a need for a consistent, interpretable and precise way to transfer data while maintaining its fidelity. We introduce 'EpiJSON', a new, flexible, and standards-compliant format for the interchange of epidemiological data using JavaScript Object Notation. This format is designed to enable the widest range of epidemiological data to be unambiguously held and transferred between people, software and institutions. In this paper, we provide a full description of the format and a discussion of the design decisions made. We introduce a schema enabling automatic checks of the validity of data stored as EpiJSON, which can serve as a basis for the development of additional tools. In addition, we also present the R package 'repijson' which provides conversion tools between this format, line-list data and pre-existing analysis tools. An example is given to illustrate how EpiJSON can be used to store line list data. EpiJSON, designed around modern standards for interchange of information on the internet, is simple to implement, read and check. As such, it provides an ideal new standard for epidemiological, and other, data transfer to the fast-growing open-source platform for the analysis of disease outbreaks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "Crown",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Infectious disease epidemiology relies on integrating increasingly diverse and complex data. This complexity comes not only from the types of data now collected (for example genetic sequence, image and digital sensor data are routinely generated during the course of a disease outbreak, together with more traditional epidemiological data) but also through multiple partners investigating different facets, from different specialities or covering different geographical areas. This has been seen in recent major epidemics including the 2009 influenza pandemic (Fraser et al., 2009) , Middle-East Respiratory Syndrome outbreaks or the West-African Ebola epidemic (WHO Ebola Response Team, 2014 , 2015 . In this context, the safe storage and swift exchange of epidemiological data between collaborators and institutions is key to the successful assessment of, and response to, infectious disease epidemics. Consequently, a great deal of effort has been recently devoted to standardising platforms for the analysis of epidemiological data with software tools being constructed to permit interoperability between separate methodological approaches (Jombart et al., 2014) . Similar efforts have also been made in the fields of epidemiological data-gathering and recording (Aanensen et al., 2009; ECDC, 2015) .",
+            "cite_spans": [
+                {
+                    "start": 560,
+                    "end": 581,
+                    "text": "(Fraser et al., 2009)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 662,
+                    "end": 692,
+                    "text": "(WHO Ebola Response Team, 2014",
+                    "ref_id": null
+                },
+                {
+                    "start": 693,
+                    "end": 699,
+                    "text": ", 2015",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1144,
+                    "end": 1166,
+                    "text": "(Jombart et al., 2014)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 1267,
+                    "end": 1290,
+                    "text": "(Aanensen et al., 2009;",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1291,
+                    "end": 1302,
+                    "text": "ECDC, 2015)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Overall however, there is a scarcity of systematised approaches for the transfer of data. The production of such a capability would vastly improve our ability to transfer information between systems and in doing so aid the interpretation of disease dynamics and ultimately protect a greater number of individuals. Yet epidemics data are still, usually, held as a potentially confusing mass of spread-sheets, databases, text and binary files. A universal format enabling the coherent storage and transfer of these data is lacking. As a consequence, misinterpretation of the data may happen during transfer and result in errors being introduced into subsequent analyses and reports. Unfortunately, the inherent complexity of epidemiological data magnifies the risks of such errors. Fig. 1 illustrates the major systems within an epidemiology work-flow where a standard for digital epidemiology data would be of assistance. A major difficulty associated with transferring epidemiological data lies in the degree of complexity that a dataset may display. The information that is recorded may vary markedly not only between outbreaks but also within a single outbreak. In addition, the epidemic context itself makes data collection a daunting task, leading to some inevitable disparities in the data recorded.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 780,
+                    "end": 786,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "Despite these challenges, we can identify a common structure to epidemiological datasets that can make the task of storing them easier. At the top level of this common structure is information relating to the dataset as a whole, such as the name of the infection that is causing the epidemic or the particular geographic setting of the study. This information is meta-data. At a second level, most datasets are divided into subunits (units-of-record) that hold other information. These subunits could be individuals, regions, countries or time periods. In a conventional spreadsheet these units-of-record are usually stored as rows. The information relating to these units-of-record makes up the third level and is usually stored as columns in a conventional spreadsheet. This information can either relate directly to the unit-of-record itself (such as gender for an individual) or can relate to an event happening to or at that unit-of-record (such as the onset of symptoms for an individual).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Any format for the conveyance of epidemiological data has two competing goals: consistency and flexibility. With this and the common morphology of a dataset in mind, we propose a standard for the storage and transmission of data for infectious disease epidemiology: EpiJSON (Epidemiological JavaScript Object Notation). This format is intended to be language and software agnostic, simple to implement, and leverages modern data standards whilst maintaining the flexibility to represent most epidemiological data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "While initially developed for problems within the infectious disease domain, EpiJSON is applicable to any dataset where \"events\" happen to \"units of record\". We believe that it is sufficiently flexible to accommodate other datasets such as those found in non-communicable disease and chemical hazard areas. It has been designed to draw together all relevant epidemiological data into a single place so that, for example, genetic sequences may be stored alongside image data, a patient's standard demographic information and the disease trajectory data in an unambiguous manner.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The EpiJSON format capitalises on the common structure of most epidemiological datasets outlined above. Fundamentally, the structure of an EpiJSON file consists of three levels that we term \"metadata\", \"records\" and \"events\" (Fig. 2) . Within each of these three levels, data are stored in collections of objects called \"attributes\" which are the core of data storage in EpiJSON. An \"attribute\" object is used for storing unambiguously a discrete piece of information, recording not only the value of the data but also its name, type and units. The \"name\" is a label defining what the attribute is (e.g. \"age\" or \"gender\"), \"type\" defines the type of data being stored (e.g. \"number\" or \"string\"), \"value\" is the actual data value (e.g. 42 or \"male\"), and the optional \"units\" key specifies measurement units (e.g. \"years\"). As this data representation is very generic, it is used as a unit of data storage across the whole structure of EpiJSON. For example: an \"attribute\"\" object could be used to store the name of an infection within \"metadata\", the gender of an individual within a \"record\", and the infection status of an individual at a test within an \"event\". The difference between an \"event\" and an \"attribute\" is that an \"event\" occurs at a defined time or place and can therefore store dates and locations using standard formats. The advantage of the EpiJSON file structure is to clarify which data refer to the dataset, to records or to events associated with records. In contrast, conventional line list and other spreadsheet data can cause confusion as columns are often used to store all levels of data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 225,
+                    "end": 233,
+                    "text": "(Fig. 2)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Structure of the EpiJSON format"
+        },
+        {
+            "text": "An EpiJSON file is essentially a text file containing a standards compliant JSON object. JSON is a widespread, language independent, human readable data format. JSON is made up of key/value pairs where keys are names and values are the data. EpiJSON files are readable by any system capable of reading JSON even if it is not directly aware of the EpiJSON structure.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Outline of EpiJSON format"
+        },
+        {
+            "text": "An EpiJSON file consists of two parts: the metadata and the dataset (Fig. 2 , Table 1 ). Both parts are arrays of objects. Within this manuscript, an \"array\" refers to a one-dimensional collection of objects of the same type. Arrays are indicated using square brackets \"[]\" immediately following the data type. For instance, an Table 2 Keys and values for an attribute object.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 68,
+                    "end": 75,
+                    "text": "(Fig. 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 78,
+                    "end": 85,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 328,
+                    "end": 335,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Outline of EpiJSON format"
+        },
+        {
+            "text": "Type Value Description \"name\" string string An identifier for this attribute \"type\" string \"string\" \"number\" \"integer\" \"boolean\" \"date\" \"location\" \"base64\"",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Key"
+        },
+        {
+            "text": "Type must be one of the enumerated types listed. (See Table 3 for a fuller explanation of type definitions.) \"value\" string; numeric; boolean",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 54,
+                    "end": 61,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Key"
+        },
+        {
+            "text": "The value to be recorded. It must be a valid example of \"type\". May be a homogeneous array of one of the permitted types \"units\" string string A string with the UDUNITS2 unit name. For non-numeric or non-dimensional attributes this key may be omitted. Non-standard units may be used but this is not recommended. If included the string must not be empty array of integers will be noted \"integer[]\". The metadata is an array of attribute objects (attribute[]) while the dataset is an array of record objects (record[]). Both the metadata and the record keys are required but may hold zero objects. The \"metadata\" key is required to enable the inclusion of information describing the dataset whilst the \"records\" key holds the data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Key"
+        },
+        {
+            "text": "Attribute objects are a fundamental concept in the EpiJSON format. This construct holds data on a parent object in a form that permits a clear understanding of the data. An attribute object consists of keys: \"name\"\", \"type\", \"value\" and \"units\" ( Table 2) . The \"name\" key is a character string identifying the name of this attribute. The \"type\" key identifies the type of data that is held under the value key. This is a character string but is limited to certain enumerated values contained in Table 3 . Identifying the data type is necessary to ensure that software will correctly interpret the data when parsing an EpiJSON file. The \"value\" key holds the actual value of the attribute object. This may be either a character string, a number, an integer, a Boolean value, a JSON object or a homogeneous array of one of these (other types as specified in the type key are effectively sub-types of these primitives). The object held in the value key must be compatible with the value of the type key. For numeric value types the \"units\" key permits the units in which values have been recorded to be included in the dataset.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 247,
+                    "end": 255,
+                    "text": "Table 2)",
+                    "ref_id": null
+                },
+                {
+                    "start": 496,
+                    "end": 503,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Attributes"
+        },
+        {
+            "text": "An EpiJSON dataset is made up from a series of record objects detailing units-of-record. Certain characteristics of a unit-of-record are fixed (e.g. gender or region name) and may be recorded as part of the \"attributes\" of a given record. Alternatively, other characteristics occur in space or time and are stored as \"events\". The record object consists of three keys: \"id\", \"attributes\" and \"events\" ( Table 4 ). The \"id\" key should be a string conforming to and generated according to version 4 UUID (Universally Unique IDentifier) specification as found in RFC 4122 (Leach et al., 2005) , and represents the unique identifier of a record. Correctly generated, such a UUID is considered to be sufficiently individual that this identifier will be unique across all EpiJSON datasets and greatly simplifies aggregation and sub-setting operations. Should it be necessary to keep another identifier from an existing system then this should be stored as an attribute of the record. The \"attributes\" key holds an array of \"attribute\" objects (as above). These are the attributes Table 3 Possible values for the type key of an attribute object and the consequence for the data held in the value key.",
+            "cite_spans": [
+                {
+                    "start": 569,
+                    "end": 589,
+                    "text": "(Leach et al., 2005)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 403,
+                    "end": 410,
+                    "text": "Table 4",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 1074,
+                    "end": 1081,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Records"
+        },
+        {
+            "text": "Type Value \"string\" A character string of unspecified length \"number\" A decimal number. In languages making a distinction between numeric types, it is recommended that the \"value\" key is a signed floating point number encoded on at least 64 bits. Numbers must not contain any whitespace. Commas and periods may only appear where they indicate the decimal place \"integer\" An integer number. In languages making a distinction between numeric types, it is recommended that the \"value\" key is a signed integer number encoded on at least 32 bits \"boolean\"",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Records"
+        },
+        {
+            "text": "A Boolean value, true or false. If a language supports Boolean types then the implementation may treat the value key as Boolean. Must be lower-case and unquoted \"date\"",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Records"
+        },
+        {
+            "text": "A character string representing a date conforming to RFC3339 (Newman and Klyne, 2002) . E.g. 1996-12-20T00:39:57Z note the 'Z' at the end indicating zero offset from UTC. Time zones are represented as numeric offsets from UTC in hh:mm format (e.g. \"1996-12-19T16:39:57-08:00\" would represent the same time in Pacific Standard Time) \"location\"",
+            "cite_spans": [
+                {
+                    "start": 61,
+                    "end": 85,
+                    "text": "(Newman and Klyne, 2002)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Records"
+        },
+        {
+            "text": "A GeoJSON object representing a spatial entity. Note: although attributes can hold either spatial (location) or temporal (date) information this is mostly for use in metadata. For records, the event object is the recommended form for storing this information \"base64\"",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Records"
+        },
+        {
+            "text": "A character string of binary data encoded to a text character set using base 64 encoding as per RFC4648 (Josefsson, 2006) . By including a method of holding binary data within an EpiJSON file we permit abstract data to be included of this specific record object. The \"events\" key holds an array of \"event\" objects (noted \"event[]\") relating to this record. Events are usually distinguished from attributes by occurring in time or space while attributes tend to have no spatio-temporal component. For example a date of occurrence is an event, it has a temporal dimension (and spatial-but this is rarely required) while the sex of an individual is an attribute as it lacks either a spatial or temporal dimension.",
+            "cite_spans": [
+                {
+                    "start": 104,
+                    "end": 121,
+                    "text": "(Josefsson, 2006)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Records"
+        },
+        {
+            "text": "The \"event\" object records observations made on its parent object. These might be events directly related to disease such as infection, symptom onset, hospitalisation or they might be more generic such as date of birth, the locations from an individual's travel history, their place of work, or their home. Events must have a time, a place or both; for recording of time RFC3339 (Newman and Klyne, 2002) is used (e.g. \"2014-12-12T00:00:00Z\") and we use GeoJSON for recording of location (Butler et al., 2008) . For datasets where the unit-of-record is not the individual, events could be data such as census dates and the resultant population counts, dates of ward cleaning etc.",
+            "cite_spans": [
+                {
+                    "start": 379,
+                    "end": 403,
+                    "text": "(Newman and Klyne, 2002)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 487,
+                    "end": 508,
+                    "text": "(Butler et al., 2008)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Events"
+        },
+        {
+            "text": "An event object has up to five keys: \"id\", \"name\", \"date\", \"location\" and \"attributes\" ( Table 5 ). The keys \"id\", and \"name\" are mandatory. In addition, at least \"date\" or \"location\" must be provided. The key \"attributes\" is optional. The value of the \"id\" key, as for the record object, should be a string consisting of a version 4 UUID conforming to and generated as specified in RFC 4122 (Leach et al., 2005) . \"Name\" is a string that names the event. The value of \"name\" need not be unique, indeed it is suggested that a standard set of names are used to identify events across the dataset (and across multiple datasets). The \"date\" key records the time at which an event took place; it should be a valid string representation of a RFC3339 (Newman and Klyne, 2002) conformant date, this is a subset of the ISO 8601 extended format. If a single date point is insufficient to record an event, for instance to record a period of exposure, then we suggest that multiple events are recorded; in this example, one event object is coded to record the start of exposure and one to record the end. The \"location\" key stores a geospatial object in GeoJSON format (Butler et al., 2008) representing the location of an event. By allowing different events to have different geospatial types it is possible to choose the most appropriate geospatial object for an event without being restricted by the choice within other events (i.e. it would be valid to record the only vaguely known location of infection as a large polygon, while simultaneously having a point to represent where an individual was admitted to hospital). This scheme also permits the use of different projections for different events (e.g. a national/local grid for some while using WGS 84, the GPS coordinate system, for others). The \"attributes\" key holds an array of attributes defined in the same way as above. Here the attributes relate to the event and may hold data such as number of colonyforming units from a swab, genetic sequence data or the recorded population values from a census.",
+            "cite_spans": [
+                {
+                    "start": 392,
+                    "end": 412,
+                    "text": "(Leach et al., 2005)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1158,
+                    "end": 1179,
+                    "text": "(Butler et al., 2008)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 89,
+                    "end": 96,
+                    "text": "Table 5",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Events"
+        },
+        {
+            "text": "In this example, an individual record is presented (Fig. 3) . First there is the metadata; here simply who created this dataset. Then there comes the actual records, in this case only one person is recorded. This person has an age, and an ID from the field recording system. A single event, the onset of disease, is also recorded together with the patient's temperature at that point. The source data could have been presented as a comma delimited file (csv) or line list format but by using EpiJSON we can assign various parts of the line list data to objects in the JSON format to reduce ambiguity and provide information to other users of this information: in this case, in what units we should interpret the temperature reading. We also draw the reader's attention to the more fully worked example of a data storage and an analytical system communicating via EpiJSON in the supplementary material. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 51,
+                    "end": 59,
+                    "text": "(Fig. 3)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Example"
+        },
+        {
+            "text": "The repijson package has been developed as a demonstration implementation and will facilitate data transfer to and from the EpiJSON format within the statistical and programming software R (R Core Team, 2014). It provides a variety of functions that can convert data to each of the levels within EpiJSON (metadata, attributes, records, events and objects). It also implements conversion tools for the data structures used to store outbreak line lists in Outbreak-Tools (Jombart et al., 2014) . Fig. 4 provides a brief overview of the conversions and translations provided by the package. The package is released with a fully documented manual and a vignette tutorial which includes the above examples to help users implement the formatting system. It also illustrates how information from EpiJSON files can easily be extracted for further analysis.",
+            "cite_spans": [
+                {
+                    "start": 469,
+                    "end": 491,
+                    "text": "(Jombart et al., 2014)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 494,
+                    "end": 500,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "The repijson package"
+        },
+        {
+            "text": "The software package, repijson, is distributed under GNU Public Licence (version 2 or greater), and developed on github (https:// github.com/Hackout2/repijson), where instructions on installation and contributions can be found. The stable version of the package is distributed on the Comprehensive R Archive Network (CRAN: http://cran.r-project.org/).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The repijson package"
+        },
+        {
+            "text": "JSON, JavaScript Object Notation, ECMA standard 404 (Bray, 2014) , was chosen as the base technology for a universal Fig. 4 . Schematic of the common types of data that the repijson package may convert between or include into an EpiJSON file. Solid lines indicate conversion of data dashed lines indicated direct inclusion. epidemiology interchange format because: (i) it is lightweight with no complex formatting rules; (ii) it is based on plain text; (iii) it is easy for both humans and machines to read; (iv) it is in widespread use; and, (v) it has a large number of high quality libraries available for all common computer systems and languages. All of these properties combine to make JSON an ideal data-interchange medium.",
+            "cite_spans": [
+                {
+                    "start": 52,
+                    "end": 64,
+                    "text": "(Bray, 2014)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 117,
+                    "end": 123,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Technical details of EpiJSON"
+        },
+        {
+            "text": "As EpiJSON is standards-compliant JSON, a file is made up from a series of key value pairs. Keys are always double quoted character strings while the \"value\" may be a character string, a number, a Boolean value or another JSON object. A pictorial overview of this structure for EpiJSON is presented in Fig. 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 302,
+                    "end": 308,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Technical details of EpiJSON"
+        },
+        {
+            "text": "As a detail for implementations, where possible, numeric types should be equivalent to C's long type (i.e. in the range \u22122147,483,647 to +2147,483,647) for integers and double precision should be used for floating point values. For clarity these have been referred to using JSON terminology as integer and number types, respectively, throughout the manuscript.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Technical details of EpiJSON"
+        },
+        {
+            "text": "Within an attribute object the value of the units key where possible should be a unit name taken from the name parameter of the matching unit definition in the UDUNITS2 unit database (Unidata, 2015a) . When the type key is \"integer\" or \"number\" and the units key is omitted, the value should be considered to be nondimensional.",
+            "cite_spans": [
+                {
+                    "start": 183,
+                    "end": 199,
+                    "text": "(Unidata, 2015a)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Technical details of EpiJSON"
+        },
+        {
+            "text": "The major benefits of the EpiJSON format are its flexibility and simplicity. EpiJSON has broad-scale application to data transfer across multiple disciplines as we reach an era of rapid data assimilation. EpiJSON has been designed to take advantage of existing standards for the data that it represents. This has two major advantages: the first is that existing domain expertise, for example in the representation of spatial data, is implicitly incorporated into this standard; the second is that the implementation of EpiJSON parsers and filters for existing languages and software is greatly simplified.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "From the outset, EpiJSON has been designed to reduce ambiguity and permit greater ease of transmission for epidemiological datasets. Key to this ambition is ensuring that core information held by the dataset may be simply understood and can be transferred with fidelity. To provide documented data of the greatest clarity and concision within EpiJSON we offer the attribute object. This object not only holds much of the fundamental data of the dataset but also important metadata that enables the interpretation of those data. The repetition of identically constructed attribute objects throughout the data structure allows clear documentation of information at all levels of a dataset without the added confusion of a different structure at each level.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The first level within EpiJSON is the dataset. Information on the dataset itself is stored as metadata. The use of metadata is standard in many epidemiological settings and providing a method for this to be included within EpiJSON is essential and best practice. Indeed, including metadata allows some of the most important pieces of information relating to a dataset to be stored alongside the data, such as why, when and by whom the dataset was created or collated. Similar to the epidemiological data, the type and detail of metadata can be very broad.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The next level is that of the record. A great asset of our format is that EpiJSON makes no assumptions about the unit-of-record (that is person or region, country, etc.) nor even forces record objects to be uniform. Although not recommended, it is perfectly possible to mix individuals with regions within a single dataset.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The final level is that of the event. So that there is no ambiguity within the data, EpiJSON requires the use of a standard for the recording of time and place. Our decision to enter location data using GeoJSON format (Butler et al., 2008) permits recording of event data to any of the standard geographical objects (point, line or polygon) and simultaneously solves potential issues caused by using different Coordinate Reference Systems (CRS). An additional benefit is that different events within the same record may be recorded to a different geographical object, even one in a different CRS.",
+            "cite_spans": [
+                {
+                    "start": 218,
+                    "end": 239,
+                    "text": "(Butler et al., 2008)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Naturally, no standard epidemiological software currently supports the EpiJSON standard. The first step in more widespread support is to provide a mechanism by which the validity of a Epi-JSON file and hence software implementation can be checked. To this end we provide a schema for EpiJSON files (see links below). In the short term the availability of an R package permits not only EpiJSON files to be used within R but also for them to be converted to and from a wide range of file formats including the ubiquitous csv spreadsheet format read by most systems. The next step is for library functions for common languages to be written, easing the developer effort for high level packages familiar to the epidemiological user base. We believe that, because the standard is well defined, open, based on existing standards and easily validated, this effort in including parsers within existing packages should be small.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The transfer of epidemiological data may be particularly sensitive either because of its personal or political nature. However, we believe that encryption is a different problem to that of high fidelity transfer of scientific information. Performing encryption well is difficult, as evidenced by the many security breaches in even extensively tested systems over recent years. We believe that the user is better served by well tested external encryption libraries or tools than by providing a mechanism within the EpiJSON standard that would become rapidly obsolescent. However we envisage that much as HTML (HyperText Mark-up Language, the text format of most Web pages) may be encrypted using HTTPS, the text based EpiJSON could be encrypted using a system such as ssl to provide an encrypted version of the format. Such a development would also provide the user with the choice of symmetric, password-based encryption as used in later versions of well-known spreadsheet programs or the more secure key-based asymmetric encryption commonly in use on the internet in banking and encrypted email transactions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Representing data as EpiJSON means that increased storage space is required in comparison to equivalent, terse, spread-sheets. Yet the additional detail of EpiJSON, the reduction in ambiguity and the direct readability by machine outweigh the disadvantage of increased use of storage. Further, it is possible to transfer genomic data, images and location data within a single EpiJSON file ensuring that a wide variety of data, relating to a single unit-of-record, can be collated. As with encryption, it is not within the scope of a format for epidemiological data to specify a data compression standard but note that, as a structured text document with a good deal of repetition, EpiJSON files compress well using commonly available compression tools. EpiJSON's requirement for additional space is not considered an impairment to its applicability.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Finally, the EpiJSON format is deliberately broad to permit the capture of the widest range of epidemiological datasets. However, we recognise that there are sub-types of epidemiological data. It is envisaged that standard attribute sets will be agreed to address specific types of epidemiological data, much as conventions have emerged for NetCDF datasets (Unidata, 2015b) e.g. the CF convention for climatology (Eaton et al., 2011) . The adoption of well-defined data standards makes both the contribution of data to communal efforts and the development of data tools much easier. This has been the case for public transport data (Google, 2015) , where a standard allows companies to submit their timetables in a form that can be used by Google Maps to provide route information. This definition of an open data structure for epidemiology is the first step in allowing other developers and collaborators to modify their software and work-flows to utilise the standard. The development of useful tools and practices will, by necessity, be an iterative process with input from a wide range of users.",
+            "cite_spans": [
+                {
+                    "start": 357,
+                    "end": 373,
+                    "text": "(Unidata, 2015b)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 413,
+                    "end": 433,
+                    "text": "(Eaton et al., 2011)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 632,
+                    "end": 646,
+                    "text": "(Google, 2015)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "In EpiJSON we provide a well-understood file structure with a verifiable format for storing and exchanging epidemiological data. The EpiJSON format is highly flexible to enable the widest range of datasets to be conveyed while being sufficiently rigid to remove many of the common causes of ambiguity and error.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "While EpiJSON is not intended to replace existing databases or surveillance systems, it should prove useful for transferring information between these types of systems, collections and analysis tools. In the resources below we provide links to the current Epi-JSON schema (permitting the automatic verification of EpiJSON files), tools to convert between common formats and EpiJSON and example datasets in EpiJSON form.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "We appreciate that full implementation of the EpiJSON standard across all of the software and systems used within epidemiology is a large undertaking, but by providing an open blueprint for data interchange between these systems, together with validation tools and a library for one of the more popular data analysis environments we hope to greatly simplify the process by which epidemiology systems interact. Researchers and institutions should find that collaboration becomes easier by reducing data compatibility problems and additional capabilities will become simpler to add to existing workflows with the adoption of EpiJSON as a medium for information interchange.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "GNU General Public Licence (GPL) \u2265 2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Licence"
+        },
+        {
+            "text": "https://github.com/Hackout2/EpiJSON.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Website"
+        },
+        {
+            "text": "https://raw.githubusercontent.com/Hackout2/EpiJSON/ master/schema/epijson.json.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "JSON schema"
+        },
+        {
+            "text": "R library in CRAN: https://cran.r-project.org/web/packages/ repijson/.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Tools"
+        },
+        {
+            "text": "https://github.com/Hackout2/repijson.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Development version"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "EpiCollect: linking smartphones to web applications for epidemiology. Ecology and community data collection",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Aanensen",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Huntley",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Feil",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Al-Own",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Spratt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "PLoS ONE",
+            "volume": "4",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/journal.pone.0006968"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "The JavaScript Object Notation (JSON) Data Interchange Format. RFC 7159",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Bray",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "The JavaScript Object Notation (JSON)",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.1371/journal.pone.0006968"
+                ]
+            }
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "GeoJSON Specification",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Butler",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Daly",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Doyle",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Gillies",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Schaub",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Schmidt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.17487/RFC7159"
+                ]
+            }
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Middle East respiratory syndrome coronavirus: quantification of the extent of the epidemic, surveillance biases, and transmissibility",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Van Kerkhove",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Riley",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rambaut",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Enouf",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Van Der Werf",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Lancet Infect. Dis",
+            "volume": "14",
+            "issn": "13",
+            "pages": "70304--70313",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/S1473-3099"
+                ]
+            }
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "NetCDF Climate and Forecast (CF) Metadata Conventions",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Eaton",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gregory",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Drach",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Taylor",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Hankin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Caron",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Signell",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bentley",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Rappa",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "H\u00f6ck",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Pamment",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Juckes",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.1016/S1473-3099(13)70304-9"
+                ]
+            }
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Legionella Outbreak Toolbox [WWW Document]. Legion. Dis. Outbreak Investig. Toolbox",
+            "authors": [],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Pandemic potential of a strain of influenza A (H1N1): early findings",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Hanage",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Van Kerkhove",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Hollingsworth",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Griffin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Baggaley",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Jenkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lyons",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Science",
+            "volume": "324",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "General Transit Feed Specification Reference",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Google",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Google Developers",
+            "authors": [],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "OutbreakTools: a new platform for disease outbreak analysis using the R software",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Jombart",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Aanensen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Baguelin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Birrell",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Camacho",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Colijn",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Collins",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Cori",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Didelot",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Frost",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Hens",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hugues",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "H\u00f6hle",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Opatowski",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rambaut",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Ratmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Soubeyrand",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Suchard",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ypma",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Epidemics",
+            "volume": "7",
+            "issn": "",
+            "pages": "28--34",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.epidem.2014.04.003"
+                ]
+            }
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "The Base16, Base32 and Base64 Data Encodings",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Josefsson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "RFC",
+            "volume": "4648",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.1016/j.epidem.2014.04.003"
+                ]
+            }
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "A Universally Unique IDentifier (UUID) URN Namespace",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Leach",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Mealling",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Salz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "RFC",
+            "volume": "4122",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.17487/RFC4648"
+                ]
+            }
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Date and Time on the Internet: Timestamps. RFC 3339",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Newman",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Klyne",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.17487/RFC4122"
+                ]
+            }
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "R Core Team",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "NetCDF Conventions [WWW Document",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Unidata",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "West African Ebola epidemic after one year-slowing but not yet under control",
+            "authors": [],
+            "year": 2015,
+            "venue": "N. Engl. J. Med",
+            "volume": "372",
+            "issn": "",
+            "pages": "584--587",
+            "other_ids": {
+                "DOI": [
+                    "10.1056/NEJMc1414992"
+                ]
+            }
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Ebola virus disease in West Africa-the first 9 months of the epidemic and forward projections",
+            "authors": [],
+            "year": 2014,
+            "venue": "N. Engl. J. Med",
+            "volume": "371",
+            "issn": "",
+            "pages": "1481--1495",
+            "other_ids": {
+                "DOI": [
+                    "file:/localhost/opt/grobid/grobid-home/tmp/dx.doi.org/10.1056/NEJMc1414992"
+                ]
+            }
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "The major components of an epidemiology workflow (blocks) and the places where a standard transfer format would be of assistance (arrows).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Block diagram of the structure of an EpiJSON file.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Example of data in EpiJSON format.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "http://dx.doi.org/10.1016/j.epidem.2015.12.002 1755-4365/Crown Copyright \u00a9 2016 Published by Elsevier B.V. This is an open access article under the CC BY license (http://creativecommons.org/licenses/by/4.0/).",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Keys and values for the base JSON object contained in an EpiJSON file. Square brackets following a data type indicate arrays.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "keys and values for the record object. Square brackets following a data type indicate arrays.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Keys and values for the event object.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "EpiJSON was created during \"Hackout 2: Graphical Resources for Infectious Disease Epidemiology in R\" (https://sites.google.com/ site/hackout2/), an event funded by the Medical Research Council We would also like to thank the two anonymous reviewers whose constructive comments helped to strengthen this manuscript.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        },
+        {
+            "text": "Supplementary data associated with this article can be found, in the online version, at doi:10.1016/j.epidem.2015.12.002.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix A. Supplementary data"
+        }
+    ]
+}

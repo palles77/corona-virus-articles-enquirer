@@ -1,0 +1,1277 @@
+{
+    "paper_id": "517698251b94fac6d80edcc4644e2448a4efd4ef",
+    "metadata": {
+        "title": "Improved Algorithmic Complexity for the 3SEQ Recombination Detection Algorithm",
+        "authors": [
+            {
+                "first": "Ha",
+                "middle": [
+                    "Minh"
+                ],
+                "last": "Lam",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Oxford University Clinical Research Unit",
+                    "location": {
+                        "settlement": "Ho Chi Minh City",
+                        "country": "Vietnam"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Oliver",
+                "middle": [],
+                "last": "Ratmann",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "MRC Centre for Outbreak Analyses and Modelling",
+                    "institution": "Imperial College London",
+                    "location": {
+                        "settlement": "London",
+                        "country": "United Kingdom"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Maciej",
+                "middle": [
+                    "F"
+                ],
+                "last": "Boni",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Oxford University Clinical Research Unit",
+                    "location": {
+                        "settlement": "Ho Chi Minh City",
+                        "country": "Vietnam"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Identifying recombinant sequences in an era of large genomic databases is challenging as it requires an efficient algorithm to identify candidate recombinants and parents, as well as appropriate statistical methods to correct for the large number of comparisons performed. In 2007, a computation was introduced for an exact nonparametric mosaicism statistic that gave high-precision P values for putative recombinants. This exact computation meant that multiplecomparisons corrected P values also had high precision, which is crucial when performing millions or billions of tests in large databases. Here, we introduce an improvement to the algorithmic complexity of this computation from O(mn 3 ) to O(mn 2 ), where m and n are the numbers of recombination-informative sites in the candidate recombinant. This new computation allows for recombination analysis to be performed in alignments with thousands of polymorphic sites. Benchmark runs are presented on viral genome sequence alignments, new features are introduced, and applications outside recombination analysis are discussed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Determining whether genomic regions are undergoing homologous recombination is important in all parts of biology and genetics. Indeed, recombination has profound consequences for a population's evolutionary trajectory, and it changes our understanding of the evolutionary history of a population as described through phylogenetics (Schierup and Hein 2000; . Identifying recombination is especially important in large genomic analyses, as the larger the region being analyzed the higher the chance that recombination will be detected even in a small sample. Over the past three decades, methods of identifying recombination from sequence data have focused on detection of clustered polymorphism, excessive homoplasy, low linkage disequilibrium, mosaicism, and incongruent phylogenies . Some of these statistical signals have advantages over others in terms of false positive rate, statistical power, speed, and the size of the data set that can be analyzed. An analysis of sensitivity and specificity can be found in Posada and Crandall (Posada and Crandall 2001) and a guide to choosing an appropriate method for a given data set can be found in Martin et al. (2011) .",
+            "cite_spans": [
+                {
+                    "start": 331,
+                    "end": 355,
+                    "text": "(Schierup and Hein 2000;",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1016,
+                    "end": 1062,
+                    "text": "Posada and Crandall (Posada and Crandall 2001)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1146,
+                    "end": 1166,
+                    "text": "Martin et al. (2011)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "In modern sequence analysis, a major challenge in recombination detection is the size of the data sets themselves. Beyond the computational burden, critical but often underappreciated statistical issues arise through the extremely large number of compared nucleotide sequence patterns. With this many comparisons being performed, truly nonrecombinant sequences can exhibit nucleotide patterns that appear recombinant by chance. For this reason, statistical corrections for multiple comparisons are essential to guard against calling spurious recombinants. In an algorithm called 3SEQ, Boni et al. (2007) presented an exact mosaicism statistic for calling recombinants. Critically, the exactness of the computation (e.g., calculating P values to a precision of 10 \u00c020 or 10 \u00c030 ) allows these mosaic signals to remain statistically significant, even when billions of comparisons are being performed and adjusted for multiple comparison. This means that the exact mosaicism statistic implemented in the 3SEQ software maintains good power properties even on large data sets when statistical correction factors for multiple comparisons are on the order of 10 10 or more.",
+            "cite_spans": [
+                {
+                    "start": 585,
+                    "end": 603,
+                    "text": "Boni et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "Recombination detection methods that detect mosaic signals always take a triplet approach or a quartet approach, positing one sequence as the candidate recombinant, two sequences as the parents, and possibly a fourth sequence as an outgroup. With the parental sequences labeled P and Q and the candidate recombinant labeled C, these methods normally use \"recombination informative\" sites, or simply informative sites, to determine if C is a mosaic of P and Q. In 3SEQ, nucleotide positions on C are labeled informative if the nucleotide in C is identical to one parental sequence but different from the other. If the sequence of m informative sites identical to P and n informative sites identical to Q appears nonrandom or clustered, this is an indication that Letter \u00df The Author 2017. Published by Oxford University Press on behalf of the Society for Molecular Biology and Evolution. This is an Open Access article distributed under the terms of the Creative Commons Attribution Non-Commercial License (http://creativecommons.org/licenses/by-nc/4.0/), which permits non-commercial re-use, distribution, and reproduction in any medium, provided the original work is properly cited. For commercial re-use, please contact journals.permissions@oup.com Open Access recombination may have occurred. When read from left to right along the sequence, the informative sites can be used to draw a random walk on a set of axes with m up-steps and n down-steps; this is called a hypergeometric random walk (HGRW). A strong descent or ascent in the middle of a HGRW indicates that one type of informative site exhibits clustering, and the properties of the random walk can be used to compute exact probabilities of this occurring. See figure 1 for an example. In this letter, we present a new and faster method of computing these probabilities.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1724,
+                    "end": 1732,
+                    "text": "figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": ""
+        },
+        {
+            "text": "The central feature of 3SEQ was a reduction of an O(2 m\u00fen ) space-complexity problem into an O(mn 3 ) problem, for computing the probability x m, n, k that a HGRW with m up-steps and n down-steps achieves a maximum descent of size k exactly. The descent does not need to be k consecutive down steps. The computations were done via auxiliary variables y m, n, k, j : the probability that a HGRW with m up-steps and n down-steps achieves a maximum descent of size k exactly and the minimum value achieved by the random walk is exactly j units below the origin. The y-variables can be computed recursively (Boni et al. 2007 ) by building a table of size mn 3 . The x-variables are then computed as follows:",
+            "cite_spans": [
+                {
+                    "start": 603,
+                    "end": 620,
+                    "text": "(Boni et al. 2007",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "By separating out the first and last term in the sum above, and using the y-variable recursions, a nearly direct recursion can be written for the x-variables:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "The P value for observing a maximum descent of size at least k is defined by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "and recursions for the p-variables reduce to:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "The y-variables in equation (2) above-since the last two indices are equal-can be computed recursively by building one table of size mn 2 . The p-variables can be recursively computed by building a second table of size mn 2 . This means that the entire computational procedure of P values can be done with space complexity O(mn 2 ) instead of the original O(mn 3 ) presented in Boni et al. (2007) . All computations were verified against the original approach.",
+            "cite_spans": [
+                {
+                    "start": 378,
+                    "end": 396,
+                    "text": "Boni et al. (2007)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "This new approach allows larger probability tables to be built more quickly. Using the 2007 recursions, a table of size 700 \u00c2 700 \u00c2 700 was built in 9 h and used 5.1-GB RAM (2.6 GHz processor; 16-GB RAM). Using the recursions above, a table of 1,600 \u00c2 1,600 \u00c2 1,600 was built in 1 h and 42 min in a 10.4-GB memory footprint. Two other noteworthy improvements were made to the algorithm: 1) faster breakpoint calculations by using polymorphic sites only in",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "Relationship between ordering of informative sites along a genome and a hypergeometric random walk. Below each set of axes, the 30 red bars and 30 blue bars show positions on a genome (informative sites) where a putative recombinant sequence is identical to parent P but different from parent Q (blue bars), or identical to parent Q but different from parent P (red bars). Each blue site can be mapped to an up-step in a random walk and each red site can be mapped to a down-step in a random walk, and there is a one-to-one correspondence between the space of informative-site arrangements and the space of hypergeometric random walks. (A) A random arrangement of informative sites, which does not visually suggest that the sequence is a mosaic of putative parents P and Q. The arrangement of sites maps to a random walk which stays fairly close to the horizontal axis. This walk's maximum descent is eight steps, and $54% of HGRWs with 30 up-steps and 30 down-steps have a maximum descent of eight steps or greater. (B) A nonrandom arrangement of informative sites that clearly suggests that the candidate sequence is a mosaic of the two parental sequences P and Q. The probability of all the red sites appearing consecutively is 31! \u00c2 30!/60! which is 2.62 \u00c2 10 \u00c016 . (C) An arrangement of red sites and blue sites that suggests the red sites may be clustered in the middle. When mapping the site arrangement to a hypergeometric random walk, the random walk has a maximum descent of 18 steps. The P value for a maximum descent of 18 steps cannot be written down in closed form but can be calculated from recursion (4). The P value for this maximum descent and for this arrangement of informative sites is 1.8 \u00c2 10 \u00c04 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "Lam et al. . doi:10.1093/molbev/msx263 MBE breakpoint searches, and 2) a repeated subsampling feature that allows for comparison of data sets of different sizes; with this feature one can randomly subsample M sequences from multiple databases or sequence collections, and repeat the process to see how often these subsets exhibit recombination. The new source code and manual can be downloaded from http://mol.ax/3seq. When a P value falls outside the bounds of the table being used, the software substitutes in Hogan-Siegmund approximations (Hogan and Siegmund 1986) for the queried P value.",
+            "cite_spans": [
+                {
+                    "start": 542,
+                    "end": 567,
+                    "text": "(Hogan and Siegmund 1986)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Improved Complexity"
+        },
+        {
+            "text": "The 3SEQ maximum descent statistic describes clustering patterns in sequences of binary outcomes, and is therefore not confined to recombination analysis. The statistic can be viewed as a generalization of the Mann-Whitney U statistic, in the sense that outcomes of one type (of a binary outcome variable) do not necessarily have to cluster or rank at the beginning or end of a sequence of data points. The maximum descent of a HGRW can be used to describe the clustering of one particular binary outcome in the middle of a sequence of binary outcomes; in other words, it is a 1D nonparametric clustering statistic. In recombination analysis, this is the clustering of one kind of informative site among all the informative sites (Han et al. 2010) . To make use of this statistic easier for those working outside the field of recombination, we developed a web calculator ( fig. 2 ) that computes exact P values for clustering in a sequence of binary outcomes, available at http://mol.ax/delta. For example, the sequence \"AAAAABB BBABBBABBBAAAA\" can be typed in and the calculator reports that the clustering of Bs in the middle of the sequence is significant at P \u00bc 0.0055. We list two practical example uses of our nonparametric clustering statistic. First, seasonality can be assessed nonparametrically. If a particular population behavior or climatic characteristic (e.g., rain or no rain) can be noted to occur or not occur every day, then an ordered sequence of the days in the year will show if the occurrence of one of the behaviors is clustered and thus if this feature was seasonal in that one year. As a second example, when a process is expected to behave at an intermediate range or when an observation is expected to be made at intermediate values only, this pattern can be tested for nonparametrically. Dengue virus does not cause severity for all ages equally. One's first dengue infection, occurring during childhood, is typically nonsevere; secondary infections, seen in older children and teenagers, have a higher chance of severity, whereas tertiary and subsequent infections, those that would occur in older age groups, are thought to be rare and/or subclinical (Gubler 1998; Wikramaratna et al. 2010) . Thus, disease severity in a surveillance system should be seen in the intermediate age ranges, and this can be tested for nonparametrically by noting if each age band is overrepresented or underrepresented in the pool of patients experiencing dengue-like severe disease in a hospital. In fact, since all that is required here is a symptoms description, the identification of a vulnerable age range can be done for any set of symptoms.",
+            "cite_spans": [
+                {
+                    "start": 730,
+                    "end": 747,
+                    "text": "(Han et al. 2010)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 2182,
+                    "end": 2195,
+                    "text": "(Gubler 1998;",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 2196,
+                    "end": 2221,
+                    "text": "Wikramaratna et al. 2010)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 873,
+                    "end": 879,
+                    "text": "fig. 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "New Applications"
+        },
+        {
+            "text": "To illustrate improved runtimes and memory usage of the new 3SEQ algorithm, we searched for recombinants among large sequence data sets of dengue virus serotype 2, Ebola virus, the coronavirus responsible for Middle-East Respiratory Syndrome (MERS) and Zika virus; see table 1. Full-length Zika virus sequences were downloaded from the NCBI Viral Variation Resource (Brister et al. 2014 ) and aligned with Muscle v3.8 (Edgar 2004) . Full-length sequences of Ebola virus, dengue virus serotype 2, and the coronavirus responsible for Middle-East Respiratory Syndrome (MERS) were downloaded from NCBI and aligned with the online NCBI alignment tools. Ebola virus sequences were restricted to human viruses sampled in Africa after December 1, 2013. Dengue virus serotype 2 was chosen to include a particularly large and polymorphic alignment. As negative controls, we considered segments PB2 and NS from avian influenza A virus, subtype H5N1, originally analyzed in Boni et al. (2010) ; only sequences from the Influenza Genome Sequencing Project were included FIG. 2. Screenshot of new online tool that can be used to calculate P values testing the hypothesis of whether one binary outcome clusters in the middle of a (1D) sequence of binary outcomes. One input method is simply typing two characters in a text box (above, \"U\" for up and \"D\" for down) and letting the calculator return a P value showing whether one type of character is clustered in the middle. To test whether the other type of character is clustered, the \"SWAP\" button can be used. The hypergeometric walk is shown graphically. The exact P value, computed with the methods in this article, is shown. The two Hogan-Siegmund approximations for this P value are also shown. Improved Algorithmic Complexity for 3SEQ . doi:10.1093/molbev/msx263 MBE (Ghedin et al. 2005 ) and identical sequences were removed (when identical sequences were not removed, results using the new version of 3SEQ were identical to the results in table 1 of Boni et al. 2010) .",
+            "cite_spans": [
+                {
+                    "start": 366,
+                    "end": 386,
+                    "text": "(Brister et al. 2014",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 418,
+                    "end": 430,
+                    "text": "(Edgar 2004)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 962,
+                    "end": 980,
+                    "text": "Boni et al. (2010)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1810,
+                    "end": 1829,
+                    "text": "(Ghedin et al. 2005",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1995,
+                    "end": 2012,
+                    "text": "Boni et al. 2010)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results and Discussion"
+        },
+        {
+            "text": "The new version of the software-run with a P value table of size 1,200 \u00c2 1,200 \u00c2 1,200-had faster computation times than the previous version and was able to comfortably accommodate alignments with thousands of polymorphic sites. Table 1 shows the results of all runs. Note that because 3SEQ evaluates all triplets in a data set, the run time of the algorithm scales as the cube of the number of sequences and linearly with the alignment length. As informative sites can sometimes be clustered in short regions of the genome, 3SEQ will report these short segments as recombinant. For this reason, an additional column is included in table 1 showing the number of sequences that were identified as recombinant with both inherited regions being longer than 500 nt; if one of the recombinant regions is very short, it is difficult to confirm the recombination results with a phylogenetic analysis of the two identified parental segments.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 230,
+                    "end": 237,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                },
+                {
+                    "start": 633,
+                    "end": 640,
+                    "text": "table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Results and Discussion"
+        },
+        {
+            "text": "Starting with the analysis on the two negative control data sets, no recombinant segments longer than 500 nt were detected in either avian influenza alignment. Both of these runs took <30 s. The genomic alignments of MERS and Zika virus contained 1,150 and 2,792 polymorphic sites, respectively, and >99.9% triplets were able to be tested for mosaicism with exact P values. These runs took <2 min. As expected from a recent analysis by Dudas and Rambaut (Dudas and Rambaut 2015) , the MERS sequence data set was highly recombinant, with 100 out of 164 sequences being identified as such. For Zika, 6 out of 157 virus sequences were identified as recombinant, consistent with earlier analyses supporting the presence of recombination in the evolutionary history of Zika (Faye et al. 2014; Zhu et al. 2016) ; details of the recombinants, parents, and breakpoints are included in the Supplementary Material online. The Ebola virus and dengue virus alignments each contained around 1,000 sequences. The Ebola virus data showed no evidence of recombination. The dengue alignment was the most diverse of all the tested data sets with 6,151 polymorphic sites; 99.4% of the triplets in this data set were able to be evaluated with exact P values. A total of 36 out of 1,108 dengue sequences were identified as recombinant (see Supplementary Material online). Several previous analyses of dengue virus have shown evidence for intraserotype recombination in dengue Worobey et al. 1999; Uzcategui et al. 2001; Aaskov et al. 2007; Waman et al. 2016 Waman et al. , 2017 . The results presented here, as well as those of Waman et al. (2017) , suggest that recombination in dengue is infrequent.",
+            "cite_spans": [
+                {
+                    "start": 436,
+                    "end": 478,
+                    "text": "Dudas and Rambaut (Dudas and Rambaut 2015)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 769,
+                    "end": 787,
+                    "text": "(Faye et al. 2014;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 788,
+                    "end": 804,
+                    "text": "Zhu et al. 2016)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1455,
+                    "end": 1475,
+                    "text": "Worobey et al. 1999;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1476,
+                    "end": 1498,
+                    "text": "Uzcategui et al. 2001;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 1499,
+                    "end": 1518,
+                    "text": "Aaskov et al. 2007;",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1519,
+                    "end": 1536,
+                    "text": "Waman et al. 2016",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1537,
+                    "end": 1556,
+                    "text": "Waman et al. , 2017",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1607,
+                    "end": 1626,
+                    "text": "Waman et al. (2017)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results and Discussion"
+        },
+        {
+            "text": "In general, when recombinants are identified by a mosaicism statistic like the one used by 3SEQ, a phylogenetic analysis should be performed to ensure that the recombination signal is preserved when the entire evolutionary history of the sample is taken into account. The size of modern data sets presents two challenges here. First, as the number of available sequences increases, the choice for phylogenetic inference tools drifts to more approximate methods, as thorough explorations of tree space become computationally expensive for large numbers of sequences. This reduces our confidence in phylogenetic incongruence signals that we observe in these data. Second, genome-level analyses in highly recombining organisms are likely to result in a subdivision of the genome into many nonrecombinant blocks. Inferring phylogenies for all blocks individually will be computationally expensive, as will the subsequent analysis of identifying specific phylogenetic incongruences among the trees. The next generation of recombination detection methods should focus on these computational challenges.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results and Discussion"
+        },
+        {
+            "text": "Supplementary data are available at Molecular Biology and Evolution online. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Supplementary Material"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Multiple recombinant dengue type 1 viruses in an isolate from a dengue patient",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Aaskov",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Buzacott",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Field",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Lowry",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Berlioz-Arthaud",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J Gen Virol",
+            "volume": "88",
+            "issn": "12",
+            "pages": "3334--3340",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Guidelines for identifying homologous recombination events in influenza A virus",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Boni",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "De Jong",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Van Doorn",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Hr",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "PLoS One",
+            "volume": "5",
+            "issn": "5",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "An exact nonparametric method for inferring mosaic structure in sequence triplets",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Boni",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Posada",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Feldman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Genetics",
+            "volume": "176",
+            "issn": "2",
+            "pages": "1035--1047",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Virus variation resource -recent updates and future directions",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Brister",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Bao",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Zhdanov",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Ostapchuck",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Chetvernin",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Kiryutin",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zaslavsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kimelman",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Tatusova",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nucleic Acids Res",
+            "volume": "42",
+            "issn": "D1",
+            "pages": "660--665",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "MERS-CoV recombination: implications about the reservoir and potential for adaptation",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Dudas",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rambaut",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Virus Evol",
+            "volume": "2",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "MUSCLE: multiple sequence alignment with high accuracy and high throughput",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Edgar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nucleic Acids Res",
+            "volume": "32",
+            "issn": "5",
+            "pages": "1792--1797",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Molecular evolution of Zika virus during its emergence in the 20th century",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Faye",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ccm",
+                    "middle": [],
+                    "last": "Freire",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Iamarino",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Faye",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jvc",
+                    "middle": [],
+                    "last": "De Oliveira",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Diallo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Pma",
+                    "middle": [],
+                    "last": "Zanotto",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Sall",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Bird",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PLoS Negl Trop Dis",
+            "volume": "8",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Large-scale sequencing of human influenza reveals the dynamic nature of viral genome evolution",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Ghedin",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Sengamalay",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Shumway",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zaborsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Feldblyum",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Subbu",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Spiro",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sitz",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Koo",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bolotov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nature",
+            "volume": "437",
+            "issn": "7062",
+            "pages": "1162--1166",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Dengue and dengue hemorrhagic fever",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gubler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Clin Microbiol Rev",
+            "volume": "11",
+            "issn": "3",
+            "pages": "480--496",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "No observed effect of homologous recombination on influenza C virus evolution",
+            "authors": [
+                {
+                    "first": "G-Z",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Boni",
+                    "suffix": ""
+                },
+                {
+                    "first": "S-S",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Virol J",
+            "volume": "7",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Large deviations for the maxima of some random fields",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hogan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Siegmund",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Adv Appl Math",
+            "volume": "7",
+            "issn": "1",
+            "pages": "2--22",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Phylogenetic evidence for recombination in dengue virus",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Worobey",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rambaut",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Mol Biol Evol",
+            "volume": "16",
+            "issn": "3",
+            "pages": "405--409",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Analysing recombination in nucleotide sequences",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Martin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lemey",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Posada",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Mol Ecol Resour",
+            "volume": "11",
+            "issn": "6",
+            "pages": "943--955",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Evaluation of methods for detecting recombination from DNA sequences: computer simulations",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Posada",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Crandall",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Proc Natl Acad Sci",
+            "volume": "98",
+            "issn": "24",
+            "pages": "13757--13762",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "The effect of recombination on the accuracy of phylogeny estimation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Posada",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Crandall",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J Mol Evol",
+            "volume": "54",
+            "issn": "3",
+            "pages": "396--402",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Recombination in evolutionary genomics",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Posada",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Crandall",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Annu Rev Genet",
+            "volume": "36",
+            "issn": "1",
+            "pages": "75--97",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Consequences of recombination on traditional phylogenetic analysis",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Schierup",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hein",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Genetics",
+            "volume": "156",
+            "issn": "2",
+            "pages": "879--891",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Molecular epidemiology of dengue type 2 virus in Venezuela: evidence for in situ virus evolution and recombination",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Uzcategui",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Camacho",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Comach",
+                    "suffix": ""
+                },
+                {
+                    "first": "Cuello",
+                    "middle": [],
+                    "last": "De Uzcategui",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Holmes",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Gould",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "J Gen Virol",
+            "volume": "82",
+            "issn": "12",
+            "pages": "2945--2953",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Genetic diversity and evolution of dengue virus serotype 3: a comparative genomics study",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Waman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kale",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Kulkarni-Kale",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Infect Genet Evol",
+            "volume": "49",
+            "issn": "",
+            "pages": "234--240",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Population genomics of dengue virus serotype 4: insights into genetic structure and evolution",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Waman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kasibhatla",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kale",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Kulkarni-Kale",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Arch Virol",
+            "volume": "161",
+            "issn": "8",
+            "pages": "2133--2148",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "The effects of tertiary and quaternary infections on the epidemiology of dengue",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Wikramaratna",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Simmons",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Recker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "PLoS One",
+            "volume": "5",
+            "issn": "8",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Widespread intra-serotype recombination in natural populations of dengue virus",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Worobey",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rambaut",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Proc Natl Acad Sci",
+            "volume": "96",
+            "issn": "13",
+            "pages": "7352--7357",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Comparative genomic analysis of pre-epidemic and epidemic Zika virus strains for virological factors potentially associated with the rapidly expanding epidemic",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jf-W",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K-M",
+                    "middle": [],
+                    "last": "Tee",
+                    "suffix": ""
+                },
+                {
+                    "first": "Gk-Y",
+                    "middle": [],
+                    "last": "Choi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Sk-P",
+                    "middle": [],
+                    "last": "Lau",
+                    "suffix": ""
+                },
+                {
+                    "first": "Pc-Y",
+                    "middle": [],
+                    "last": "Woo",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Tse",
+                    "suffix": ""
+                },
+                {
+                    "first": "K-Y",
+                    "middle": [],
+                    "last": "Yuen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Emerg Microb Infect",
+            "volume": "5",
+            "issn": "3",
+            "pages": "22--33",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Acknowledgments H.M.L. is supported by Wellcome Trust Grant 089276/B/09/7. O.R. is supported by the Bill and Melinda Gates Foundation through PANGEA-HIV (OPP1084362). M.F.B. was supported by Wellcome Trust Grant 098511/Z/12/Z during the course of this project.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Computation Times for Large Alignments of Viral Genomes. NOTE.-Computations were done on a 2.6-GHz linux laptop with 16-GB RAM. The P value table used was 1,200 \u00c2 1,200 \u00c2 1,200, which has a memory footprint of 2.2 GB. Lam et al. . doi:10.1093/molbev/msx263",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

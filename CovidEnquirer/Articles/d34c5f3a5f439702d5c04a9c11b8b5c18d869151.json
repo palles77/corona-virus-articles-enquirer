@@ -1,0 +1,2833 @@
+{
+    "paper_id": "d34c5f3a5f439702d5c04a9c11b8b5c18d869151",
+    "metadata": {
+        "title": "Temporal event searches based on event maps and relationships \u2729",
+        "authors": [
+            {
+                "first": "Yi",
+                "middle": [],
+                "last": "Cai",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "South China University of Technology",
+                    "location": {
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Haoran",
+                "middle": [],
+                "last": "Xie",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Lingnan University",
+                    "location": {
+                        "settlement": "Hong Kong"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Raymond",
+                "middle": [
+                    "Y K"
+                ],
+                "last": "Lau",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "City University of Hong Kong",
+                    "location": {
+                        "settlement": "Hong Kong"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Qing",
+                "middle": [],
+                "last": "Li",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "The Hong Kong Polytechnic University",
+                    "location": {
+                        "settlement": "Hong Kong"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Tak-Lam",
+                "middle": [],
+                "last": "Wong",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Douglas College",
+                    "location": {
+                        "country": "Canada"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Fu",
+                "middle": [
+                    "Lee"
+                ],
+                "last": "Wang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "The Open University of Hong Kong",
+                    "location": {
+                        "settlement": "Hong Kong"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "To satisfy a user's need to find and understand the whole picture of an event effectively and efficiently, in this paper we formalize the problem of temporal event searches and propose a framework of event relationship analysis for search events based on user queries. We define three kinds of event relationships: temporal, content dependence, and event reference, that can be used to identify to what extent a component event is dependent on another in the evolution of a target event (i.e., the query event). The search results are organized as a temporal event map (TEM) that serves as the whole picture about an event's evolution or development by showing the dependence relationships among events. Based on the event relationships in the TEM, we further propose a method to measure the degrees of importance of events, so as to discover the important component events for a query, as well as the several algebraic operators involved in the TEM, that allow users to view the target event. Experiments conducted on a real data set show that our method outperforms the baseline method Event Evolution Graph (EEG), and it can help discover certain new relationships missed by previous methods and even by human annotators. \u2729 This article is an extension version of a conference proceeding published in Cai et al. (2013) [1], and some notations, definitions, formulations, descriptions, figures, tables and so on are reused to make new contributions smoothly in this article. The new contributions of this article are (1) new methods of event ranking and temporal event map construction; (2) algebraic operations of the event map; (3) more examples, case studies, and metrics in experiments; and (4) more comprehensive literature review and descriptions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Event processing is important in various application fields, such as data processing in web environments, networking, finance and so on. There is a need for developing systems that are capable of handling not only generic data, but also event notifications, coming from different data sources. Such processing is usually known as Complex Event Processing (CEP) [2] . Complex Event Processing requires obtaining structured event data [3] .",
+            "cite_spans": [
+                {
+                    "start": 361,
+                    "end": 364,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 433,
+                    "end": 436,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "With the development of the Internet, news events are reported by many news articles in the form of web pages. People have become more and more used to reading news articles online to learn about current events, including stories about emergencies. Events may consist of several component events, i.e., episodes, and people are often interested in the whole picture related events, because it affects and causes the occurrence of the other component events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Quite often, what interests people is not just a single news article on an event, but also the related events reported by other news articles. Indeed, readers are often interested in the whole picture of an event's evolution or development along a timeline. This calls for modeling the dependence relationships among component events and identifying which component events play important roles in the evolution of the entire event. Unfortunately, most current news web sites do not facilitate users quest to discover relevant news articles, and readers may need to go through multiple news articles in order to understand the interrelationships among component events and the importance of each to the development of the overall event. This is a time consuming job for a reader, given the huge amount of news articles available online. Therefore, it is necessary to provide an effective way for users to efficiently search for events in which they are interested, and to organize their search results in an easily understandable manner syntactically, so that users can obtain an overall picture of events easily and meaningfully from a semantic perspective.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Current search engines (Google, Yahoo and so on) allow users to input event keywords as a query and return a list of news web pages related to the query. Instead of organizing the results by events and relationships among events, these engines provide users with a ranked list of news web pages. It is difficult and time consuming for users to obtain the main picture of an event. In particular, users need to sift through and reorganize the documents returned by the search in order to extract the component events and their possible relationships.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Although some work has been done to find and link incidents in news stories [4, 5] or discover event evolution graphs [6, 7] , this scholarship has only focused on time sequences and content similarity between two component events to identify the dependence relationships. Using two factors alone is inadequate for identifying dependence relationships among component events for the purpose of forming an overall picture of a major event's evolution. For example, the event ''Toyota recall due to safety problems from 2009 to 2010'' shares little similar content with the events ''NHTSA conducts investigations for Toyota recall'' and ''US congressional hearings hold for Toyota recall''. It is obvious that the first event has a strong affect on the latter two events, as it actually caused them to happen. Unfortunately, previous work in this field has not analyzed event relationships and cannot discover the dependence relationships between any two events that do not share enough similar content. As a result, the main picture of a ''big event'' that has been discovered by previous scholarship is often incomplete, and significant relationships are missing. Furthermore, as there is no facility in this work for measuring event importance, it does not identify milestone events that are significant for most users to know.",
+            "cite_spans": [
+                {
+                    "start": 76,
+                    "end": 79,
+                    "text": "[4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 80,
+                    "end": 82,
+                    "text": "5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 118,
+                    "end": 121,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 122,
+                    "end": 124,
+                    "text": "7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper, to satisfy the aforementioned user needs of finding and understanding the entire picture of a complex event, we conduct an in-depth event relationship analysis for event searches and propose a framework to search events based on user queries. The new characteristics of the proposed framework and the contributions of our work are as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 Previous attempts to discover dependence relationships between two events measure the similarity of content by matching keywords (terms) related to the events. However, there may be some keywords (in the two events) that are related/dependent but not identical. For example, ''hospital'' and ''doctor'' are dependent, but previous methods have treated them as having no relationship. To avoid this limitation, we adopt mutual information criteria to measure the dependence between two terms (features), and we then aggregate all mutual information among features in events to measure the degree of content dependence between the events. This process is called content dependence (CD) analysis, and the dependence relationship that is discovered based on the dependence features of two events is called the content dependence relationship.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 Content dependence analysis of events cannot form a complete picture of an event's development. According to studies in Journalism [8] and our own observation, it is not unusual for authors (reporters) to write news articles on an event by referring to other events when they notice a dependent relationship between them. For instance, some news articles about the event ''Toyota recall due to safety problems from 2009 to 2010'' refer to the event ''NHTSA conduct investigations for Toyota recall''. Motivated by this phenomena, we explore event reference (ER) analysis to detect whether there is an inter-event relationship specified by authors. The relationship between two events discovered by ER analysis is considered an event reference (ER) relationship, which has not been explored by previous research.",
+            "cite_spans": [
+                {
+                    "start": 133,
+                    "end": 136,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 In contrast to previous work that has only considered temporal relationships and content similarity, we adopt three kinds of event relationships (temporal relationship, CD relationship obtained by CD analysis and ER relationship obtained by ER analysis) to identify the dependence relationship between two events. Note that CD and ER relationships are essentially event dependence relationships that are discovered using two different approaches. CD relationships and ER relationships can be complementary to each other in identifying event dependence relationships. Some event dependence relationships are detected by content dependence analysis, while others are detected by event reference analysis only.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 The search results are organized by a temporal event map (TEM) that constitutes the overall picture of an event's evolution along the timeline. Fig. 1 shows an example TEM of the event ''Toyota 2009-2010 vehicle recalls''. A TEM provides a way to organize and represent the event search results by showing the interrelationships between/among the events. The value on the edge shows the strength of relevance between two events. It provides an easier and more efficient means for users to understand events comprehensively.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 146,
+                    "end": 152,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 Generally, people are more interested in important component events than in ordinary ones. Based on the event relationships in a TEM, we propose a method to measure the degree of importance of events, and we rank events based on their degrees of importance, thereby discovering the ''milestone'' events for a given query. Several of the algebraic operators of a TEM are devised for users to view the target event from different perspectives.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 To evaluate the performance of our proposed approach, we conduct experiments on a real data set by comparing a number of baseline methods. Experimental results show that our method outperforms baseline methods in discovering event dependence relationships, as well as in ranking events based on event importance. Furthermore, a case study selected from our experiments shows that our method can discover new relationships that cannot be discovered by previous methods and are even missed/ignored by annotators. Finally, we show the use of these operators on a TEM via select examples.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To the best of our knowledge, this is the first piece of work that (1) formalizes and handles the event search problem by analyzing all temporal, content dependence and event reference relationships between events to construct an overall picture of the event's evolution; and (2) measures the importance of events based on the interrelationships of events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The rest of this paper is organized as follows: in Section 2, we formulate the event search problem; Section 3 introduces our proposed (temporal) event search framework; in Section 4, we detail the experiments that we conduct on a real data set to evaluate our proposed event search methods; in Section 5, we further illustrate and evaluate our methods, and we conduct a case study on the 2003 ''SARS'' event; Section 6 defines several algebraic operators of a TEM that allow users to view the target event according to their various requirements; related works are studied in Section 7; and finally, Section 8 concludes the paper and introduces potential future work on this topic.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The event processing network was first introduced in the field of modeling by Luckman [2] . The conceptual model of EPN based on this idea was further elaborated by Sharon and Etzion [9] . Artikis et al. [10] , present an event processing system called EP-IRM for recognizing composite events given multiple sources of information in order to support intelligent resource management. Artikis et al. [11] classify the different types of uncertainty found in event processing applications and discuss their implications on event representation and reasoning. A logic-based event reasoning tool to identify regions of uncertainty within a stream is introduced in [12] . In distributed systems, event derivation is hampered by uncertainty that is attributed to causes such as unreliable data sources or the inability to determine with certainty whether an event has actually occurred, given the available information. Wasserkrug et al. [13] present a solution for handling the problem by introducing a novel generic and formal mechanism and framework for managing event derivation under conditions of uncertainty Cugola and Margara [14] propose a general, unifying model to capture the different aspects of an IFP system and use it to provide a complete and precise classification of systems and mechanisms.",
+            "cite_spans": [
+                {
+                    "start": 86,
+                    "end": 89,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 183,
+                    "end": 186,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 204,
+                    "end": 208,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 399,
+                    "end": 403,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 660,
+                    "end": 664,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 932,
+                    "end": 936,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1128,
+                    "end": 1132,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Complex event recognition and processing"
+        },
+        {
+            "text": "Complex Event Processing requires structured event data. In these works, all events contain the same kind of information In these works, all the events contain the same kind of information [15] . For example, the event type definition element consists of attributes that describe the contents of the event header and payload, and a list of relationships between this event type and other event types. Also, the semantics of the pattern matching operation are determined by the pattern type.",
+            "cite_spans": [
+                {
+                    "start": 189,
+                    "end": 193,
+                    "text": "[15]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Complex event recognition and processing"
+        },
+        {
+            "text": "As the Internet develops, more and more information about various events is produced everyday, especially complex events. In daily life, a tremendous number of events happen every day, e.g., disasters, diseases, military conflicts, business events and so on. These events are reported in the form of news every day, and they are called news events. People are becoming more and more accustomed to reading their news online to keep up with current events. It is important to handle the news events that introduce emerging stories to the world. A composite/complex news event may consist of several component events, i.e., episodes. The news events usually are reported in the form of unstructured text documents. Because major news events are often emergent and complex, defining the pattern of news events is difficult and time consuming. Different from the structured events found in current Complex Event Processing, our proposed work focuses on mining the event relationships based on unstructured text documents, so as to construct the temporal event map that shows the event evolution.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Complex event recognition and processing"
+        },
+        {
+            "text": "To the best of our knowledge, no work before ours has been done on temporal event searches. A related work by Jin et al. [16] focuses on something called TISE, which is a temporal search engine supporting temporal content retrieval for Web pages. TISE supports Web page searches with temporal information embedded in Web pages, and the search relies on a unified temporal ontology of Web pages. However, TISE can neither handle event searches nor discover event relationships or measure event importance. Topic detecting and tracking (TDT) is currently a hot research topic that is also related to our work. Given a stream of constantly generated new documents, TDT groups documents of the same topic together and tracks the topic to find all subsequent documents. There are several techniques for detecting news topics and tracking news articles toward a new topic. For instance, Allan et al. [17] define temporal summaries of news stories and propose methods for constructing temporal summaries. Smith [18] explores detecting and browsing events from unstructured text/s. Chieu et al. [19] present a framework and a system that extracts events according to a query from a set of documents and organize events along a timeline. Some techniques are proposed to detect particular kinds of events. For example, Fisichella et al. [20] propose an approach combining aspects from different feature-based event detection methods to detect public health events in an unsupervised manner. Modeling and discovering relationships among events is generally out of the scope of current TDT research. Mei and Zhai [21, 22] study a particular task of discovering and summarizing the evolutionary patterns of themes in a text stream. A theme in an interval may be part of an event or a combination of several events that occur in the interval. Their work does not however capture the interrelationships of major events. Fung et al. [23] propose an algorithm called Time Driven Documents-partition to construct an event hierarchy in a text corpus based on a user query, but their work catches only the subsumption relationships between events, instead of the dependence relationships that may be more interesting to users. Shahaf et al. [8] try to provide a structured way to connect documents (i.e., find a coherent chain linking various documents) for users to navigate.",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 125,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 894,
+                    "end": 898,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1004,
+                    "end": 1008,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 1087,
+                    "end": 1091,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1327,
+                    "end": 1331,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1601,
+                    "end": 1605,
+                    "text": "[21,",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1606,
+                    "end": 1609,
+                    "text": "22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1917,
+                    "end": 1921,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 2221,
+                    "end": 2224,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "News event relationship analysis"
+        },
+        {
+            "text": "Some other research focuses on discovering stories from documents and representing the content of the stories by graphs. For example, Subasic et al. [24, 25] investigate the problem of discovering stories. Choudhary et al. [26] propose a set of transformations to capture the evolution of an actor and interactions among actors. Ishii et al. [27] classify extracted sentences to define some simple language patterns in Japanese so as to extract causal relations, but their work cannot handle cases that are not defined in their patterns.",
+            "cite_spans": [
+                {
+                    "start": 149,
+                    "end": 153,
+                    "text": "[24,",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 154,
+                    "end": 157,
+                    "text": "25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 223,
+                    "end": 227,
+                    "text": "[26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 342,
+                    "end": 346,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "News event relationship analysis"
+        },
+        {
+            "text": "An event evolution pattern discovery technique is proposed by Yang et al. in [28] . It identifies event episodes together with their temporal relationships. They consider temporal relationships instead of evolution relationships. Although the temporal relationships can help organize event episodes in sequences according to their temporal order, they do not necessarily reflect the evolutionary paths between events. Some extended examples of these methods are presented in [7] and [29] . Yang et al. [6] define the event evolution relationships between events and propose a way to measure these event evolution relationships. In their work, identifying an event evolution relationship between two events depends on the similarity of the features of the two events. Based on a small number of documents and events about a given news topic, Nallapati et al. [30] define the concept of event threading. Their definition of event threading is based on the content similarity relationship from a previous event to a later event. The event threading is organized as a tree structure rather than a graph. In order to identify event threading, they employ a simple similarity measure between documents to cluster documents into events, and they use the average document similarity to estimate the content dependencies between events. Feng and Allan [4] extend Nallapati's work to passage threading by breaking each news story into finer granules, and they propose a model called incident threading in [5] . Table 1 shows the comparison of our methods and previous methods regarding different dependencies.",
+            "cite_spans": [
+                {
+                    "start": 77,
+                    "end": 81,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 475,
+                    "end": 478,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 483,
+                    "end": 487,
+                    "text": "[29]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 502,
+                    "end": 505,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 858,
+                    "end": 862,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1343,
+                    "end": 1346,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1495,
+                    "end": 1498,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1501,
+                    "end": 1508,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "News event relationship analysis"
+        },
+        {
+            "text": "According to [30] and [6] , an event is something that happens at a specific time and place. Real world events often are reported by documents, such as news articles on web pages. More specifically, for an event a, there is a set of documents talking about a, and such a set of documents, denoted as R a = {d a 1 , d a 2 , . . . , d a n }, is named as the related document set of a. An event could be described (reported) by several documents. Although a news document may be related to more than one event (e.g., it may refer to other events), there is a main event that is the focus of the news document that discusses it. A document introducing an event includes the start time, place(s) and content of the event.",
+            "cite_spans": [
+                {
+                    "start": 13,
+                    "end": 17,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 22,
+                    "end": 25,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "Thus, for each document d a",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "x , there should be a timestamp \u03c4 d a",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "x , a set of place names q d a x = {t x,1 , . . . , t x,n } and a set of terms",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": ". . , f x,n } about the event's content. In the following we define an event formally.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "An event a is a tuple (L a , P a , F a ) where L a is the life cycle of a, P a is the set of places where a happens, and F a is the set of features (keywords) describing a.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1."
+        },
+        {
+            "text": "The life cycle L a of event a is the period (time interval) from the beginning time St a to the end time Et a of a, i.e.,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1."
+        },
+        {
+            "text": "where St a is where S ta is the earliest timestamp among all the timestamps of all documents related to a, and Et a is the latest timestamp among all documents related to a. The place set P a of an event a is a set of terms denoted by P a where P a = {t a,1 , t a,2 , . . . , t a,m } and each t a,x is a term that represents a place. . . , a n } where 1 \u2264 n, a x is a component event of a and R a = R a 1 \u222a R a 2 \u222a \u00b7 \u00b7 \u00b7 \u222a R an . ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1."
+        },
+        {
+            "text": "We observe that there is a temporal requirement for two events to have a dependence relationship between them, as follows.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "For an event a and its component events, it is obvious that"
+        },
+        {
+            "text": "If there is a dependence relationship from event a to event b; i.e., a is dependent on b, then there is a temporal relationship between a and b such that St b <= St a , i.e., b happens earlier than or at the same time as a.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observation 1."
+        },
+        {
+            "text": "graph, denoted by TEM = (N, E, W d , W i ), which consists of events as nodes, relations as edges, weights on the nodes as event important degrees, and weights on the edges as strength degrees of dependence relationships. In particular, each vertex v \u2208 N is an event, each edge e x \u2208 E is a dependence relationship between two events, w y \u2208 W d is a weight which indicates the strength degree of a dependence relationship, and w a \u2208 W i is a weight which indicates the importance degree of event a.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 5. A Temporal Event Map is a weighted directed"
+        },
+        {
+            "text": "An example of a temporal event map of the event ''Toyota 2009-2010 vehicle recalls'' is shown in Fig. 1 . 1 We formulate the problem of a temporal event search as follows. The input of the search problem is a tuple (I t , I p , I f ) where I t is a time interval, I p is a set of terms denoting places, and I f is a set of keywords about an event's content. The event that is relevant to (corresponding to) the input is named as the target event; i.e., the event happens in places I p during I t , and the feature set of the target event contains I f . A user gives a query to search an event, which is his/her target. We also name the ''target event'' as the ''query event''. The output of the event search problem is a TEM constituting all the component events of the target event.",
+            "cite_spans": [
+                {
+                    "start": 106,
+                    "end": 107,
+                    "text": "1",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 97,
+                    "end": 103,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Definition 5. A Temporal Event Map is a weighted directed"
+        },
+        {
+            "text": "The problem of a temporal event search can thus be regarded as a function \u03c6:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 5. A Temporal Event Map is a weighted directed"
+        },
+        {
+            "text": "where I is the set of inputs, D is the set of documents and T \u2032 is the set of temporal event maps. For the example of Fig. 1 , we may have the following query input:",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 118,
+                    "end": 124,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Definition 5. A Temporal Event Map is a weighted directed"
+        },
+        {
+            "text": "and the TEM output of such a search task is the one shown in Fig. 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 61,
+                    "end": 67,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Definition 5. A Temporal Event Map is a weighted directed"
+        },
+        {
+            "text": "To support a temporal event search, we propose a framework of event relationship analysis in this section. In our method, we first identify a set of related documents for the target event and extract component events from the related documents. We conduct content dependence (CD) and event reference (ER) relationship analysis to identify any dependence between the two events. 2 Also, we propose a ranking mechanism based on interevent relationships to rank the events. The process of a Temporal Event Map construction is shown as in Fig. 2 .",
+            "cite_spans": [
+                {
+                    "start": 378,
+                    "end": 379,
+                    "text": "2",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 535,
+                    "end": 541,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Event relationship analysis"
+        },
+        {
+            "text": "For example, suppose that the input are I t = [1/11/2009, 23/2/2010], I p = (USA), and I f = (Toyota, recall). A set of news articles related to Toyota recall in the period from 1 November 2009 to 23 February 2010 at the USA will be identified. Latent Dirichlet Allocation (LDA) is then applied to these news articles and some events like ''Toyota sale decrease'', ''NHTSA conducts investigation'' will be found. After the analysis of CD, ER and temporal relationships of these events, a temporal event map will be constructed as shown in Fig. 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 539,
+                    "end": 545,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Event relationship analysis"
+        },
+        {
+            "text": "A user query can be considered as search requirements corresponding to a target event that satisfies all the needs of the user. The related document set of the target event can be obtained by function \u03b8:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "where I is the set of inputs, D is the set of documents and R is the set of related document sets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "In general, we consider (I t , I p , I f ) as three kinds of user search requirements (though not all are compulsory). In some cases, 1 We use the size of a node to indicate the event importance (i.e., the bigger of a node, the more important) and the width of a line to indicate the strength of a dependence relationship. 2 In the rest of the paper, we use the term ''event'' to denote ''component event'' for convenience wherever there is no ambiguity.",
+            "cite_spans": [
+                {
+                    "start": 134,
+                    "end": 135,
+                    "text": "1",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 323,
+                    "end": 324,
+                    "text": "2",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "users may only input one or two of the (I t , I p , I f ), which means we only need to take the subset of (I t , I p , I f ) into consideration.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "For each target event a corresponding to an input I and its related document set R a , we can detect several component events from R a . All component events of a should happen during I t , and their locations are contained in I p and features contained in I f . The component event detection of a target event is a function \u03d5:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "where R is the set of related documents and E is the set of the component events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "For the related problem of event detection, some research has been published, such as [17, 18, 31] . In this paper, we adopt the topic-model based method [31] as the preferred method to detect events.",
+            "cite_spans": [
+                {
+                    "start": 86,
+                    "end": 90,
+                    "text": "[17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 91,
+                    "end": 94,
+                    "text": "18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 95,
+                    "end": 98,
+                    "text": "31]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 154,
+                    "end": 158,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Preliminaries"
+        },
+        {
+            "text": "In analyzing content dependence (CD) relationships for a temporal event search, we notice that the features of event a may have various degrees of importance in representing a. Some features are more salient than others for the event. An event can be represented by a feature vector, denoted by \u2212 \u2192 F a , which is a set of feature:value pairs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Content dependence analysis"
+        },
+        {
+            "text": "where tf a,i is the frequency of term i in R a , N is the total number of component events, MAX u (tf a,u ) is the maximal value among all tf a,u and ef i is the number of component events containing term f a,i . As mentioned before, previous works use content similarity (mostly cosine similarity) to identify dependence relationships between events. However, two events may have some keywords that are dependent but not identical, which causes the previous work done in this field to be inadequate in measuring how relevant the two events are. There are several semantic techniques that are relevant to the analysis of content semantic relations, such as ontologies. However, to use ontologies for semantic analysis, we need to obtain high quality ontologies relevant to the event domain. One major way to build up high quality ontologies depends on domain experts efforts, and it is a time consuming job. Thus, there are not many high quality ontologies for various domains, and events are related to various domains. Although there are some automated ways to build up ontologies, their computation cost is relatively high, and the quality of the ontologies may not be good enough for event content dependence analysis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "According to [32] , variables (i.e., keywords) that are not statistically independent suggest the existence of some functional relationship among them, and mutual information provides a general measure of dependencies among variables. Thus, we adopt mutual information to measure the dependence among features, and we further use an aggregation of all mutual information between the feature sets of two events to measure the content dependence degree between them.",
+            "cite_spans": [
+                {
+                    "start": 13,
+                    "end": 17,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "Formally, for two events a and b, the content dependence degree, denoted by Cd(a, b) , is an aggregation of all mutual information among all features in \u2212 \u2192 F a and in \u2212 \u2192 F b , as follows: ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 76,
+                    "end": 84,
+                    "text": "Cd(a, b)",
+                    "ref_id": null
+                }
+            ],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "and",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "is the dependence degree between features f x and f y , measured as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "where where each entry is a content dependence degree between two component events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "Note that the content dependence measurement between events is different from the content similarity measurement accomplished in previous research. The former explores the interrelationships of events from the perspective of keyword cooccurrences to measure the dependence and relevance of two events, whereas content similarity measurement only considers the keyword match between two events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u2212 \u2192"
+        },
+        {
+            "text": "Although content dependence measurement can address the limitations of content similarity measurement, it can still miss some dependence relationships between events. In particular, the existence of a dependence relationship between two events does not necessarily mean that there exists a content dependence relationship between them. In many cases, although the contents of two events are very different and may even have different topics, people may still consider that there is a dependence relationship between them. For instance, ''Experts find disease and SARS outbreaks'' (event a) has an impact on ''SARS has great impact on economy'' (event b) and ''SARS has a great impact on Tourism'' (event c). The latter two events are dependent on the first one, even though their content dependence degree (i.e. , CD(a, b) or CD(a, c)) is very small. While content dependence analysis depends on measuring the semantic relevance of features between two events, event reference analysis depends on whether an event contains some representative features of another event.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 812,
+                    "end": 822,
+                    "text": ", CD(a, b)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Event reference analysis"
+        },
+        {
+            "text": "According to studies of journalism [33] , when authors of news articles about an event a find a dependence relationship between a and b (e.g., b triggers the occurrence of a, or a is evolved from b and so on), their articles may actually refer to event b. This is in line with our observation of our data set. For instance, some news articles about the event ''Toyota recall due to safety problems from 2009 to 2010'' refer to the event ''NHTSA conduct investigations for Toyota recall''. Such an explicit reference relationship made by authors in their news articles reflects their viewpoints and consideration of the inter-event relationships [33] . Therefore, we may regard such event reference (ER) relationships as more meaningful and reliable than content dependence relationships, and ER relationship analysis provides a way to discover those event dependence relationships missed by CD analysis, so as to obtain a more complete temporal event map (TEM).",
+            "cite_spans": [
+                {
+                    "start": 35,
+                    "end": 39,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 645,
+                    "end": 649,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Event reference analysis"
+        },
+        {
+            "text": "We can also observe that when a news article of an event c refers to another event a, there are usually some phrases that identify event a in the documents of event c, and we call such phrases core features of a. The definition of a core feature set of an event is defined below. Definition 6. The core feature set of an event a, denoted by F c a is a set of features which are salient (i.e., the features appear in the related documents of a with a high frequency) in the event, distinguishable from those of other events, and jointly can identify the event.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event reference analysis"
+        },
+        {
+            "text": "For two events a and b, if there exists a related document to b, denoted as d b ., a happens earlier than b) , then we say there is a reference relationship from b to a; i.e., a is a reference of b or b refers to a. Such a reference relationship is a fuzzy relationship, and the more core features of a mentioned in b, the greater the strength degree of the relationship. For two events a and b, if a refers to b and b refers to a also, then we say there is a symmetric reference relation between a and b. The strength degree of a reference relationship from b to a is determined by a function Cr(a, b) which is to be defined below. For event b referring to event a, it should follow the temporal restriction of Observation 1. For two events a and b, in order for us to find out whether b refers to a, we need to discover the core feature set of a first and then check whether the core features of a exist in the related documents of b.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 80,
+                    "end": 108,
+                    "text": "., a happens earlier than b)",
+                    "ref_id": null
+                },
+                {
+                    "start": 594,
+                    "end": 602,
+                    "text": "Cr(a, b)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Event reference analysis"
+        },
+        {
+            "text": "According to our observation, the core feature set of an event has the following properties.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event reference analysis"
+        },
+        {
+            "text": "Property 2. The core features of an event a are distinguishable from those of other events; i.e., the core features should facilitate us in identifying event a from all other events easily.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "Based on the above properties, we propose the following function to select core features of an event a:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "where p(f i |a) is the probability of feature f i to exist in the related documents of event a, and p(a|f i ) is the probability of a document (in which f i is a feature) being about event a. A higher value of p(f i |a) means that feature f i is more frequently appearing (i.e., is more likely to appear) in the related documents of event a, and thus we consider that feature f i is more salient for event a. p(f i |a)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "is considered as a measurement to measure the salience of a feature for an event. Thus, we consider it can reflect Property 1. A higher value of p(a|f i ) means relates to a feature f i , and there is a high probability to identify that f i is related to event a. p(f i |a)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "is considered as a measurement to measure how helpful feature f i is for identifying a document being related to event a than other events. Thus, we consider that p(f i |a) can reflect Property 2. For two events a and b, the more related documents of b refer to more core features of a, the stronger the reference relation from b to a. We propose a function to measure the strength degree of a reference relation from a to b as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "where N b is the number of related documents of b, M a b,i is the number of core features of a existing in the document d b i , and |F c a | is the cardinality of F c a . Note that there is a restriction for M a b,i in Cr (a,b) where M a b,i > 1, highlighting that a reference relationship from b to a should refer to more than one core feature of a.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 219,
+                    "end": 227,
+                    "text": "Cr (a,b)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "For the reason that the values of Cr(a, b) and Cr(b, a) may be greater than zero, a could refer to b and also b could refer to a, and the strength degree of the reference relationship from a to b could be different from the inverse (i.e., from b to a). An event can be referred by many other events. Also, one event can refer to many other events.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 34,
+                    "end": 42,
+                    "text": "Cr(a, b)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "By measuring all component event reference degrees between any two events, we can obtain an component event reference matrix of a target event a, denoted by M r a , as follows: Cr(1, 1) , Cr(1, 2) , . . . , Cr(1, m) \u00b7 \u00b7 \u00b7 Cr(n, 1), Cr(n, 2), . . . , Cr(n, m) } Each entry in the matrix is a reference degree between two events.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 177,
+                    "end": 185,
+                    "text": "Cr(1, 1)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 188,
+                    "end": 196,
+                    "text": "Cr(1, 2)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "To the best of our knowledge, there is no previous exploration of analyzing the event reference (ER) relationships for event searches in existing works. In contrast to comparing the contents between events, ER relationship analysis aims to discover and leverage human viewpoints and thoughts on inter-event relationships to support the identification of event dependence relationships.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Property 1. The core features of an event a are the most salient and representative features of a; i.e., these features appear in the related documents of a with a high frequency."
+        },
+        {
+            "text": "For all the component events of a target event, some component events are more important than others, including the seminal component event and ending component event, which are interesting and important for most people. Thus, in our method, we consider the seminal component event and ending component event as ''definitely important'' and give the highest ranking score to them. For the other component events (excluding seminal and ending events), intuitively, an event that is more important means that it has more significant impact on other events. Such an effect in the TEM can be reflected by a relationship between events. If more events refer to or depend on an event a, then a should be more important.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "For our purposes of analyzing content dependence (CD) and event reference (ER) relationships, we measure event importance according to these two perspectives. From the content dependence perspective, inspired by the page rank ranking method [34] , we define a content-based event ranking function CRank to measure the importance of all the component events (excluding the seminal component and ending component events), with an aim to find out the important component events. In particular, CRank is a function given below:",
+            "cite_spans": [
+                {
+                    "start": 241,
+                    "end": 245,
+                    "text": "[34]",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "where B a is the set of all events linked from event a by content dependence relationships, and L(v) is the number of links that point to event v. CRank(v) is a ''vote'' value which is set as 1 in our experiment to indicate that there is a link (CD relationship) between events a and v.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "Because the strength of the CD relationship between events is different, i.e., the dependence degrees are different, we take the dependence degrees into consideration and propose a weighed content-based Event Rank Function as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "where Cd(a, v) is the content dependence degree (cf. Eq. (2)) between events a and v.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "Similarly, from the event reference perspective, we propose a weighted reference-based event ranking function RRank \u2032 to measure the importance of the component events:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "where Cr(a, v) is the reference degree (cf. Eq. (5)) between events a and v. Similar to CRank(v), RRank(v) is regarded as a ''vote'' value which is set as 1 in our experiment to indicate that there is a link (ER relationship) between events a and v.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "To measure the event importance synthetically, we combine CRank \u2032 (a) and RRank \u2032 (a) using an aggregation function Rank(a), as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "The higher value Rank(a) has, the more important event a is. Example 3. For example, the event ''Toyota recall due to safety problems'' denoted by a is an important event. It is clear that there are four other events dependent on it. In other words, we first calculate the content-based Event Rank Function CRank \u2032 (a) and calculate the reference-based Event Rank Function RRank \u2032 (a). Because event a has a high CRank \u2032 (a) value and also a high RRank \u2032 (a) value, according to Eq. (9), we can obtain a high Rank(a) value for a.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Event ranking"
+        },
+        {
+            "text": "The construction of TEM is not only to capture the dependence relationships between events, but also to show the importance of different events so as to help users discover the ''milestone'' events. Based on the content dependence matrix and event reference matrix of all the component events, we can obtain the CD degree and ER degree between any two component events. More specifically, to measure the dependence degree between two events a and b, we can aggregate the content dependence degree and event reference degree by the following equation:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Temporal event map construction"
+        },
+        {
+            "text": "Some dependence relationships obtained by Eq. (10) may be too weak, and we should eliminate them when constructing the TEM, so as to provide users with the main picture clearly instead of presenting a complex one. We thus set parameter \u03b1 for pruning the relationships correspondingly.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Temporal event map construction"
+        },
+        {
+            "text": "(1) Order events based on their start time; (2) construct dependence relationships for which the relevance degree \u03b7(x, y) is greater than \u03b1; (3) calculate the degree of importance of events (hence their ranks) according to Eq. (9) and attach them to the corresponding events. As a summary, we adopt content dependence (CD) analysis and event reference (ER) analysis to identify event dependence relationships. In cases when users are only interested in the ER relationships between events, we can do a projection of the TEM and obtain an event reference TEM, which is a sub-graph of the entire TEM. Similarly, if users are only interested in the CD relationships between events, we also can do a projection of the TEM and obtain a content dependence TEM. In Section 6, we introduce several algebraic operations to facilitate such a multi-perspective.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Temporal event map construction"
+        },
+        {
+            "text": "In this section, we conduct experiments on a real data set to evaluate our approach by comparing it with a number of baseline methods.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation"
+        },
+        {
+            "text": "To evaluate our method for a temporal event search, we have collected 5063 English news articles (i.e., web page documents of news) from such mainstream news websites as CNN News and BBC News. We select ten queries about major events to test our method, such as ''Toyota 2009-2010 vehicle recalls',' ''2010 Copiap mining accident'', ''SARS in 2003'' and so on. Among these, the event ''SARS in 2003'' contains the highest number of related news articles (i.e., 231 articles), and the event ''Christchurch Earthquake in 2010 in New Zealand'' contains the fewest number of related news articles (i.e., 39 articles). As mentioned before, event detection is not the major topic of this paper, so to extract events from the news documents based on user queries, we adopt the topic-based method [31] . According to our observation of the data set, when an event a refers to another event b, the number of referred core features of b is often around five. 3 Thus, we select top-5 core features to measure event reference relationships in our experiment.",
+            "cite_spans": [
+                {
+                    "start": 789,
+                    "end": 793,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 949,
+                    "end": 950,
+                    "text": "3",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experiment setting"
+        },
+        {
+            "text": "To compare our method with others, we adopt one baseline and two variational methods. The baseline is the state-of-theart method of discovering an Event Evolution Graph proposed by Yang [6] , and we denote it as EEG. The first variational method, denoted as Content Dependence Map (CDM), only considers the content dependence relationship and does not use event reference analysis to judge event dependence relationships. Different from CDM, the second variational method, denoted as Event Reference Map (ERM), considers the event reference relationship only instead of using content dependence analysis to judge event dependence relationships. For CDM and ERM, both are special cases of our proposed TEM. Each of them can be considered as a part of TEM, and TEM is a combination of CDM and ERM.",
+            "cite_spans": [
+                {
+                    "start": 186,
+                    "end": 189,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experiment setting"
+        },
+        {
+            "text": "We also invite five human subjects to annotate the dependence relationships between events. All the annotated relationships are combined synthetically to obtain a set of relationships; i.e., the combination of all the annotated relationships. Such a set of relationships as given by the annotators is considered as a standard answer set (ground truth) of event dependence relationships. Because different people may have different viewpoints of the event relationships due to their varying levels of knowledge and background, each annotator came up with a different set of dependence relationships. Therefore, the standard answer set is an aggregation (the intersection) of the annotations given by all the annotators. Furthermore, annotators may have difficult time with complex event evolution involving many relationships when there is a large number of component events and many dependence relationships among them. Thus, some dependence relationships were missed during the annotation processes. Thus, in our experiment, we also allowed annotators to judge whether our method may help discover any ''new'' dependence relationships between events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment setting"
+        },
+        {
+            "text": "For the evaluation, we use Precision, Recall and F \u2212 measure as the metrics [35] . We denote the set of event dependent relationships (i.e., edges in a TEM) annotated by annotators as R A , and the set of event dependence relationships discovered by the model as R M . The metrics used are given below: ",
+            "cite_spans": [
+                {
+                    "start": 76,
+                    "end": 80,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experiment setting"
+        },
+        {
+            "text": "To evaluate event rankings based on their importance, we adopt the metric of normalized discounted cumulative gain (i.e., NDCG [36] ) on all component events, which is defined as follows: (14) and",
+            "cite_spans": [
+                {
+                    "start": 127,
+                    "end": 131,
+                    "text": "[36]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 188,
+                    "end": 192,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experiment setting"
+        },
+        {
+            "text": "where rel i is the graded relevance of the ranking result at position i, and we give value x to position x (e.g., rel 2 = 2, rel 3 = 3 and so forth). Note that iDCG is the ideal DCG that is used to normalize the result [36] . The higher the value of NDCG, the better the ranking result.",
+            "cite_spans": [
+                {
+                    "start": 219,
+                    "end": 223,
+                    "text": "[36]",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experiment setting"
+        },
+        {
+            "text": "In TEM construction, there is a parameter \u03b1 which is used to prune the ''weak'' event dependency relationships. First, we test different values of \u03b1 to evaluate the effect of \u03b1 on Precision,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "Recall and F-measure in order to come up with the best value of \u03b1 for the following experiment. In our testing, we use two query events: one is ''SARS in 2003'', which contains the largest number of related news articles and the other is ''Christchurch Earthquake in 2010 in New Zealand'', which contains the fewest number of related news articles. Fig. 3 shows the effect of \u03b1 on Precision, Recall and F-measure. According to Fig. 3 , we find that as \u03b1 increases, the Precision and F-measure increase while Recall decreases. The reason for this is that when the value \u03b1 is small, there are many event dependence relationships with a dependence degree higher than \u03b1 (but the dependence relationship is still actually ''weak''), so the Recall is high and the Precision is low. We tune the parameter \u03b1 based on two queries which are not in the test queries. For these two queries, we obtain the highest value of F-measure when \u03b1 = 0.65. Therefore, we set \u03b1 = 0.65 for all test queries.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 349,
+                    "end": 355,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 427,
+                    "end": 433,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Experiment results"
+        },
+        {
+            "text": "After setting the value of \u03b1, we conduct all test queries and average the results of them on different metrics. The best value of \u03b1 for each method is also identified. Fig. 4 and Table 2 show the comparison of our method with one baseline method (i.e., EEG) and two variations (i.e., ERM and CDM) on Precision, Recall and F \u2212 measure. According to Fig. 4 , it is clear that our method outperforms other three methods on Precision, Recall and F \u2212measure.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 168,
+                    "end": 174,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 179,
+                    "end": 186,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 348,
+                    "end": 354,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Experiment results"
+        },
+        {
+            "text": "The Precision and Recall values of our method are approximately 0.8, meaning that most event dependence relationships discovered by our method are correct, and also that our method can discover more event dependence relationships than other three methods. Our method's F \u2212 measure score is also approximately 0.8, since it is a combination of Precision and Recall. Note that CDM outperforms EEG slightly on all metrics, and the reason is that using mutual information to measure feature dependence is better than only matching keyword similarity (as was done in most previous research). ERM outperforms EEG and CDM on all three metrics. This indicates that using event reference analysis (i.e., ERM) to identify event dependence relationships is more effective than using content dependence relationship analysis (i.e., CDM) and content similarity analysis (i.e., EEG). Also, it is quite interesting to see that the Recall of CDM is greater than that of ERM, while both of them are smaller than those of our method. This means that the event dependence relationships identified by CDM and ERM are indeed different and complementary. Our method is a combination of CDM and ERM, and it has the strength of both methods. In other words, taking both content dependence and event reference analysis into consideration in identifying event dependence relationships produces better results than taking just one of these. For event ranking, Table 3 shows that our method obtains a higher value of NDCG than the ERM and CDM methods. In particular, the NDCG of our method is 0.9662 while that of ERM and CDM is 0.8923 and 0.8687, respectively. This means that combining both content dependence relationships and event reference relationships to rank events can also achieve a better result. SARS has a great impact on transportation, especially airlines 5",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1433,
+                    "end": 1440,
+                    "text": "Table 3",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Experiment results"
+        },
+        {
+            "text": "Experts find disease and SARS outbreaks 6 SARS has great impact on economy 7",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "Other countries donate and offer help to China for SARS 8",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "Scientists find coronavirus and conduct animal test for vaccine 9",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "China informs and cooperates with WHO on fighting SARS 10",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "China makes effort to prevent disease spread 11",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "Beijing has SARS under control 12",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiment results"
+        },
+        {
+            "text": "Probable cases are quarantined and schools are closed for disinfecting Table 5 Comparison of event relationships discovered by our method and EEG for the query Q SARS , Correct is the number of correctly identified relationships by comparing to human annotated results, Incorrect is the number of incorrectly identified relationships by comparing to human annotated results, New is the number of identified relationships which are not in human annotated results and confirmed as correct by human annotators, Missed is the number of missing relationships by comparing to human annotated results, and Total is the number of identified relationships by this method (i.e., Total = Correct + Incorrect + New) [1] . ",
+            "cite_spans": [
+                {
+                    "start": 704,
+                    "end": 707,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 71,
+                    "end": 78,
+                    "text": "Table 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Experiment results"
+        },
+        {
+            "text": "To illustrate the performance of our proposed method more clearly, in this section, we further analyze a specific search case on the event ''SARS in 2003''. We choose this event for our case study because it contains the highest number of related news documents (i.e., 231 news articles) in our data set. The test query is I p = (China), I t = [1/3/2003, 30/6/2003 ], I f = (SARS), and we compare the search results of our method with those of the EEG and human annotators result. 4 For convenience, we denote the query as Q SARS and discuss this query in detail. Table 4 shows all the component events that are related to Q S ARS. Fig. 5 is the Event Evolution Graph obtained by EEG. Note that in this graph, there is no strength degree for any of the relationships. Fig. 6 is the relationship graph given by the human annotators for Q S ARS.",
+            "cite_spans": [
+                {
+                    "start": 344,
+                    "end": 364,
+                    "text": "[1/3/2003, 30/6/2003",
+                    "ref_id": null
+                },
+                {
+                    "start": 481,
+                    "end": 482,
+                    "text": "4",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 564,
+                    "end": 571,
+                    "text": "Table 4",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 632,
+                    "end": 638,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF9"
+                },
+                {
+                    "start": 768,
+                    "end": 774,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Case study"
+        },
+        {
+            "text": "Comparing EEG Result and Annotated Result. By comparing Figs. 5 and 6, we find that the EEG method missed 17 significant relationships (out of 29 total) between events. Indeed, more than 4 We do not compare the results of CDM and ERM per se since our method is essentially a combination of CDM and ERM.",
+            "cite_spans": [
+                {
+                    "start": 187,
+                    "end": 188,
+                    "text": "4",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case study"
+        },
+        {
+            "text": "57% of the event relationships are missing in Fig. 5 . In particular, events 1, 4, 5 and 10 do not have any relationships with other events. This is because EEG discovers the event relationships based only on the content similarity of the event documents; consequently, only a portion of the dependence relationships were found. For instance, the documents of events 1 and 4 have few keywords about SARS but more about tourism and transportation, so EEG cannot find the relationships between them.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 46,
+                    "end": 52,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Case study"
+        },
+        {
+            "text": "There are also some ''incorrect'' inter-event relationships discovered by EEG. For example, in Fig. 5 , there are relationships from event 6 to event 7 and event 9 to event 6. No annotators however considered that such relationships exist. The event ''other countries donate and offer help to China'' (event 6) is considered to be independent of the event ''SARS has impact on China's economy'' (event 7). The event ''China informs and cooperates with WHO on fighting SARS'' (event 9) is deemed unrelated to the impact of SARS on China's economy (i.e., event 6).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 95,
+                    "end": 101,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Case study"
+        },
+        {
+            "text": "Comparing Our Result and Annotated Result. The search results of our method as a temporal event map (TEM) are shown in Fig. 7. In Fig. 7 , the size of each node represents the importance of an event, and width of each line represents the strength degree of a dependence relationship between events. According to the result, our method misses only 7 relationships, while the EEG method misses 17 relationships. Table 5 shows the statistics of the event relationships discovered by our method and EEG, vis-a-vis the results of the human annotators for this case. As shown, our method finds more, and miss less, correct inter-event relationships. In addition, our method discovers not only the inter-event relationships but also the strength degrees of such relationships. Comparing the relationships missed by our method and EEG, we find that most missing relationships (6 out of 7) are also missing in EEG, and these relationships are: from event 5 to event 1, from event 5 to event 12, from event 2 to event 12, from event 4 to event 6, from event 6 to event 1, and from event 10 to event 8. Only one relationship missed by our method was found by EEG, which is from event 8 to event 11. In contrast, most relationships missed by EEG were discovered by our method. For instance, EEG did not find any relationships for events 1, 4, 5 and 10, while our method found their dependence relationships with other events. We find that most of the relationships missed by EEG were discovered by our method due to event reference analysis rather than content dependence analysis. This means that content dependence analysis and event reference analysis should work together in identifying event dependence relationships. More interestingly, our method found some new relationships that were not found by EEG or by the human annotators. Such new relationships are confirmed and approved later by the annotators as meaningful ones (e.g., the relationship from event 5 to event 2 and the relationship from event 3 to event 2). For the relationship between events 5 and 2, note that event 5 is about the outbreak of SARS and infections that can cause more new SARS cases to appear and make the disease more serious. For the relationship between events 3 and 2, note that event 2 is about the number of SARS cases reported by hospitals, and when SARS cases increased and the disease spread, more and more patients contracted the disease and called for hospital care. According to the annotators, the main reason they missed these relationships was that there were just too many relationships among the events in the data set, which inevitably caused them to miss some during their annotation processes.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 119,
+                    "end": 136,
+                    "text": "Fig. 7. In Fig. 7",
+                    "ref_id": null
+                },
+                {
+                    "start": 410,
+                    "end": 417,
+                    "text": "Table 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Case study"
+        },
+        {
+            "text": "On the other hand, our method did discover some incorrect relationships. For example, there is a relationship from event 2 to event 11 in the TEM of our method. However, the annotators consider that the component event ''SARS cases are reported and updated regularly to reflect the disease seriousness'' (i.e., event 2) has no direct or clearly meaningful causal relationship with the event ''Beijing has SARS under control'' (i.e., event 11). Another incorrect relationship discovered by our method is the one from event 5 to event 8. The incorrect relationships discovered by our method are different that those that resulted from the EEG method. Our incorrect relationships are from event 2 to 11 and from event 5 to event 8, while the incorrect relationships of EEG are from event 6 to event 7 and from event 9 to event 6.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case study"
+        },
+        {
+            "text": "Comparison on Ranking Component Events. Our method provides a mechanism to rank events based on their inter-event relationships. To evaluate the ranking mechanism, we also ask annotators to rank the component events for the query Q SARS according to their importance. Table 6 shows the rankings of the component events obtained by our method and those given by annotators. The two sets of event rankings are similar. 5 For events 2, 9 and 10, our method regards these as important because they have many relationships with (much effect on) others, while events 1, 4, 6, 7 and 12 are not so important because they have fewer relationships with (less effect on) others. This shows that ranking events by event relationships is a reasonable and effective approach. Such an event ranking facility can help users find the ''milestone'' component events easily. Exceptions, such as event 8 and event 7, have lower ranks because our method also missed 7 relationships (such as the one from event 8 to event 11 and so on.) This further confirms the necessity and importance to find out 5 The seminal event 5 and ending event 11 are ranked with the highest score in our method for all target events, and this is also in line with the human annotators. more dependence relationships in order to facilitate better event search and ranking. Event 8 is an example of an exception, and as mentioned earlier, our method misses 7 relationships, including the one from event 8 to event 11 and the one from event 10 to event 8. If we take these missed relationships into account, the ranking of event 8 will rise. Another exception is that our method views event 7 as less important than event 4. We believe that these errors in the orders of importance are due to the missing relationships.",
+            "cite_spans": [
+                {
+                    "start": 417,
+                    "end": 418,
+                    "text": "5",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1078,
+                    "end": 1079,
+                    "text": "5",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 268,
+                    "end": 275,
+                    "text": "Table 6",
+                    "ref_id": "TABREF5"
+                }
+            ],
+            "section": "Case study"
+        },
+        {
+            "text": "A TEM provides a comprehensive view of useful inter-event, relationships and event information. Sometimes, however, users may only be interested in, or focus on, certain types of relationships and event information. To enable users to perceive event evolution from multiple-perspectives, we provide some algebraic operations that the TEM must satisfy. In this section, we present a number of algebraic operations based on the temporal event map (TEM), including the following:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Algebraic operations"
+        },
+        {
+            "text": "\u2022 Projection based on content dependence relation, denoted by \u03c0 c \u2022 Projection based on reference relation, denoted by \u03c0 r \u2022 Projection of a time period, denoted by \u03c0 t \u2022 Projection of locations, denoted by \u03c0 p Specifically, we illustrate how to use these operations on the TEM of ''2011 Japan Earthquake'' which are shown in Fig. 8 , and the competent events are listed in Table 7 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 326,
+                    "end": 332,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF11"
+                },
+                {
+                    "start": 374,
+                    "end": 381,
+                    "text": "Table 7",
+                    "ref_id": "TABREF6"
+                }
+            ],
+            "section": "Algebraic operations"
+        },
+        {
+            "text": "If users are only interested in the content dependency relationships between events, we can conduct a \u03c0 c projection of a TEM and obtain a content dependent TEM as shown in Fig. 9 . Such a sub-graph only shows the CD relationships between events. Notationally, we denote the projection based on the CD relationship for a TEM i as \u03c0 c (TEM i ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 173,
+                    "end": 179,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF12"
+                }
+            ],
+            "section": "Projection based on content dependency relation"
+        },
+        {
+            "text": "If users are only interested in the event reference relationships between events, we can conduct a \u03c0 r projection on of a TEM and obtain a reference TEM as shown in Fig. 10 , which is a sub-graph of the whole TEM. Such a sub-graph only shows the event reference relationships between events. Notationally, we represent the projection based on reference dependency relationship for TEM i as \u03c0 r (TEM i ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 165,
+                    "end": 172,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Projection based on reference relation"
+        },
+        {
+            "text": "Sometimes, users may be interested in component events that happened in certain places. For example, some users in Japan may only be interested in component events that happened in Japan. We can do a projection of a TEM according to the location of events and obtain a sub-graph of the TEM as shown in Fig. 11 . Such a sub-graph only shows the component events that happened in user-specified places. We denote the projection based on happening places, e.g. Japan, for TEM i as \u03c0 p=\"Japan\" (TEM i ). Earthquake triggered powerful tsunami waves that reached to 40.5 meters 3",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 302,
+                    "end": 309,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "Huge amount of damage caused by the earthquake and tsunami reported 4",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "The earthquake and tsunami caused a number of nuclear accidents 5",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "Japan gets help from many other countries 6",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "Many countries limited the import of products from Japan 7",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "There are negative reports and rumors in different countries 8",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "Panic buying happened in many countries 9",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "Economy in Japan fell ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Projection on happening places"
+        },
+        {
+            "text": "Of course, users may also be interested only in component events that happened during a particular time period. For example, some users may only be interested in component events that happened within the past three months. We can do a projection of a TEM by a particular time period to obtain a sub-graph like the one shown in Fig. 12 . Formally, we denote the projection based on time period for TEM i, say, from March, 11, 2011 to April 30, 2011, as \u03c0 t=''11/03/2011-30/04/2011'' (TEM i ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 327,
+                    "end": 334,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Projection on a time period"
+        },
+        {
+            "text": "As a summary, the following remarks can be made with respect to the previous works versus our work in this field:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "\u2022 By only taking content dependence into consideration and measuring content dependence through simple similarity functions, previous methods are effective only when two events share enough features.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "\u2022 Unlike all previous work in this field, our work has put forward a formal event model in which all three kinds of relationships (i.e., temporal relationships, CD relationships and ER relationships) among events are defined and captured.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "\u2022 Our work has provided a mechanism to discover and measure event reference (ER) relationships, which are explicit relationships made by journalists in their news articles that reflect their viewpoints and consideration of the inter-event relationships. ER can complement content dependence relationships.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "\u2022 Our work has also laid a foundation to measure the importance of events, thereby facilitating the discovery of important events.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "In this paper, we have defined three kinds of event relationships to support temporal event searches, including temporal relationships, content dependence relationships and event reference relationships, and we have applied them to measure the degrees of inter-dependencies between component events. We have also formalized the problem of event searches and proposed a framework to search events according to user queries. The search results are represented by a temporal event map (TEM), which is a global picture showing the dependence relationships between events, thereby illustrating the evolution or development of an event along the timeline. A method to measure degrees of event importance has been proposed for discovering the important component (milestone) events for a given query. Experiments on a real data set show that our proposed method outperforms the baseline methods, and it can discover relationships that are missed by previous methods and sometimes even by human annotators.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "Admittedly, several possible extensions may be made to our work. In our current method, only top-5 core features are selected for event reference analysis of the collected data set. How to automatically choose the ''right'' number of core features for event reference analysis of different data sets is an open issue for further study. Another potential extension is to implement a visualization tool with a sophisticated user interface based on our current method. Also, we plan to investigate personalized temporal event searches, as different users may have their own preferences and interests about different kinds of component events. This sort of event search may be used to recommend news articles to a user based on his/her current knowledge of his/her interested event. Furthermore, it is also possible to exploit the temporal event map in some domain-specific applications, including first story detection [37] and financial news analysis [38] . ",
+            "cite_spans": [
+                {
+                    "start": 916,
+                    "end": 920,
+                    "text": "[37]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 949,
+                    "end": 953,
+                    "text": "[38]",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "No author associated with this paper has disclosed any potential or pertinent conflicts which may be perceived to have impending conflict with this work. For full disclosure statements refer to https://doi.org/10.1016/j.asoc.2019.105750.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Declaration of competing interest"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Event relationship analysis for temporal event search",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Xie",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Min",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Proceedings of International Conference on Database Systems for Advanced Applications",
+            "volume": "",
+            "issn": "",
+            "pages": "179--193",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "The Power of Events: An Introduction to Complex Event Processing in Distributed Enterprise Systems",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Luckham",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Event Processing for Business: Organizing the Real-Time Enterprise",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Luckham",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Finding and linking incidents in news",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Allan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Proceedings of the Sixteenth ACM Conference on Conference on Information and Knowledge Management",
+            "volume": "",
+            "issn": "",
+            "pages": "821--830",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Incident threading for news passages",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Allan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proceedings of the 18th ACM Conference on Information and Knowledge Management",
+            "volume": "",
+            "issn": "",
+            "pages": "1307--1316",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Discovering event evolution graphs from news corpora",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Shi",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-P",
+                    "middle": [],
+                    "last": "Wei",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "IEEE Trans. Syst. Man Cybern. A",
+            "volume": "39",
+            "issn": "4",
+            "pages": "850--863",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Discovering event evolution graphs from newswires",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Shi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proceedings of the 15th International Conference on World Wide Web",
+            "volume": "",
+            "issn": "",
+            "pages": "945--946",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Proceedings of the 16th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Shahaf",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "623--632",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Etzion, Event-processing network model and implementation, IBM Syst",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sharon",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J",
+            "volume": "47",
+            "issn": "2",
+            "pages": "321--334",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Event processing for intelligent resource management",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Artikis",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Marterer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pottebaum",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Paliouras",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Proceedings of the 20th European Conference on Artificial Intelligence",
+            "volume": "",
+            "issn": "",
+            "pages": "943--948",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Event processing under uncertainty",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Artikis",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Etzion",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Feldman",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Fournier",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Proceedings of the 6th ACM International Conference on Distributed Event-Based Systems",
+            "volume": "",
+            "issn": "",
+            "pages": "32--43",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Self-adaptive event recognition for intelligent transport management, in: Big Data",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Artikis",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Weidlich",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gal",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kalogeraki",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Gunopulos",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "IEEE International Conference on",
+            "volume": "",
+            "issn": "",
+            "pages": "319--325",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Efficient processing of uncertain events in rule-based systems",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wasserkrug",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gal",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Etzion",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Turchin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "IEEE Trans. Knowl. Data Eng",
+            "volume": "24",
+            "issn": "1",
+            "pages": "45--58",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Processing flows of information: From data stream to complex event processing",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Cugola",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Margara",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "ACM Comput. Surv",
+            "volume": "44",
+            "issn": "3",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Tise: A temporal search engine for web contents",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Jin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lian",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of Second International Symposium on Intelligent Information Technology Application",
+            "volume": "3",
+            "issn": "",
+            "pages": "220--224",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Proceedings of the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Allan",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "10--18",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Detecting and browsing events in unstructured text",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proceedings of the 25th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval",
+            "volume": "",
+            "issn": "",
+            "pages": "73--80",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Query based event extraction along a timeline",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Chieu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Proceedings of the 27th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval",
+            "volume": "",
+            "issn": "",
+            "pages": "425--432",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Unsupervised public health event detection for epidemic intelligence",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fisichella",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Stewart",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Denecke",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Nejdl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 19th ACM International Conference on Information and Knowledge Management",
+            "volume": "",
+            "issn": "",
+            "pages": "1881--1884",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Discovering evolutionary theme patterns from text: an exploration of temporal text mining",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proceedings of the Eleventh ACM SIGKDD International Conference on Knowledge Discovery in Data Mining",
+            "volume": "",
+            "issn": "",
+            "pages": "198--207",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "A probabilistic approach to spatiotemporal theme pattern mining on weblogs",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Su",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proceedings of the 15th International Conference on World Wide Web",
+            "volume": "",
+            "issn": "",
+            "pages": "533--542",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Time-dependent event hierarchy construction",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "P C"
+                    ],
+                    "last": "Fung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Proceedings of the 13th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+            "volume": "",
+            "issn": "",
+            "pages": "300--309",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Web mining for understanding stories through graph visualisation",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Suba\u0161ic",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Berendt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of the Eighth IEEE International Conference on Data Mining",
+            "volume": "",
+            "issn": "",
+            "pages": "570--579",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Discovery of interactive graphs for understanding and searching time-indexed corpora",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Suba\u0161i\u0107",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Berendt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Knowl. Inf. Syst",
+            "volume": "23",
+            "issn": "3",
+            "pages": "293--319",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Towards characterization of actor evolution and interactions in news corpora",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Choudhary",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Mehta",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bagchi",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Balakrishnan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of the European Conference on Information Retrieval",
+            "volume": "",
+            "issn": "",
+            "pages": "422--429",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Causal network construction to support understanding of news",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ishii",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Yoshikawa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 43rd Hawaii International Conference on System Sciences",
+            "volume": "",
+            "issn": "",
+            "pages": "1--10",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Tracing the event evolution of terror attacks from on-line news",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Shi",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-P",
+                    "middle": [],
+                    "last": "Wei",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proceedings of International Conference on Intelligence and Security Informatics",
+            "volume": "",
+            "issn": "",
+            "pages": "343--354",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Discovering event episodes from news corpora: a temporal-based approach",
+            "authors": [
+                {
+                    "first": "C.-P",
+                    "middle": [],
+                    "last": "Wei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-H",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-S",
+                    "middle": [],
+                    "last": "Chiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-D",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proceedings of the 11th International Conference on Electronic Commerce",
+            "volume": "",
+            "issn": "",
+            "pages": "72--80",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Proceedings of the Thirteenth ACM International Conference on Information and Knowledge Management",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Nallapati",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Peng",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Allan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "446--453",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Arnetminer: extraction and mining of academic social networks",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Yao",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Su",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of the 14th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+            "volume": "",
+            "issn": "",
+            "pages": "990--998",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Measuring distances between variables by mutual information",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Steuer",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Daub",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Selbig",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kurths",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Innovations in Classification, Data Science, and Information Systems",
+            "volume": "",
+            "issn": "",
+            "pages": "81--90",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Writing and Reporting News: A Coaching Method, Cengage Learning",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Rich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "The PageRank Citation Ranking: Bringing Order to the Web",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Page",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Brin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Motwani",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Winograd",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Improving recommendation lists through topic diversification",
+            "authors": [
+                {
+                    "first": "C.-N",
+                    "middle": [],
+                    "last": "Ziegler",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Mcnee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Konstan",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Lausen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proceedings of the 14th International Conference on World Wide Web",
+            "volume": "",
+            "issn": "",
+            "pages": "22--32",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A simple and efficient sampling method for estimating ap and ndcg",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Yilmaz",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Kanoulas",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Aslam",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of the 31st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval",
+            "volume": "",
+            "issn": "",
+            "pages": "603--610",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "A multi-relational term scheme for first story detection",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Rao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Xie",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Neurocomputing",
+            "volume": "254",
+            "issn": "",
+            "pages": "42--52",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Empirical analysis: stock market prediction via extreme learning machine",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Xie",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Min",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Deng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Neural Comput. Appl",
+            "volume": "27",
+            "issn": "1",
+            "pages": "67--78",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "An example of the TEM about the event ''Toyota 2009-2010 vehicle recalls'' [1].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "An event may consist of several component events, i.e., episodes. For example, the SARS epidemic was an event that occurred in 2002 in some 37 countries around the world; the life cycle of this event extended from November 2002 to May 2006. The location of the event included China, Canada, Singapore and other countries. Many news stories reported on the event on the Web. To describe the event, we can extract from the set of documents the F a set of features (i.e., keywords), such as ''SARS'', ''flulike'', ''fever'' and so on. The event of the SARS epidemic consists of several component events, such as ''Experts find disease and SARS outbreaks'', ''China informs and cooperates with WHO'', ''SARS has great impact on economy'', and so on. Definition 2. Each event a contains a set of component events denoted as component events denoted as CE a = {a 1 , a 2 , .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Among all the component events of an event a, the seminal component event of a is the one with a start time that is the same as that of a, i.e., the start time of the seminal component event is no later than those of the other component events of a. Definition 4. Among all the component events of an event a, the ending component event of a is the one with an end time that is the same as that of a, i.e., the end time of the ending component event is no earlier than those of the other component events of a.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Temporal Event Map construction Process.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "the probability of f x and f y co-occurring in the same document among all the related documents, and P(f x ) is the probability of f x occurring in a document among all documents, and P(f y ) is the probability of f y occurring in a document among all the documents.Example 1. For two events ''SARS has great impact on Tourism'' denoted by a and ''SARS has great impact on economy'' denoted by b, there are a set of news documents related to them. We can represent a and b by two vectors after we extract the keywords from news documents reporting them. \u2212 \u2192 F a = (tour : 0.78, travel : 0.61, hongkong : 0.58, ..., agency : 0.54, hotel : 0.72) \u2212 \u2192 F b = (passenger : 0.83, flight : 0.81, airline : 0.76, ..., reduce : 0.63, transport : b is calculated by Eq. (1). Then, we measure the mutual information value (i.e., I(x, y), x is a by using Eq. (3). E.g., I(tour, passenger), I(tour, flight), I(tour, airline) and so on. In this way, we obtain all mutual information values for all features in \u2212 \u2192 F a and \u2212 \u2192 F b . The content dependence between two events a and b is obtained by Eq. (2).By measuring all mutual information between two component events, we can obtain a component content dependence matrix of an event a, denoted as M c a , as follows:Cd(1, 1),Cd(1, 2), . . . , Cd(1, m) \u00b7 \u00b7 \u00b7 Cd(n, 1), Cd(n, 2), . . . ,Cd(n, m)    }",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Eq. (4) is an aggregation of p(f i |a) and p(a|f i ) used to obtain the aggregated value u(f i , a). We calculate all the u(f i , a) values of each feature f i for event a, and then rank features according their u(f i , a) values. Then we select top-k features with the highest u(f i , a) values as core features based on Eq. (4).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "This example considers the event ''US congressional hearings held for Toyota recall'' denoted by a and the event ''Toyota's president to testify in US congressional hearings'' denoted by b. For event a, there is a set of features extracted from news documents, such as Toyota, hope, recall,Japan, US, congress, require, hearing and so on. According to Eq. (4), we can select top-5 features with the highest u(f i , a) as core features, and thus the core feature set of event a is F c a = {congress, hearing, safety, US, recall}.Similarly, there are many features extracted from news documents of event b, such as Akio, recall, US, flight, Toyoda, testify, Washington apologize and so on. Then we can select top-5 features with the highest u(f i , b) as core features. The core feature set of b is F c b = {Akio, Toyoda, testify, president, apologize}. For event a, some of its core features also exist in some documents (news articles) of b, (e.g., ''congress'', ''hearing'' and ''safety'' all appear in the news titled as ''Toyota's president to testify before Congress'' on Feb 19, 2010), so we say b refers to a. The event reference degree between a and b can be calculated by Eq. (5).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "The effect of \u03b1 on Precision, Recall and F-measure[1].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Our method vs. EEG, CDM, ERM[1].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "The result of EEG[1].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "The result of annotators[1]. The result of our method[1].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "An example of the whole TEM about the event ''2011 Japan Earthquake''.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "An example of the content dependent TEM about the event ''2011 Japan Earthquake''.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "An example of the event reference TEM about the event ''2011 Japan Earthquake''.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF14": {
+            "text": "An example of the component events happened in Japan for the event ''2011 Japan Earthquake''.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF15": {
+            "text": "An example of the component events of the event ''2011 Japan Earthquake'' during a specific time period.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Comparison of our method and previous methods in terms of different dependencies.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Precision, Recall and F-Measure values of Our method, EEG, CDM and ERM.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Our method vs. ERM and CDM on NDCG.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Component events for the query about SARS event from 1/3/2003 to 30/6/2003 [1].",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "Event ranking based on event importance fromhigh to low for the query Q SARS .",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF6": {
+            "text": "Component events for the ''2011 Japan Earthquake'' query.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The research presented in this paper has been supported by the General Research Fund from the Research Grants Council ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

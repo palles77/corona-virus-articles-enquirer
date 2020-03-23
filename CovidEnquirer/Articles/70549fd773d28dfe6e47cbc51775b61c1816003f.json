@@ -1,0 +1,2192 @@
+{
+    "paper_id": "70549fd773d28dfe6e47cbc51775b61c1816003f",
+    "metadata": {
+        "title": "Fitting dynamic models to epidemic outbreaks with quantified uncertainty: A primer for parameter uncertainty, identifiability, and forecasts-NC-ND license (http:// creativecommons.org/licenses/by-nc-nd/4.0/)",
+        "authors": [
+            {
+                "first": "Gerardo",
+                "middle": [],
+                "last": "Chowell",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Georgia State University",
+                    "location": {
+                        "settlement": "Atlanta",
+                        "region": "GA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Mathematical models provide a quantitative framework with which scientists can assess hypotheses on the potential underlying mechanisms that explain patterns in observed data at different spatial and temporal scales, generate estimates of key kinetic parameters, assess the impact of interventions, optimize the impact of control strategies, and generate forecasts. We review and illustrate a simple data assimilation framework for calibrating mathematical models based on ordinary differential equation models using time series data describing the temporal progression of case counts relating, for instance, to population growth or infectious disease transmission dynamics. In contrast to Bayesian estimation approaches that always raise the question of how to set priors for the parameters, this frequentist approach relies on modeling the error structure in the data. We discuss issues related to parameter identifiability, uncertainty quantification and propagation as well as model performance and forecasts along examples based on phenomenological and mechanistic models parameterized using simulated and real datasets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Emerging and re-emerging infectious diseases are undoubtedly one of humankind's most important health and security risks (Fauci & Morens, 2016) . As epidemic threats increase so is the potential impact of mathematical and statistical inference and simulation approaches to guide prevention and mitigation plans. As the recent 2013e2016 Ebola epidemic exemplified, an infectious disease outbreak often forces public health officials to make key decisions to mitigate the outbreak in a changing environment where multiple factors positively or negatively impact local disease transmission . Hence, public health officials are often interested in practical yet mathematically rigorous and computationally efficient approaches that comprehensively assimilate data and model uncertainty to 1) generate estimates of key transmission parameters, 2) assess the impact of control interventions (vaccination campaigns, behavior changes), 3) test hypotheses, 4) evaluate how behavior changes affect transmission dynamics, 5) gain insight to the contribution of different transmission pathways, 6) optimize the impact of control strategies, and 7) generate short and long-term forecasts, just to name a few.",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 143,
+                    "text": "(Fauci & Morens, 2016)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Mathematical models provide a quantitative framework with which scientists can assess hypotheses on the potential underlying mechanisms that explain patterns in the observed data at different spatial and temporal scales. Models vary in their complexity in terms of the number of variables and parameters that characterize the dynamic states of the system, in their spatial and temporal resolution (e.g., discrete vs. continuous time), and in their design (e.g., deterministic or stochastic). While agent-based models, formulated in terms of characteristics and interactions among individual agents, have become increasingly used to model detailed processes often occurring at multiple scales (e.g., within host vs. population level), models based on systems of ordinary differential equations are widely used in the biological and social sciences. These dynamic models are specified by a set of equations and their parameters that together quantify the spatial-temporal states of the system via a set of interrelated dynamic quantities (e.g, viral load, susceptibility levels, disease prevalence) (Banks et al., 2009) .",
+            "cite_spans": [
+                {
+                    "start": 1097,
+                    "end": 1117,
+                    "text": "(Banks et al., 2009)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper we review and illustrate a simple data assimilation framework for connecting ordinary differential equation models to time series data describing the temporal progression of case counts relating to population growth or infectious disease transmission dynamics (e.g, daily incident cases). This frequentist approach relies on modeling the error structure in the data unlike Bayesian approaches which always raise the question of how to set priors for the parameters. We present examples based on phenomenological and mechanistic models of disease transmission dynamics together with simulated and real datasets. We discuss issues related to parameter identifiability, uncertainty quantification and propagation as well as model performance and forecasts.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The general form of a dynamic model composed by a system of h ordinary differential equations is given by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematical models"
+        },
+        {
+            "text": "where _ x i denotes the rate of change of the system states x i where i \u00bc 1; 2; \u2026h and Q \u00bc \u00f0q 1 ; q 2 ; \u2026; q m \u00de is the set of model parameters.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematical models"
+        },
+        {
+            "text": "In general, the complexity of a model is a function of the number of parameters that are needed to characterize the states of the system and the spectrum of the dynamics that can be recovered from the model (e.g., number of equilibrium points, oscillations, bifurcations, chaos). A trade-off exists between the level of model complexity and the ability to reliably parameterize the model with available data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematical models"
+        },
+        {
+            "text": "In the next sections we briefly discuss differences between phenomenological and mechanistic models along specific examples that will become useful to illustrate methodology in the subsequent sections.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematical models"
+        },
+        {
+            "text": "Phenomenological models provide an empirical approach without a specific basis on the physical laws or mechanisms that give rise to the observed patterns in the data (Chowell et al., 2016a) . Thus, these types of models emphasize the reproducibility of empirical observations using simple models. Next, we describe two useful models to characterize epidemic growth patterns namely the generalized-growth model (GGM) and the generalized Richards model (GRM).",
+            "cite_spans": [
+                {
+                    "start": 166,
+                    "end": 189,
+                    "text": "(Chowell et al., 2016a)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Phenomenological models"
+        },
+        {
+            "text": "This is a phenomenological model that has proved useful to characterize and forecast early epidemic growth patterns Viboud, Simonsen, & Chowell, 2016) . In particular, previous analyses highlighted the presence of early sub-exponential growth patterns in infectious disease data across a diversity of disease outbreaks . The generalized-growth model allows relaxing the assumption of exponential growth via a \"scaling of growth\" parameter, p. The model is given by the following differential equation:",
+            "cite_spans": [
+                {
+                    "start": 116,
+                    "end": 150,
+                    "text": "Viboud, Simonsen, & Chowell, 2016)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The generalized-growth mode (GGM)"
+        },
+        {
+            "text": "where C 0 \u00f0t\u00de describes the incidence growth phase over time t, the solution C\u00f0t\u00de describes the cumulative number of cases at time t, r is a positive parameter denoting the growth rate, and p, the \"deceleration of growth\" parameter varied between 0 and 1. If p \u00bc 0, this equation describes constant incidence over time and the cumulative number of cases grows linearly while p \u00bc 1 leads to the well-known exponential growth model (EXPM) . Intermediate values of p between 0 and 1 describe subexponential (e.g. polynomial) growth patterns. In semi-logarithmic scale, exponential growth patterns are visually evident when a straight line fits well several consecutive generations in the growth pattern, whereas a downward curvature in semilogarithmic scale indicates early sub-exponential growth dynamics.",
+            "cite_spans": [
+                {
+                    "start": 430,
+                    "end": 436,
+                    "text": "(EXPM)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "The generalized-growth mode (GGM)"
+        },
+        {
+            "text": "The GRM is an extension of the original Richards growth model (Richards, 1959) with three free parameters, which has been fitted to a range of logistic-type epidemic curves (Dinh et al., 2016; Hsieh & Cheng, 2006; Ma et al., 2014; Turner et al., 1976; Wang, Wu, & Yang, 2012) . When C 0 \u00f0t\u00de represents the number of new infected cases at time t, the Richards model is given by the following differential equation:",
+            "cite_spans": [
+                {
+                    "start": 62,
+                    "end": 78,
+                    "text": "(Richards, 1959)",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 173,
+                    "end": 192,
+                    "text": "(Dinh et al., 2016;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 193,
+                    "end": 213,
+                    "text": "Hsieh & Cheng, 2006;",
+                    "ref_id": null
+                },
+                {
+                    "start": 214,
+                    "end": 230,
+                    "text": "Ma et al., 2014;",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 231,
+                    "end": 251,
+                    "text": "Turner et al., 1976;",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 252,
+                    "end": 275,
+                    "text": "Wang, Wu, & Yang, 2012)",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Generalized Richards model (GRM)"
+        },
+        {
+            "text": "where r represents the intrinsic growth rate in the absence of any limitation to disease spread, K is the size of the epidemic, and a is a parameter that measures the extent of deviation from the S-shaped dynamics of the classical logistic growth model (Turner et al., 1976) . During the early stages of disease propagation when C\u00f0t\u00de is significantly smaller than K, this model assumes an initial exponential growth phase. To account for initial sub-exponential growth dynamics , we can modify the Richards model replacing the growth term rC by rC p , incorporating a 'deceleration of growth' parameter (p). Hence, the GRM has the form:",
+            "cite_spans": [
+                {
+                    "start": 253,
+                    "end": 274,
+                    "text": "(Turner et al., 1976)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Generalized Richards model (GRM)"
+        },
+        {
+            "text": "where 0 p 1. At the early stages of the epidemic, this model enables us to capture different growth profiles ranging from constant incidence (p \u00bc 0), polynomial growth (0 < p < 1), to exponential growth (p \u00bc 1) . This model has been useful to generate post-peak forecasts of Zika and Ebola epidemics (Chowell et al., 2016b; Pell et al., 2016) .",
+            "cite_spans": [
+                {
+                    "start": 300,
+                    "end": 323,
+                    "text": "(Chowell et al., 2016b;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 324,
+                    "end": 342,
+                    "text": "Pell et al., 2016)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Generalized Richards model (GRM)"
+        },
+        {
+            "text": "Mechanistic models incorporate key physical laws or mechanisms involved in the dynamics of the problem under study (e.g., population or transmission dynamics) in order to explain patterns in the observed data. This type of models are often formulated in terms of a dynamical system describing the spatial-temporal evolution of a set of variables and are useful to evaluate the emergent behavior of the system across the relevant space of parameters (Brauer & Nohel, 2012; Chowell et al., 2016a; Strogatz, 2014) . In particular, compartmental models are based on systems of ordinary differential equations that focus on the dynamic progression of a population through different epidemiological states (Anderson & May 1991; Bailey, 1975; Brauer, 2006; Lee, Chowell, & Jung, 2016) . These models are useful to forecast prevalence levels in the short and long-term as well as assess the effects control interventions. In the context of disease transmission, population risk is typically modeled via a \"transmission process\" that requires contact between individuals or between an individual and external factors in the environment. Because the dynamic risk is limited to certain kinds of contact, the vast majority of epidemiological models divide the host population into different epidemiological states. Compartmental modeling allows researchers to address the conditions under which certain disease prevalence levels of interest will continue to grow in the population. Essentially this entails quantifying the factors that contribute to the \"transmission\" process. These models may be deterministic or stochastic, can incorporate geographic space, and can be structured by age, gender, ethnicity, or other risk groups (Sattenspiel, 2009 ). Such structuring is critical, since it defines discrete subgroups, or metapopulations, which may be considered networks wherein the populations are the nodes and their interconnections, the links.",
+            "cite_spans": [
+                {
+                    "start": 449,
+                    "end": 471,
+                    "text": "(Brauer & Nohel, 2012;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 472,
+                    "end": 494,
+                    "text": "Chowell et al., 2016a;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 495,
+                    "end": 510,
+                    "text": "Strogatz, 2014)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 700,
+                    "end": 721,
+                    "text": "(Anderson & May 1991;",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 722,
+                    "end": 735,
+                    "text": "Bailey, 1975;",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 736,
+                    "end": 749,
+                    "text": "Brauer, 2006;",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 750,
+                    "end": 777,
+                    "text": "Lee, Chowell, & Jung, 2016)",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 1719,
+                    "end": 1737,
+                    "text": "(Sattenspiel, 2009",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mechanistic models"
+        },
+        {
+            "text": "The simplest and most popular mechanistic compartmental model for describing the spread of an infectious agent in a well-mixed population is the SEIR (susceptible-exposed-infectious-removed) model (Anderson & May 1991) . In this model, the infection rate is often defined as the product of three quantities: a constant transmission rate (b), the number of susceptible individuals in the population (S\u00f0t\u00de), and the probability that a susceptible individual encounters an infectious individual ( I\u00f0t\u00de N ). Moreover, infected individuals experience a mean latent and a mean infectious period given by 1=k and 1=g, respectively. The model is based on a system of ordinary differential equations that keep track of the temporal progression in the number of susceptible (S), exposed (E), infectious (I), and removed (R) individuals as follows:",
+            "cite_spans": [
+                {
+                    "start": 197,
+                    "end": 218,
+                    "text": "(Anderson & May 1991)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The SEIR model"
+        },
+        {
+            "text": "In the above system, C\u00f0t\u00de is an auxiliary variable that keeps track of the cumulative number of infectious individuals, and _ C\u00f0t\u00de keeps track of the curve of new cases (incidence).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SEIR model"
+        },
+        {
+            "text": "In a completely susceptible population, e.g., S\u00f00\u00dezN, the number of infectious individuals grows following an exponential function during the early epidemic growth phase, e.g., I\u00f0t\u00dezI 0 e \u00f0b\u00c0g\u00det where the average number of secondary cases generated per primary case, R 0 , is simply given by the product of the mean transmission rate (b) and the mean infectious period ( 1 g ) as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SEIR model"
+        },
+        {
+            "text": "However, as the number of susceptible individuals in the population declines due to a growing number of infections, the effective reproduction number over time, R t , is given by the product of R 0 and the proportion of susceptible individuals in the population:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SEIR model"
+        },
+        {
+            "text": "In order to calibrate mathematical models, researchers require time series data that describe the temporal changes in one or more states of the system. The temporal resolution of the data typically varies according to the time scale at which the relevant processes occur (e.g, daily, weekly, yearly) and the frequency at which the state of the system is measured. How well the model can be constrained to a given situation depends in part on the amount and resolution of the time series data. In general, we denote the time series of n longitudinal observations by y t i \u00bc y t1 ; y t1 ; \u2026; y tn where i \u00bc 1; 2; \u2026; n where t i are the time points of the time series data and n is the number of observations.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SEIR model"
+        },
+        {
+            "text": "In our examples below, we make use of simulated data as well as outbreak data, which has been used in previous studies.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SEIR model"
+        },
+        {
+            "text": "Parameter estimates for a given dynamical system are subject to two major sources of uncertainty:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sources of uncertainty"
+        },
+        {
+            "text": "1) Noise in the data which is typically addressed by assuming a particular error structure in the data, e.g., Poisson vs. negative binomial distribution; and 2) The underlying assumptions in the model employed for inferring parameter estimates from data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sources of uncertainty"
+        },
+        {
+            "text": "Other sources of error could be associated with the algorithms employed to numerically solve the model in the absence of analytic or close-form solutions. Here we focus on quantifying parameter uncertainty arising from noise in the data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sources of uncertainty"
+        },
+        {
+            "text": "In the simplest manner, model parameters can be estimated via least-square fitting of the model solution to the observed data (Banks, Hu, & Thompson, 2014) . This is achieved by searching for the set of parameters b Q \u00bc \u00f0 b q 1 ; b q 2 ; \u2026; b q m \u00de that minimizes the sum of squared differences between the observed data y ti \u00bc y t1 ; y t1 ; \u2026; y tn and the corresponding model solution denoted by f \u00f0t i ; Q\u00de. That is, the objective function is given by",
+            "cite_spans": [
+                {
+                    "start": 126,
+                    "end": 155,
+                    "text": "(Banks, Hu, & Thompson, 2014)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Parameter estimation (nonlinear least squares fitting)"
+        },
+        {
+            "text": "where t i are the time points at which the time series data are observed, and n is the number of data points available for inference. Hence, the model solution f \u00f0t i ; b Q\u00de yields the best fit to the time series data y ti . However, it is important to keep in mind the underlying assumption in least squares fitting: the standard deviation of the errors (deviation of model to data) is invariant across the time series. In Matlab (The Mathworks, Inc.), two numerical optimization methods are available to solve the nonlinear least squares problem: The trust-region reflective algorithm and the Levenberg-Marquardt algorithm.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Parameter estimation (nonlinear least squares fitting)"
+        },
+        {
+            "text": "More generally, it is possible to simultaneously fit more than one state variable to their corresponding observed time series.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Parameter estimation (nonlinear least squares fitting)"
+        },
+        {
+            "text": "When each data point should not be given equal weight in the estimation of model parameters, weighted least squares can be useful to assign relative weights to each data point in our dataset. For instance, weights could reflect variable quality (e.g., precision of the measurements) of the time series so that less weight is given to those data points associated with inferior quality or precision. We define the nonnegative weights given to each data point as w ti so that the objective function for weighted least squares fitting is given by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted nonlinear least squares fitting"
+        },
+        {
+            "text": "If we want to give more weight to smaller data points, the weights given to each data point can be modeled as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted nonlinear least squares fitting"
+        },
+        {
+            "text": "If the goal is to give more weight to the most recent data, simple exponential smoothing can be used to assign higher weights to more recent data points relative to older data points. Specifically, the weights assigned to observations decrease exponentially as we move from recent to older data in the time series. Thus, the corresponding weight for observation t i is given by:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted nonlinear least squares fitting"
+        },
+        {
+            "text": "where parameter 0 < a < 1 regulate the rate at which the weights decrease exponentially so that the higher the value of alpha, the more weight is given to recent data relative to older data ( Fig. 1 ). Fig. 1 . Weight values according to simple exponential smoothing for various values of parameter a which regulate the rate at which the weights decrease exponentially. The higher the value of alpha, the more weight is given to recent data relative to older data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 192,
+                    "end": 198,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 202,
+                    "end": 208,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Weighted nonlinear least squares fitting"
+        },
+        {
+            "text": "After parameters have been estimated, we can assess the quality of the model fit to the data by analyzing the temporal variation of the residuals, e.g., the difference between the best fit of the model and the time series data as a function of time:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "A random pattern in the temporal variation of the residuals suggests a good fit of the model to the data. Conversely, systematic deviations of the model to the data (e.g., temporal autocorrelation) indicate that the model deviates systematically from the data, which prompts modelers to reassess the current version of the model. If the model is used for forecasting purposes, it is particularly important that the residuals are uncorrelated and the variance of the residuals is approximately constant.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "Example #1: Model fitting to time series data The models:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "The generalized-growth model (GGM) The exponential growth model (EXPM)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "The data:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "We employ the weekly series of the number of reported Ebola cases in Sierra Leone during the 2014-16 Ebola epidemic in West Africa.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "Parameter estimation:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "We can fit the GGM to the first 15 weeks of the Ebola epidemic in Sierra Leone via least-square fitting using the Matlab built-in function lsqcurvefit.m. The initial number of cases C\u00f00\u00de is fixed according to the first observation week in the data (i.e.,C\u00f00\u00de \u00bc 3). The parameter estimates are as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "The best fit of the GGM model and the corresponding residuals using the first 15 weeks of data of the Ebola epidemic in Sierra Leone is shown in Fig. 2 . Our estimate for the scaling of growth parameter p indicates that the early growth pattern of the epidemic in Sierra Leone followed polynomial growth dynamics (Chowell et al., 2015) . However, we still need to assess parameter uncertainty to construct confidence intervals and diagnose any potential parameter identifiability issues (see Section 9). While the GGM gives a good fit to the data, the EXPM model deviates systematically from the early growth phase, which is evident from the temporal autocorrelation in the set of residuals (Fig. 3) .",
+            "cite_spans": [
+                {
+                    "start": 313,
+                    "end": 335,
+                    "text": "(Chowell et al., 2015)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 145,
+                    "end": 151,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 691,
+                    "end": 699,
+                    "text": "(Fig. 3)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "Example #2: Weighted least squares fitting to time series data The model:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "The generalized-growth model (GGM) Data weighting scheme: Simple exponential smoothing.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model diagnostics (residuals)"
+        },
+        {
+            "text": "We employ the weekly series of the number of reported Ebola cases in Sierra Leone during the 2014-16 Ebola epidemic in West Africa. Best fits of the GGM to the first 15 weeks of the Ebola epidemic in Sierra Leone using weighted least square nonlinear fitting where the weights of the data points are assigned according to simple exponential smoothing are shown in Fig. 4 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 364,
+                    "end": 370,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Data:"
+        },
+        {
+            "text": "In the next section we present a computational approach for generating parameter uncertainty.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data:"
+        },
+        {
+            "text": "We rely on the general bootstrap method (Efron & Tibshirani, 1994) and describe a parametric bootstrapping approach which we have previously used in several publications to quantify parameter uncertainty and construct confidence intervals in mathematical modeling studies (e.g., (Chowell et al., 2006a (Chowell et al., , 2006b ). In this method, multiple observations are repeatedly sampled from the best-fit model in order to quantify parameter uncertainty by assuming that the time series follow a Poisson distribution centered on the mean at the time points t i . However, it is also possible to consider overdispersion in the data (see next section). This computational method requires generating simulated data from f \u00f0t i ; b Q\u00de, which is the best fit of the model to the data. The step-by-step algorithm to quantify parameter uncertainty follows (Fig. 5 ):",
+            "cite_spans": [
+                {
+                    "start": 40,
+                    "end": 66,
+                    "text": "(Efron & Tibshirani, 1994)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 279,
+                    "end": 301,
+                    "text": "(Chowell et al., 2006a",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 302,
+                    "end": 326,
+                    "text": "(Chowell et al., , 2006b",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 853,
+                    "end": 860,
+                    "text": "(Fig. 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Parameter uncertainty"
+        },
+        {
+            "text": "1. Derive the parameter estimates b Q \u00bc \u00f0 b q 1 ; b q 2 ; \u2026; b q m \u00de through least-square fitting the model f \u00f0t i ; Q\u00de to the time series data y ti \u00bc y t1 ; y t1 ; \u2026; y tn to obtain the best-fit model, f \u00f0t i ; b Q\u00de.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Parameter uncertainty"
+        },
+        {
+            "text": "2. Using the best-fit model f \u00f0t i ; b Q\u00de, we then generate S-times replicated simulated datasets, which we denote",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Parameter uncertainty"
+        },
+        {
+            "text": "3. To generate the simulated datasets, we first use the best-fit model f \u00f0t i ; b Q\u00de to calculate the corresponding cumulative curve function, F * \u00f0t j ; b Q\u00de, as follows (see Fig. 6 ):",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 176,
+                    "end": 182,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Q\u00de."
+        },
+        {
+            "text": "Q\u00de is generated by assuming a Poisson error structure as follows ( Fig. 6) : 6. Using the set of re-estimated parameters ( b Q i where i \u00bc 1; 2; \u2026; S), it is possible to characterize their empirical distribution, correlations, and construct confidence intervals. The resulting uncertainty around the model fit is given by (Fig. 7) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 67,
+                    "end": 74,
+                    "text": "Fig. 6)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 322,
+                    "end": 330,
+                    "text": "(Fig. 7)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Q\u00de."
+        },
+        {
+            "text": "Example #2: Quantifying parameter uncertainty (see also Example #1) Estimate the uncertainty of the r and p parameters of the GGM calibrated to the early growth phase of the 2014-16 Ebola epidemic in Sierra Leone.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Q\u00de."
+        },
+        {
+            "text": "Assuming a Poisson error structure, Fig. 8 displays 1 ) the uncertainty of parameters \"r\" and \"p\" associated with the fit of the GGM model to the early phase of the Ebola epidemic in Sierra Leone and 2) the uncertainty in our parameter estimates translates into the 95% confidence bounds around the best fit of the model to the data. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 36,
+                    "end": 53,
+                    "text": "Fig. 8 displays 1",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Q\u00de."
+        },
+        {
+            "text": "In the previous section we assumed a Poisson error structure to quantify parameter uncertainty. The Poisson distribution only requires one parameter and is suitable to model count data where the mean of the distribution equals the variance. In situations where the time series data shows overdispersion, we can employ a negative binomial distribution instead. The negative binomial distribution requires two parameters to model the mean and overdispersion in the data. Thus, it is possible to model variance levels in the data that are relatively higher than the mean.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data overdispersion"
+        },
+        {
+            "text": "Example #3: Quantifying parameter uncertainty with a negative binomial error structure (see also Example #2) Assuming a negative binomial error structure where the variance is 5 times higher than the mean, we estimate the uncertainty of the r and pparameters of the GGM calibrated to the to the early growth phase of the 2014-16 Ebola epidemic in Sierra Leone. Results are shown in Fig. 9 : 1) the uncertainty of parameters \"r\" and \"p\" associated with the fit of the GGM model to the early phase of the Ebola epidemic in Sierra Leone and 2) the 95% confidence bands around the best fit of the model to the data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 382,
+                    "end": 388,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "Data overdispersion"
+        },
+        {
+            "text": "A key question in model parameterization is whether the model parameters are identifiable from the available data. As a general rule, a parameter is identifiable when its confidence interval lies in a finite range of values (Cobelli & Romanin-Jacur, 1976; Jacquez, 1996; Raue et al., 2009) . Conversely, lack of parameter identifiability can be recognized when large perturbations in the model parameters generate small changes in the model output (Capaldi et al., 2012; Chowell et al., 2006b; Pillonetto, Sparacino, & Cobelli, 2003) . Multiple factors can give rise to lack of parameter identifiability. For instance, structural parameter non-identifiability (Cobelli & Romanin-Jacur, 1976 ) results from the particular structure of the model independently of the characteristics of the observed time series data used to estimate parameters. However, even when structural identifiability is not an issue, a parameter may still be non-identifiable in practice due to other factors including: 1) the amount and quality of the data available and/or 2) the number of parameters that are jointly estimated from the available data. This type of parameter non-identifiability is commonly referred to as practical non-identifiability (Raue et al., 2009) .",
+            "cite_spans": [
+                {
+                    "start": 224,
+                    "end": 255,
+                    "text": "(Cobelli & Romanin-Jacur, 1976;",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 256,
+                    "end": 270,
+                    "text": "Jacquez, 1996;",
+                    "ref_id": null
+                },
+                {
+                    "start": 271,
+                    "end": 289,
+                    "text": "Raue et al., 2009)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 448,
+                    "end": 470,
+                    "text": "(Capaldi et al., 2012;",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 471,
+                    "end": 493,
+                    "text": "Chowell et al., 2006b;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 494,
+                    "end": 533,
+                    "text": "Pillonetto, Sparacino, & Cobelli, 2003)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 660,
+                    "end": 690,
+                    "text": "(Cobelli & Romanin-Jacur, 1976",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1227,
+                    "end": 1246,
+                    "text": "(Raue et al., 2009)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Parameter identifiability"
+        },
+        {
+            "text": "Structural parameter non-identifiability is often the most difficult to remedy as it requires appropriately modifying the model to eliminate the structural non-identifiability issue. On the other hand, practical parameter non-identifiability issues could be fixed by 1) employing an alternative model of lower complexity when possible, 2) collecting more data about other states in the system to better characterize the system dynamical features, 3) increasing the spatial-temporal resolution of the data to better constrain the model parameters and/or 4) reducing the number of parameters that are jointly estimated, perhaps by constraining a subset of the unknown parameters based on estimates previously reported in similar studies and conducting extensive sensitivity analyses on those parameters (Arriola et al., 2009 ). Finally, specific approaches have been adapted to address parameter identifiability including regularization techniques that aim for stable parameter reconstruction (Smirnova & Chowell, 2017) .",
+            "cite_spans": [
+                {
+                    "start": 801,
+                    "end": 822,
+                    "text": "(Arriola et al., 2009",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 991,
+                    "end": 1017,
+                    "text": "(Smirnova & Chowell, 2017)",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Parameter identifiability"
+        },
+        {
+            "text": "Example #4: Parameter non-identifiability arises from the limited amount of data available to quantify parameter uncertainty For this example, we first generate simulated data from the generalized-Richards model (GRM) using the parameter values: r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000. Next, we use the simulated data to attempt to estimate parameters r and p using the GGM from an increasing length of the early growth phase of the daily incidence curve simulated using the GRM. Fig. 10 shows the resulting empirical distributions of the parameters using an increasing length of the growth phase: 10, 20, \u2026, 80 days. Importantly, Fig. 10 shows that using only 10 days of data, it is not possible to reliably estimate the deceleration of growth parameter, p, because its confidence interval ranges widely from 0.5 to 1.0. Indeed, we conclude that it is not possible to discriminate between sub-exponential and exponential-growth dynamics based on data of only the first 10 days. In fact, the corresponding confidence interval of p include the values of 0.5 and 1.0, which indicate that both linear and exponential growth dynamics cannot be ruled out with the data at hand. As more data of the early growth phase is employed to estimate parameters of the GGM, the uncertainty in parameter estimates is not only reduced, but the parameter estimates are better constrained around their true values (Fig. 10) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 479,
+                    "end": 486,
+                    "text": "Fig. 10",
+                    "ref_id": null
+                },
+                {
+                    "start": 630,
+                    "end": 637,
+                    "text": "Fig. 10",
+                    "ref_id": null
+                },
+                {
+                    "start": 1394,
+                    "end": 1403,
+                    "text": "(Fig. 10)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Parameter identifiability"
+        },
+        {
+            "text": "We can quantify the parameter correlations using our joint empirical distributions of the parameters (denoted by b Q i where i \u00bc 1; 2; \u2026; S) which are derived from our bootstrap approach (described in Section 7)), For instance, for our Example # 2 based on fitting the GGM to the first 15 weeks of the Ebola epidemic in Sierra Leone, parameters b r i and b p i were significantly correlated as shown in Fig. 11 . Despite this, the confidence intervals of these parameters display reasonable uncertainty to reliably characterize the parameters. Example #5: Evaluate the correlation of the b r; b p parameters derived from fitting the GGM to the first 15 weeks of the Ebola epidemic in Sierra Leone (See also Example #2; Fig. 11 ). These parameters are significantly correlated (Spearman rho \u00bc -0.99; Pvalue < 0.001).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 403,
+                    "end": 410,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 719,
+                    "end": 726,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "Parameter correlations"
+        },
+        {
+            "text": "While we can inspect the residuals for any systematic deviations of the model fit to the data, it is also possible to quantify the error of the model fit to the data using performance metrics (Kuhn & Johnson, 2013) . These metrics are also useful to quantify the error associated with forecasts. A widely used performance metric is the root-mean-squared error (RMSE), which is given by",
+            "cite_spans": [
+                {
+                    "start": 192,
+                    "end": 214,
+                    "text": "(Kuhn & Johnson, 2013)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model selection (performance metrics)"
+        },
+        {
+            "text": "Another performance metric is the mean absolute error (MAE), which is given by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model selection (performance metrics)"
+        },
+        {
+            "text": "Similarly, the mean absolute percentage error (MAPE) is given by:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model selection (performance metrics)"
+        },
+        {
+            "text": "Example #6: Compare performance metrics for both the GGM and EXPM models when calibrated to the first 15 weeks of the 2014-16 Ebola epidemic in Sierra Leone (See also Example #1).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model selection (performance metrics)"
+        },
+        {
+            "text": "The RMSE, MAE, and MAPE of the fits provided by the GGM and EXPM models to the first 15 weeks of the Ebola epidemic in Sierra Leone (See also Figs. 2e3) are as follows: Fig. 9 . Fitting the GGM to the first 15 weeks of the 2014-15 Ebola epidemic in Sierra Leone. Parameter estimates with quantified uncertainty generated using the bootstrap approach with a negative binomial error structure with variance 5 times higher than the mean as described in the text (Section 7). The histograms display the empirical distributions of the parameter estimates using 200 bootstrap realizations. The bottom panel shows the fit of the GGM to the 15 weeks of the 2014-15 Ebola epidemic in Sierra Leone. The blue circles are the weekly data while the solid red line corresponds to the best fit of the GGM to the data. The dashed red lines correspond to the 95% confidence bands around the best fit of the model to the data. The confidence intervals of the parameter estimates are wider than those obtained using a Poisson error structure in the data (Fig. 8 . 10 . Empirical distributions of r and p of the GGM model derived from our bootstrap uncertainty method after fitting the GGM to an increasing length of the growth phase (10, 20, \u2026, 80 days) of the daily incidence curve derived from the GRM model with parameters r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000. Importantly, using only 10 days of data, it is not possible to reliably estimate the deceleration of growth parameter, p, because its confidence interval ranges widely from 0.5 to 1.0. Indeed, it is not possible to discriminate between sub-exponential and exponential-growth dynamics based on data of only the first 10 days. However, as more data of the early growth phase is employed to estimate parameters of the GGM, the uncertainty in parameter estimates is not only reduced, but the parameter estimates are better constrained around their true values. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 169,
+                    "end": 175,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                },
+                {
+                    "start": 1035,
+                    "end": 1042,
+                    "text": "(Fig. 8",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 1043,
+                    "end": 1047,
+                    "text": ". 10",
+                    "ref_id": null
+                }
+            ],
+            "section": "Model selection (performance metrics)"
+        },
+        {
+            "text": "We are frequently interested in calibrating a model not only to understand and characterize the current state of the system, but also to aim to predict its behavior in the near or long terms. The particular time horizon of forecast depends on the purpose of the forecast. For instance, a long-term forecast (e.g., several years) could be useful to make strategic decisions regarding the construction of facilities to respond to natural disasters such as epidemics and hurricanes whereas a short-term forecast (e.g., days to weeks) are useful to plan for scheduling resources (e.g., number of face masks, hospital beds). However, it is important to keep in mind that forecasts are often inaccurate as these are mostly based on the current values and uncertainty of the parameters of the system, which are likely to change over time. Moreover, the further out the forecast is made, the more wrong it is expected to be. A properly calibrated model to data can be used to generate short-term or long-term forecasts of the system. Generating a forecast based on the model uncertainty given by f \u00f0t; b",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Q 1 \u00de; f \u00f0t; b Q 2 \u00de; \u2026; f \u00f0t; b Q S \u00de is a relatively straightforward computational task that requires propagating the uncertainty of the current state of the system in time by a time horizon of h time units as follows (see Fig. 12 ):",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 225,
+                    "end": 232,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "That is, we forecast the entire uncertainty of the system using the uncertainty associated with the parameter estimates, which were previously derived from our uncertainty quantification procedure described in Section 7.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "To assess forecasting performance, we can use one of the performance metrics (e.g., RMSE, MAE) previously described in Section 11.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Example #7: Forecast the early growth phase from daily synthetic data obtained from the GRM model. The model:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "The generalized-growth model (GGM) The data: Simulated daily incidence data using the generalized-Richards model (GRM) with parameters r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Forecasts: 30-day ahead forecasts using the GGM by estimating parameters r and p with quantified uncertainty when the model is fitted to an increasing length of the epidemic growth phase (10, 20, \u2026, 80 days) (Fig. 13) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 208,
+                    "end": 217,
+                    "text": "(Fig. 13)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "We can observe that the uncertainty of the forecasts narrows down as more data of the early growth phase is employed to estimate parameters of the GGM. That is, the uncertainty in parameter estimates is not only reduced, but the parameter estimates are also increasingly constrained around their true values (Fig. 13) . Importantly, using only 10 days of data, it is not possible to reliably estimate discriminate between sub-exponential and exponential-growth dynamics. The corresponding performance of the GGM during the calibration and forecasting periods is shown in Fig. 14 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 308,
+                    "end": 317,
+                    "text": "(Fig. 13)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 571,
+                    "end": 578,
+                    "text": "Fig. 14",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Example #8: Forecast the early growth phase of the Zika epidemic in Antioquia, Colombia The model:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "The generalized-growth model (GGM) The data:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "The daily number of new Zika cases by date of symptoms onset in Antioquia, Colombia. Forecasts: 10-day ahead forecasts using the GGM by estimating parametersr and p with quantified uncertainty when the model is fitted to an increasing length of the epidemic growth phase (20, 25 30, 35 days) (Fig. 15) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 292,
+                    "end": 301,
+                    "text": "(Fig. 15)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "We can observe that the uncertainty of the forecasts narrows down as more data of the early growth phase is employed to estimate parameters of the GGM. Importantly, using less than 10 days of data, it is not possible to reliably estimate discriminate between sub-exponential and exponential-growth dynamics. The corresponding performance of the GGM during the calibration and forecasting periods is shown in Fig. 16 Matlab code for 1) fitting the GGM, 2) derive parameter uncertainty, and 3) generate short-term forecasts using incidence data of the Zika outbreak is provided in the supplement. Fig. 13 . 30-day ahead forecasts derived using the GGM by estimating parametersr and p with quantified uncertainty when the model is fitted to an increasing length of the growth phase (10, 20, \u2026, 80 days) of a synthetic daily incidence curve simulated using the GRM with parameters r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000. We can observe that the uncertainty of the forecasts narrows down as more data of the early growth phase is employed to estimate parameters of the GGM. That is, the uncertainty in parameter estimates is not only reduced, but the parameter estimates are also increasingly constrained around their true values (Fig. 8) . Importantly, using only 10 days of data, it is not possible to reliably estimate discriminate between sub-exponential and exponential-growth dynamics. The cyan curves correspond to the uncertainty during the model calibration period while the gray curves correspond to the uncertainty in the forecast. The mean (solid red line) and 95% CIs (dashed red lines) of the model fit are also shown. The vertical line separates the calibration and forecasting periods.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 408,
+                    "end": 415,
+                    "text": "Fig. 16",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 595,
+                    "end": 602,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1224,
+                    "end": 1232,
+                    "text": "(Fig. 8)",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Fig. 14. The root mean squared errors (RMSE) during the calibration and forecasting intervals using the generalized-growth model (GGM) when the model is fitted to an increasing length of the growth phase (10, 20, \u2026, 80 days) of a synthetic daily incidence curve simulated using the GRM with parameters r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000. The mean (solid red line) and 95% CIs (dashed red lines) of the RMSE derived from the ensemble curves are shown (see Fig. 11 for the corresponding short-term forecasts).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 458,
+                    "end": 465,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Example #9: How much data is needed to refit a model to itself? The model: The generalized Richards model (GRM) The data: Simulated daily incidence data using the generalized-Richards model (GRM) with parameters r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Forecasts: It is of interest to understand how much data is needed to faithfully calibrate a model to synthetic data derived from the same model. For this purpose, we conducted long-term forecasts based on the GRM, the same model that was employed to Fig. 13 for the corresponding short-term forecasts). generate the data, by estimating parameters r,p and K using an increasing amount of epidemic data (40, 60, \u2026, 140 days) (Fig. 17) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 251,
+                    "end": 258,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 424,
+                    "end": 433,
+                    "text": "(Fig. 17)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "Using only data of the early epidemic growth phase (before the inflection point occurring around day 50), the model is underdetermined and significantly underestimates the incidence curve. Forecasts are gradually improved particularly when the model is calibrated using data past the epidemic's inflection point (Fig. 17) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 312,
+                    "end": 321,
+                    "text": "(Fig. 17)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Model-based forecasts with quantified uncertainty"
+        },
+        {
+            "text": "In previous Examples #2 and #3, we measured the uncertainty of model parameters estimated from data by constructing confidence intervals using the empirical distribution of the parameters. However, it is possible to use the empirical distributions of the parameters to assess the uncertainty associated with composite parameters whose values depend on several existing model parameters and are often useful to gauge the behavior of the modeled system. For instance, a key epidemiological parameter to measure the transmissibility of a pathogen is the basic reproduction number, R 0 (Anderson & May 1991; Diekmann, Heesterbeek, & Metz, 1990; van den Driessche & Watmough, 2002) . This parameter is a function of several parameters of the epidemic model including transmission rates and infectious periods of the epidemiological classes that contribute to new infections. This is an important parameter as it often serves as a threshold parameter for SEIR-type compartmental models. If R 0 > 1 then an epidemic is expected to occur whereas values of R 0 < 1cannot sustain disease transmission. For instance, for the simple SEIR model, the basic reproduction number is given by: 17 . Long-term forecasts derived using the GRM by estimating parametersr, p and K with quantified uncertainty when the model is fitted to an increasing length of the growth phase (40, 60, \u2026, 140 days) of a synthetic daily incidence curve simulated using the same GRM model with parameters r \u00bc 0:2; p \u00bc 0:8; a \u00bc 1; and K \u00bc 1000. Using only data of the early epidemic growth phase (before the inflection point occurring around day 50), the model is underdetermined and significantly underestimates the incidence curve. Forecasts are gradually improved particularly when the model is calibrated using data past the epidemic's inflection point. The cyan curves correspond to the uncertainty during the model calibration period while the gray curves correspond to the uncertainty in the forecast. The mean (solid red line) and 95% CIs (dashed red lines) of the model fit are also shown. The vertical line separates the calibration and forecasting periods.",
+            "cite_spans": [
+                {
+                    "start": 582,
+                    "end": 603,
+                    "text": "(Anderson & May 1991;",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 604,
+                    "end": 640,
+                    "text": "Diekmann, Heesterbeek, & Metz, 1990;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 641,
+                    "end": 676,
+                    "text": "van den Driessche & Watmough, 2002)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1176,
+                    "end": 1178,
+                    "text": "17",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "Using the empirical distributions of the transmission rate ( b b i where i \u00bc 1; 2; \u2026; S) and the recovery rate (b g i where i \u00bc 1; 2; \u2026; S), we can directly estimate the empirical distribution of the basic reproduction number as follows (Chowell et al., 2006a ",
+            "cite_spans": [
+                {
+                    "start": 237,
+                    "end": 259,
+                    "text": "(Chowell et al., 2006a",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "Using the empirical distribution of b R 0i , we have full control of the uncertainty allowing us to not only construct confidence intervals, but also assess the probability that b R 0i lies above the epidemic threshold at 1.0. Example #9: Estimating R 0 by fitting the SEIR model to the early epidemic growth phase (adapted from ref. (Chowell, Nishiura, & Bettencourt, 2007) ).",
+            "cite_spans": [
+                {
+                    "start": 334,
+                    "end": 374,
+                    "text": "(Chowell, Nishiura, & Bettencourt, 2007)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "Here we provide an example of estimating R 0 of the 1918 influenza pandemic in San Francisco, California, by estimating the transmission rate b while fixing the latent period at 2 days (e.g., k \u00bc 1=2) and the infectious period at 2 or 4 days (e.g., g \u00bc 1=2 or g \u00bc 1=4) based on the epidemiology of influenza. Baseline parameter values:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "Latent period of 2 days (e.g., k \u00bc 1=2) while the infectious period was assumed to be 2 or 4 days (e.g., g \u00bc 1=2 or g \u00bc 1=4).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "At the time of the 1918 pandemic, San Francisco had a population size of approximately 550,000.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "Parameter estimation:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "For simplicity, we only estimate one parameter from the time series data of the early epidemic growth phase: the transmission rate, b. We can fit the SEIR to the first 16e20 days of the influenza pandemic in San Francsico via least-square fitting using the Matlab built-in function lsqcurvefit.m. The initial number of cases I(0) is fixed according to the first observation day in the data (i.e., C(0) \u00bc 4). For instance, fitting the model to the first 16 epidemic days, we estimate the transmission rate at: b \u00bc 1:1 \u00f095% CI:1:1; 1:2\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "Uncertainty in R 0 :",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "The best fit of the SEIR model to the first 16, 18, and 20 days of the influenza pandemic in San Francisco along the corresponding empirical distribution of R 0 is shown in Fig. 18 . We can observe that the distribution of R 0 is stable when using 16, 18 or 20 epidemic days of data. R 0 was estimated at 2.3 (95% CI: 2.2, 2.3) using 16 epidemic days, 2.3 (95% CI: 2.2, 2.3) using 18 epidemic days, and 2.3 (95% CI: 2.3, 2.3) using 20 epidemic days.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 173,
+                    "end": 180,
+                    "text": "Fig. 18",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "14. The effective reproduction number, R t , with quantified uncertainty While the basic reproduction number, commonly denoted by R 0 , gauges the transmission potential of an infectious disease epidemic in a fully susceptible population during the early epidemic take off (Anderson & May 1982) , the effective reproduction number R t captures changes in transmission potential over time (Chowell et al., 2016c; Nishiura et al., 2009) . We can characterize the effective reproduction number and its uncertainty during the early epidemic exponential growth phase (Wallinga & Lipsitch, 2007) . When the early dynamics follow sub-exponential growth, another method relies on the generalized-growth model (GGM) to characterize the profile of growth from early incidence data (Chowell et al., 2016c) . In particular, the GGM can reproduce a range of growth dynamics from constant incidence (p \u00bc 0) to exponential growth (p \u00bc 1) . We can generate the uncertainty associated with the effective reproduction number during the study period directly from the uncertainty associated with the parameter estimates \u00f0b r i ; b p i \u00de where i \u00bc 1; 2; \u2026; S:. That is, R tj \u00f0b r i ; b p i \u00de provides a curve of the effective reproduction number for each value of the parameters b r i ; b p i where i \u00bc 1; 2; \u2026; S: Then, we can compute the curves R tj \u00f0b r i ; b p i \u00de based on the incidence at calendar time t j denoted by I\u00f0t j ; b r i ; b p i \u00de, and the discretized probability Fig. 19 . Top panels display the empirical distributions of the growth rate r, the deceleration of growth parameter p and the effective reproduction number R eff based on fitting the GGM to the first 20 days of the 1918 influenza pandemic in San Francisco. We assumed an exponential distribution for the generation interval of influenza with a mean of 4 days and variance of 16. The bottom panel shows the fit of the GGM to the first 20 days of the 1918 influenza pandemic in San Francisco. Circles correspond to the data while the solid red line corresponds to the best fit obtained using the generalized-growth model (GGM). The blue lines correspond to the uncertainty around the model fit. We estimated the deceleration of growth parameter at 0.95 (95%CI: 0.95, 1.0), an epidemic growth profile with uncertainty bounds that includes exponential growth dynamics (i.e., p \u00bc 1) during the early growth trajectory of the pandemic in Madrid. distribution of the generation interval denoted by r tj . The effective reproduction number R tj \u00f0b r i ; b p i \u00decan be estimated using the renewal equation (Chowell et al., 2016c; Nishiura et al., 2009 ):",
+            "cite_spans": [
+                {
+                    "start": 273,
+                    "end": 294,
+                    "text": "(Anderson & May 1982)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 388,
+                    "end": 411,
+                    "text": "(Chowell et al., 2016c;",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 412,
+                    "end": 434,
+                    "text": "Nishiura et al., 2009)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 562,
+                    "end": 589,
+                    "text": "(Wallinga & Lipsitch, 2007)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 771,
+                    "end": 794,
+                    "text": "(Chowell et al., 2016c)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 2558,
+                    "end": 2581,
+                    "text": "(Chowell et al., 2016c;",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 2582,
+                    "end": 2603,
+                    "text": "Nishiura et al., 2009",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1461,
+                    "end": 1468,
+                    "text": "Fig. 19",
+                    "ref_id": null
+                }
+            ],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "where the denominator represents the total number of cases that contribute (as primary cases) to generating the number of new cases I tj (as secondary cases) at calendar time t j (Nishiura et al., 2009). Example #10: Estimating the effective reproduction number from the early epidemic growth phase using the GGM method (Chowell et al., 2016c) .",
+            "cite_spans": [
+                {
+                    "start": 320,
+                    "end": 343,
+                    "text": "(Chowell et al., 2016c)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "The data:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "We employ the same data as in Example #8 describing the daily series of influenza case notifications during the fall wave of the 1918 influenza pandemic in San Francisco.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "We assumed an exponential distribution for the generation interval of influenza with a mean of 4 days and variance of 16. Using the early growth phase in the number of new case notifications during the first 20 epidemic days, we estimated the deceleration of growth parameter at 0.99 (95% CI: 0.95, 1.0), an epidemic growth profile with uncertainty bounds that includes exponential growth dynamics (i.e., p \u00bc 1) (Fig. 19) . Based on the generalized-growth method, we estimated the effective reproduction number at 2.1 (95% CI: 2.0, 2.1) (Fig. 20) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 412,
+                    "end": 421,
+                    "text": "(Fig. 19)",
+                    "ref_id": null
+                },
+                {
+                    "start": 537,
+                    "end": 546,
+                    "text": "(Fig. 20)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Quantifying uncertainty for composite parameters"
+        },
+        {
+            "text": "In this article we have described and illustrated a relatively simple computational approach to quantify parameter uncertainty, evaluate parameter identifiability, assess model performance, and generate forecasts with quantified uncertainty. In the process we have employed simple phenomenological and mechanistic models to characterize epidemic patterns as well as estimate key transmission parameters such as the basic reproduction number R 0 and the effective reproduction number R t . This uncertainty quantification approach is computationally intensive and relies solely on case incidence series from an unfolding outbreak and allows considerations of different error structures in the case series data (e.g., Poisson vs. negative binomial).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and future work"
+        },
+        {
+            "text": "In future research we will build on this framework to address issues related to model uncertainty (Lloyd Chowellet al, 2009 ). In particular, researchers often focus on a given model and data to characterize the state of the system, but less on how different sets of assumptions influence parameter estimates, their uncertainty and impact on forecasts. Instead of relying on a single model, the information provided by multiple contending models can be integrated into ensemble models (e.g., model weighting schemes (Burnham & Anderson, 2002) ), analogous to weather prediction systems (Raftery et al., 2005) .",
+            "cite_spans": [
+                {
+                    "start": 98,
+                    "end": 123,
+                    "text": "(Lloyd Chowellet al, 2009",
+                    "ref_id": null
+                },
+                {
+                    "start": 516,
+                    "end": 542,
+                    "text": "(Burnham & Anderson, 2002)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 586,
+                    "end": 608,
+                    "text": "(Raftery et al., 2005)",
+                    "ref_id": "BIBREF30"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion and future work"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Directly transmitted infections diseases: Control by vaccination",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "May",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "May",
+                    "suffix": ""
+                }
+            ],
+            "year": 1982,
+            "venue": "Science",
+            "volume": "215",
+            "issn": "4536",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Sensitivity analysis for uncertainty quantification in mathematical models",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Arriola",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hyman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mathematical and statistical estimation approaches in epidemiology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "The mathematical theory of infectious disease and its applications",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "T J"
+                    ],
+                    "last": "Bailey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1975,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "An inverse problem statistical methodology summary",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Banks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mathematical and statistical estimation approaches in epidemiology",
+            "volume": "",
+            "issn": "",
+            "pages": "249--302",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Modeling and inverse problems in the presence of uncertainty",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Banks",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Some simple epidemic models",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Brauer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Mathematical Biosciences and Engineering",
+            "volume": "3",
+            "issn": "1",
+            "pages": "1--15",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "The qualitative theory of ordinary differential equations: anintroduction. Courier Corporation",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Brauer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Nohel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Model selection and multimodel inference: A practical information-theoretic approach",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Burnham",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Parameter estimation and uncertainty quantification for an epidemic model",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Capaldi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Mathematical Biosciences and Engineering",
+            "volume": "9",
+            "issn": "3",
+            "pages": "553--576",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "The basic reproduction number of infectious diseases: Computation and estimation using compartmental epidemic models",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Brauer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Transmission dynamics of the great influenza pandemic of",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 1918,
+            "venue": "Journal of Theoretical Biology",
+            "volume": "",
+            "issn": "2",
+            "pages": "193--204",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Modelling the transmission dynamics of acute haemorrhagic conjunctivitis: Application to the 2003 outbreak in Mexico",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Statistics in Medicine",
+            "volume": "25",
+            "issn": "11",
+            "pages": "1840--1857",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "The Western Africa ebola virus disease epidemic exhibits both global exponential and local polynomial growth rates",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PLoS Currents",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Mathematical models to characterize early epidemic growth: A review",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Physics of Life Reviews",
+            "volume": "",
+            "issn": "16",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Using phenomenological models to characterize transmissibility and forecast patterns and final burden of Zika epidemics",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "PLOS Currents Outbreaks",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/currents.outbreaks.f14b2217c902f453d9320a43a35b9583"
+                ]
+            }
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Characterizing the reproduction number of epidemics with early sub-exponential growth dynamics",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Journal of The Royal Society Interface",
+            "volume": "",
+            "issn": "123",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Perspectives on model forecasts of the 2014-2015 ebola epidemic in West Africa: Lessons and the way forward",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "BMC Medicine",
+            "volume": "15",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Comparative estimation of the reproduction number for pandemic influenza from daily case notification data",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Nishiura",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Bettencourt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Journal of The Royal Society Interface",
+            "volume": "4",
+            "issn": "12",
+            "pages": "155--166",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Is it growing exponentially fast? e Impact of assuming exponential growth for characterizing and forecasting epidemics with initial near-exponential growth dynamics",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Viboud",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Infectious Disease Modelling",
+            "volume": "1",
+            "issn": "1",
+            "pages": "71--78",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Controllability, observability and structural identifiability of multi input and multi output biological compartmental systems",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cobelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Romanin-Jacur",
+                    "suffix": ""
+                }
+            ],
+            "year": 1976,
+            "venue": "IEEE Transactions on Biomedical Engineering",
+            "volume": "23",
+            "issn": "2",
+            "pages": "93--100",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "On the definition and the computation of the basic reproduction ratio R0 in models for infectious diseases in heterogeneous populations",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Diekmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Heesterbeek",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Metz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Journal of Mathematical Biology",
+            "volume": "28",
+            "issn": "4",
+            "pages": "365--382",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Reproduction numbers and sub-threshold endemic equilibria for compartmental models of disease transmission",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Dinh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "20. van den Driessche",
+            "volume": "13",
+            "issn": "",
+            "pages": "29--48",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "An introduction to the bootstrap",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Efron",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Tibshirani",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Zika virus in the americaseyet another arbovirus threat",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Fauci",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Morens",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "New England Journal of Medicine",
+            "volume": "374",
+            "issn": "7",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Applied predictive modeling",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kuhn",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "",
+            "volume": "26",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "A dynamic compartmental model for the Middle East respiratory syndrome outbreak in the Republic of Korea: A retrospective analysis on control interventions and superspreading events",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Jung",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Journal of Theoretical Biology",
+            "volume": "408",
+            "issn": "",
+            "pages": "118--126",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Sensitivity of Model-based epidemiological parameter estimation to model assumptions",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lloyd",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mathematical and statistical estimation approaches in epidemiology",
+            "volume": "",
+            "issn": "",
+            "pages": "123--141",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "The effective reproduction number as a prelude to statistical estimation of time-dependent epidemic trends",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mathematical and statistical estimation approaches in epidemiology (pp. 103e121)",
+            "volume": "76",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Using phenomenological models for forecasting the 2015 Ebola challenge",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Pell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Epidemics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Numerical non-identifiability regions of the minimal model of glucose kinetics: Superiority of bayesian estimation",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Pillonetto",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sparacino",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cobelli",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Mathematical Biosciences",
+            "volume": "184",
+            "issn": "1",
+            "pages": "53--67",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Using Bayesian model averaging to calibrate forecast ensembles",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Raftery",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Monthly Weather Review",
+            "volume": "133",
+            "issn": "5",
+            "pages": "1155--1174",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Structural and practical identifiability analysis of partially observed dynamical models by exploiting the profile likelihood",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Raue",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Bioinformatics",
+            "volume": "25",
+            "issn": "15",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "The geographic spread of infectious diseases: Models and applications",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Richards",
+                    "suffix": ""
+                }
+            ],
+            "year": 1959,
+            "venue": "Journal of Experimental Botany",
+            "volume": "10",
+            "issn": "2",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "A primer on stable parameter estimation and forecasting in epidemiology by a problem-oriented regularized least squares algorithm",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Smirnova",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Infectious Disease Modeling",
+            "volume": "2",
+            "issn": "2",
+            "pages": "268--275",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Nonlinear dynamics and chaos: with applications to physics, biology, chemistry, and engineering",
+            "authors": [
+                {
+                    "first": "Steven",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Strogatz",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E J"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1976,
+            "venue": "Mathematical Biosciences",
+            "volume": "29",
+            "issn": "3e4",
+            "pages": "367--373",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A generalized-growth model to characterize the early ascending phase of infectious disease outbreaks",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Viboud",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Simonsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Epidemics",
+            "volume": "15",
+            "issn": "",
+            "pages": "27--37",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "How generation intervals shape the relationship between growth rates and reproductive numbers",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proceedings of the Royal Society B: Biological Sciences",
+            "volume": "274",
+            "issn": "",
+            "pages": "599--604",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Richards model revisited: Validation by and application to infection dynamics",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Journal of Theoretical Biology",
+            "volume": "313",
+            "issn": "",
+            "pages": "12--19",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "A) The best fit of the GGM model to the first 15 weeks of the Ebola epidemic in Sierra Leone. The blue circles are the weekly case series while the solid red line corresponds to the best fit of the GGM to the data. B) the random pattern of the residuals as a function of time suggest that the model provides a reasonably good fit to the early growth phase of the epidemic.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "A) The best fit of the EXPM model to the first 15 weeks of the Ebola epidemic in Sierra Leone. The blue circles are the weekly case series while the solid red line corresponds to the best fit of the EXPM to the data. B) the non-random pattern of the residuals is indicative of a systematic deviation of the model to the data.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Fits of the GGM model to the first 15 weeks of the Ebola epidemic in Sierra Leone using weighted least square nonlinear fitting where the weights of the data points are assigned according to simple exponential smoothing. The blue circles are the weekly case series while the solid, dashed, and dotted lines correspond to the best fits of the GGM to the data for various values of the parameter a.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "The parametric bootstrapping approach(Chowell et al., 2006a) generates multiple samples from the best-fit model in order to quantify the uncertainty of the parameter estimates. Briefly, we usef \u00f0t i ; b Q\u00de, the best fit of the model to the data to generate S synthetic datasets by assuming an error structure (e.g., Poisson or negative binomial). The S-simulated datasets are then given by f *1 \u00f0t j ; b Q\u00de; f * 2 \u00f0t j ; b Q\u00de; \u2026; f * s \u00f0t j ; bQ\u00de. Next, parameters are re-estimated from each of the simulated datasets to derive a new set of parameter estimates denoted by b Q i , where i \u00bc 1; 2; \u2026; S, with which we directly characterize parameter uncertainty (empirical parameter distributions), parameter correlations, and construct confidence intervals as well as generate forecasts of the system via uncertainty propagation in time.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Schematic diagram illustrates the parametric bootstrap approach for estimating parameter uncertainty (See alsoFig. 5). Each bootstrap realization is simulated by assuming a Poisson error structure (or a negative binomial error structure) where the number of new case counts for each simulated dataset is computed using the increment in the number of case counts from time t j\u00c01 to t j (i.e. F\u00f0t j ; Q\u00de \u00c0 F\u00f0t j\u00c01 ; Q\u00de) as the Poisson mean for the number of new cases observed in the t j\u00c01 to t j interval (i.e., Po\u00f0F\u00f0t j ; Q\u00de \u00c0 F\u00f0t j\u00c01 ; Q\u00de\u00de). A) Cumulative number of case counts. The solid black line corresponds to the known model solution while the red dots correspond to one simulated realization using the bootstrap approach. B) The corresponding number of new case counts (i.e., incidence) for one simulated realization.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Schematic diagrams illustrate the uncertainty around the model fit (blue lines) which is given byf \u00f0t; b Q 1 \u00de; f \u00f0t; b Q 2 \u00de; \u2026; f \u00f0t; b Q S \u00dewhere the parameter uncertainty derived from our simulation study (described in Section 7) is given by b Q i where i \u00bc 1; 2; \u2026; S). The blue circles denote the time series data.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Fitting the GGM to the first 15 weeks of the 2014-15 Ebola epidemic in Sierra Leone. Parameter estimates with quantified uncertainty generated using the methodology described in Section 7. The histograms display the empirical distributions of the parameter estimates using 200 bootstrap realizations. The bottom panel shows the fit of the GGM to the 15 weeks of the 2014-15 Ebola epidemic in Sierra Leone. The blue circles are the weekly data while the solid red line corresponds to the best fit of the GGM to the data. The blue lines correspond to 200 realizations of the epidemic curve assuming a Poisson error structure. The dashed red lines correspond to the 95% confidence bands around the best fit of the model to the data.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Correlation between b r i and b p i (where i \u00bc 1; 2; \u2026; S) derived from our parameter uncertainty method after fitting the GGM to the first 15 weeks of the Ebola epidemic in Sierra Leone.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Schematic diagram shows the uncertainty around the model fit (blue lines; calibration period) given by f \u00f0t; b Q 1 \u00de; f \u00f0t; b Q 2 \u00de; \u2026; f \u00f0t; b Q S \u00de and the corresponding uncertainty in the forecast for a time horizon of h time units (gray lines; forecasting period) given by f \u00f0t \u00fe h; b Q 1 \u00de; f \u00f0t \u00fe h; b Q 2 \u00de; \u2026; f \u00f0t \u00fe h; b Q S \u00de. The blue circles denote the time series data. The vertical dashed line separates the calibration and forecasting periods.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "10-day ahead forecasts provided by the generalized-growth model (GGM) when the model is fitted to an increasing amount of epidemic data: (A) 20, (B) 25, (C) 30, and (D) 35 epidemic days. The cyan curves correspond to the uncertainty during the model calibration period while the gray curves correspond to the ensemble of realizations for the model forecast. The mean (solid red line) and 95% CIs (dashed red lines) of the model fit are also shown. The vertical line separates the calibration and forecasting periods.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "The root mean squared errors (RMSE) during the calibration and forecasting intervals using the generalized-growth model (GGM) when the model is fitted to an increasing amount of epidemic data of the Zika epidemic in Antioquia, Colombia: 20, 25, 30, 35 epidemic days. The mean (solid red line) and 95% CIs (dashed red lines) of the RMSE derived from the ensemble curves are shown (see",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Top panels show the best fit of the SEIR model and its uncertainty to the first 16, 18, and 20 days of data of the 1918 influenza pandemic in San Francisco. The blue circles are the weekly data while the solid red line corresponds to the best fit of the GGM to the data. The light blue lines correspond to 200 realizations of the epidemic curve assuming a Poisson error structure. The dashed red lines correspond to the 95% confidence bands around the best fit of the model to the data. Bottom panels display the normalized empirical distributions of R 0 using the first 16, 18, or 20 days of the epidemic curve.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "for k \u00bc 1; 2; \u2026; S: Thus, each new observation for each simulated dataset is sampled from a Poisson distribution (denoted by Po(.)) with mean F\u00f0t j ; b Q\u00de \u00c0 F\u00f0t j\u00c01 ; b Q\u00de.5. Re-estimate parameters for each of the S-simulated realizations, which are given by b",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": ").",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "The model: SEIR modelChowell et al., 2007 described  in Section 2.2.1The data: We employ the daily series of influenza case notifications during the fall wave of the 1918 influenza pandemic in San Francisco.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "Authors acknowledge financial support from the NSF grant 1610429 and the NSF grant 1414374 as part of the joint NSF-NIH-USDA Ecology and Evolution of Infectious Diseases program; UK Biotechnology and Biological Sciences Research Council grant BB/M008894/1 and the Division of International Epidemiology and Population Studies, National Institutes of Health. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        },
+        {
+            "text": "Supplementary data related to this article can be found at http://dx.doi.org/10.1016/j.idm.2017.08.001.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix A. Supplementary data"
+        }
+    ]
+}

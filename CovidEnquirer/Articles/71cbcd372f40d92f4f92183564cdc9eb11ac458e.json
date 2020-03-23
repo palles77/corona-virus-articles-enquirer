@@ -1,0 +1,2512 @@
+{
+    "paper_id": "71cbcd372f40d92f4f92183564cdc9eb11ac458e",
+    "metadata": {
+        "title": "Constructing Markov matrices for real-time transient contaminant transport analysis for indoor environments",
+        "authors": [
+            {
+                "first": "Anthony",
+                "middle": [
+                    "D"
+                ],
+                "last": "Fontanini",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Iowa State University",
+                    "location": {
+                        "addrLine": "2100 Black Engineering",
+                        "postCode": "50010",
+                        "settlement": "Ames",
+                        "region": "IA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Umesh",
+                "middle": [],
+                "last": "Vaidya",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Iowa State University",
+                    "location": {
+                        "postCode": "2215, 50010",
+                        "settlement": "Coover, Ames",
+                        "region": "IA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Baskar",
+                "middle": [],
+                "last": "Ganapathysubramanian",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Iowa State University",
+                    "location": {
+                        "addrLine": "2100 Black Engineering",
+                        "postCode": "50010",
+                        "settlement": "Ames",
+                        "region": "IA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Predicting the movement of contaminants in the indoor environment has applications in tracking airborne infectious disease, ventilation of gaseous contaminants, and the isolation of spaces during biological attacks. Markov matrices provide a convenient way to perform contaminant transport analysis. However, no standardized method exists for calculating these matrices. A methodology based on set theory is developed for calculating contaminant transport in real-time utilizing Markov matrices from CFD flow data (or discrete flow field data). The methodology provides a rigorous yet simple strategy for determining the number and size of the Markov states, the time step associated with the Markov matrix, and calculation of individual entries of the Markov matrix. The procedure is benchmarked against scalar transport of validated airflow fields in enclosed and ventilated spaces. The approach can be applied to any general airflow field, and is shown to calculate contaminant transport over 3000 times faster than solving the corresponding scalar transport partial differential equation. This near real-time methodology allows for the development of more robust sensing and control procedures of critical care environments (clean rooms and hospital wards), small enclosed spaces (like airplane cabins) and high traffic public areas (train stations and airports).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "High indoor air quality (IAQ) is essential for safety and comfort within the indoor built environment. Poor IAQ may lead to a loss in productive work time in commercial environments, expensive mechanical systems maintenance, and even litigation [2] . Gasses (carbon dioxide, volatile organic compounds, carbon monoxide, and radon) and airborne particulates (mold, atmospheric particulate matter, and microbial contaminants) are generally known to negatively affect IAQ. Control of these contaminants is critical in healthcare environments, clean rooms, and confined spaces.",
+            "cite_spans": [
+                {
+                    "start": 245,
+                    "end": 248,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "For instance, incidence of burn wound infections remains a high-risk proposition even today when the burn area covers a substantial portion of the patient's body. Controlling airborne contamination is of major importance in these cases. The susceptibility of patients is partially due to infections (from the large amount of exposed area) and the unique environmental conditions (the required elevated temperatures and humidity in the patient room) that such rooms operate under. Furthermore, the biological quality of air in hospital environments is of particular concern as patients may serve as a source of pathogenic microorganism to staff and hospital visitors in addition to other admitted patients. A classic example of this problem is the tuberculosis outbreak in 2000 [25] .",
+            "cite_spans": [
+                {
+                    "start": 777,
+                    "end": 781,
+                    "text": "[25]",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Outside of healthcare facilities, confined spaces are also susceptible to the transmission of infectious diseases. Public transportation (especially aircraft and underground subway systems), schools classrooms, and close office quarters provide an environment where a single infected individual can potentially infect a large number of people. Examples include the spread of influenza [26] and severe acute respiratory syndrome (SARS) [30] that have been reported in aircraft travel. Other examples include the gas attack on the Tokyo subway system in 1995 [31] , and the measles outbreak in office spaces in 1985 [7] . In US schools, students miss approximately 38 million school days each year due to the influenza virus [8] .",
+            "cite_spans": [
+                {
+                    "start": 385,
+                    "end": 389,
+                    "text": "[26]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 435,
+                    "end": 439,
+                    "text": "[30]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 557,
+                    "end": 561,
+                    "text": "[31]",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 614,
+                    "end": 617,
+                    "text": "[7]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 723,
+                    "end": 726,
+                    "text": "[8]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Motivated by these issues, it is clear that methods for prediction and control of these contaminants in indoor environments are needed. In this context, Computational Fluid Dynamics (CFD) simulations have been used extensively for determining airflow in indoor environments. The earliest reference to CFD being used for this purpose was the study of the velocity characteristics of ventilated rooms by P.V. Nielsen et al., in 1978 [27] . Since then the popularity of running CFD simulations for predicting air flow in indoor spaces has increased rapidly. ASHRAE has taken efforts to standardize CFD simulation procedures, i.e. to setup, simulate, and perform both verification and validation [1] . CFD simulations have also been integrated into building simulation programs like Ener-gyPlus [37] and ESP-r [16] for establishing boundary conditions of buoyancy based fluid flow. CFD flow fields have also been used for developing methods for scalar-transport in indoor environments. Validation for multi-zone CFD simulations with contaminant transport has been performed by building researchers [35, 40] . Other validations of scalar contaminant transport has been performed for ventilation efficiency [3] , personal ventilation [22] , occupant exposure [23] and dispersion [21] of toxic contaminants, and dispersion of contaminants in hospital wards [15] . The application of contaminant dispersion in the indoor environment applied to emergency situations was investigated by L. Wang et al. [41] . Many other application of contaminant transport in the indoor environment can also be found in scientific literature. A few examples include identification of sources using an inverse CFD approach [44] , removal of contaminants using different ventilation strategies [17] , and contaminant transport in an airliner by moving bodies [32] .",
+            "cite_spans": [
+                {
+                    "start": 407,
+                    "end": 435,
+                    "text": "Nielsen et al., in 1978 [27]",
+                    "ref_id": null
+                },
+                {
+                    "start": 692,
+                    "end": 695,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 791,
+                    "end": 795,
+                    "text": "[37]",
+                    "ref_id": null
+                },
+                {
+                    "start": 806,
+                    "end": 810,
+                    "text": "[16]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1094,
+                    "end": 1098,
+                    "text": "[35,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 1099,
+                    "end": 1102,
+                    "text": "40]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 1201,
+                    "end": 1204,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1228,
+                    "end": 1232,
+                    "text": "[22]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1253,
+                    "end": 1257,
+                    "text": "[23]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1273,
+                    "end": 1277,
+                    "text": "[21]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1350,
+                    "end": 1354,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1492,
+                    "end": 1496,
+                    "text": "[41]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 1696,
+                    "end": 1700,
+                    "text": "[44]",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1766,
+                    "end": 1770,
+                    "text": "[17]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 1831,
+                    "end": 1835,
+                    "text": "[32]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In the previous discussed work, contaminant transport simulations by solving the scalar transport equations have been shown to produce accurate results, but many limitations exist to utilizing these methods for real-time prediction and control of indoor environments. Solving the scalar transport equations involves loading a potentially large CFD data and mesh into a computer's memory, and then solving a partial differential equation (PDE) for the transient contaminant transport. Buildings with a complex geometry could require specialized hardware simply to load the CFD data and mesh into memory. Specialized software packages or commercial software may also be needed to perform the transient contaminant transport simulation. The computational time and memory requirements are too much for wireless sensors designed for a long battery life to manage for real-time decisions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "There have been some promising advances that enable simulating fluid behavior in real time. These include Fast fluid dynamics, lattice Boltzmann methods, and Markov methods. Fast fluid dynamics (FFD) [36] uses a set of low order schemes and a semilagrangian approach for advection to reduce computing cost. Comparisons of FFD and CFD along with implementation of FFD on graphical hardware with promising results have been recently accomplished by Zuo et al. [45, 46] . The lattice Boltzmann method uses kinetic theory to incorporate physics of micro/mesoscopic processes on the behavior macroscopic modules [9] . Lattice Boltzmann methods have been popular due to their ability for parallelization and implementation on graphical processing units (GPU)s [4, 42] . The third alternative is Markov matrices methods that are the focus of the current work.",
+            "cite_spans": [
+                {
+                    "start": 200,
+                    "end": 204,
+                    "text": "[36]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 458,
+                    "end": 462,
+                    "text": "[45,",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 463,
+                    "end": 466,
+                    "text": "46]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 607,
+                    "end": 610,
+                    "text": "[9]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 754,
+                    "end": 757,
+                    "text": "[4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 758,
+                    "end": 761,
+                    "text": "42]",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Markov matrices provide an efficient and elegant approach to modeling the contaminant transport problem. This was explored in the recent seminal work by Chen and co-workers for CFD data [10, 11] and Nicas for a multi-zone model [20] . These methodologies use either Lagrangian particle tracking or a contaminant flux to calculate entries of the Markov matrix. The Markov matrix is used to propagate concentrations of contaminants through time. The simulation results using the Markov method compared well with experiments and CFD simulations [10, 11] . The Markov method is extremely fast compared to Eulerian transport, as only a single matrix-vector multiplication is needed to perform the transient contaminant transport. Due to the speed of this method, real-time inference of the contaminant field can be performed. Furthermore, by utilizing sparse matrix storage this method drastically reduces the memory requirements needed to perform the analysis.",
+            "cite_spans": [
+                {
+                    "start": 186,
+                    "end": 190,
+                    "text": "[10,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 191,
+                    "end": 194,
+                    "text": "11]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 228,
+                    "end": 232,
+                    "text": "[20]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 542,
+                    "end": 546,
+                    "text": "[10,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 547,
+                    "end": 550,
+                    "text": "11]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Analyzing the transport of contaminants using Markov matrices has some additional benefits over other fast simulation techniques. Not only can Markov matrices be used for forward propagation of contaminants, but they can also be used for inferring the positions of the contaminants at previous times. The Markov matrix can be used to develop systematic optimization-based procedure for the optimal locations of actuators and sensors for the sensing and control of contaminants [34, 39] . Furthermore, the linear property of a Markov matrix can also be used to develop a systematic procedure using linear system theory for the optimal control and estimation of contaminant [33, 38] . Besides control and estimation applications, the spectral properties of the Markov matrix provides information about the long-term concentration profiles of contaminants in the space and the amount of time contaminants stay at a given position. Thus, utilization of the Markov matrix for flow field analysis and contaminant transport can be used to get more insight than the standard scalar transport methodology. An approach dual to the Markov approach using finite dimension approximation of Koopman operator is proposed by M. Georgescu et al. [14] for reducing order modeling in building system.",
+            "cite_spans": [
+                {
+                    "start": 477,
+                    "end": 481,
+                    "text": "[34,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 482,
+                    "end": 485,
+                    "text": "39]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 672,
+                    "end": 676,
+                    "text": "[33,",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 677,
+                    "end": 680,
+                    "text": "38]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 1229,
+                    "end": 1233,
+                    "text": "[14]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "While the Markov method is very promising, some aspects of the procedure to calculate the Markov matrix are still unclear. The Markov matrix is based on a time step that allows scalar density evolution in a flow field, Fig. 1 . While previous work Chen et al. [10] emphasizes the importance of the time step, Dt, associated with the Markov matrix, there are no rigorous rules available for determining this time step. Other open parameters are the size of the Markov states, h in Fig. 1 , and the number of streamlines needed to construct an accurate Markov matrix. Establishing guidelines for determining these parameters can help bring the utility of Markov matrices closer to practice. A standard methodology will provide engineers and researchers an enabling framework for real-time prediction of transient contaminant transport in indoor environments.",
+            "cite_spans": [
+                {
+                    "start": 260,
+                    "end": 264,
+                    "text": "[10]",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 219,
+                    "end": 225,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 480,
+                    "end": 486,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper, we develop a rigorous framework for estimating the parameters involved in the construction of the Markov matrix from CFD data. We present a data driven approach to determine the size of the Markov states. We then give simple formulas that provide bounds for the time step associated with the Markov matrix, Fig. 1 . Motion of a particle and a discrete volume in an airflow field. and the ideal time step based on the flow field and Markov state discretization. A set theory approach is utilized to calculate the entries of the Markov matrix that satisfies the contaminant flux from one state to another. We also provide a method for determining the number of particle traces used in the set theory approach to calculate accurate Markov matrices. Finally we present a flow chart that clearly describes the inputs, the calculation procedure of the Markov matrix, and steps for performing contaminant transport. The results of this paper better define the methodology for using Markov matrices for real-time prediction of transient scalar transport. This methodology opens the door for real-time control, sensing of contaminants, and source identification effecting air quality of indoor environments.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 322,
+                    "end": 328,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "While the developed methodology is generic and can be applied to any arbitrary flow field, we utilize two example flow fields to illustrate the methodology. The two flow fields are the Ray-leigheB ernard convective instability problem and the IEA annex 20 isothermal problem [19] initially examined by P.V. Nielsen et al., in 1978 [27] . The two flow fields were chosen because one (the Rayleigh-Bernard problem) describes a fluid flow that is driven predominately by buoyancy forces, and the other (the IEA-annex-20 problem) is predominately driven by inertial forces. These two choices represent the relative extremes of flow fields seen in indoor environments, from laminar buoyancy driven flow to turbulent inertial driven flow. Details of each flow field are discussed separately in the next sub-sections.",
+            "cite_spans": [
+                {
+                    "start": 275,
+                    "end": 279,
+                    "text": "[19]",
+                    "ref_id": null
+                },
+                {
+                    "start": 307,
+                    "end": 335,
+                    "text": "Nielsen et al., in 1978 [27]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Example flow fields"
+        },
+        {
+            "text": "The RayleigheB ernard convective instability problem consists of an enclosed cavity, Fig. 2 . The bottom boundary is heated, the top boundary is cooled, and the two side boundaries are perfectly insulated. The boundaries cause the fluid near the top boundary to fall and the fluid near the bottom boundary to rise. The resulting steady flow field is two counter rotating convective cells, Fig. 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 85,
+                    "end": 91,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 389,
+                    "end": 395,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "RayleigheB enard convective instability problem"
+        },
+        {
+            "text": "The flow field was simulated using a CFD simulation with a domain discretization of 100 uniform cells in the x-direction, and uniform 50cells in the y-direction. Governing equations solved on the domain were the laminar incompressible form of the NaviereStokes and energy equations. Buoyancy was introduced using the Boussinesq approximation for density. The Rayleigh number, Ra, for this flow field is 4840. The governing equations were solved to a residual tolerance of 1e-6 for all the solution variables. Although not shown here, validation of the fluid flow model was performed for the Nusselt number on the boundaries for a cavity with an aspect ratio 1 length to 1 height. The Nusselt number for laminar flow (10 3 Ra 10 5 ) agreed with the empirical correlation developed by G. Barakos et al. [5] .",
+            "cite_spans": [
+                {
+                    "start": 801,
+                    "end": 804,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "RayleigheB enard convective instability problem"
+        },
+        {
+            "text": "The IEA-annex-20 problem is a ventilated cavity with the inlet on the top section of the left wall and an outlet on the lower right wall. The dimensions of the inlet and outlet relative to the height are l inlet /H \u00bc 0.056 and l outlet /H \u00bc 0.16 respectively. The air at the inlet stays along the ceiling until the air reaches the far right wall. The air in the ventilated space creates one large recirculation zone.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "IEA annex 20-2D isothermal benchmark"
+        },
+        {
+            "text": "The flow field was also simulated using a CFD simulation. The domain was discretized into 112 non-uniform cells in the x-direction, and 40 non-uniform cells in the y-direction, Fig. 3 . The governing equations solved on the domain were the incompressible form of the Reynolds averaged NaviereStokes (RANS) equations. The turbulence model chosen was the two-equation RNG k-\u03b5 model. The Reynolds number is 5000 based on the inlet dimension for the characteristic length. The governing equations were solved to a residual tolerance of 1e-6 for all the solution variables. Solutions of the flow field were compared according to the quantities specified by the benchmark (U-velocity at x/H \u00bc 1 and 2, and y/ H \u00bc l inlet /2 and H\u00c0l inlet /2). Although not shown here, data produced ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 177,
+                    "end": 183,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "IEA annex 20-2D isothermal benchmark"
+        },
+        {
+            "text": "The flow fields used are based on benchmark CFD problems with a lot of supporting literature. The flow fields are steady state flow fields calculated on structured (uniform for case 1, nonuniform for case 2) CFD meshes. Although the flow fields are steady state, the methodology developed in this paper is trivially extended to transient flow fields. This paper explains how to construct a single Markov matrix from a single flow field. In a transient flow field, the same process is used to construct a Markov matrix corresponding to each snapshot of the transient flow field. We emphasize that the methodology is very general and can be used on both structured and unstructured CFD meshes for arbitrarily complicated geometries.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion of the example flow fields"
+        },
+        {
+            "text": "In order to predict the motion of contaminants in indoor environments, the movement of a particle or a discrete volume of the contaminant is tracked through time, Fig. 1 . Given the current position of a particle in an airflow field, the particle will move according to the air velocity at its current position. The underlying airflow field governs the motion of a contaminant at each time instant.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 163,
+                    "end": 169,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "Any indoor environment can be discretized into a set of cells Fig. 4 . We also refer to these cells as states. If only one particle is placed at the center of the state the particle represents the entire volume of the state (state 3, 6, and 7 in Fig. 4 ). Then by tracking each particle for a period of time, Dt, both the starting state and destination state are easily determined. Since there is only one particle per cell, the transition is binary. Depending on whether the particle has left the state, the state either experiences a transition or remains in the initial state. In this case state 3 transitioned to state 6, state 6 stayed in the initial state, and state 7 transitioned to state 9. The result of these transitions are expressed in a transition matrix, P ij , Equation (1), where P ij denotes the probability of a particle placed in state i to transition to state j. In this example the entries of the transition matrix would be P (3, 6) \u00bc 1, P (6, 6) \u00bc 1, and P (7, 9) \u00bc 1 for initial states 3, 6, and 7 respectively. If a set of particles are uniformly placed in a state, each particle represents a fraction of the volume of the state, see state in 1 in Thus, the transitions for state 1 become probabilistic. In this example state 1 transitions with a probability of P(1,:) \u00bc [2/9, 1/9, 0, 2/9, 2/9, 0, 1/9, 1/9, 0] for each state 1 through 9. This process can be repeated for each state in the indoor environment. Since the transitions for a given state are probabilistic, the matrix in Equation (1) also has the following properties. All entries of the matrix, P, are positive (Equation (2)) and the row sum of the matrix is equal to one (Equation (3)), i.e. row stochastic. A matrix with these properties is called a Markov matrix. The entries of the Markov matrix are often fairly sparse or limited to a relatively small bandwidth. In order to minimize the memory requirements for the Markov matrix, a sparse matrix format is used. In sparse matrix format only the nonzero entries are stored, thus minimizing the memory used to store the Markov matrix.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 62,
+                    "end": 68,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 246,
+                    "end": 252,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "(1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "The underlying flow field that governs the motion of the particles or contaminants is based on the passive scalar equations for contaminants less than 3 mm. For larger airborne particles more complicated particle transport models can be utilized [10] . Traditionally, scalar transport in an Eulerian frame is performed by solving an advection diffusion partial differential equation (PDE), Equation (4) . The solution process involves iteratively solving a linear system of equations at each time step. The solution of Equation (4) is often fairly computationally expensive in the context of performing the calculations in real-time.",
+            "cite_spans": [
+                {
+                    "start": 246,
+                    "end": 250,
+                    "text": "[10]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 399,
+                    "end": 402,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "In contrast to solving Equation (4), transient scalar transport utilizing Markov matrices is fairly easy to calculate. The Markov matrix, P, serves as a finite dimensional approximation of the advection-diffusion partial differential equation on the finite partition of the Markov state. Let m t \u00bc \u00f0m 1 t ; \u2026; m n t \u00de T 2\u211d n be the discretization of the contaminant density function 4(x, y, z, t), Equation (5). m k t is the averaged cell value of the containment in the Markov cell u k at time t, and is mathematically written as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "The evolution of m t is governed by following linear system, Equation (6). The process of evolving the contaminant only consists of a single matrix vector multiplication operation.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "We compare the difference between the solving the advection diffusion equation and the Markov method. The difference between the methods is quantified by the L 2 Euclidean error, Equation (7). ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "Based on these mathematical preliminaries, the construction of Markov matrices requires insight into three main questions: How to choose the number of Markov states (or Markov state size, h)? How to choose the time step associated with the Markov matrix, Dt? And, given these two answers, how to accurately calculate entries of the Markov matrix by discretizing each state into a finite number of particles, n pts ? In the following sections, each question is addressed individually, and we develop easy to use formulae to estimate these for a general flow field.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mathematics of Markov matrices and scalar transport"
+        },
+        {
+            "text": "Choosing number of states is a balance between accuracy and computational efficiency. If the number of states is too small, the coarse Markov matrix will smooth out characteristics of the airflow field. If the number of states is too large, the computational time to compute (and use) the Markov matrix increases. As the number of states increase, the computational effort to propagate the contaminant a single time step becomes larger. As the simulation time increases, the ability to run real-time prediction of the contaminant transport may be compromised. Therefore, it is necessary to choose an optimal number of states that balances both speed and accuracy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Determining the number of Markov states"
+        },
+        {
+            "text": "For very coarse approximations of the underlying air flow field, the distribution of air speeds in the space is very poor. See, for example, the 04 \u00c2 08 distribution compared to the 64 \u00c2 32 distribution in Fig. 5 . As the number of cells increases different velocity scales of the air flow field become resolved. As this occurs, the distribution of the air speeds in the space starts to converge. See, for example, the 32 \u00c2 16 distribution and the 64 \u00c2 32 distribution in Fig. 5 . Using this concept of the standard deviation, Equation (8), of the air speeds resolved by the Markov matrix should provide insight to when the spatial scales of the problem have been resolved. The change in the standard deviation as the size of the Markov states decreases can be quantified by a simple expression, Equation (9) . The refining of the Markov cells continues until the \u03b5 std drops below some tolerance. Based on the experience of the authors, a value of 1% seems to be sufficient for these problems. Larger or smaller values of the air speed standard deviation may be sufficient for other problems. We observe more numerical diffusion with larger thresholds of air speed standard deviations and lower numerical diffusion with smaller thresholds of air speed standard deviation. ",
+            "cite_spans": [
+                {
+                    "start": 805,
+                    "end": 808,
+                    "text": "(9)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 206,
+                    "end": 212,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 472,
+                    "end": 478,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Determining the number of Markov states"
+        },
+        {
+            "text": "The maximum number of states is bounded by the number of cells in the CFD data or the experimental flow field (for uniformly discretized data). For unstructured meshes the size of the Markov states is bounded by the smallest element in the CFD mesh. As the size of the Markov states reaches the size of the data of the underlying flow field, the Markov matrix resolves all the same scales of the data. If the size of the Markov states is decreased further, the air speeds produced for the Markov cells are interpolated from the underlying data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Determining the number of Markov states"
+        },
+        {
+            "text": "The time associated with the Markov matrix is a crucial parameter for contaminant transport. If the time step is too small, there may not have enough time for a particle to leave the state, see state 6 in Fig. 4 . The states that have not transitioned are called absorbed states; because once the contaminant enters the state the contaminant cannot leave that state. If the time step is too long, then the particle may jump over a neighboring state to another, see state 7 in Fig. 4 . These cases result in information loss when calculating the Markov matrix. Alternatively, for accurate contaminant transport the Markov time step should be chosen such that the number of particles that have transitioned to neighboring cells is maximized.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 205,
+                    "end": 211,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 476,
+                    "end": 482,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "These concepts are explored for a given flow field by placing a particle at the center of the Markov state like state 3, 6, and 7 in Fig. 4 . These particles are tracked to see when they transition from their initial state to their nearest neighbors, and from their nearest neighbors to other cells. The nearest neighbors are cells that are directly connected to the initial state. For example the nearest neighbors of cell 3 in Fig. 4 are states 2, 6, and 5. The nearest neighbors of state 2 in Fig. 4 are states 1, 5, 3, 4, and 6. The nearest neighbors of state 5 in Fig. 4 are all the state 1 through 9.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 133,
+                    "end": 139,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 429,
+                    "end": 435,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 496,
+                    "end": 502,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 569,
+                    "end": 575,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "If the time step is extremely small, all the states are absorbed states. At some minimum time, one particle will leave the starting cell. This time, Dt min , is the minimum time step that can be used for the Markov matrix. The minimum time is related to half the size of the Markov state divided by the largest air speed, Equation (10). This departure from a fully absorbed Markov matrix is displayed in Fig. 6 . As the time step is increased from Dt min , more and more particles transition into their nearest neighbor and the number of absorbed states continue to drop, Fig. 6 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 404,
+                    "end": 410,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 572,
+                    "end": 578,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "Initially as the number of absorbed states drop, the number of cells that have transitioned to its nearest neighbor starts to increase as more particles leave their initial state, Fig. 6 . At some choice of ideal time step, Dt ideal , the number of particles in their nearest neighbors peaks before the particles transition to states that are further away (like state 7 in Fig. 4) . The total distance a particle needs to move to leave the neighboring state is l max \u00bc h/2\u00feh \u00bc 3/2h. But considering the spread in air speeds possible in the domain, one half of this maximum distance is used as an average l ave \u00bc l max / 2 \u00bc 3/4h.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 180,
+                    "end": 186,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 373,
+                    "end": 380,
+                    "text": "Fig. 4)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "As the choice of the time step is further increased, particles start to transition out of their nearest neighbors and into the rest of the domain. The percentage of particles in their nearest neighbors may not decrease to 0 but to some small tolerance \u03b5 tol , Fig. 6 2 The time at which n nei [t>Dt ideal ]/n drops below \u03b5 tol is the maximum time step that can be used for the Markov matrix. In order to calculate the maximum time step a characteristic air speed and length are needed. The characteristic air speed is the \u03b5 tol \u00c2 100 percentile of the average air speeds in the Markov states, Equations (12)e(14) [29] . The \u03b5 tol \u00c2 100 percentile air speed is calculated by determining the indices a and a \u00fe 1 in an ordered list of average air speeds of the Markov states with an interpolation weight b between the two indices.",
+            "cite_spans": [
+                {
+                    "start": 613,
+                    "end": 617,
+                    "text": "[29]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 260,
+                    "end": 268,
+                    "text": "Fig. 6 2",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "a \u00bc b\u03b5 tol \u00f0n \u00c0 1\u00de \u00fe 1c (12) b \u00bc a \u00c0 \u03b5 tol \u00f0n \u00c0 1\u00de \u00fe 1 (13)",
+            "cite_spans": [
+                {
+                    "start": 24,
+                    "end": 28,
+                    "text": "(12)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "The characteristic length is the maximum distance the particles need to travel, l max . The maximum time step for the Markov matrix is expressed in Equation (15).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "Equation (10) and Equation (15) ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Determining the time step for the Markov transition matrix"
+        },
+        {
+            "text": "Set theory based numerical methods have been developed for the construction of Markov matrices or more generally for the finite dimensional approximation of linear transfer PerroneFrobenius operators [12, 13] . We leverage these ideas to develop a systematic data-driven method for the construction of the Markov matrix from CFD data. Each state of the Markov matrix represents a discrete element area in 2D or volume in 3D. Fig. 7 Fig. 7. Fig. 7 shows how the area of transformed state 11 is intersected with the states 11, 12, 19, and 20. The percent of the area or volume found in each state with respect to new transformed area or volume provides the information necessary to assign values to the Markov matrix. Since the transformed element initiated from state 11, Fig. 7 , the row of the Markov matrix being filled is row 11. Approximately 43% of the area of the transformed state ended up in state 19. Therefore the Markov entry row 11 and column 19 is 0.43 (P(11,19) \u00bc 0.43). Following this process, the other entries in row 11 of the Markov matrix in the example displayed by Fig. 7 are P(11,11) \u00bc 0.16, P(11,12) \u00bc 0.18, and P(11,20) \u00bc 0.23 for the ending states 11, 12, and 20 respectively.",
+            "cite_spans": [
+                {
+                    "start": 200,
+                    "end": 204,
+                    "text": "[12,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 205,
+                    "end": 208,
+                    "text": "13]",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 425,
+                    "end": 431,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 432,
+                    "end": 446,
+                    "text": "Fig. 7. Fig. 7",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 771,
+                    "end": 777,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 1086,
+                    "end": 1092,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "Set theory approach for calculation of Markov matrices"
+        },
+        {
+            "text": "A key question in this set based concept is the estimation of the discretization of each cell. To estimate the number of particles needed to discretize each state, we utilize the deformation of the fluid field, the velocity gradient tensor, Equation (16) . The deformation of the fluid flow encodes the possible transformations that elements can experience (translation, shear, rotation, dilation, or any combination of the previous transformations), Fig. 7 ",
+            "cite_spans": [
+                {
+                    "start": 250,
+                    "end": 254,
+                    "text": "(16)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 451,
+                    "end": 457,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "displays the"
+        },
+        {
+            "text": "The elements that transform the most are those that experience the most deformation. Thus, to provide a measure for the total amount of deformation experienced by each element, the L 1 norm of the velocity gradient is calculated for each Markov state, Equation (17) .",
+            "cite_spans": [
+                {
+                    "start": 261,
+                    "end": 265,
+                    "text": "(17)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "displays the"
+        },
+        {
+            "text": "This allows the identification of the element undergoing the maximum deformation. Then, the number of points used to discretize the boundary of each element is based on the number of points required to discretize the most deformed element. This element is initially discretized with 2 points per edge and then evolved through the previously chosen time step. The number of points per edge is then incrementally increased until the area or volume of the transformed cell converges to within a given tolerance, Equation (18).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "displays the"
+        },
+        {
+            "text": "By multiplying the error times the number of states, the numerical error for the Markov matrix is bounded by the tolerance \u03b5 npts .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "displays the"
+        },
+        {
+            "text": "A flow chart detailing the entire procedure from inputs to transient contaminant transport is provided in Fig. 8 . The major steps in the procedure are numbered 1 to 6.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 106,
+                    "end": 112,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Flow chart"
+        },
+        {
+            "text": "Step 1 provides the inputs necessary for the analysis and where the inputs are used to construct the Markov matrix. Steps 2, 3, and 4 describe how to calculate the parameters for the Markov matrix.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Flow chart"
+        },
+        {
+            "text": "Step 5 is responsible for the calculation of the Markov matrix.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Flow chart"
+        },
+        {
+            "text": "Step 6 details the transient contaminant transport calculation.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Flow chart"
+        },
+        {
+            "text": "The number of states in the Markov matrix is based on the convergence of the standard deviation of the air speed in each Markov state. For six different sizes of the Markov states the (nondimensional) air speed standard deviation is plotted for both the Rayleigh-B enard and the IEA-annex 20 problems, Fig. 9(a) . The standard deviation of the non-dimensional air speed increases as the cell size decreases for both example problems. Once the airflow structures are reasonably resolved, the rate of increase of the nondimensional air speed standard deviation asymptotically converges.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 302,
+                    "end": 311,
+                    "text": "Fig. 9(a)",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Choosing the number of states"
+        },
+        {
+            "text": "The convergence of the non-dimensional air speed standard deviation can be seen in Fig. 9(b) . As size of the Markov states decrease, the absolute difference (L 1 error) between the previous resolution (i-1) and the current resolution (i) decreases. Fig. 9 (b) shows that for values of H/h \u00bc 32 for both the Rayleigh-B enard and IEA annex 20 problem, the non-dimensional air speed standard deviation converges below the desired tolerance of 1%. This value of H/h corresponds to a Markov state discretization of 64 \u00c2 32 cells for the RayleigheB enard problem, and 96 \u00c2 32 cells for the IEA annex 20 problem. The Markov state discretizations of both domains can be seen in Fig. 10 . Total number of states for the RayleigheB enard problem is 2,048, and for the IEA annex 20 problem the number of states is 3072.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 83,
+                    "end": 92,
+                    "text": "Fig. 9(b)",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 250,
+                    "end": 256,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 671,
+                    "end": 678,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF10"
+                }
+            ],
+            "section": "Choosing the number of states"
+        },
+        {
+            "text": "Now that the discretization of the Markov states has been evaluated, the time step associated with the Markov matrix can be calculated. Initially a particle is generated at the center of each Markov state. The paths of the particles are tracked through time. For each discrete time instant the number of absorbed states, Fig. 11 , and the number of states that have transitioned to their nearest neighbors, Fig. 12 , are counted. Initially, the results show that all the Markov states are absorbed states, but as the time step is increased the particles start to leave their initial Markov state, Fig. 11 . The noisy section at the end of the Rayleigh-B enard absorbed state plot is due to eventual recirculation of the particles back into their initial state, Fig. 11(a) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 321,
+                    "end": 328,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF11"
+                },
+                {
+                    "start": 407,
+                    "end": 414,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 597,
+                    "end": 604,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF11"
+                },
+                {
+                    "start": 761,
+                    "end": 771,
+                    "text": "Fig. 11(a)",
+                    "ref_id": "FIGREF11"
+                }
+            ],
+            "section": "Choosing the Markov time step"
+        },
+        {
+            "text": "Once the particles start to leave their initial states, the particles enter to one of their nearest neighbors, Fig. 12 . The peak of the curves (Fig. 12 ) maximizes the number of the particles in their neighboring states, which corresponds to the ideal time step for the Markov matrix. After the peak, a number of particles start to leave the neighboring states into other states in the domain. Once again for the Rayleigh-B enard problem the noise is due to the states returning to their nearest neighbors after a long time step. The absorbed state curves and the nearest neighbor curves in Figs. 11 and 12 are clearly a function of the Markov state size. As the Markov state size is decreased each of the cures are shifted to the left. Therefore as the Markov state size is decreased, the time steps chosen should also decrease. Also notice that for very large (coarse discretization) Markov state sizes the curves seem to have discontinuous jumps. As the number of states are increased by reducing the size of the states, the curves become smoother. This relationship shows that very coarse Markov states may have an unsatisfactory performance.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 111,
+                    "end": 118,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 144,
+                    "end": 152,
+                    "text": "(Fig. 12",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Choosing the Markov time step"
+        },
+        {
+            "text": "Comparison of the data-driven choice of time step with the proposed heuristic equations: Based on the curves in Figs. 11 and 12, the minimum, ideal, and maximum time step for the Markov matrices were computed for each Markov size. These data are plotted in Fig. 13 , and labeled as \"Data.\" The tolerance chosen for the maximum time step was 0.2 and 0.07 for the Rayleigh-B enard and the IEA annex 20 problems respectively. The result of Equations (10), (11) and (15) for are plotted in Fig. 13 , and are labeled \"Mesh.\" The equations compare very well for the minimum, ideal, and maximum time steps calculated by particle tracking. Therefore, the equations provide fairly accurate approximations to the Markov time step. Since the equations based strictly on the Markov state size and the flow field, the time step chosen for the Markov matrix can be calculated as a pre-processing step. Using the discretization recommendations in the previous section, the time steps, Dt U max / H, for the Rayleigh-B enard and the IEA annex 20 problem are 0.0736 and 0.1199 respectively.",
+            "cite_spans": [
+                {
+                    "start": 453,
+                    "end": 457,
+                    "text": "(11)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 462,
+                    "end": 466,
+                    "text": "(15)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 257,
+                    "end": 264,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 486,
+                    "end": 493,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Choosing the Markov time step"
+        },
+        {
+            "text": "The deformation metric, Equation (17) , was calculated for the RayleigheB enard and IEA annex 20 problems based on the recommended Markov state discretization in the Section 5.1. The worst cell for the RayleigheB enard problem for the chosen discretization was found to be the cell 2,004, which is the [20, 32] cell in the x and y direction. The worst cell for the IEA annex 20 problem for the chosen discretization was found to be the cell 2,983, which is the [7, 32] cell in the x and y direction. The number of points per edge of the cell that allowed the area error, Equation (18), to converge to 1% was 5 and 23 for the Rayleigh-B enard and IEA annex 20 problems, respectively. Fig. 14 shows the worst cells transformed through the chosen timestep, and the number of points needed around the edge to allow the error, Equation (18), converge to 1%. The number of points needed for the IEA annex problem is higher because the shear at the boundary for turbulent flows is much higher than the laminar flow of the RayleigheB enard problem. ",
+            "cite_spans": [
+                {
+                    "start": 33,
+                    "end": 37,
+                    "text": "(17)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 302,
+                    "end": 306,
+                    "text": "[20,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 307,
+                    "end": 310,
+                    "text": "32]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 461,
+                    "end": 464,
+                    "text": "[7,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 465,
+                    "end": 468,
+                    "text": "32]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 683,
+                    "end": 690,
+                    "text": "Fig. 14",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Choosing the number of points along the edges of each state"
+        },
+        {
+            "text": "In the previous sections, the discretization of the Markov states, the time step of the Markov matrix, and the number of points per edge were calculated. Based on this information the Markov matrix was calculated for both the RayleigheB enard and IEA annex 20 problems. To test the quality of the Markov matrices that have been calculated, a transient contaminant analysis comparison is performed between Eulerian transport, Equation (4) , and the Markov based contaminant transport, Equation (6).",
+            "cite_spans": [
+                {
+                    "start": 434,
+                    "end": 437,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparisons and error analysis"
+        },
+        {
+            "text": "A qualitative comparison for both problems can be seen in Fig. 15 for the RayleigheB enard problem and Fig. 16 for the IEA annex 20 problem. Qualitatively, the comparisons between the Eulerian transport method and the Markov method is very good for both problems. A quantitative comparison between the two methods was performed using the Euclidean error, Equation (7), Fig. 17, and Fig. 18 . The quantitative comparison was performed for the chosen Markov discretizations for each problem (H/h \u00bc 32). The concentration from scalar transport and the Markov method for the RayleigheB enard problem was compared at x/H \u00bc 0.25 and y/H \u00bc 0.5 for nondimensional time 2.01 and 4.02, Fig. 17 . For the IEA annex 20 problem the concentration was for scalar transport and the Markov method was compared at x/H \u00bc 1.0 and x/H \u00bc 2.0 for nondimensional time 6.69 and 13.38, Fig. 18 . For both Figs. 17 and 18, the Markov method compares very well with scalar transport. The largest differences are found at the boundary of the IEA annex 20 problem, which is most likely from the large amount of shear at the boundary.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 58,
+                    "end": 65,
+                    "text": "Fig. 15",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 103,
+                    "end": 110,
+                    "text": "Fig. 16",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 369,
+                    "end": 389,
+                    "text": "Fig. 17, and Fig. 18",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 676,
+                    "end": 683,
+                    "text": "Fig. 17",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 860,
+                    "end": 867,
+                    "text": "Fig. 18",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Comparisons and error analysis"
+        },
+        {
+            "text": "The relative distance between the Eulerian transport method and the Markov method was also compared at each time instant produced by the Markov method. The number of contaminant propagations taken for the Rayleigh B enard and the IEA annex 20 problems by the Markov method was 300 and 115 respectively. Overall the difference between the two methods stayed relatively small, Fig. 19 . The maximum difference between the two methods for the RayleigheB enard problem was about 16%, Fig. 19 . The maximum difference between the two methods for the IEA annex 20 problem was about 11%, Fig. 19 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 375,
+                    "end": 382,
+                    "text": "Fig. 19",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 480,
+                    "end": 487,
+                    "text": "Fig. 19",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 581,
+                    "end": 588,
+                    "text": "Fig. 19",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Comparisons and error analysis"
+        },
+        {
+            "text": "In order to ensure the Markov method for contaminant transport established in the paper produces real-time or faster than realtime estimates of the contaminant transport, the computational time to compute the contaminant transport was evaluated. Each problem was simulated for 1000 Markov time steps. The Ray-leigheB enard problem took a simulation time of t U max / H \u00bc 0.00864 to evolve the contaminant a total time of t U max / H \u00bc 54.7. The IEA annex 20 problem took a simulation time of t U max /H \u00bc 0.0315 to evolve the contaminant a total time of t U max / H \u00bc 119.8. These tests used a 1.7 GHz Intel Core i7 processor. The Markov method was able to compute the contaminant transport 6665 times faster than an optimized PDE solver for the Ray-leigheB enard problem and 3723 times faster than an optimized PDE solver for the IEA annex problem.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "6. Discussion: implications of using the Markov matrices for contaminant transport",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "As the results shown in the previous section, Markov matrices provide a fast and relatively accurate method for calculating Fig. 13 . Comparisons between the minimum, ideal, and maximum time step equations (Equations (10), (11) and (15)) and the data produced by tracking particles at the center of each Markov state. The data corresponds to the particle tracking calculations, and the mesh corresponds to the mesh based equations. placement of sensors, and performing state estimation using Markov matrices.",
+            "cite_spans": [
+                {
+                    "start": 124,
+                    "end": 131,
+                    "text": "Fig. 13",
+                    "ref_id": null
+                },
+                {
+                    "start": 223,
+                    "end": 227,
+                    "text": "(11)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "When designing an indoor airflow pattern for high IAQ, contaminants should not spend a lot of time in the occupied zone. Spectral analysis of the Markov matrix is useful to determine the long-term distribution of the contaminants and the time contaminants spend in the occupied space. In particular, the eigenvector with eigenvalue one of the Markov matrix carries information about the steady state or long-term asymptotic distribution of contaminant in the space. Similarly the other part of the spectrum of Markov matrix carry information about almost invariant region in the space where the contaminant spend most of the time before finally exiting these region [12] .",
+            "cite_spans": [
+                {
+                    "start": 666,
+                    "end": 670,
+                    "text": "[12]",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "Once the design of the airflow patterns is complete, sensors can be placed in the space to aid the HVAC system controls. The rows of the Markov matrix describe the probability of where the contaminants will go given a starting position, while the columns describe the origins of the contaminants at the previous time step. By finding the column with the maximum column support, a sensor placed in this column can sense the largest volume of the space [34] .",
+            "cite_spans": [
+                {
+                    "start": 451,
+                    "end": 455,
+                    "text": "[34]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "Given a set of sensors that have been placed in the enclosed space, the next natural step is estimation of the contaminant field in the space at any given time. Here the linear property of the Markov matrices can be exploited to develop estimation techniques using linear system theory to determine the location or release of contaminant.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "All these future directions are being explored and will be the topic of subsequent publications. We are also currently working on an open source platform to distribute to the community that will enable fast calculation of the Markov matrix, perform contaminant transport, and place the sensors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Real-time evaluation of the method"
+        },
+        {
+            "text": "This paper establishes a robust procedure for constructing accurate Markov matrices for real-time prediction of contaminant transport in enclosed spaces. This work formulates methods to determine the number and size of the Markov states, provides simple equations for the choosing the time step associated with the Markov matrix, and a procedure based on flow physics to determine the number of particles to represent the Markov elements. The methods provided in this work showed excellent agreement with the scalar transport methods well established in the field. An explicit procedure was articulated for application to other indoor airflow problems. For the two example problems the Markov method was able to predict contaminant transport at least 3000 times faster than the corresponding PDE based approach. Although the boundaries of the example problems are geometrically relatively simple, the method is naturally extended to complex boundaries, as well as to transient flow fields. The established methodology created in the paper has been applied to buoyant and inertial driven flow field. This procedure opens the door for realtime sensing and control of airborne infectious diseases, ventilation of indoor environments, and demand response and isolation during biological attacks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "How to Verify, Validate, and Report Indoor Environment Modeling CFD Analyses",
+            "authors": [
+                {
+                    "first": "Rp-1133",
+                    "middle": [],
+                    "last": "Ashrae",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Report 200-Indoor Air Quality Guide",
+            "authors": [
+                {
+                    "first": "Special",
+                    "middle": [],
+                    "last": "Ashrae",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Towards the application of indoor ventilation efficiency indices to evaluate the air quality of urban areas",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bady",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kato",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Build. Environ",
+            "volume": "43",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Accelerating lattice Boltzmann fluid flow simulations using graphics processors",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bailey",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Myre",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Walsh",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lilja",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Saar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Parallel Processing, 2009. ICPP'09. International Conference on",
+            "volume": "",
+            "issn": "",
+            "pages": "550--557",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Natural convection flow in a square cavity revisited : laminar and turbulent models with wall functions",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Barakos",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Mitsoulis",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Assimacopoulos",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Int. J. Numer. Methods Fluids",
+            "volume": "18",
+            "issn": "",
+            "pages": "695--719",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Measles outbreak in a pediatric practice: airborne transmission in an office setting",
+            "authors": [
+                {
+                    "first": ".",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Bloch",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Orenstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ewing",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Spain",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Mallison",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Herrmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hinman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Pediatrics",
+            "volume": "75",
+            "issn": "4",
+            "pages": "676--683",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Lattice Boltzmann Method for fluid flows",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Doolen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Annu. Rev. Fluid Mech",
+            "volume": "30",
+            "issn": "",
+            "pages": "329--364",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Predicting transient particle transport in enclosed environments with the combined computational fluid dynamics and Markov chain method",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Long",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Indoor Air",
+            "volume": "24",
+            "issn": "",
+            "pages": "81--92",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "A Markov chain model for predicting transient particle transport in enclosed environments",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Build. Environ",
+            "volume": "90",
+            "issn": "",
+            "pages": "30--36",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "On the approximation of complicated dynamical behavior",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Dellnitz",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Junge",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "SIAM J. Numer. Anal",
+            "volume": "36",
+            "issn": "2",
+            "pages": "491--515",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Set Oriented Numerical Methods for Dynamical Systems",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Dellnitz",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Junge",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Creating zoning approximations to building energy models using the Koopman operator",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Georgescu",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Eisenhower",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Mezic",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "IBPSA USA Sim Build",
+            "volume": "",
+            "issn": "",
+            "pages": "40--47",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Simulating pathogen transport within a naturally ventilated hospital ward",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Gilkeson",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Noakes",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Sleigh",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A I"
+                    ],
+                    "last": "Khan",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Camargo-Valero",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "World Acad. Sci. Eng. Technol",
+            "volume": "79",
+            "issn": "7",
+            "pages": "119--125",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "The Esp-r Cookbook, Strategies for Deploying Virtual Representations of the Build Environment",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Hand",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Arch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Removal of contaminants released from room surfaces by displacement and mixing ventilation: modeling and validation",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "He",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Srebric",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Indoor Air",
+            "volume": "15",
+            "issn": "",
+            "pages": "367--380",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Benchmarking of a Markov multizone model of contaminant Transport",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Nicas",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Ann. Occup. Hyg",
+            "volume": "58",
+            "issn": "",
+            "pages": "1018--1031",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Modelling the dispersion of a toxic substance at a workplace",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Kassomenos",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Karayannis",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Panagopoulos",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Karakitsios",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Petrakis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Environ. Model. Softw",
+            "volume": "23",
+            "issn": "",
+            "pages": "82--89",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Study on inhaled air quality in a personal air-conditioning environment using new scales of ventilation efficiency",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kato",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Build. Environ",
+            "volume": "43",
+            "issn": "",
+            "pages": "494--507",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Predicting worker exposuredthe effect of ventilation velocity, free-stream turbulence and thermal condition",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Yavuz",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Celik",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Guffey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J. Occup. Environ. Hyg",
+            "volume": "4",
+            "issn": "11",
+            "pages": "864--874",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Hospital ventilation and risk for tuberculosis infection in Canadian health care workers",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Menzies",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Fanning",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Yuan",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Fitzgerald",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Ann. Intern. Med",
+            "volume": "133",
+            "issn": "",
+            "pages": "779--789",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "An outbreak of infl aboard a commercial airliner",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Moser",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Bender",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Margolis",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Noble",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kendal",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ritter",
+                    "suffix": ""
+                }
+            ],
+            "year": 1979,
+            "venue": "Am. J. Epidemiol",
+            "volume": "110",
+            "issn": "",
+            "pages": "1--6",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "The velocity characteristics of ventilated rooms",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Nielsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Restivo",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Whitelaw",
+                    "suffix": ""
+                }
+            ],
+            "year": 1978,
+            "venue": "J. Fluids Eng",
+            "volume": "100",
+            "issn": "",
+            "pages": "291--298",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "NIST/SEMATECH e-Handbook of Statistical Methods",
+            "authors": [],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Transmission of the severe acute respiratory syndrome on aircraft",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Olsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H.-L",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Cheung",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Fisk",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Ooi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H.-W",
+                    "middle": [],
+                    "last": "Kuo",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": ".-S",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "K.-T",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lando",
+                    "suffix": ""
+                },
+                {
+                    "first": "K.-H",
+                    "middle": [],
+                    "last": "Hsu",
+                    "suffix": ""
+                },
+                {
+                    "first": "T.-J",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Dowell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "N. Engl. J. Med",
+            "volume": "349",
+            "issn": "",
+            "pages": "2416--2422",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Consequence management in the 1995 sarin attacks on the Japanese subway system",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Pangi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Stud. Confl. Terror",
+            "volume": "25",
+            "issn": "6",
+            "pages": "421--488",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Flow and contaminant transport in an airliner cabin induced by a moving body: model experiments and CFD predictions",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Poussou",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Mazumdar",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Plesniak",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Sojka",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Atmos. Environ",
+            "volume": "44",
+            "issn": "24",
+            "pages": "2830--2839",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Optimal stabilization using Lyapunov measure",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "U"
+                    ],
+                    "last": "Raghunathan",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vaidya",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "IEEE Trans. Autom. Control",
+            "volume": "59",
+            "issn": "5",
+            "pages": "1746--1751",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Actuator and sensor placement for control of non-equilibrium dynamics",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Sinha",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vaidya",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rajaram",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Proceedings of European Control Con-Ference",
+            "volume": "",
+            "issn": "",
+            "pages": "1083--1088",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "In-Situ experimental validation of a coupled multi-zone and CFD Model for Building contaminant transport simulations",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Srebric",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yuan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Novoselac",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "ASHRAE Trans",
+            "volume": "114",
+            "issn": "1",
+            "pages": "273--281",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Proceedings of 26th International Conference on Computer Graphics and Interactive Techniques",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Stam",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "121--128",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Lyapunov measure for almost everywhere stability",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vaidya",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Mehta",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "IEEE Trans. Autom. Control",
+            "volume": "53",
+            "issn": "1",
+            "pages": "307--323",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Actuator and sensor placement in linear advection PDE with building system application",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vaidya",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rajaram",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Dasgupta",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "J. Math. Anal. Appl",
+            "volume": "394",
+            "issn": "1",
+            "pages": "213--224",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Validation of a coupled multizone-CFD program for building airflow and contaminant transport simulations",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "HVAC&R Res",
+            "volume": "13",
+            "issn": "2",
+            "pages": "267--281",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Applications of a coupled multizone and CFD model to calculate airflow and contaminant dispersion in built environment for emergency management",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "HVAC&R Res",
+            "volume": "14",
+            "issn": "",
+            "pages": "1--21",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "An improved study of real-time fluid simulation on GPU",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Comput. Animat. Virtual Worlds",
+            "volume": "15",
+            "issn": "3-4",
+            "pages": "139--146",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Identification of contaminant sources in enclosed spaces by a single sensor",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Indoor Air",
+            "volume": "17",
+            "issn": "3",
+            "pages": "439--449",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Real time or faster-than-real-time simulation of airflow in buildings",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zuo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Indoor Air",
+            "volume": "19",
+            "issn": "1",
+            "pages": "33--44",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Fast and informative flow simulations in a building by using fast fluid dynamics model on graphics processing unit",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zuo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Build. Environ",
+            "volume": "45",
+            "issn": "",
+            "pages": "747--757",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "(a) Contour of the air speed for the RayleigheB enard problem with streamlines showing the counter rotating convection cells. (b) The temperature (q \u00bc [T \u00c0 T cold ]/ [T hot \u00c0T cold ]) distribution in the heated cavity.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "(a) Contour of the normalized air speed in the domain with streamlines showing the large recirculation zone. (b) The nonuniform discretization (112 \u00c2 40 elements) used to solve the governing equations.by the simulations agreed well with the published values[19].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "If multiple particles are used then a fraction of those particles after some time Dt may end up in different cells, see state 1 inFig. 4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Motion of a set of particles for a given time step Dt that transition to different states in the Markov matrix.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Left) average air vector in each state for three different Markov matrix resolutions for the RayleigheB enard problem. Right) the corresponding probability density functions of the air speeds represented by the Markov matrix.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "determined bounds for the time step associated with the Markov matrix, while Equation (11) describes the ideal time step for the Markov matrix. The upper bound, lower bound, and ideal time step are all based on the size of the Markov states and the underlying airflow field.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Graphical explanation of the evolution of the number of absorbed states and the number of states that have transitioned to their nearest neighbor as the time step is increased. The points where the minimum, ideal, and maximum time steps are calculated are also displayed. transformation of state 11 for a time step Dt. For this example, each boundary of state 11 is discretized into 4 segments (5 particles). These particles on the edges of the states are evolved through time according to the underlying flow field. After the transformation of the element, the entries of the Markov matrix are calculated by taking the intersection between each state and the transformed area or volume,",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "The transformation of state 11 for a timestep Dt into some of the nearest neighbors of state 11. The percentages represent the percent of the transformed area in each state.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "(a) Standard deviation of the nondimensional air speed as the size of the Markov states are changed. (b) Convergence of the standard deviation of the nondimensional air speed as the size of the Markov states are changed. The dotted line is the recommended tolerance 1% from Equation (9).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "A flow chart describing the methodology for creating accurate Markov matrices from inputs to contaminant transport.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "The chosen Markov state discretization of the RayleigheB enard and IEA annex 20 problems. The Markov state size for both domains is H/h \u00bc 32.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "The fraction of absorbed states as the Markov time step is increased for different Markov state sizes.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "The percentage of Markov states that have transitioned into their nearest neigh-bors as the Markov time step is increased for different Markov state sizes.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "The worst cells from the deformation measure, Equation (17), for the chosen discretization, dotted line. The red cell is the transformed cell through the chosen time step. The number of points on each edge are the number of points needed to allow Equation (18) to converge to 1%. (For interpretation of the references to colour in this figure legend, the reader is referred to the web version of this article.) contaminant transport in indoor environments. The methodology can be applied to complex geometries and boundaries, as well as to transient flow fields. For transient simulations, each CFD time snapshot is converted into a Markov matrix using the developed methodology and by choosing the CFD timestep as the Markov timestep. This section is dedicated to briefly discuss other indoor air applications of Markov matrices for contaminant transport analysis. The focus is specifically on the benefits of spectral analysis,",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF14": {
+            "text": "Contaminant transport comparison between the advection diffusion equation and the Markov method for the IEA annex 20 problem for a Markov discretization of H/h \u00bc 32.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF15": {
+            "text": "Contaminant transport comparison between the advection diffusion equation and the Markov method for the RayleigheB enard problem for a Markov discretization of H/ h \u00bc 32.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF16": {
+            "text": "Comparison of the concentration between the scalar transport and the Markov methods at vertical lines a) x/H \u00bc 1.0 and b) x/H \u00bc 2.0 in the domain for the IEA annex 20 problem for two different times.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF17": {
+            "text": "Comparison of the concentration between the scalar transport and the Markov methods along the a) x/H \u00bc 0.25 and the b) x/H \u00bc 2.0 lines in the domain for the Ray-leigheB enard problem for two different times.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF18": {
+            "text": "Quantitative comparison between the Eulerian transport method and the Markov method.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": ".",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank the National Science Foundation for partial support (NSF CAREER 1149365) and computing support via XSEDE (CTS110007). We also thank the Iowa Energy Center for partial support (IEC grant 14-011-OG).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Nomenclature a: number of sorted air speed values below the \u03b5 tol \u00c2 100 percentile. b: A weighting factor to calculate the \u03b5 tol \u00c2 100 air speed percentile D: diffusivity of the contaminant in the medium H: height of the domain h: the length and height of a square Markov state l inlet : the length of the inlet for the IEA annex 20 problem l min : minimum distance that a particle initially placed at the center of a Markov state needs to travel to leave the initial state l max : maximum distance that a particle initially placed at the center of a Markov state needs to travel to leave the nearest neighbor of the initial state l ave : average distance between l min and l max n: number of Markov states n abs : the number of particles that have not transitioned from their initial state n nei : the number of particles that have transitioned from their initial state to one of their nearest neighbors n pts : the number of points per edge to discretize the Markov states n steps : the number of time steps taken for a simulation Ra: the Rayleigh number x: the x-coordinate direction y: the y-coordinate direction z: the z-coordinate direction \u03b5 error : the L 2 Euclidean error between the Markov method and the CFD solution \u03b5 def : deformation measure for the velocity gradient tensor \u03b5 npts : error in the Markov matrix due to discretization of the boundaries of each transformed state \u03b5 std : the error of the air speed standard deviation between two successive refinements of the Markov state size \u03b5 tol : tolerance to limit the maximum time step associated with the Markov matrix \u03b5 vol : the desired tolerance in the volume calculation of the transformed Markov state q: nondimensional temperature for the Rayleigh-B enard Problem ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "annex"
+        }
+    ]
+}

@@ -1,0 +1,1407 @@
+{
+    "paper_id": "1760160dae6e25702c4f3ae7a56b57dbe80850d0",
+    "metadata": {
+        "title": "Face and eyes localization algorithm in thermal images for temperature measurement of the inner canthus of the eyes",
+        "authors": [
+            {
+                "first": "Sebastian",
+                "middle": [],
+                "last": "Budzan",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Silesian University of Technology",
+                    "location": {
+                        "addrLine": "Akademicka 16",
+                        "postCode": "44-100",
+                        "settlement": "Gliwice",
+                        "country": "Poland"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Roman",
+                "middle": [],
+                "last": "Wy",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Silesian University of Technology",
+                    "location": {
+                        "addrLine": "Akademicka 16",
+                        "postCode": "44-100",
+                        "settlement": "Gliwice",
+                        "country": "Poland"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "We developed algorithm for detection and localization of face and eyes in thermal images. The novelty is the modification of the RHT method. The algorithm is highly accurate and fast. The essential parameters of the IR camera were examined before experiments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "In this paper, a novel algorithm for the detection and localization of the face and eyes in thermal images is presented, particularly the temperature measurement of the human body by measuring the eye corner (inner canthus) temperature. The algorithm uses a combination of the template-matching, knowledgebased and morphological methods, particularly the modified Randomized Hough Transform (RHT) in the localization process, also growing segmentation to increase accuracy of the localization algorithm. In many solutions, the localization of the face and/or eyes is made by manual selection of the regions of the face and eyes and then the average temperature in the region is measured. The paper also discusses experimental studies and the results, which allowed the evaluation of the effectiveness of the developed algorithm. The standardization of measurement, necessary for proper temperature measurement with the use of infrared thermal imaging, are also presented.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Automated face localization is a concept, which has been actively researched form more than 35 years, while face localization in thermal images is a new concept. The developed algorithm of face and eye localization in thermal images is presented in this paper, as well as some major problems connected with face localization in thermal images. Processing facial images has a wide range of applications, such as biometric identity authentication, human-computer interaction, multimedia, access control to secure computer networks and manual or automatic screening at airports. In medicine, a face detection system with visual images, or thermal images when temperature is important, can be used to detect disease in humans and also for robust and accurate human body temperature measurement with temperature measurement of the inner canthus of the eyes. The inner canthus of the eyes are suggested for temperature measurement utilizing infrared thermal imagers [1] , as it is the warmest area of the face. In Fig. 1 the face of the human with increased core temperature is presented. Many studies have proved that face detection in a thermal spectrum offers a few distinct advantages over the visible spectrum. Thermal imagery is independent of ambient lightning, because the Infrared Radiation (IR) sensors only measure the heat emitted by the object -the human body.",
+            "cite_spans": [
+                {
+                    "start": 960,
+                    "end": 963,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1008,
+                    "end": 1014,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "Measurement of the human body core temperature with screening thermography is an alternative to traditional methods of the temperature measurement on the forehead or underarm. Face localization in thermal images is achieved by a few steps: pre-processing, acquisition, processing and temperature measurement. Pre-processing includes the standardization of the camera parameters, described later in this paper and local measurement conditions, such as ambient temperature and humidity. Also, the human body temperature must be stabilized if thermal images are acquired in a laboratory, for example, avoidance of activity and skin temperature stabilization after removing clothes. Acquisition includes only localization and taking thermal images or sets of thermal images of the examined face.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The processing step includes normalization of the face images, also localization of the face, eyes and inner canthi regions of the left and right eye using various methods. Temperature measurement includes determining the temperature in all localized and recognized regions on the face.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The developed face localization algorithm is based on local feature representation. The proposed algorithm is based on the modified Randomized Hough Transform (RHT), the face and eye verification procedure and finally, growing segmentation with morphological operations for localization of the inner canthi area.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Human face localization is one of the identification methods in biometric systems, which are based on physiological characteristics, such as face, fingerprints and iris, and also on behavioral features, for example, voice, handwritten signature or gait. Face localization is one of the most effective and non-contact methods of human detection. A survey of the relevant literature can be found in [2] which shows the results of much research on visible-spectrum imagery. The main goal of the face localization research presented in this work is to determine the localization of the face in the image and the parameters of the face, such as position and dimensions of the eye, region of the inner canthi, and maximum, minimum and average temperature in the region.",
+            "cite_spans": [
+                {
+                    "start": 397,
+                    "end": 400,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Previous work"
+        },
+        {
+            "text": "An excellent classification of the localization methods is proposed by Yang, Kriegman and Ahuya in [3] . The methods can be classified into four categories: template-matching methods [4] , knowledge-based methods [5] , feature invariant approaches [6] and appearance-based methods [7] . Many algorithms use combinations of the above methods to increase the effectiveness of face localization. Template-matching methods are based on predefined criteria or are parameterized by a function of the face pattern. In this way, the template for the eyes, nose, mouth and face can be used. The template is compared with the test image and the correlation values between these two images are computed. This approach is simple to implement, but there are many problems with variation in scale or pose. In [8] a novel approach for face localization based on the difference vector plus kernel principal component analysis is proposed. The difference vector is the difference between the original image and the common vector which is obtained by the images processed by the Gram-Schmidt orthogonalization. The result is derived from finding the minimum distance between the test difference feature vectors and the training difference feature vectors. The morphological method for face localization using fiducial points is presented in [9] . This method is independent of facial expressions. In the localization process, the fiducial points are fed as inputs into a back propagation neural network for learning and identification of a person. The human face can be recognized also by morphological shape decomposition [10, 11] , being the decomposition of an image object into a union of simple components using morphological operations, that is, erosion and dilation. In [12] a modification of the Hough transform can be found, which can deal with variations in scale or pose in a specified range. Next, are the knowledge-based methods based on the rules provided by the researcher. Put simply, a face often appears in an image with two eyes, a nose and a mouth. The distances and position are computed for selected components, for example, left and right eyes, and the relationship rule is examined. There are problems with defining the rules, because if the rule is too specific, than the face cannot pass the rule, otherwise if the rule is too general, it may give many results. Different approaches use feature-based methods, which are based on facial features and texture or skin color of the face. These algorithms are very sensitive to illumination and noise. Appearance methods are based on statistical analysis. One of the most effective methods is based on eigenfaces, in which the neural network computes a face description by approximating the eigenvectors of the image's autocorrelation matrix. Other methods have applied principal component analysis to face localization. In this method, the eigenfaces are generated from a set of training faces. Then, the similarity between the input face and the eigenfaces is computed. The localization of human faces in visual images is related to certain problems, such as pose, occlusion by another object, imaging condition or facial expression.",
+            "cite_spans": [
+                {
+                    "start": 99,
+                    "end": 102,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 183,
+                    "end": 186,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 213,
+                    "end": 216,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 248,
+                    "end": 251,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 281,
+                    "end": 284,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 795,
+                    "end": 798,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1323,
+                    "end": 1326,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1605,
+                    "end": 1609,
+                    "text": "[10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 1610,
+                    "end": 1613,
+                    "text": "11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 1759,
+                    "end": 1763,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Previous work"
+        },
+        {
+            "text": "Thermal imagery [13, 14] is independent of ambient illumination since the human face and body emit thermal energy. The energy is emitted by any object above zero absolute temperature. Thermal energy is then registered by a detector, such as an FPA (Focal Plane Array) microbolometer, also data, defining the conditions of measurement (emissivity, ambient temperature, humidity, distance from the object), are registered and available for analysis or for processing algorithms. Identifying faces from thermal images has become an area of growing interest. In general, in many applications, the methods used in the IR-spectrum are based on wellknown visible-spectrum methods. The comparison of localization efficiency for thermal images and visible images was shown by Wilder et al. [15] . Among the statistical methods, the method of eigenfaces has been used successfully in the analysis of thermal images, increasing the efficiency of localization. Socolinsky and Selinger [16] compared the quality of face localization in video images and thermal images with the use of two basic statistical methods -PCA (Principle Component Analysis) and LDA (Linear Discriminant Analysis). Face localization issues in thermal images are discussed in [17] and Ring et al. discussed the problem of measuring human body temperature using thermal images [18] . The human body and the face are characterized by a specific average value of the temperature of about 30\u00b0C. Hence, it becomes a feature for effective localization and identification of a human face, which, in combination with some knowledge-based or templatematching methods, can be an effective instrument for automatic measurement of the temperature of the inner canthi. However, some requirements must be met, for example, fixed metrological parameters of the infrared thermal imager and constant measurement conditions (ambient temperature, humidity). Examples of the common problems in thermal imaging are shown in Fig. 2 .",
+            "cite_spans": [
+                {
+                    "start": 16,
+                    "end": 20,
+                    "text": "[13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 21,
+                    "end": 24,
+                    "text": "14]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 781,
+                    "end": 785,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 973,
+                    "end": 977,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 1237,
+                    "end": 1241,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1337,
+                    "end": 1341,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1964,
+                    "end": 1970,
+                    "text": "Fig. 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Previous work"
+        },
+        {
+            "text": "The use of infrared thermal imaging for fever screening has grown in importance since the incidence of SARS (Severe Acute Respiratory Syndrome) infection, particularly the H1N1 (subtype of the influenza A virus) pandemic outbreak. One can find the application of infrared thermal imaging for fever detection in airports. Some references on this topic can be found in [19] . If the thermal imaging camera used for automated face localization is used also for fever screening, the importance of proper camera usage and camera quality rises. There are two standards concerning the application of screening thermographs for human febrile temperature screening: IEC 80601-2-59:2008, Medical electrical equipment -Part 2-59: Particular requirements for basic safety and essential performance of screening thermographs for human febrile temperature screening and ISO/TR 13154:2009, Medical electrical equipment -Deployment, implementation and operational guidelines for identifying febrile humans using a screening thermograph. In general, the standards provide information about proper camera mounting, subject preparation and thermal image acquisition. It is important that the temperature of the inner canthi should be measured with at least a 9 \u00c2 16 pixel region.",
+            "cite_spans": [
+                {
+                    "start": 367,
+                    "end": 371,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Standardization of the measurement"
+        },
+        {
+            "text": "Most thermal imaging cameras available on the market are equipped with MEMS (Micro-Electro-Mechanical Systems) based uncooled microbolometer arrays and are designed for industrial application (e.g. predictive maintenance, thermal imaging for automation) or home energy audit. In many cases, there is no need for absolute temperature measurement so traceability to International Temperature Scale 1990 (ITS-90) is hardly ever required. In contrast, fever screening requires the thermal imager to have good thermal resolution, good medium/long-term stability and regular traceable calibration. In recent years, in-field-of-view fixed-point cells have been developing, especially for medical thermography applications [20] .",
+            "cite_spans": [
+                {
+                    "start": 715,
+                    "end": 719,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Standardization of the measurement"
+        },
+        {
+            "text": "Thermal images for the investigations presented in this work have been captured with a Wuhan-Guide TP8 thermal imaging camera. Some of the essential parameters of the camera were examined: stability, temperature error and the influence of the object in scene. The camera is equipped with a 384 \u00c2 288 pixel uncooled FPA microbolometer. Its spectral range is 8-14 lm, thermal sensitivity 0.08\u00b0C and the intrinsic error is \u00b11\u00b0C or \u00b11% of the reading in a \u00c020\u00b0C to + 250\u00b0C range, whichever is greater.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Standardization of the measurement"
+        },
+        {
+            "text": "The parameters were investigated based on a reference black body and a reference platinum resistance thermometer for precise temperature measurement of the black body cavity. The temperature range was restricted to ambient and human body temperature.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Standardization of the measurement"
+        },
+        {
+            "text": "The set-up for the testing procedures is presented in Fig. 3 . The reference temperature source was the LAND P80P black body, together with the Kaye RTD500 platinum reference thermometer. The emissivity of the black body is 0.995 and the reference thermometer's accuracy is \u00b10.01\u00b0C. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 54,
+                    "end": 60,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Standardization of the measurement"
+        },
+        {
+            "text": "The stability test was performed for 0\u00b0C of the black body cavity. Thermal images were registered during the 100 min period with a 5 min interval. From the registered images, the mean temperature of the cavity was calculated for a 35 \u00c2 35 and an 8 \u00c2 8 pixel area. The errors during the measurements were calculated as the difference between the mean temperature and that indicated by the reference platinum thermometer. The results are depicted in Fig. 4a . After 75 min, the TP8 camera's stability was better than \u00b10.2\u00b0C.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 448,
+                    "end": 455,
+                    "text": "Fig. 4a",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Stability test"
+        },
+        {
+            "text": "The measured temperature range for temperature error determination was restricted from +20\u00b0C to +40\u00b0C. The camera was stabilized -powered on at least 90 min before the measurements -according to the results from the stability test. The error was calculated in the same way as for the stability test, and the results are presented in Fig. 4b . As can be seen, the error for the most interesting temperature range -around 36.6\u00b0C (inner canthi temperature for a healthy person) -is significant (+2\u00b0C) but can be treated as a systematic error for the tested camera, thus can be corrected during the measurements procedure. The important conclusion from this test is that the thermal imaging camera has to be calibrated before its first use in an application, for example face localization for fever screening. For the tested TP8 camera, the determined absolute temperature error is higher than that specified by the manufacturer.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 333,
+                    "end": 340,
+                    "text": "Fig. 4b",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Temperature error"
+        },
+        {
+            "text": "The influence of the object in scene was tested in a simple way, described in [21] . A cup of hot water at 42\u00b0C (object in scene) was placed between the camera and the black body cavity in such a way that the cup could influence the temperature inside the cavity. The temperature of the black body was set to 30\u00b0C. The set-up is presented in Fig. 5 . The mean temperature was calculated from the same area of the black body cavity, 20 \u00c2 20 pixels, without and with the object in-scene. The mean temperature was higher, even up to +1\u00b0C, than that without the object, which is significant for fever screening.",
+            "cite_spans": [
+                {
+                    "start": 78,
+                    "end": 82,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 342,
+                    "end": 348,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Object in scene"
+        },
+        {
+            "text": "The goal of the proposed algorithm is to achieve the most accurate temperature measurement of the inner canthi. Therefore, the most important step is the fast and accurate localization of the face, eyes and regions of the inner canthi, which give us information about human temperature. The scheme of the proposed method is presented in Fig. 6 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 337,
+                    "end": 343,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "In the first step called pre-processing, the metrological parameters of the infrared thermal imager and measurement condition were set or measured. The parameters fall into two categories. The first is connected with the infrared thermal imager, for example, temperature stability, temperature error, thermal resolution and geometric resolution. The method of determination of these parameters was described in the previous section. The second category is connected with the measurement conditions, for example, emissivity (for human skin e = 0.98), humidity, ambient temperature and distance from the object (in our case human face). The correct determination of these parameters reduces the number of possible errors and ensures that the measured temperature is correct.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "In the next step, groups of thermal image processing methods for face and eye localization, inner canthi localization and temperature measurement are proposed. The thermal image is taken as an input of the algorithm. The normalization of the image is achieved by automatically setting the temperature range from 30 to a maximum of 40\u00b0C. It is an effective method to reduce the processed data, also eliminating other objects from the image. Next the general part of the algorithm is described.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "The previous experience of the authors suggests using templatematching methods in conjunction with knowledge-based methods, as used successfully for the localization process in the visual images. One of the methods which allows the accurate localization of objects is the Hough transform (HT) [22] , which was designed as a method for detecting objects and shapes in 2D images, in particular, line detection [23] , circles, as well ellipses, and other shapes described by the parametric equation (generalized Hough transform). Over the years, this has been adapted to create, for example, the adaptive HT, combinatorial HT or randomized HT. In the standard HT (SHT), an object model and image as the edge map are the input variables. In this work the object model is given by the ellipse model presented in Eq. (1), and the thermal image as a 2D temperature matrix represented by a 2D grayscale image.",
+            "cite_spans": [
+                {
+                    "start": 293,
+                    "end": 297,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 408,
+                    "end": 412,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "where x s , y s are the ellipse center, a, b are the ellipse axes. In this case, to find the ellipse would require solving the four simultaneous non-linear equations; also, only the ellipses with a vertical or horizontal longer axis will be detected. The extension of Eq. (1) to all angles of the longer axis is presented below.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "\u00f0\u00f0x \u00c0 x s \u00de cos a \u00fe \u00f0y \u00c0 y s \u00de sin a\u00de 2 a 2 \u00fe \u00f0\u00f0x \u00c0 x s \u00de sin a \u00fe \u00f0y \u00c0 y s \u00de cos a\u00de 2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "where x s , y s are the ellipse center, a, b are the ellipse axes, a is the angle of the longer axis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "In this case, we have five parameters which describe the ellipse and all of them must be calculated. In this case use of the HT to detect the ellipse is impractical.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "In the HT all the pixels on the image are examined looking for parameters that correspond to the tested model. Each image pixel votes in the Hough space (parameters matrix) for a corresponding ellipse. The votes are summed and stored in the Hough space, also called the accumulator. By identifying the peaks of the parameter matrix, the object parameters are identified. For lines we have only two parameters, for ellipses five parameters (Eq. (2)).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "The most useful property of the HT is its robustness to noise, while its disadvantage is computational complexity, which dramatically increases memory consumption by filling the Hough space. The HT also has other properties, for example a point in the image corresponds to a sinusoidal curve in the parameter space and points lying on the same curve in the parameter space correspond to lines through the same point in the image. All pixels in the SHT must be examined, which of course increases the memory consumption. In addition, the parameter space is discrete, generating problems with resolving Eq. (2).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "A Randomized Hough Transform (RHT) [22] improves the accuracy and robustness of the SHT. The three points P 1 = (x 1 , y 1 ), P 2 = (x 2 , y 2 ), P 3 = (x 3 , y 3 ), which belong to one ellipse (Fig. 7) , are randomly selected from the image, then the tangents of an ellipse at three points are determined by using a method of minimum least squares and the points of intersection of the tangents and the bisectors of the angles are determined. The intersection is the center of the ellipse O.",
+            "cite_spans": [
+                {
+                    "start": 35,
+                    "end": 39,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 194,
+                    "end": 202,
+                    "text": "(Fig. 7)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "Next, the remaining parameters of the ellipse are calculated from Eq. (3). Then the inequality in Eq. (4) must be checked and if it is true, the parameters represent the valid ellipse and the votes are summed in the Hough space. The procedure is repeated for the next three points. a\u00f0x 1 \u00c0 x s \u00de 2 \u00fe 2b\u00f0x 1 \u00c0 x s \u00de\u00f0y 1 \u00c0 y s \u00de \u00fe c\u00f0y 1 \u00c0 y s \u00de 2 \u00bc 1 a\u00f0x 2 \u00c0 x s \u00de 2 \u00fe 2b\u00f0x 2 \u00c0 x s \u00de\u00f0y 2 \u00c0 y s \u00de \u00fe c\u00f0y 2 \u00c0 y s \u00de 2 \u00bc 1",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "When all the pixels of the image are examined, the parameters of the ellipse can be taken from the parameter matrix as the parameters with the maximum votes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "The novelty is the modification of the RHT method, based on combination of two methods -template-matching and feature extraction (Fig. 8) . The RHT and region growing segmentation [4] were used for this purpose. RHT combined with region growing segmentation decreases the time complexity and improves the accuracy of pixel localization. Region growing segmentation is used also for the detection of homogeneous regions of the inner canthi.",
+            "cite_spans": [
+                {
+                    "start": 180,
+                    "end": 183,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 129,
+                    "end": 137,
+                    "text": "(Fig. 8)",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "During the Hough space filling process, the modified algorithm checks the votes sum, if it is higher than, for example, 5 pixels, than the region growing segmentation is started. The starting point is the last examined and belongs to the ellipse pixel from the image. In our case it is a great solution, because region growing with, say, an homogenous step equal to 0.1\u00b0C, is faster and more accurate than examination of the one pixel with all the parameters in the range. The pixels belonging to the homogenous region increase the votes sum in the parameter space, also they are deleted from the list of processed pixels.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "After filling the Hough space, the maximum votes selection in the space describes the parameters of the largest ellipse on the image. Also the information about axes, angle of the slope of the larger axis and position of the ellipse center are obtained. If the information about the axes is allowed, the parameter space can be used for eye localization.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "For the eye localization procedure, the knowledge-based scheme is proposed on the rule-base, such as the face usually contains two eyes located on the opposite side of the vertical axis and on one side of the horizontal axis. It is only a numerical procedure, requiring only review of the Hough space and finding similar ellipses.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "After finishing the face and eye localization process, the inner canthi localization process is run. It is an important step, because the inner canthi will be used for human temperature calculations, thus every pixel is important. A morphological operation is used. We use segmentation with region growing with a minimum step of 0.1\u00b0C and the open/close process to achieve the regions. Segmentation is started from the pixel with the maximum temperature. The pixel is taken from the eye region (left or right eye ellipse). After segmentation, the quality of the inner canthi region is applied by the open/close operation. At the end the minimum, maximum and average temperatures are computed from all the pixels belonging to the processed region. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed algorithm"
+        },
+        {
+            "text": "The experiment was conducted in the thermovision measurement laboratory in the Institute of Automatic Control at Silesian University of Technology, with a database of 125 thermal images of faces. The camera used was characterized by the parameters described in Section 3. In Fig. 9 the scheme of the examination room is presented and the measurement parameters are given. The ambient temperature was 23.3\u00b0C, relative humidity 44.0%, distance between the camera and the examined human varied between 0.5 and 3 m with 0.5 m steps. After the acquisition of the images, normalization was performed to attenuate objects surrounding the face. An example of normalization is presented in Fig. 10 . The distance between the human and the camera lens was varied to test different space filling in the image by the face (see Fig. 11 ), the proportion of the face to the image and for different resolutions of the region of interest -face and eyes. The influences of the other objects, such as other persons and heat sources, were minimized before starting the experiment. Also the distance between the camera and the walls must be such as to provide minimal influence from the thermal energy reflected by the walls. The tested persons were in the room for a minimum of 15 min before the experiment started and they did not wear glasses. Thermal images of the humans were taken only in the upright position, deviations in the vertical axis was a maximum 15\u00b0. For reference, the axillary temperature was measured simultaneously with the image acquisition. The parameters in the algorithm were chosen to maximize the quality of the final result. The first experiment was designed to determine the optimal distance between the examined human face and the thermal camera lens. The determinant of the optimal distance was the accuracy of the localization and the time complexity. The accuracy of localization for different regions of interest was made by comparing the set of pixels from the manual selection and the set of pixels identified by automatic region localization. Fifty per cent accuracy indicates that half of the pixels of the two sets of pixels are identical.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 275,
+                    "end": 281,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 681,
+                    "end": 688,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 815,
+                    "end": 822,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Experiment and results"
+        },
+        {
+            "text": "For example, Table 1 shows that the average accuracy at a distance of 1.5 m for the region LE is equal to 97.1%, which means that 97.1% of the pixels in the left eye region localized by the proposed algorithm coincide with the same pixels in the left eye region localized manually. The accuracy of localization depends on the distance from the camera. It is presented in Table 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 13,
+                    "end": 20,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 371,
+                    "end": 378,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Experiment and results"
+        },
+        {
+            "text": "The same conclusion, regarding the dependency of localization on the distance from the camera, comes from the analysis of the average temperature of the eye region for the tested thermal images (Fig. 12) . The difference between temperature obtained from the algorithm and axilla temperature is the smallest for the 1.5 m distance and is about 0.1\u00b0C. Of course, this relationship will change once the infrared thermal imager is changed, particularly with different detector resolutions -when the resolution increases then the allowable distance also increases. This experiment shows that the best distance for temperature measurement is about 1.5 m. At distances greater than 1.5 m the number of pixels in the tested regions dramatically decreases; on the other hand, at distances of less than 1.5 m the field of view of the thermal camera should be considered. Fig. 13 represents the decreasing trend of the number of pixels, which is qualified by the algorithm of the inner canthus of the eye region. In conjunction with information from Table 1 , this shows the efficiency of the proposed algorithm. The thermal image has 110 592 pixels, the algorithm gives good results for a set of pixels representing about 0.1% of the total number of pixels.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 194,
+                    "end": 203,
+                    "text": "(Fig. 12)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 862,
+                    "end": 869,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 1040,
+                    "end": 1047,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Experiment and results"
+        },
+        {
+            "text": "Next, experiments show the comparison between the proposed method, the SHT and RHT. The comparison was based on the average accuracy of the localization of the regions (see Table 2 ) and on the computational complexity (see Table 3 ). The experiment was performed on a PC class computer with a 2.8 GHz processor and 2 GB of RAM memory.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 173,
+                    "end": 180,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 224,
+                    "end": 231,
+                    "text": "Table 3",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Experiment and results"
+        },
+        {
+            "text": "The SHT allows good results to be obtained, especially if average accuracy is to be taken into consideration. The result confirms the HT theory, it is a very accurate method, but, in the standard form, the time complexity is unacceptable. The average time complexity of about 4 s results from the method of image analysis -every pixel in the image must be examined in 5-dimensional space. The proposed method decreases the time complexity with accuracy on a similar level as the RHT method. Simple calculations, based on selected face area with different number of pixels, show that the time complexity decreases linear with number of pixels. On the output of the proposed algorithm, we have a thermal image with marked regions, geometrical statistics and the temperature in the localized regions. For example, Fig. 14 shows an example of an output thermal image with marked regions of the face and the eyes. The calculated parameters are given. Ellipses of the face and eye regions are always models of the face, thus never perfectly matched to the shape of the real examined face. Geometric parameters of the face showed: O = (214, 150) pixels at the center of the ellipse and about 87\u00b0to be the angle of the vertical axis. Similar information is obtained for the left/right eye region and the left/right inner canthus of the eye.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 811,
+                    "end": 818,
+                    "text": "Fig. 14",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Experiment and results"
+        },
+        {
+            "text": "In Table 4 the temperature is shown for one of the thermal image samples. The absolute error, calculated as a difference between temperature obtained from the proposed method and measured by the reference sensor, is less than +0.2\u00b0C.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Table 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Experiment and results"
+        },
+        {
+            "text": "In this work a novel, highly accurate and fast algorithm for inner canthus of the eye temperature measurement is presented. Some issues of standardization in medical imaging are also presented, as this is extremely important if one would like to use thermal imaging cameras for temperature measurement in medical applications.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "The proposed algorithm uses a combination of the templatematching, knowledge-based and morphological image processing methods. This approach improves the time complexity of the RHT and the inner canthus localization accuracy. The experiments have shown that the developed algorithm can handle automatic temperature measurement which is impossible with traditional methods using the forehead or underarm temperature measurement. The good correlation between the axilla temperature and that measured by the algorithm provides the fundamentals for future experiments. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Fever screening and infrared thermal imaging: concerns and guidelines",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "F J"
+                    ],
+                    "last": "Ring",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Mercer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Thermol. Int",
+            "volume": "19",
+            "issn": "3",
+            "pages": "67--69",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Face recognition: a literature survey",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chellappa",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Philips",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rosenfeld",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "ACM Comput. Surv. (CSUR)",
+            "volume": "",
+            "issn": "",
+            "pages": "399--458",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Detecting faces in images: a survey",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Kriegman",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ahuja",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "24",
+            "issn": "1",
+            "pages": "34--58",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Feature Extraction & Image Processing",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Nixon",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Aguado",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Rule-based face detection in frontal views",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Kotropoulos",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Pitas",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Proc. Int. Conf. Acoust., Speech Signal Process",
+            "volume": "4",
+            "issn": "",
+            "pages": "2537--2540",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Face detection based on color and local symmetry information",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Sun",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Proc. Third Int. Conf. Auto. Face Gesture Recog",
+            "volume": "",
+            "issn": "",
+            "pages": "130--135",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Eigenfaces for recognition",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Turk",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Pentland",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "J. Cogn. Neurosci",
+            "volume": "3",
+            "issn": "1",
+            "pages": "71--86",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Face recognition using difference vector plus KPCA",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wen",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Heb",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Shid",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Digit. Signal Process",
+            "volume": "22",
+            "issn": "1",
+            "pages": "140--146",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Face recognition using morphological method",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Shukla",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Prakash",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sharma",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Sharma",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Adv. Comput. Conf. (IACC)",
+            "volume": "",
+            "issn": "",
+            "pages": "529--534",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Visual-oriented morphological foreground content grayscale frames interpolation method",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Vizireanu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Udrea",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Electron. Imag",
+            "volume": "18",
+            "issn": "2",
+            "pages": "20502--20503",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Morphological shape decomposition interframe interpolation method",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Vizireanu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Electron. Imag",
+            "volume": "",
+            "issn": "",
+            "pages": "1--5",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "The face and eyes detection system in 2D images using Hough Transform",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Budzan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Electr. Rev",
+            "volume": "85",
+            "issn": "2",
+            "pages": "29--32",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Infrared thermal imaging",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Vollmer",
+                    "suffix": ""
+                },
+                {
+                    "first": "K.-P",
+                    "middle": [],
+                    "last": "Moellmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Fundamentals Research and Applications",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Face recognition: the problem of compensating for changes in illumination direction",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Yael",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Yael",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Shimon",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "19",
+            "issn": "7",
+            "pages": "721--732",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Comparison of visible and infrared imagery for face recognition",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wilder",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Philips",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wiener",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Second International Conference on Automatic Face and Gesture Recognition",
+            "volume": "",
+            "issn": "",
+            "pages": "182--187",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Thermal face recognition in an operational scenario",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Socolinsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Selinger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "IEEE Conf. Comput. Vision Pattern Recog",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Face recognition in the thermal infrared",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Wolf",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Socolinsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Eveland",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Detecting fever in polish children by infrared thermograph",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "F J"
+                    ],
+                    "last": "Ring",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Jung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zuber",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rutowski",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Kalicki",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Bajwa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "QIRT 2008 9th International Conference on Quantitative InfraRed Thermography",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Fever screening and infrared thermal imaging: concerns and guidelines",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Mercer",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "F J"
+                    ],
+                    "last": "Ring",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Thermol. Int",
+            "volume": "19",
+            "issn": "",
+            "pages": "67--69",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "In field-of-view thermal image calibration system for medical thermography applications",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Simpson",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Mcevoy",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Machin",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Howell",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Naeem",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Plassmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Ring",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Campbell",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Song",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tavner",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Ridley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Int. J. Thermophys",
+            "volume": "29",
+            "issn": "",
+            "pages": "1123--1130",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Quality assurance of thermal imaging systems in medicine",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Plassmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J F"
+                    ],
+                    "last": "Ring",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Jones",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Thermol. Int",
+            "volume": "16",
+            "issn": "",
+            "pages": "10--15",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Method and means for recognizing complex patterns, US Patent 3,0699,654",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "V C"
+                    ],
+                    "last": "Hough",
+                    "suffix": ""
+                }
+            ],
+            "year": 1962,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Randomized Hough transform: improved ellipse detection with comparison",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mclaughlin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Pattern Recog. Lett",
+            "volume": "19",
+            "issn": "",
+            "pages": "131--154",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Thermal image of the face with increased core temperature.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Examples of common problems: (a) thermal image is taken too close, (b) thermal image is taken too far away, (c) face is distorted by cream (right side of the face) and (d) wearing spectacles prevents correct temperature measurement. Scheme of the measuring stand for the investigation of the metrological properties of the ThermoPro TP8 thermal imaging camera.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "(a) Results of stability test for the TP8 thermal imaging camera, (b) results of temperature error in measured range.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Influence of object in scene on measured temperature of the object (black body cavity in this case).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Scheme of the proposed algorithm.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Estimate of ellipse center.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Scheme of the face and eye localization part of the proposed algorithm.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Scheme of the examination room.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Examples of thermal face images. Raw thermal image (left). Normalized thermal image (right).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "Thermal face image from different distances camera-face. 0.5 m, 1.5 m, 3 m (from left to right).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "Relationship between average temperature of the eye region and the distance from the infrared thermal imager. Also the temperature of the human body measured by the contact method is presented on the chart. Comparison of the average number of pixels in regions using the proposed algorithm.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Input thermal image (a), image after normalization (b), image with face and eyes ellipses (c) and image with checked inner canthus areas (d).",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "Average accuracy (%) of the localization regions of interests performed for all the tested thermal images, where Face -face region, LE -left eye region, RE -right eye region, LIC -left inner canthus of the eye region, RIC -right inner canthus of the eye region.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Average accuracy of the localization regions of interest performed for all the tested thermal images, where Face -face region, LE -left eye region, RE -right eye region, LIC -left inner canthus of the eye region, RIC -right inner canthus of the eye region, SHT -standard hough transform, RHT -Randomized Hough Transform, PAproposed algorithm.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Time complexity of the algorithm, SHT -standard hough transform, RHT -Randomized Hough Transform, PA -proposed algorithm. Average time complexity was calculated from all of the sets. Temperature in the localized regions of interest taken for thermal image shown in Fig. 14, where LE -left eye region, RE -right eye region, LIC -left inner canthus of the eye region, RIC -right inner canthus of the eye region. The axillary temperature in this case was about 36.7\u00b0C.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

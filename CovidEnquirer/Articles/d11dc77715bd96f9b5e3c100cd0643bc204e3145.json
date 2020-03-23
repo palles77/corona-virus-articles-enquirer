@@ -1,0 +1,1643 @@
+{
+    "paper_id": "d11dc77715bd96f9b5e3c100cd0643bc204e3145",
+    "metadata": {
+        "title": "A probabilistic approach to incorporating domain knowledge for closed-room people monitoring",
+        "authors": [
+            {
+                "first": "Ji",
+                "middle": [],
+                "last": "Tao",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanyang Technological University",
+                    "location": {
+                        "addrLine": "Block S1, Nanyang Avenue",
+                        "country": "Singapore"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Yap-Peng",
+                "middle": [],
+                "last": "Tan",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanyang Technological University",
+                    "location": {
+                        "addrLine": "Block S1, Nanyang Avenue",
+                        "country": "Singapore"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "We propose a novel probabilistic approach to recognizing people entering and leaving a closed room in human work place or living environment. Specifically, people in the view of a monitoring camera are first tracked and represented using low-level color features. Based on a new color similarity measure, optimal recognition of people leaving and entering the room is carried out by probabilistic reasoning under the constraints imposed by the domain knowledge, e.g., a person currently inside a room cannot enter again without first leaving it, and vice versa. The novelty of our work mainly lies in the development of a systematic way to incorporate the correlation and constraint among a sequence of people observations, and the optimality of recognition is achieved by maximizing a joint posterior probability of the observations. Experimental results of real and synthetic data are presented to show the efficacy of the proposed approach. r",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "As automated video surveillance becomes increasingly important [9, 10, 18] , we are endeavoring to develop a video-based system for closed-room people monitoring. In this paper, we present a promising system of our recent effort. The system consists of two modules: a video analysis module to detect and track people entering or leaving the only entrance/exit of a closed room (e.g., a research lab, class room or meeting room), and a people recognition module to correspond each observed person with a person previously entering the room or to identify him/her as a new person unseen before. The results obtained from the system allow the derivation of such useful information as to how long a person has stayed in the room, how many people are in the room during a certain period, and who they are. Potential applications of the system include, for example, identifying who could possibly be infected by a newly identified severe acute respiratory syndrome (SARS) victim [3] , and characterizing the regular or abnormal human activities in a monitored work place.",
+            "cite_spans": [
+                {
+                    "start": 63,
+                    "end": 66,
+                    "text": "[9,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 67,
+                    "end": 70,
+                    "text": "10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 71,
+                    "end": 74,
+                    "text": "18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 973,
+                    "end": 976,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Besides our proposed approach, there exist other solutions to the problems of interest. For example, biometrics have been successfully used for person recognition and very satisfactory results have been achieved. Representative work in biometric-based recognition ranges from fingerprint and iris identification to face and gait recognition [1, 4, 11, 20] . However, many of these methods involve intrusive data collection, i.e., require human proactive action and collaboration in the course of identification or authentication, and thus work mainly in well-controlled environments. Although gait recognition partly addresses this limitation by exploring human motion characteristics, gait information, by itself, has limited discriminating power and only works for people whose motion patterns have been well characterized. In another approach, Nakajima et al. [17] attempt to recognize people by color-based and shape-based low-level features with the use of multi-class support vector machine classifiers (SVMs), where the people under monitoring are restricted to their lab members, for whom a database for recognition can be constructed beforehand.",
+            "cite_spans": [
+                {
+                    "start": 341,
+                    "end": 344,
+                    "text": "[1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 345,
+                    "end": 347,
+                    "text": "4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 348,
+                    "end": 351,
+                    "text": "11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 352,
+                    "end": 355,
+                    "text": "20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 863,
+                    "end": 867,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Regardless of the selection of feature representation, most of the existing approaches accomplish the recognition task based on some maximum likelihood classification rule [7] , which is generally simple, effective and fast. Vega et al. [25] model people by their gait-based feature relational distribution and recognize a person by choosing the one with the smallest distribution distance from a test data set. McKenna et al. [14] attempt to recognize people after separation while tracking a group of people. They compare the color models of people after interaction with the models built before the interaction and correspond them to maximize a joint likelihood. It should be noted that these existing methods mainly perform recognition based on observations or features obtained at a single time instance or duration. The temporal correlation and constraint among observation sequence, however, are seldom utilized although they often exist in some specific contexts; for example, a person currently inside a room cannot be entering the room without first leaving it.",
+            "cite_spans": [
+                {
+                    "start": 172,
+                    "end": 175,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 237,
+                    "end": 241,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 427,
+                    "end": 431,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In comparison, we develop a systematic approach to exploit the inherent correlation and constraint among multiple people observations for improving the recognition accuracy. Specifically, an HMM-like, probabilistic inference framework is proposed to incorporate domain-specific knowledge (i.e., a closed-room with a single entrance/ exit) for enhanced people recognition. To be unintrusive, we choose color histogram as the feature for people recognition for it can be easily and reliably extracted using a low-cost camera from a distance. Rather than using only a single observation, our method is capable of performing optimal recognition based on multiple observations acquired at different time instances to maximize a joint posterior probability. As a result, it can effectively enhance the limited discriminating power of low-level features, such as color histogram. Experimental results demonstrate that the proposed approach can obtain promising recognition rates, as compared with the existing maximum likelihood approaches.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this module, we extend the color-based people detection and tracking system developed in our previous work [13, 24] . To work in a more perceptually uniform color space, we choose the HSV (hue, saturation, and value) color space and represent the color of each pixel with a vector of three color attributes \u00f0H; S; V \u00de: To have a reference background for change detection, we use a background initialization scheme to construct the background model automatically from a scene that may contain moving objects or light flickers. Specifically, a pixel will not be deemed as a background pixel unless its color/intensity value remains stable for a sufficiently long period. The color attributes of each pixel during this period are then modeled with a multivariate Gaussian distribution as the pixel's background model.",
+            "cite_spans": [
+                {
+                    "start": 110,
+                    "end": 114,
+                    "text": "[13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 115,
+                    "end": 118,
+                    "text": "24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "To accommodate scene change over time, we also update the background model adaptively based on the newly observed background pixels. The updating is carried out as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "the HSV values of each newly observed background pixel at time t; and l x;t is an updating parameter proportional to standard deviation s x;t\u00c01 : In our implementation, we set l x;t \u00bc 0:5 \u00c2 s x;t\u00c01 ; for the reason that the faster or larger a pixel changes, the faster its background model should be updated.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "Since the HSV chrominance information becomes less reliable when the scene is too dark, a value threshold Thr V and a saturation threshold Thr S are used to decide whether the observed hue information O H could be used for segmenting the foreground regions. (In our case, the foreground regions of interest are regions containing moving people.) Specifically, the following rules are applied to classify each pixel as either a background or a foreground pixel:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "If the hue information is reliable, the pixel is marked as a foreground pixel if jm H \u00c0 O H j43 \u00c2 s H ; otherwise, it is marked as a background pixel. If the hue information is not reliable, the pixel is marked as a changed pixel if jm V \u00c0 O V j43 \u00c2 s V ; otherwise, it is marked as a background pixel.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "Using the binary segmentation results, the module then localizes a moving person within a minimum bounding rectangle (MBR) and represents the person with a set of identity attributes, including a label, the size, and the centroid of the MBR.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "For people tracking, we extend the continuously adaptive mean shift (CAMSHIFT) algorithm [2] to work with the density function of the binary segmentation results. The extended CAMSHIFT algorithm searches within the current frame for the nearest foreground region of each moving person tracked in the previous frame. This is because each moving person in the current frame cannot move far away from his/her location in the previous frame in a video sequence of high frame rate-an assumption that holds for many general applications.",
+            "cite_spans": [
+                {
+                    "start": 89,
+                    "end": 92,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "During tracking, color histogram, a computationally easy color feature that is known to be rather invariant to changes of shapes and sizes [23] , is acquired to represent the color appearance of each person. In our implementation, we quantize the coordinates of HSV color space uniformly into 12(hue), 4(saturation) and 4(value) bins, respectively, resulting in a total of 192 quantized colors. To account for varying person size, the color histogram H p \u00f0k\u00de for each tracked person p is normalized by the total number of foreground pixels of the person. Furthermore, to accommodate changes due to different lighting condition or camera view angle, the color histogram is updated as follows:",
+            "cite_spans": [
+                {
+                    "start": 139,
+                    "end": 143,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "where l is a learning parameter, and H new p \u00f0k\u00de is the color histogram obtained from the new frame acquired at time t: Note that as the color histogram of a tracked person could be severely affected by other pixels, such as the shadow pixels or noise clutters due to occlusion, we also make use of a shadow-removal scheme in the proposed system to enhance the quality of each extracted color histogram [24] .",
+            "cite_spans": [
+                {
+                    "start": 403,
+                    "end": 407,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "The information acquired during the tracking of a person, including the size variation and motion trajectory of a tracked person, is then used to judge whether the person is entering or leaving a room as seen by the camera (Figs. 1 and 2 ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 223,
+                    "end": 237,
+                    "text": "(Figs. 1 and 2",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "People detection & tracking"
+        },
+        {
+            "text": "Color histogram intersection has been widely used as a similarity measure for image recognition and retrieval [6, 8, 15] ; however, direct application of this measure to gauge the likeness of people in our work poses some potential problems. For example, color histogram intersection of two different people is generally larger than zero for some of their appearance features, such as hair and skin, could share similar colors. On the other hand, the same person observed at different time instances may not have identical color histograms due to the differences in lighting conditions, camera view angles, and segmentation results. A function is therefore required to map the value of color histogram intersection of two observed people c i and c j ; defined as I\u00f0H i ; H j \u00de \u00bc P 192 k\u00bc1 min\u00f0H i \u00f0k\u00de; H j \u00f0k\u00de\u00de; onto a similarity probability, P\u00f0c i $ c j \u00de; indicating whether c i and c j correspond to the same person.",
+            "cite_spans": [
+                {
+                    "start": 110,
+                    "end": 113,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 114,
+                    "end": 116,
+                    "text": "8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 117,
+                    "end": 120,
+                    "text": "15]",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Similarity measure"
+        },
+        {
+            "text": "Conceivably, the function P\u00f0I\u00de needs to possess the following properties: (1) it should be nondecreasing; (2) P\u00f0I\u00de should be approaching 0 and 1 as I takes values near the ends of the interval [0, 1], respectively; (3) the transition of P\u00f0I\u00de from a low value to a high value should take place at where the value of I becomes evident to support that the two observed people are identical. After some subjective studies and comparisons, we select the sigmoid function [12] to perform the required mapping, which is shown in Fig. 3 and can be expressed as",
+            "cite_spans": [
+                {
+                    "start": 466,
+                    "end": 470,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 522,
+                    "end": 528,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "There are two parameters determining the shape of a sigmoid function curve: a controlling the steepness of the transition and b defining the center of the transition point. To assign proper values to the two parameters a and b; we have examined a large number of people segmentation results with different similarity degrees; some of them are indicated in Fig. 3 using the crosses, whose x-coordinates are color histogram intersection values and y-coordinates are the similarity degrees judged by human observers. We have found that setting the parameter pair \u00f0a; b\u00de to (16, 0.55) can fit the curve well.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 356,
+                    "end": 362,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "It should be noted that other features, such as face or gait features, for which a similarity measure is defined can be used in our proposed people monitoring system. To make the system less intrusive, we have only made use of color histogram in the work reported in this paper.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "As hidden Markov models (HMMs) could be used to integrate prior knowledge and incomplete observation data to perform probabilistic reasoning [16, 22, 26] , our first attempt is to establish a suitable HMM for the recognition task in our problem. In general, an HMM can be fully characterized by a set of parameters l \u00bc fA; B; pg; where A denotes the state transition probabilities, B; the observation symbol probabilities, and C; initial state probabilities. These parameters are usually pre-learned from a set of representative data based on a fixed number of states. This situation, however, is not applicable to our case, for the number of people as well as their activity patterns, i.e., the frequencies of entering and leaving, are generally different from place to place or time to time, and hard to estimate from prior data.",
+            "cite_spans": [
+                {
+                    "start": 141,
+                    "end": 145,
+                    "text": "[16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 146,
+                    "end": 149,
+                    "text": "22,",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 150,
+                    "end": 153,
+                    "text": "26]",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "To construct a framework that is well suited for the problem of our concern, we make use of the lattice structure and parameter setting of HMMs and formulate the problem of people recognition as follows. Assume that the room being monitored has only a single entrance/exit (referred to as a closed room) and is empty when the system is first activated. When a person is entering the room, we append a new state to the state set (database) to represent his/her identity; when a person leaves at time t; he/she will be recorded as a new observation O t : Thus the states in the state set at time t correspond to the current people identities in the database (i.e., people that possibly stay in the room at time t), and are denoted as S\u00f0t\u00de \u00bc fS 1 \u00c1 \u00c1 \u00c1 S N t g: When an observation sequence O \u00bc fO 1 \u00c1 \u00c1 \u00c1 O T g has been obtained over a period of time, the identities of the people leaving the room can be recognized from the state sets, S\u00f01\u00de; S\u00f02\u00de; . . . ; and S\u00f0T\u00de; recorded over the same period. Characterizing this reasoning framework with a time-variant parameter set l\u00f0t\u00de \u00bc fA\u00f0t\u00de; B\u00f0t\u00de; p\u00f0t\u00deg; we can use the Viterbi algorithm [19] to find an optimal state sequence Q \u00bc fq 1 \u00c1 \u00c1 \u00c1 q T g associated with the observation sequence to maximize a joint posterior probability P\u00f0Q; Ojl\u00f0t\u00de\u00de; so that each leaving person can correspond to one of those who are judged still inside the closed room.",
+            "cite_spans": [
+                {
+                    "start": 1130,
+                    "end": 1134,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "A recognition example of the proposed framework is illustrated in Fig. 4 , where the optimal state sequence obtained is highlighted in bold (red). From this path,we can identify O 1 as S 1 ; O 2 as S 3 ; O 3 as S 1 ; etc. We can see that the framework has a lattice structure similar to HMMs; however, there are several key differences that distinguish our framework from conventional HMMs. First, and most importantly, the parameter set l\u00f0t\u00de is time variant and needs to be derived at each observation time instance based on all the previous possible states and current observations rather than from some training data. Second, the number of states in our model is not fixed but can increase over time before a decision is made. Third, the states can be indefinite because more than one states could be associated with the same person, e.g., states S 1 and S 4 in the example shown in Fig. 4 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 66,
+                    "end": 72,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 886,
+                    "end": 892,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "It should be noted that in our framework a state could represent the feature model and the identity of a person simultaneously. For clarity, we shall use s i to denote a person's identity and S i his/her feature model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "It can be seen from our problem formulation that the main task in constructing the proposed framework lies in the estimation of the timevariant parameter set l\u00f0t\u00de: Once l\u00f0t\u00de is known, we can find the optimal path indicating the recognized people by a ''turn-the-crank'' procedure given by the Viterbi algorithm [5] . Our solutions are given as follows.",
+            "cite_spans": [
+                {
+                    "start": 311,
+                    "end": 314,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "The initial state distribution, p: According to the definition of the state set S\u00f0t\u00de \u00bc fS 1 \u00c1 \u00c1 \u00c1 S N t g; there are N 1 states (people) in the database when the first observation of exit is made at time t \u00bc 1: Without any other prior knowledge, we intuitively assume that everyone inside the room has an equal probability to leave the room. Hence,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "The feature similarity as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "The state transition probability, a ij \u00f0t\u00de: Before proceeding to the next step, we define a set of probabilities between observation times t and t \u00fe 1 as shown in Fig. 5 . For concision, we shall refer to ''observation time'' as ''time'' hereafter without causing confusion. Let P\u00bds i;t \u00fe=\u00c0 \u00bc 1 be the probability of person s i staying in the room at time instance t \u00fe=\u00c0 (straightforwardly P\u00bds i;t",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 163,
+                    "end": 169,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "where t \u00fe and t \u00c0 denote the time instances right after and before the observation O t being made. Let M be a likelihood matrix measuring the similarities between people entering between t and t \u00fe 1 (i.e., S N t \u00fe1 \u00c1 \u00c1 \u00c1 S N t\u00fe1 ) and the people staying in the room at time t (i.e., S 1 \u00c1 \u00c1 \u00c1 S N t ), defined as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "where N t is the number of states (people who possibly stay in the room) at time t and N t\u00fe1 t \u00bc N t\u00fe1 \u00c0 N t is the number of people entering between times t and t \u00fe 1: With these auxiliary probabilities, we can now derive the transition probability using the following three steps:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "(i) Transition probability, a ij \u00f0t\u00de:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "The transition probability a ij \u00f0t\u00de measures the odds of person s j leaving the room at time t \u00fe 1; given that person s i left at time t; i.e., q t \u00bc s i and q t\u00fe1 \u00bc s j : Without other prior knowledge, it is reasonable to assume that the probability for s j to leave at time t \u00fe 1 is proportional to that of his/her existence in the room at time instance t \u00fe 1 \u00c0 : Conceivably, a person cannot leave a room if he/ she is not in the room at all. Thus, the transition probability can be computed as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "where the denominator is a normalization factor to make P j a ij \u00f0t\u00de \u00bc 1 for each i: The term in Eq. (7) can be further expanded for each particular state s^i by using Bayesian rules as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "where cond \u00bc fs 1;t \u00fe \u00bc y 1 \u00c1 \u00c1 \u00c1 s N t ;t \u00fe \u00bc y N t g is one of the possible realizations of fs 1;t \u00fe \u00c1 \u00c1 \u00c1 s N t ;t \u00fe g over all y; and y i \u00bc 1 or 0 represents the status of person s i being in or out of the room. By assuming that the status of each person is statistically independent of the others, the second term on the right hand side of Eq. (8) can be expressed as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "From Eqs. (7)- (9), we can see that the transition probability a^i j \u00f0t\u00de depends on two probabilities: P\u00bds j;t\u00fe1 \u00c0 \u00bc 1jcond and P\u00bds i;t \u00fe \u00bc y i jq t \u00bc s^i; the former is the conditional odds of person s j staying in the room at time instance t \u00fe 1 \u00c0 given the status of all the people observed up to time instance t \u00fe ; and the latter is the probability of person s i being status y i at time instance t \u00fe given that person s^i leaves the room at time t: The calculation of these two probabilities is discussed below.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "(ii) Conditional probability, P\u00bds j;t\u00fe1 \u00c0 \u00bc 1jcond:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "We compute this conditional probability with the aid of the likelihood matrix M defined in ARTICLE IN PRESS Eq. (6). The specific calculation is given by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "wherem uv is the entry of a modified matrixM which is derived from M to indicate how likely person s N t \u00fev is in fact person s u returning under a certain cond. We introduce the matrixM in order to incorporate the domain knowledge in the context of the cond and improve our estimation.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "In particular, the value P vm jv can be considered as the gain of the existence odds for person s j due to newly entered people between times t and t \u00fe 1: This gain, along with the existence odds of person s j at time instance t \u00fe ; which is the binary value of y j ; constitutes his/her existence odds at time instance t \u00fe 1 \u00c0 : For those newly added states s j where N t pjpN t\u00fe1 ; the value 1 \u00c0 P um u\u00f0j\u00c0N t \u00de can therefore be considered as the odds for person s j to exist as a new person. Note that in this framework we attempt to estimate these odds in an approximate manner, which is intuitive and has been found to be effective for improving the recognition rates.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "Specifically,m uv is derived from m uv as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "where Z 2D is a 2-D normalization operation to be discussed later and",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "r\u00f0S u \u00de \u00bc 0 if S u ePT\u00f0S k ; t\u00de; 1 otherwise:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "\u00f0y u \u00de and r\u00f0S u \u00de are two indication factors incorporating the domain knowledge of a particular cond. Specifically, \u00f0y u \u00de shows that it is impossible for one to enter a closed room if he/she is currently inside, while r\u00f0S u \u00de accounts for the fact that a person staying in the room could not enter the room again if he/she has not been observed leaving the room. PT\u00f0S^i; t\u00de is the most likely path ending in state S^i at time t; i.e., the most probable state sequence that is obtained by the Viterbi algorithm and includes all the people that have been observed leaving the room up to time t:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "To illustrate it, we provide in the following a numerical example, in which five people enter a room with three of them leaving, forming a process of three observations as shown in Fig. 6 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 181,
+                    "end": 187,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "For the time pair ft; t \u00fe 1g shown in Fig. 6 , suppose that the likelihood matrix obtained by Eq. (6) Consider one of the possible realizations of people's status at time instance t \u00fe : cond1 \u00bc fs 1;t \u00fe \u00bc 0; s 2;t \u00fe \u00bc 0; s 3;t \u00fe \u00bc 1g; that is, fy 1 \u00bc 0; y 2 \u00bc 0; y 3 \u00bc 1g or all people are outside the room at time instance t \u00fe except for person s 3 : The conditional probabilities that need to be computed are P\u00bds j;t\u00fe1 \u00c0 \u00bc 1jcond1; 1pjp5:",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 38,
+                    "end": 44,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "First, we incorporate the knowledge of the people status into the likelihood matrix M by using the two indication factors. From Eq. (12), \u00f0y 3 \u00de \u00bc 0 and the third row of M is set to zero. This is because if s 3 is known to be inside the room, then neither s 4 nor s 5 can be s 3 regardless of their similarities. The second indication factor relies on the most likely path ending in the state for which the transition probability needs to be calculated. Assume that S 1 at time t is the state and the most likely path PT\u00f0S 1 ; t\u00de is as shown in Fig. 6 . It can be seen that S 3 is not on this optimal ARTICLE IN PRESS Next, the adjusted likelihood matrix M 0 is normalized so that the summations of the likelihoods corresponding to all possible circumstances are equal to one. To do this, we introduce a normalization operation, referred to as the correlated normalization operation or Z operation, which works as follows. Consider a person T and a group of candidates C consisting of N people, and define the similarity measure w n \u00bc P\u00bdC n $ T: Under the constraint that at most one person (or none) of C could be T; we can obtain the following new similarity measures",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 545,
+                    "end": 551,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "To make the probabilities corresponding to all possible circumstances sum up to one, the Z operation is defined to normalize the above new similarity measures as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "This normalization operation aims to correlate likelihoods that are measured independently by imposing the constraint mentioned before Eq. (14) . It should be noted that this constraint can be applied to the adjusted likelihood matrix M 0 both row-wise and column-wise. For instance, at most one of s 4 and s 5 (or none of them) could be s 1 ; while s 4 could be at most one of s 1 ; s 2 ; and s 3 (or none of them, i.e., s 4 is a new person) in the example shown in Fig. 6 . For simplicity, we apply a 2-D Z operation \u00f0Z 2D \u00de; a row-wise normalization followed by a column-wise normalization, to normalize the likelihood matrix M 0 and obtai\u00f1 M \u00bc From this normalized likelihood matrixM; we can obtain useful information such as the existence odds of s 1 is increased by 0.05+0.72 = 0.77, the odds that s 4 is a new person is 1\u00c0 0:05\u00c00:40 \u00c00 \u00bc 0:55; etc. Consequently, the existence odds at time instance t \u00fe 1 \u00c0 under cond1 can be obtained using Eq. (10) as P\u00bds 1;t\u00fe1 \u00c0 \u00bc 1jcond1 \u00bc 0 \u00fe 0:05 \u00fe 0:72 \u00bc 0:77; P\u00bds 2;t\u00fe1 \u00c0 \u00bc 1jcond1 \u00bc 0 \u00fe 0:40 \u00fe 0:05 \u00bc 0:45; P\u00bds 3;t\u00fe1 \u00c0 \u00bc 1jcond1 \u00bc 1 \u00fe 0 \u00fe 0 \u00bc 1; P\u00bds 4;t\u00fe1 \u00c0 \u00bc 1jcond1 \u00bc 1 \u00c0 0:05 \u00c0 0:40 \u00c0 0 \u00bc 0:55; P\u00bds 5;t\u00fe1 \u00c0 \u00bc 1jcond1 \u00bc 1 \u00c0 0:72 \u00c0 0:05 \u00c0 0 \u00bc 0:23:",
+            "cite_spans": [
+                {
+                    "start": 139,
+                    "end": 143,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 467,
+                    "end": 473,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "Applying the same procedure to all possible cond's, we can obtain all the conditional probabilities P\u00bds j;t\u00fe1 \u00c0 \u00bc 1jcond required in Eq. (8), one of the two prerequisites for computing the transition probability as discussed in step (i).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "(iii) Probability:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "The remaining unknown for calculating the transition probability a^i j \u00f0t\u00de is P\u00bds i;t \u00fe \u00bc 1jq t \u00bc s^i; which is the existence odds of person s i at time instance t \u00fe given that the person leaving at time t is s^i: To illustrate how to compute this unknown, we shall extend the example of Fig. 6 to time t \u00fe 1 and show instead how to compute the unknown P\u00bds j;t\u00fe1 \u00fe \u00bc 1jq t\u00fe1 \u00bc s^j by making use of the probabilities obtained so far and assuming the full knowledge of P\u00bds i;t \u00fe \u00bc 1jq t \u00bc s\u00f0 j\u00de ; where S\u00f0 j\u00de is the previous state of S^j in the most likely path PT\u00f0S^j; t \u00fe 1\u00de: By the same procedure, P\u00bds i;t \u00fe \u00bc 1jq t \u00bc s^i can be similarly estimated based on P\u00bds h;t\u00c01 \u00fe \u00bc 1jq t\u00c01 \u00bc s\u00f0 i\u00de : Note that, h; i; and j are indices of the states at times t \u00c0 1; t; and t \u00fe 1; respectively.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 288,
+                    "end": 294,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "As shown in Fig. 7 , assume that person s 1 leaves the room both at time t and at time t \u00fe 1; i.e., \u00f0\u0135\u00de \u00bc 1 and\u0135 \u00bc 1 (denoted by the shaded circles). We manifest the values of P\u00bds i;t \u00fe \u00bc 1jq t \u00bc s 1 ; which are assumed to be known, on the right hand side of the observation made at time t; and the computed values of P\u00bds j;t\u00fe1 \u00c0 \u00bc 1jq t \u00bc s 1 on the left hand side of the observation made at time t \u00fe 1: The estimation process of the probabilities on the right hand side of the observation O t\u00fe1 and the final results are shown in Table 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 12,
+                    "end": 18,
+                    "text": "Fig. 7",
+                    "ref_id": null
+                },
+                {
+                    "start": 532,
+                    "end": 539,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "We first examine the gain of existence odds from time instance t \u00fe to t \u00fe 1 \u00c0 for each person: g\u00f0j\u00de \u00bc P\u00bds j;t\u00fe1 \u00c0 \u00bc 1jq t \u00bc s 1 \u00c0 P\u00bds j;t \u00fe \u00bc 1jq t \u00bc s 1 : Clearly, P j g\u00f0j\u00de \u00bc 2 because the gain in existence odds is due to the two newly entered people. However, if we know for sure that s 1 leaves the room at time t \u00fe 1; then he/she must stay in the room at time instance t \u00fe 1 \u00c0 ; and thus, g\u00f01\u00de should be equal to 1 rather than 0.77. In other words, the gain for each person needs to be re-adjusted (g in the table) to incorporate the knowledge of this new assumption to ensure thatg\u00f01\u00de \u00bc 1: Thatg\u00f01\u00de is equal to one can be also explained as follows: since s 1 leaves at time t and time t \u00fe 1 successively, one of the entering persons s 4 and s 5 must be s 1 : As there is no reason to favor any person other than s 1 ; our approach is to increase s 1 's existence odds from 0.77 to 1 and decrease the others' proportionally. This is sensible as once we know that the person who leaves the room at time t \u00fe 1 is s 1 ; then s 4 and s 5 should be more likely to be s 1 than what we originally estimate, and as a result, less likely to be the other people. At time instance t \u00fe 1 \u00fe ; the existence odds of s 1 becomes zero due to his exit, and the others' can be obtained as the summation of their existence odds at time instance t \u00fe \u00f0P\u00bds j;t \u00fe \u00bc 1jq t \u00bc s 1 \u00de and the re-adjusted gain \u00f0g\u00f0j\u00de\u00de:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "The above analysis and derivation can be generalized into the formulas below: ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "ARTICLE IN PRESS Fig. 7 . An example to illustrate the estimation of existence odds. Table 1 The estimation of the existence odds It can be seen from these formulas that the estimation of existence odds is recursive; that is, one's existence odds at time instance t \u00fe 1 \u00fe depends on that at t \u00fe : To initialize the estimation, we set P\u00bds i;1 \u00fe \u00bc 1jq 1 \u00bc s^i \u00bc 1 for all ia\u00ee and P\u00bds^i ;1 \u00fe \u00bc 1jq 1 \u00bc s^i \u00bc 0 if s^i is the first person leaving the room (i.e. q 1 \u00bc s^i), since all the people who have entered the room, except for s^i; should stay inside at time instance 1 \u00fe : It should also be noted that although the derivation may appear somewhat complex, it leads to an important underlying property of the proposed framework: the summation of the existence odds of all states at any time instance t \u00fe=\u00c0 ; i.e., P i P\u00bds i;t \u00fe=\u00c0 \u00bc 1jq t \u00bc s j for any t and j; is always equal to the number of people who stay in the room at that time.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 17,
+                    "end": 23,
+                    "text": "Fig. 7",
+                    "ref_id": null
+                },
+                {
+                    "start": 85,
+                    "end": 92,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Framework construction"
+        },
+        {
+            "text": "Batch recognition of observations (people who have left the room) can be performed at any time when necessary by retrieving the state sequence with the maximum score of joint posterior probability as the optimal state sequence.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "To use the proposed framework for recognizing people re-entering the room is equivalent to finding and merging those states associated with a same person in the optimal state sequence. This can be accomplished by the following local maximum likelihood scheme. Let q t \u00bc S i and search backward in the optimal state sequence for q t 0 \u00bc S i ; where t 0 2 f1; . . . ; t \u00c0 1g and t \u00c0 t 0 is minimized. If such q t 0 exists, the person s^j will be assumed as the person s i re-entering, where\u0135 is obtained a\u015d",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "and S\u00f0t\u00de is the state set at time t: Then, S^j should be merged into S i and removed from all the state sets containing it thereafter. The backward search is performed from t \u00bc 2 to the end of the optimal state sequence until all the states possibly representing a same person are disclosed and merged.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Framework construction"
+        },
+        {
+            "text": "In this section, we study two special cases in which certain extreme conditions are assumed so that intuitive analysis can be performed. By comparing the results obtained by our model and that of the intuitive analysis, we demonstrate that the proposed model can produce reasonable results even under such extreme conditions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case studies"
+        },
+        {
+            "text": "In this case, we assume that three people enter a room initially and then leave successively without any other new entries among them. The model established is shown in Fig. 8 , where the likelihood matrices M are null as nobody enters between two observations.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 169,
+                    "end": 175,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Case 1: Successive exits"
+        },
+        {
+            "text": "The transition matrix is first computed at time t \u00bc 1 by using Eqs. (7)-(19) derived in Section 3.2 and obtained as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case 1: Successive exits"
+        },
+        {
+            "text": "1=2 1=2 0 2 6 4 3 7",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case 1: Successive exits"
+        },
+        {
+            "text": "The diagonal entry a ii \u00f0t \u00bc 1\u00de is zero, which is in accordance with the intuitive analysis that if s i leaves at time t \u00bc 1 and nobody enters before the next observation time t \u00bc 2; s i could not leave at time t \u00bc 2 again. Moving on to the next observation time t \u00bc 2; we further assume that the previous states of S 1 ; S 2 and S 3 in their own most likely paths are S 2 ; S 3 and S 1 at time t \u00bc 1; respectively, which can be obtained by using the Viterbi algorithm based on P\u00bdO 1 $ S i and A\u00f0t \u00bc 1\u00de: Hence, the transition That means, from time t \u00bc 2 to time t \u00bc 3; each state has only one possible choice of transition. Because, for instance, if s 1 leaves at time t \u00bc 2 and its previous state s 2 has already left at time t \u00bc 1; the person who leaves the room at time t \u00bc 3 must be s 3 : More specifically, to select which state at time t depends on not only the states at the previous time t \u00c0 1 but also those prior to t \u00c0 1:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "5:"
+        },
+        {
+            "text": "In this case, we shall assume that the ideal similarity measure between two people can be a binary value of either one (identical) or zero (distinct). In Fig. 9 , two people enter first and one of them leaves afterward. After that one person enters again followed by one exit. We suppose that S 3 looks the same as S 1 but has different appearance from S 2 ; i.e. P\u00bdS 3 $ S 1 \u00bc 1 and",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 154,
+                    "end": 160,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Case 2: Ideal similarity measure"
+        },
+        {
+            "text": "The transition matrix can be computed as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case 2: Ideal similarity measure"
+        },
+        {
+            "text": "We can interpret this process based on our general knowledge. If s 1 leaves at time t \u00bc 1; s 3 will be viewed as s 1 re-entering due to their same appearance. Therefore, at time instance t \u00bc 2 \u00c0 ; s 1 and s 2 must stay in the room while s 3 cannot be a new person. s 1 and s 2 then take the equal probability to leave at time t \u00bc 2; which is reflected in the transition matrix as fa 11 \u00bc a 12 \u00bc 1=2; a 13 \u00bc 0g: If s 2 leaves at time t \u00bc 1; it is interesting to see that s 3 has to be a new person although he/she has the same appearance with S 1 since s 1 is already known to be inside. (One possibility is that s 3 and s 1 are identical twins wearing the same clothes.) In this case, s 1 and s 3 are equally possible to leave at time t \u00bc 2 while s 2 could not leave again. In the transition matrix, it is shown as fa 21 \u00bc a 23 \u00bc 1=2; a 22 \u00bc 0g: Once again, the proposed model obtains the same result as that derived by the intuitive analysis based on our general knowledge.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case 2: Ideal similarity measure"
+        },
+        {
+            "text": "We have tested the proposed people monitoring system with two videos acquired in a research laboratory using a camera to monitor the lab's only entrance. During 1-h monitoring period, video-I recorded eleven different people who were unaware of the experiment, of which four entered and left twice, another four entered and left only once, and three entered without leaving. Video-II simulated the process of people entering and leaving with the help of eight different students, among whom seven entered and left the lab for three times and another one twice. To further increase the test samples, a synthetic process generator is also designed to randomly re-arrange the entries and exits from the two videos based on the rule that one cannot enter unless he/she is outside the lab, and vice versa. This generator allows us to simulate a wide variety of combinations of entries and exits over time from the same group of people.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experimental results"
+        },
+        {
+            "text": "For comparison, we also implement a recognition approach based on maximum likelihood (ML) classification [14, 21] as follows. When a person is detected entering a closed room, he/she is compared with people who are in the system's database and currently labeled as 'out'. If the maximum likelihood with respect to an 'out' person is larger than a threshold T m (set to 0.7 in our implementation), they are considered the same person. Then, the observed person is labeled as 'in' and his/her corresponding color histogram in the database is updated with the latest one. Otherwise, the person is assumed to be new and then labeled as 'in' with a new identity label. When there are multiple exits without entries among them, the leaving people are recognized from the people with label 'in' by maximizing a joint likelihood.",
+            "cite_spans": [
+                {
+                    "start": 105,
+                    "end": 109,
+                    "text": "[14,",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 110,
+                    "end": 113,
+                    "text": "21]",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experimental results"
+        },
+        {
+            "text": "To ensure that the system can perform as desired, we assume that each person has consistent color appearance (both frontal and back views) and it remains the same during the period of observation. This is because our proposed system uses only the color appearance of each person to perform recognition and the camera looks only at a fixed direction. This limitation can likely be circumvented by incorporating other possible features, such as face and thermal infrared imagery, or using more than one camera looking at different directions. We consider this as a potential future research direction. Fig. 10 shows the sample images of the eight people (P1-P8) recorded in video-II after foreground segmentation. Table 2 shows an example sequence of entries and exits obtained by the synthetic process generator based on these eight people, where 'I' and 'O' represents in (enter) and out (exit), respectively. A total of 44 entries and exits are observed, among them 22 are entering while the other 22 are exiting.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 600,
+                    "end": 607,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 712,
+                    "end": 719,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "The recognition results of the eight people (at observation time) are given in Table 3 . The results obtained by our proposed approach and the ML approach are compared with the ground truth. In this particular process, our approach achieves 100 percent recognition rates, outperforming the ML approach. In the ML approach, the system wrongly recognizes P8 as P1 at time 7 and reversely at time 19. Furthermore, P7 is incorrectly identified as P3 at time 18 and on the contrary at time 20. The errors of recognizing different people as the same one are mainly due to that the similarities between the color histograms of these different people exceed the preset threshold T m : On the contrary, the reason for the errors at time 10, 13 and 15, where P6 and P7 are identified as new people when they are in fact just re-entering, is that the similarities of their color histograms observed at different times are lower than T m : In other words, the results of the ML approach are rather sensitive to the threshold T m ; inappropriate selection of which often causes such false recognitions as mentioned above. In contrast, our proposed approach benefits from using a threshold-free scheme; therefore, it is more robust to lessthan-perfect segmentation results as well as changes in lighting conditions or view angles.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 79,
+                    "end": 86,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "At each observation time, there is a most likely path ending in each individual state with the probability of d t \u00f0i\u00de; which can be iteratively computed as d t\u00fe1 \u00f0j\u00de \u00bc \u00bdmax j d t \u00f0i\u00dea ij b j \u00f0O t\u00fe1 \u00de using the Viterbi algorithm. To make a recognition decision at time t is to choose from all the most likely paths the one with the largest value of d t \u00f0i\u00de: Hence, a confidence index can be defined in the range of [0, 1] to evaluate the reliability of a decision made at each time",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "The variation of the confidence index over time for the above example is shown in Fig. 11 . At the early monitoring stage, the system has only few choices for making decision so that the confidence index is usually high. With the increase of the state number, i.e., more possible paths to choose from, the reliability of a decision may decrease. However, the advantage of our approach lies in that it is capable of maintaining the decision reliability at a later observation time by collectively considering all the available observations. In Fig. 11 , when the confidence index is lower than 0.8, the ML approach is likely to make a wrong decision at the corresponding time (as indicated by the (red) circles). Meanwhile, the proposed approach can still find the right choice since the probabilities (or scores) of the other paths are even lower. Note that as the recognition decision made at time t depends upon all the observations (not the decisions) obtained prior to time t in a sense of maximizing the joint posterior probability of multiple observations-a merit of the Viterbi algorithm-our proposed system can minimize the chance of error propagation. However, if there is a substantial change in the lighting condition or a person changes his/her color appearance (e.g., clothes) during the period of observation, the proposed framework may generate fallacious state set and degrade the recognition performance.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 82,
+                    "end": 89,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 543,
+                    "end": 550,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "Overall, 20 synthesized processes of entries and exits are generated from each of the two test videos. We set T m to 0.7 to obtain the best results of the ML approach. The ground truth is obtained manually. It is evident from Table 4 that our proposed approach can improve the recognition rates notably. Table 2 An example sequence of entries (I) and exits (O) produced by the synthetic process generator using the eight people observed in video-II   Person  P6  P2  P6  P6  P1  P1  P3  P2  P1  P8  P2  P1  P7  P5  P3  In/out  I  I  O  I  I  O  I  O  I  I  I  O  I  I  O  Person  P5  P1  P8  P7  P3  P5  P2  P6  P4  P6  P8  P5  P8  P7  P2  Cont'd  O  I  O  O  I  I  O  O  I  I  I  O  O  I  I  Person  P7  P2  P6  P5  P7  P4  P4  P4  P7  P1  P3  P8  P8  P5  Cont'd  O  O  O  I  I  O  I  O  O  O  O  I  O  O   Table 3 Comparison of the recognition results obtained by the maximum likelihood (ML) approach and our proposed approach It should also be noted that the computational complexity of our algorithm may increase rapidly when more states are generated. However, it is possible for one to make a definite decision when the confidence index is sufficiently high so that states associated with the same person can be merged to reduce the total number of the states, e.g., at time 16 in Fig. 11 . We shall investigate this in our future work.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 226,
+                    "end": 233,
+                    "text": "Table 4",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 304,
+                    "end": 311,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 440,
+                    "end": 815,
+                    "text": "video-II   Person  P6  P2  P6  P6  P1  P1  P3  P2  P1  P8  P2  P1  P7  P5  P3  In/out  I  I  O  I  I  O  I  O  I  I  I  O  I  I  O  Person  P5  P1  P8  P7  P3  P5  P2  P6  P4  P6  P8  P5  P8  P7  P2  Cont'd  O  I  O  O  I  I  O  O  I  I  I  O  O  I  I  Person  P7  P2  P6  P5  P7  P4  P4  P4  P7  P1  P3  P8  P8  P5  Cont'd  O  O  O  I  I  O  I  O  O  O  O  I  O  O   Table 3",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 1287,
+                    "end": 1294,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "ARTICLE IN PRESS"
+        },
+        {
+            "text": "We have presented in this paper a novel probabilistic reasoning framework for people monitoring in a closed environment. The main contribution of our work lies in the development of a systematic way to exploit the temporal correlation and domain constraint of multiple people observations for improving the recognition accuracy compared with that of conventional maximum-likelihood approaches. Rather than identifying each single observation from a database, the framework is devised to recognize people based on multiple observations acquired at different time instances. Experimental results demonstrate that the proposed approach outperforms the conventional maximum-likelihood approach when using the same feature and being tested with the same test videos.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "It should also be noted that although we focus mainly on a system suitable for closed-room monitoring, we expect such correlation and constraint to be present in many application scenarios, e.g., an interconnected network of cameras monitoring multiple entrances/exits or adjacent areas of a large site, and our proposed approach can be readily extended to these applications. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Bayesian-based performance prediction for gait recognition",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Bhanu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ju",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proceedings of the Workshop on Motion and Video Computing",
+            "volume": "",
+            "issn": "",
+            "pages": "145--150",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Computer vision face tracking for use in a perceptual user interface",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Bradski",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Intel Technol. J",
+            "volume": "2",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Outbreak of Severe Acute Respiratory Syndrome-Worldwide",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Cdc Sars Investigative",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Team",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Fleischauer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "MMWR",
+            "volume": "52",
+            "issn": "11",
+            "pages": "226--228",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Human and machine recognition of faces: a survey",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chellappa",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Sirohey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Proc. IEEE",
+            "volume": "83",
+            "issn": "5",
+            "pages": "705--741",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Comments on computational learning model for metrical phonology",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Church",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Formal Grammar: Theory and Implementation, Vancouver Studies in Cognitive Science Series",
+            "volume": "2",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "An efficient color representation for image retrieval",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Deng",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Manjunath",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Kenney",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Moore",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Shin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "IEEE Trans. Image Process",
+            "volume": "10",
+            "issn": "1",
+            "pages": "140--147",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Pattern Classification",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Duda",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Hart",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Stork",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Robust color histogram descriptors for video segment retrieval and identification",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Tekalp",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Mehrotra",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Trans. Image Process",
+            "volume": "11",
+            "issn": "5",
+            "pages": "497--508",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Object recognition and tracking for remote video surveillance",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Foresti",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "IEEE Trans. Circuits Systems Video Technol",
+            "volume": "9",
+            "issn": "7",
+            "pages": "1045--1062",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Real time surveillance of people and their activities",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Haritaoglu",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Harwood",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Davis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "4",
+            "issn": "8",
+            "pages": "809--830",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Gaitbased recognition of humans using continuous HMMs",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kale",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rajagopalan",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Cuntoor",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kruger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proceedings of the ICFGR",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Why tanh: choosing a sigmoidal function",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Kalman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Kwasny",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Proceedings of the International Joint Conference on Neural Networks",
+            "volume": "4",
+            "issn": "",
+            "pages": "7--11",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "A color histogram based people tracking system",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-P",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Proceedings of the IEEE International Symposium on Circuits and Systems",
+            "volume": "2",
+            "issn": "",
+            "pages": "137--140",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Tracking groups of people",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Mckenna",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Comput. Vision Image Understanding",
+            "volume": "80",
+            "issn": "",
+            "pages": "42--56",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "3D real-time head tracking using color histograms and stereovision",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Moreno",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Tarrida",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Andrade-Cetto",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Sanfeliu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proceedings of the 16th International Conference on Pattern Recognition",
+            "volume": "",
+            "issn": "",
+            "pages": "368--371",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Automated visual surveillance using hidden Markov models",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Nair",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Clark",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proceedings of the 15th Vision Interface Conference",
+            "volume": "",
+            "issn": "",
+            "pages": "88--92",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "People recognition in image sequences by supervised learning",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Nakajima",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Pontil",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Heisele",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Poggio",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "MIT Technical Report",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "A bayesian computer vision system for modeling human interactions",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Oliver",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Rosario",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Pentland",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "22",
+            "issn": "8",
+            "pages": "831--843",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "A tutorial on hidden Markov models and selected applications in speech recognition",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Rabiner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Proc. IEEE",
+            "volume": "77",
+            "issn": "22",
+            "pages": "257--285",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Evaluation of automated biometrics-based identification and verification systems",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Shen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Surette",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Khanna",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Proc. IEEE",
+            "volume": "85",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "A maximum-likelihood approach to visual event classification",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Siskind",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Morris",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Proceedings of ECCV",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Visual recognition of American sign language using hidden Markov models",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Starner",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Pentland",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Proceedings of the International Workshop on Automatic Face-and Gesture-Recognition",
+            "volume": "",
+            "issn": "",
+            "pages": "189--194",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Color indexing",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Swain",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Int. J. Comput. Vision",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Color appearance-based approach to robust tracking and recognition of multiple people",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-P",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Proceedings of the Fourth International Conference on Information, Communications & Signal Processing and Fourth Pacific-Rim Conference on Multimedia",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Statistical motion model based on the change of feature relationships: human gait-based recognition",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Vega",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Sarkar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "25",
+            "issn": "10",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Human action learning via hidden Markov model",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "IEEE Trans. Systems Man Cybern",
+            "volume": "27",
+            "issn": "1",
+            "pages": "34--44",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "System overview with two sample frames illustrating a person entering and leaving a closed room with a single entrance/exit.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Sample images of the people detection and tracking results: (a) a person is leaving the lab, and (b) another person is entering the lab.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "The Sigmoid function to map color histogram intersection onto the similarity probability of two observed people.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "output probability of state i at time t; b i (O t ): In analogy with the definition in HMMs, let b i \u00f0O t \u00de be the probability of observation O t generated by state i: We regard this probability as how likely an observed O t is due to person s i ; and simply approximate it by Eq. (3) using their ARTICLE IN PRESS Fig. 4. A recognition example of the proposed probabilistic reasoning framework.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "The likelihood matrix M between times t and t \u00fe 1 and the probability of the existence of a person associated with a certain state at time instances t \u00fe and t \u00fe 1 \u00c0 :",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "An example illustrating the estimation of conditional probability.path, which means person s 3 has not left the room since he/she entered. So none of s 4 and s 5 could be s 3 and r\u00f0S 3 \u00de \u00bc 0 according to Eq.(13). With this domain knowledge, the original likelihood matrix M can be modified as In this example, the two indication factors affect the same row of the likelihood matrix M: In general, the adjustments could be made on different rows depending on the cond as well as the state chosen for evaluating the transition probability.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "A model illustrating the case in which three people enter and leave a closed room successively, where the dash arrows indicate the transitions that are not allowed.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "A model illustrating the case in which S 3 has perfect similarity with S 1 and S 2 :",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "The segmentation results of eight different people recorded in video-II, with their entering (frontal) images in the first row and leaving (backward) ones in the second row.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "The confidence index over decision time.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "ARTICLE IN PRESS www.elsevier.com/locate/image 0923-5965/$ -see front matter r 2004 Elsevier B.V. All rights reserved. doi:10.1016/j.image.2004.07.001",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Comparison of the recognition rates obtained by the maximum likelihood (ML) approach and our proposed approach",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

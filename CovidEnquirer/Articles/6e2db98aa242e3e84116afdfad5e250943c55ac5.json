@@ -1,0 +1,2799 @@
+{
+    "paper_id": "6e2db98aa242e3e84116afdfad5e250943c55ac5",
+    "metadata": {
+        "title": "Early detection of dynamic harmful cascades in large-scale networks \u0b1d",
+        "authors": [
+            {
+                "first": "Chuan",
+                "middle": [],
+                "last": "Zhou",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Chinese Academy of Sciences",
+                    "location": {
+                        "postCode": "100093",
+                        "settlement": "Beijing",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Wei-Xue",
+                "middle": [],
+                "last": "Lu",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Jingzun",
+                "middle": [],
+                "last": "Zhang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Beijing Union University",
+                    "location": {
+                        "postCode": "100101",
+                        "settlement": "Beijing",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Lei",
+                "middle": [],
+                "last": "Li",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Hefei University of Technology",
+                    "location": {
+                        "postCode": "230009",
+                        "settlement": "Hefei",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Yue",
+                "middle": [],
+                "last": "Hu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Chinese Academy of Sciences",
+                    "location": {
+                        "postCode": "100093",
+                        "settlement": "Beijing",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Li",
+                "middle": [],
+                "last": "Guo",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Chinese Academy of Sciences",
+                    "location": {
+                        "postCode": "100093",
+                        "settlement": "Beijing",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Quickly detecting harmful cascades in networks can allow us to analyze the causes and prevent further spreading of destructive influence. Since it is often impossible to observe the state of all nodes in a network, a common method is to detect harmful cascades from sparsely placed sensors. However, the harmful cascades are usually dynamic (e.g., the cascade initiators and diffusion trajectories can change over the time), which can severely destroy the robustness of selected sensors. Meanwhile the large scale of current networks greatly increases the time complexity of sensor selection. Motivated by the observation, in this paper we investigate the scalable sensor selection problem for early detection of dynamic harmful cascades in networks. Specifically, we first put forward a dynamic susceptible-infected model to describe harmful cascades, and formally define a detection time minimization (DTM) problem which focuses on effective sensors placement for early detection of dynamic cascades. We prove that it is #P-hard to calculate the objective function exactly and propose two Monte-Carlo methods to estimate it efficiently. We prove the NP-hardness of DTM problem and design a corresponding greedy algorithm. Based on that, we propose an efficient upper bound based greedy (UBG) algorithm with the theoretical performance guarantee reserved. To further meet different types of large-scale networks, we propose two accelerations of UBG: Quickest-Path-UBG for sparse networks and Local-Reduction-UBG for dense networks to improve the time complexity. The experimental results on synthetic and real-world social networks demonstrate the practicality of our approaches.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Harmful cascade spreading through kinds of network structures has become more and more ubiquitous in the modern world. A contagious disease like Severe Acute Respiratory Syndrome (SARS) can spread quickly through a population contact network and lead to an epidemic [12, 34] . A computer virus on a few servers can fast spread to other servers or computers in a computer connection network [15, 17] . In a similar vein, a rumor started by a few individuals can spread quickly through the online social network [2, 26] . It is crucial to detect the harmful cascades as soon as they happen or shortly thereafter, since it allows us to study the causes and prevent further spreading of harmful influence [32, 38] .",
+            "cite_spans": [
+                {
+                    "start": 266,
+                    "end": 270,
+                    "text": "[12,",
+                    "ref_id": null
+                },
+                {
+                    "start": 271,
+                    "end": 274,
+                    "text": "34]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 390,
+                    "end": 394,
+                    "text": "[15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 395,
+                    "end": 398,
+                    "text": "17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 510,
+                    "end": 513,
+                    "text": "[2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 514,
+                    "end": 517,
+                    "text": "26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 701,
+                    "end": 705,
+                    "text": "[32,",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 706,
+                    "end": 709,
+                    "text": "38]",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In practice, it is commonly infeasible or unaffordable to monitor all nodes at all times, and therefore a common way to detect cascades is to select important nodes where we can place sensors for monitoring [7, 19, 31, 39] . However, existing methods usually viewed the cascade data as static and deterministic, ignoring an important fact that the harmful cascades are usually dynamic and time-variant, in the sense that the cascade initiators and diffusion trajectories can change randomly over the time. Actually the dynamic brings new challenges to network monitoring, since it can severely destroy the robustness of selected sensors [22] . Meanwhile the existing sensor selection algorithms can only work for small networks and not be scalable well to large networks of the https://doi.org/10.1016/j.jocs.2017. 10 .014 1877-7503/\u00a9 2017 Elsevier B.V. All rights reserved. day [28] . Motivated by these observations, in this paper we investigate the scalable solutions to sensor selection problem for early detection of dynamic harmful cascades in networks. To model the dynamic property, we carry on our work from a model-driven perspective.",
+            "cite_spans": [
+                {
+                    "start": 207,
+                    "end": 210,
+                    "text": "[7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 211,
+                    "end": 214,
+                    "text": "19,",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 215,
+                    "end": 218,
+                    "text": "31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 219,
+                    "end": 222,
+                    "text": "39]",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 637,
+                    "end": 641,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 815,
+                    "end": 817,
+                    "text": "10",
+                    "ref_id": null
+                },
+                {
+                    "start": 879,
+                    "end": 883,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To provide a unified framework, we model all the above examples as an infection spreading in a network G = (V, E), where V is the set of nodes (i.e. individuals) and E is the set of edges (i.e. relationships). In a population network, the infection is the disease that is transmitted between individuals. In the example of a computer virus spreading in a network, the infection is the computer virus, while for the case of a rumor spreading in a social network, the infection is the rumor.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Under this unified network framework, we specifically propose a new dynamic cascade model to describe harmful cascade diffusions, and define a detection time minimization (DTM) problem S * = argmin |S|=k,S\u2286V D(S), where k is a given parameter determined by budget or monitor capacity, S is sensor nodes set, and D(S) is detection time. The DTM problem focuses on effective sensor nodes selection for early detection of dynamic harmful cascades.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "We first prove the NP-hardness of DTM problem and design a corresponding greedy algorithm. Considering the limitation caused by greedy algorithm inefficiency, we then propose two alternative Monte-Carlo methods, each having its pros and cons, to estimate the #P-hard objective function D(S) efficiently. To further address the scalability issue, we propose an efficient upper bound based greedy (UBG) algorithm and its two accelerations Quickest-Path-UBG and Local-Reduction-UBG to cater for different types of large-scale networks. These two accelerations are close to UBG in performance but orders of magnitude faster than UBG in time complexity. Experiments on synthetic and real-world social networks demonstrate the practicality of our approaches.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Detecting the whole network by monitoring finite sensor nodes has been widely applied to detect water contaminations in a water distribution network [19] and virus outbreaks in a human society [7] . Some early work places sensors by topological measures, e.g. targeting high degree nodes [32] or highly connected nodes [8] . However the effects along this idea are commonly unsatisfied, since they ignore the multi-step complexity of network diffusions.",
+            "cite_spans": [
+                {
+                    "start": 149,
+                    "end": 153,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 193,
+                    "end": 196,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 288,
+                    "end": 292,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 319,
+                    "end": 322,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Related work"
+        },
+        {
+            "text": "The \"Battle of Water Sensor Network\" challenge [31] motivated a number of works to optimize sensor placement in water networks to detect contamination [16, 18] . By utilizing submodular property, they proposed to optimize the sensor placement with different criterions such as maximizing the probability of detection, minimizing the detection time, or minimizing the size of the subnetwork affected by the phenomena [24] . In their works the data are a set of deterministic scenarios and the random property of diffusion are not taken into consideration. What's more, their methods are not scalable to large networks [28] .",
+            "cite_spans": [
+                {
+                    "start": 47,
+                    "end": 51,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 151,
+                    "end": 155,
+                    "text": "[16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 156,
+                    "end": 159,
+                    "text": "18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 416,
+                    "end": 420,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 617,
+                    "end": 621,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Related work"
+        },
+        {
+            "text": "In addition to the above two types of methods, another related work [1] set sensors along fixed paths in the network so as to gather sufficient information to locate possible contaminations. Early detection of contagious outbreaks by monitoring the neighborhood (friends) of a randomly chosen node (individual) was studied by Christakis and Fowler [7] . Krause et al. [20] presented efficient schedules for minimizing energy consumption in battery operated sensors, while other works analyzed distributed solutions with limited communication capacities and costs [13, 21, 22] . In addition, Berry et al. [4] equated the placement problem with a p-median problem. Li et al. [25] proposed a dynamic-programming (DP) based greedy algorithm which is with a near-optimal performance guarantee.",
+            "cite_spans": [
+                {
+                    "start": 68,
+                    "end": 71,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 348,
+                    "end": 351,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 368,
+                    "end": 372,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 563,
+                    "end": 567,
+                    "text": "[13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 568,
+                    "end": 571,
+                    "text": "21,",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 572,
+                    "end": 575,
+                    "text": "22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 604,
+                    "end": 607,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 673,
+                    "end": 677,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Related work"
+        },
+        {
+            "text": "By contrast, our work is geared to investigate the scalable sensor selection problem for early detection of dynamic harmful cascades in networks from a model-driven prospective. The main difference from previous works is that we take dynamic properties of cascades into consideration: (1) the cascade initiator is dynamic since we do not know who will initiate another harmful diffusion next time, and (2) the diffusion process is dynamic since the propagation trajectory is uncertain. Under these two dynamic sources, we aim to accurately and fast select k nodes as sensors for early detection of harmful cascades. Besides, as the size of network becomes more and more large-scale, we also need to ensure the effectiveness of the proposed sensor selection methods for large networks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Related work"
+        },
+        {
+            "text": "To minimize the time to find the dynamic harmful cascades, our search attempts to optimize the selection of sensors in a scalable way. Our contributions are summarized as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Our contributions"
+        },
+        {
+            "text": "\u2022 We formulate a Detection Time Minimization (DTM) problem.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Our contributions"
+        },
+        {
+            "text": "To describe the dynamic harmful cascade on networks, we put forward a dynamic cascade model for the harmful diffusion. \u2022 We prove that it is #P-hard to exactly calculate the objective function of DTM problem and propose two equivalent Monte-Carlo methods to estimate it. Each has its advantages and disadvantages. \u2022 We show the NP-hardness of DTM problem as it can be shown to contain the Set Cover problem as a simple special case. We convert the DTM problem to a constrained max optimization problem, prove the submodularity of the new objective function, and then employ the greedy algorithm which achieves an approximation ratio of 1 \u2212 1/e. \u2022 We theoretically establish new upper bounds for the remaining time. Based on these bounds, we further propose a new Upper Bound based Greedy (UBG in short) algorithm which can significantly reduce the number of estimations in greedy-based algorithms, especially at the initial step. \u2022 We propose two accelerations of UBG: Quickest-Path-UBG and Local-Reduction-UBG to address the DTM problem for large networks, which are close to UBG in performance but orders of magnitude faster than UBG in time complexity.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Our contributions"
+        },
+        {
+            "text": "In addition, our methods not only aim at early detection of harmful cascades, but also shed light on a host of other applications. For example, the goal of Emerging Topic Detection is to identify emergent topics in a social network, assuming full access to the stream of all postings. Providers, such as Twitter or Facebook, have an immediate access to all tweets or postings as they are submitted to their server [6, 29] , while outside observers need an efficient mechanism to monitor changes, such as the methods developed in this work. Another example, an emerging trend in algorithmic stock trading is the use of automatic search through the Web and social networks for pieces of information that can be used in trading decisions before they appear in the more popular news sites [23, 27] . Similarly, intelligence, business and politics analysts are scanning online sources for new information. The theoretical framework and method established in this paper can also be used in these applications.",
+            "cite_spans": [
+                {
+                    "start": 414,
+                    "end": 417,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 418,
+                    "end": 421,
+                    "text": "29]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 785,
+                    "end": 789,
+                    "text": "[23,",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 790,
+                    "end": 793,
+                    "text": "27]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Our contributions"
+        },
+        {
+            "text": "The rest of the paper is organized as follows. Section 2 presents the cascade model and problem formulation. In Section 3 we show the # P-hardness of detection time calculation and derive two equivalent estimation methods. Section 4 is devoted to the NP-hardness of DTM problem, the submodular properties of transformed objective function, and the corresponding greedy algorithm. To prune the unnecessary estimation calls, we analysis the upper bounds for the new proposed UBG algorithm in Section 5 . Section 6 presents two accelerations of UBG for large scale networks. Section 7 shows the experimental results. We conclude the paper in Section 8. Table 1 outlines the major variables used.",
+            "cite_spans": [
+                {
+                    "start": 498,
+                    "end": 499,
+                    "text": "5",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 650,
+                    "end": 657,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Our contributions"
+        },
+        {
+            "text": "In this section we start with a description of dynamic cascade model and then we define the Detection Time Minimization (DTM) problem abstracted from the early detection problem.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem formulation"
+        },
+        {
+            "text": "We start somewhat with the framework of [24] , where the models introduced are essentially descriptive to specify a joint distribution over all nodes' behavior in a global sense. In contrast, we focus on more operational models, from mathematical sociology [3] and interacting particle systems [10] , to explicitly represent the step-by-step dynamics of infection.",
+            "cite_spans": [
+                {
+                    "start": 40,
+                    "end": 44,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 257,
+                    "end": 260,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 294,
+                    "end": 298,
+                    "text": "[10]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "By considering operational models for the dynamic diffusion of a harmful item through a network G, represented by a directed graph, we will speak of each individual node as being either infected or uninfected. Motivated by the properties of contaminants like rumor and virus, we will focus from now on the progressive case in which nodes can switch from being uninfected to being infected, but do not switch in the other direction. We also focus on the setting that each node's tendency to become infected increases monotonically as more of its neighbors become active. Thus, the process can be reviewed with respect to some particular uninfected node v: as time unfolds, more and more of v's neighbors become infected; at some point, this may cause v to become infected, and v's decision may in turn trigger further infections by nodes connected with v.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "Motivated by above observation, we put forward a dynamic susceptible-infected (DSI) model for the harmful cascade spreading, which can be seen as a variant of the common susceptible-infected (SI) model [3] . The susceptible nodes are those with at least one infected neighbor, and the infected nodes do not recover.",
+            "cite_spans": [
+                {
+                    "start": 202,
+                    "end": 205,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "Specifically (1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "The DSI model is attached with a probability distribution = { (u), u \u2208 V} to describe the dynamic of cascade initiators.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "can be seen as a priori knowledge of nodes being infected initially, where u \u2208 V (u) = 1 holds. The DSI model first chooses an initially infected node u \u2208 V according to distribution , and then it works as follows. Let I t \u2286 V be the set of nodes that gets infected at step t \u2265 0, with I 0 = {u}. Define J t := 0\u2264i\u2264t I i be the cumulative set of nodes that get infected before step t \u2265 0. Then, at step t + 1, each node u \u2208 J t may infect its out-neighbors v \u2208 V \\J t with an independent probability of ip(u, v). Thus, a node v \u2208 V \\J t is infected at step t + 1 with the probability",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "If node v is successfully infected, it is added into the set I t+1 . Then update J t+1 by J t+1 \u2190\u2212 J t \u222a I t+1 . Note that each infected node has more than one chance to activate its susceptible out-neighbors until they get infected, and each node stays infected once it is infected by others. Obviously the cumulative infected process (J t ) t\u22650 is Markovian.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Dynamic cascade model"
+        },
+        {
+            "text": "In a diffusion model (I t ) t\u22650 , given an initially infected node u \u2208 V and a set of sensors S \u2286 V, the random detection time is defined as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "where a \u2227 b : = min{a, b} and T max is the time interval that we observe. We assume inf{ \u2205 } =+\u221e. The random detection time (u, S) denotes the time delay that a contaminant initiated from node u is detected by one of the sensors in S. Proof. Above properties come from the definition in Eq. (2). We put the detailed proofs in Section 8.1. Note that the detection time (u, S) can be viewed as a special type of stopping time in stochastic process theory [11] .\u1b80 Let the variable X denote the random initiator with distribution , i.e., for every u \u2208 V, we have",
+            "cite_spans": [
+                {
+                    "start": 453,
+                    "end": 457,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "The (expected) detection time from a random initiator to one of the selected sensors in S can be define as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "where E is an expectation operator under the cascade model. By the conditional expectation, we can calculate the expected detection time D(S) in the following way:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "Indeed, Eq. (5) can be reached like this",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "where (X) denotes the -algebra generated by variable X. Eq. (5) converts the global detection time E[ (X, S)] as a summation of local detection time E[ (u, S)] with u \u2208 V. This conversion provides a basic for Section 5.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "Our goal is to find k nodes as sensors in a network in order to minimize the time until an infection -starting from a random initiator in the network -is detected. Formally, we formulate the problem as the following discrete optimization problem: we want to find a subset S * \u2286 V such that |S * | = k and D(S * ) = min{D(S)||S| = k, S \u2286 V}, i. e .,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "where k is a given parameter determined by budget or monitor capacity. We call this as detection time minimization problem (DTM problem for short). For the sake of concreteness, we will discuss our results in terms of the DSI model in particular.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection time minimization problem"
+        },
+        {
+            "text": "To solve the DTM problem Eq. (6), the first issue is how to calculate the objective function D(S) given a sensor set S. This question isn't as easy as its description in Eq. (4). For example, the DSI process is underspecified, since we have not prescribed the order in which newly infected nodes in a given step t will attempt to activate their neighbors. Thus, it is not initially obvious that the process is even well-defined, in the sense that it yields the same distribution over outcomes regardless of how we schedule the attempted activations. Actually the computation of D(S) is #P-hard, by showing a reduction from the positive partitioned 2-DNF assignment counting problem [9] .",
+            "cite_spans": [
+                {
+                    "start": 682,
+                    "end": 685,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Detection time estimation"
+        },
+        {
+            "text": "Proof. We prove the theorem by a reduction from the counting problem of the positive partitioned 2-DNF assignment [9] . For detailed proof, see Section 8.2. \u1b80 Since it is intractable to exactly compute D(S) on a typically sized graph, a natural idea is to employ Monte-Carlo methods to estimate D(S), which can be implemented in two different ways as follows:",
+            "cite_spans": [
+                {
+                    "start": 114,
+                    "end": 117,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Theorem 1. Computing the detection time D(S) given a sensor set S is #P-hard."
+        },
+        {
+            "text": "The expected detection time D(S) is obtained by directly simulating the random process of diffusion triggered by a random node, say u, chosen according to the distribution defined as Eq. (3). Let I t denote the set of nodes newly infected in the t-th iteration with I 0 = {u}. In the (t + 1)-th iteration, a node u \u2208 J t : = \u222a 0\u2264i\u2264t I i attempts to activate each uninfected neighbor v / \u2208 J t with the probability",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Propagation simulation"
+        },
+        {
+            "text": "The process is repeated until the diffusion hits the sensor set S at some step T(u, S), i.e.,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Propagation simulation"
+        },
+        {
+            "text": "where inf{ \u2205 } : =+\u221e as convention. The detection time of this single simulation is recorded at T(u, S) \u2227 T max , which is right (u, S) defined in Eq. (2) . We run such simulations for many times and finally estimate the expected detecting time D(S) by averaging over all simulations.",
+            "cite_spans": [
+                {
+                    "start": 151,
+                    "end": 154,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Propagation simulation"
+        },
+        {
+            "text": "According to the characteristic of the DSI model, the time cost that an infected node u spends in infecting its uninfected neighbor v is distributed geometrically with parameter ip(u, v), and we denote this time cost as C(u, v), i.e.,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Snapshot simulation"
+        },
+        {
+            "text": "for any integral s \u2265 1. We can flip all coins a priori to produce a weighted graph G = (V, E, c), where an edge (u, v) is labeled with the time cost c(u, v) -a sample of random variable C(u, v). Actually such a snapshot provides an easy way to sample the detection time of any sensor set S, which exactly equals to the smallest time cost from the initially infected node, say u (chosen according to the distribution ), to the nearest sensor in S. Define c(u, S) be the smallest time cost from u to the nearest sensor in S, then the detection time of this single simulation is recorded as c(u, S) \u2227 T max . We produce plenty of snapshots and finally estimate the expected detection time D(S) by averaging over all snapshots.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Snapshot simulation"
+        },
+        {
+            "text": "The snapshot simulation is equivalent to the propagation simulation in estimating D(S). More specifically, the random variables T(u, S) and c(u, S) are identically distributed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2."
+        },
+        {
+            "text": ", it is enough to prove that random variables T(u, S) and c(u, S) are identically distributed. For proof details, see Section 8.3. \u1b80",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2."
+        },
+        {
+            "text": "We have confirmed that the two methods are equivalent, while either has its own advantages and disadvantages. For estimating a specific D(S), the simulation method is faster, because it only needs to examine a small portion of edges while the snapshot method has to examine all the edges. For estimating the expected detection time of different sensor sets, the snapshot method outperforms the simulation method in terms of time complexity, since each snapshot serves all sensor sets. Under these observations, the heuristic algorithms use the propagation simulation, while the greedy-based algorithms employ the snapshot simulation in the experimental part.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2."
+        },
+        {
+            "text": "In this section we first show the NP-hardness of DTM problem in Eq. (6), as it can be shown to contain the Set Cover problem as a simple special case, then we propose a simple greedy algorithm for the DTM problem. Proof. Consider an instance of the NP-complete Set Cover problem, defined by a collection of subsets S = {S 1 , S 2 , . . ., S m } of a ground set U = {u 1 , u 2 , . . ., u n }, we wish to know whether there exist k of the subsets whose union is equal to U. We can assume that k < n < m here. We show that this can be viewed as a special case of the optimal problem (6).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "Given an arbitrary instance of the Set Cover problem, we define a corresponding directed bipartite graph with n + m nodes: there is a node i corresponding to each element u i \u2208 U, a node j corresponding to each set S j \u2208 S, and a directed edge (i, j) with activation probability ip(i, j) = 1 whenever u i \u2208 S j . Define the probability distribution = { (u), u \u2208 V} on the knowledge of nodes being initially infected as follows",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "The Set Cover problem is equivalent to deciding if there is a set S of k nodes in this bipartite graph with D(S) \u2264 1. Note that for the instance we have defined, activation is a deterministic process, as all probabilities are 0 or 1. Monitoring k nodes to detect diffusion initiated from U corresponding to sets in a Set Cover solution results in covering all n nodes corresponding to the ground set U, and if any set S of k nodes has D(S) \u2264 1, then the Set Cover problem must be solvable.\u1b80 Since the optimization problem is NP-hard and the network is prohibitively large, we cannot compute the optimum value to verify the actual quality of approximations. Hence a natural idea is to employ the greedy algorithm as approximation method. To make better use of the greedy algorithm, we consider an equivalent optimization problem Eq. (6) as follows,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "where",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "is defined as the (expected) remaining time for taking actions when a contaminant is detected. The above alternative formulation has key properties as described in the following Theorem 4. Theoretically, a non-negative",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "for all S \u2286 T. Proof. It is obvious that the remaining time function R is monotone and R(\u2205) =0. Now we prove that R is submodular. According to the definitions in Eqs. (5) and (10), it suffices to show that",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "for all S \u2286 T \u2286 V and v \u2208 V \\T . By the second property of in Propo-",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "Note that (u, T) \u2264 (u, S) always works by the monotone decrease property of in Proposition 1. Now we discuss Eq. (14) separately according to the value of (u, {v}).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": ", which holds by the monotone decrease of .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "Eq. (14) is proven and we thus get that R(S) is submodular.\u1b80 By above properties in Theorem 4, the problem given in Eq. (9) can be approximated by the greedy algorithm in Algorithm 1 with the set function f : = R. For any submodular and monotone function f with f(\u2205) =0, the problem of finding a set S of size k that maximizes f(S) can be approximated by the greedy algorithm in Algorithm 1. The algorithm iteratively selects a new sensor u that maximizes the incremental change of f and includes the new sensor into the set S until k sensors have been selected. It is shown that the algorithm guarantees an approximation ratio of f(S)/f(S * ) \u2265 1 \u22121/e, where S is the output of the greedy algorithm and S * is the optimal solution [30] .",
+            "cite_spans": [
+                {
+                    "start": 732,
+                    "end": 736,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "In Greedy(k, R), a thorny problem is that there is no efficient way to compute R(S) given a placement S, and we turn to run snapshots for 10, 000 trials to obtain an accurate estimate of R(S), mentioned in Section 3. This actually leads to expensive selection time. Another source of inefficiency in Greedy(k, R) is that there exists O(kN) iterations at the remaining time estimation step, where k is the size of the initial sensor set, and N is the number of nodes. When N is large, the efficiency of the algorithm is unsatisfactory.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "Hence, in order to improve the efficiency of Greedy(k, R), one can either reduce the number of calls for evaluating R(S), or develop advanced heuristic algorithms which can conduct fast and approximate estimations for R(S) at the expense of accuracy guarantees.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "NP-hardness and simple greedy"
+        },
+        {
+            "text": "In order to prune the estimation calls in Greedy(k, R), a natural idea is to employ the Cost-Effective Lazy Forward selection (CELF) algorithm proposed in [24] . The principle behind is that the marginal gain of a node in the current iteration cannot be more than that in previous iterations, and thus the number of estimation calls can be greatly pruned. CELF optimization produces the same sensor set as the original greedy algorithm, but it is much faster than the original one [24] .",
+            "cite_spans": [
+                {
+                    "start": 155,
+                    "end": 159,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 481,
+                    "end": 485,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Upper bound based Greedy"
+        },
+        {
+            "text": "Although CELF significantly improves Greedy(k, R), the sensor selection time is still unaffordable on large networks. In particular, in the first round to establish the initial upper bounds, CELF needs to estimate R({v}) using MC simulations for each node v, leading to N times of MC calls, which is time-consuming, especially when the network is very large. The limitation leads to a rather fundamental question that, can we derive an upper bound of R({v}) which can be used to further prune unnecessary detection time estimations (MC calls) in Greedy(k, R)?",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Upper bound based Greedy"
+        },
+        {
+            "text": "Motivated by this question and the idea in [40] , in this section we derive an initial upper bound of R({v}) for Greedy(k, R). Based on the bound, we propose a new greedy algorithm Upper Bound based Greedy (UBG for short), which outperforms the original CELF algorithm. Essentially different from the bounds that derived for the influence spread under the IC model [40] , we here ",
+            "cite_spans": [
+                {
+                    "start": 43,
+                    "end": 47,
+                    "text": "[40]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 365,
+                    "end": 369,
+                    "text": "[40]",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Upper bound based Greedy"
+        },
+        {
+            "text": "In this part, we aim to derive an upper bound of R(v). Before introducing the upper bounds in Theorem 5, we first prepare two propositions. Let P u (v \u2208 J t ) denote the probability that node v becomes infected before step t when the initially infected node is u. We have the first proposition as follows.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Preparations"
+        },
+        {
+            "text": "For v \u2208 V , the remaining time R(v) under the DSI model can be calculated as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "Proof. In fact, by the definition in Eq.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "(2), we first have",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "where the fourth '=' is due to the fact that u \u2208 V (u) = 1 in above derivation. \u1b80 Proposition 2 reveals that we can treat the global remaining time R(v) as a summation of all T max propagation steps of local probabilities",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "Based on Proposition 2, a following question is, what is the relationship between two sets,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "Proposition 3. For k \u2265 1, we have the following inequation",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "Proof. For k \u2265 1, by the definition of conditional expectation and DSI model, we obtain",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "where the first '\u2264' is due to 1 {v/ \u2208J k\u22121 } \u2264 1, and the second '\u2264'",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "x i in the above derivation.\u1b80 Proposition 3 clearly identifies the ordering relationship between two adjacent elements in the series P u (v \u2208 J 0 ), P u (v \u2208 J 1 ), P u (v \u2208 J 2 ), \u00b7 \u00b7 \u00b7. Now we simplify the results in Proposition 3 by using the form of matrix. Let IP be the infection probability matrix with the element at position (u, v) being ip(u, v). For t \u2265 0, denote the row vector",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "as the probabilities of nodes being infected before step t, i. e ., \u00c2 u t (v) := P u (v \u2208 J t ). Obviously, we have \u00c2 u 0 (v) = 1 {u} (v). Now we can rewrite Proposition 3 by using the matrix form,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "By iteration, we further get that u t \u2264 u 0 \u00b7 (E + IP) t , where E is a unit matrix. Furthermore, due to the definition of probability \u00c2 u t (v), it follows that",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "Hereafter, define A \u2227 1 : = {a(i, j) \u2227 1} for a matrix A = {a(i, j)}.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposition 2."
+        },
+        {
+            "text": "With the above preparations, we can present the results on upper bound of remaining time as follows,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Upper Bound of R(v)"
+        },
+        {
+            "text": "where E is a unit matrix and [A] (u,v) means the element at position ",
+            "cite_spans": [
+                {
+                    "start": 33,
+                    "end": 38,
+                    "text": "(u,v)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "The Upper Bound of R(v)"
+        },
+        {
+            "text": "where is a prior distribution on the likelihood of nodes being the infected source.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof. With the preparations of Propositions 2 and 3, it follows that"
+        },
+        {
+            "text": "We first use a toy example to explain how to calculate the upper bound.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "Example 1. Given a directed network G in Fig. 1 with infection probability matrix in Eq. (22) . Let T max = 10, we have ((E + IP) t \u2227 1) is intractable when the network size is large. To overcome the difficulty, we adopt the following procedure to calculate Tmax\u22121 t=0",
+            "cite_spans": [
+                {
+                    "start": 89,
+                    "end": 93,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 41,
+                    "end": 47,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "If t \u22651 \u2264 T max \u2212 1, it implies that we do not need to calculate (E + IP) t any more when t \u2265 t \u22651 , and therefore we have",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "where 1 is a N \u00d7 N matrix with all elements being 1. Additionally we find that ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "Proof. In fact, when IP is small enough, it follows that",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "where the approximation stems from Taylor expansion.\u1b80 By Eqs. (21) and (25), the new upper bound of remaining time can be approximately put as",
+            "cite_spans": [
+                {
+                    "start": 62,
+                    "end": 66,
+                    "text": "(21)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "which is relatively tractable when IP is small.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The calculation of the upper bound"
+        },
+        {
+            "text": "Based on the upper bound, we propose a new UBG algorithm for early outbreak detection. First we explain the difference between UBG and CELF.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The UBG algorithm"
+        },
+        {
+            "text": "The CELF algorithm [24] exploits the submodular property to improve the original greedy algorithm. However, CELF demands N (the number of nodes in the network) remaining time estimations to establish the initial bounds of marginal increments, which is time expensive on large graphs.",
+            "cite_spans": [
+                {
+                    "start": 19,
+                    "end": 23,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The UBG algorithm"
+        },
+        {
+            "text": "In contrast, the proposed Upper Bound based Greedy (UBG) algorithm uses the derived new bound to further reduce the number of remaining time estimations, especially in the initialization step. This way, the nodes are ranked by their upper bound scores which can be used to prune unnecessary calculations in the CELF algorithm. We use Example 2 for illustration. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The UBG algorithm"
+        },
+        {
+            "text": "Even with the UBG algorithm proposed in Section 5, its running time is still unbearable and may not be suitable for large social networks. Although UBG can greatly reduce the number of remaining time estimation calls, each estimation call is very timeconsuming, as it needs produce enough samples and average them. Hence a possible alternative to further accelerate UBG is to employ heuristics to approximate the remaining time R(S) or the marginal return R(S \u222a {u}) \u2212 R(S) in UBG. Along this idea, we here introduce two accelerative algorithms to address the inefficiency of UBG: Quickest-Path-UBG and Local-Reduction-UBG. The experimental results will show that (i) both of them are efficient in terms of running time, and (ii) the former one applies to sparse networks better, while the latter one is more effective in dense networks in terms of detection time.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Accelerations of UBG"
+        },
+        {
+            "text": "In this part we introduce a tractable heuristic to approximate the remaining time R(S). From Eq. (5) and Eq. (10), the key point of estimating R(S) is how to estimate E[ (u, S)]. Note that E[ (u, S)] measures the expected time delay of a diffusion initiated from node u propagating to sensor set S. An intuitive idea is that the most likely propagation path should be the quickest path from node u to the set S. Hence, a question is how to measure the quickest path from node u to the set S? The proposed Quickest-Path-UBG is inspired by answering the question.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "According to the geometric distribution, if a random variable X is distributed geometrically with a parameter p, it follows that E[X] = 1/p. Since the time that a node u spends in infecting its uninfected neighborhood v is distributed geometrically with the parameter ip(u, v), the value 1/ip(u, v) should be the expected time cost that an infection propagates from node u to node v along the edge (u, v). Fig. 2 shows an example.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 406,
+                    "end": 412,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "For any two nodes u and v, let d(u, v) be the smallest time cost among the paths connecting u and v. For example, d( , ) = min{5 + 3.3, 10 + 5} = 8.3 in Fig. 2 . Then, for a subset S \u2286 V, we define d(u, S) := min v \u2208 S d(u, v). (27) Intuitively, d(u, S) denotes the expected time that an infection propagates from u to S along the quickest path in the graph G = (V, E, m) . Therefore, a fundamental question arises, is there some approximate relationship between the detection time and the shortest distance. Theoretically we have Theorem 6. When the shortest path from u to S in graph G = (V, E, m) is unique, the quantity d(u, S) \u2227 T max can be used to approximate the detection time E[ (u, S)], i.e.,",
+            "cite_spans": [
+                {
+                    "start": 228,
+                    "end": 232,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 153,
+                    "end": 159,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 362,
+                    "end": 371,
+                    "text": "(V, E, m)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "Proof. In fact, when the shortest path from u to S in graph G = (V, E, m) is unique, it follows that",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "where we use an result borrowed from probability theory for the approximation: consider random variables",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": ".\u1b80 Based on Theorem 6, combining Eq. (5), Eq. (10) and Eq. (28), we have the following derivation,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "Hence we can approximate the remaining time",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "rather than the heavy Monte-Carlo estimation MC(S \u222a {u}) in the 09th row of UBG algorithm. We nail down this new method as Quickest-Path-UBG, which is shown explicitly in Algorithm 3. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Quickest-Path-UBG"
+        },
+        {
+            "text": "Note that the reason we call this acceleration as Quickest-Path-UBG rather than Shortest-Path-UBG lies in that, our Quickest-Path-UBG introduces a new measurement to reflect the infection time cost rather than the distance in common sense.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "IP)"
+        },
+        {
+            "text": "In this part we turn to a tractable heuristic to approximate the marginal return \u0131 u (S) : = R(S \u222a {u}) \u2212 R(S) in the 09th row of UBG algorithm. To facilitate the description, we will approximate the marginal reduction D(S) \u2212 D(S \u222a {u}) rather than the marginal return R(S \u222a {u}) \u2212 R(S), due to the fact that R(S) = T max \u2212 D(S).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "In sociology literature, degree and other centrality-based heuristics are commonly used to select influential nodes in social networks [37] . These methods usually looked over the multi-step complexity of network diffusions, and assumed that the infection can propagate ahead only one hop before the end. In other words, if a node initiates an infection, the diffusion spread is at most its first-order neighbors. We call this as one-hop assumption hereafter. Especially, experimental results in [24] showed that selecting vertices with maximum indegree as sensors results in earlier infection detection than other heuristics, which validated the rationality of one-hop assumption to some extent. Under this observation, we will propose a tractable method upon the one-hop assumption to approximate the marginal reduction D(S) \u2212 D(S \u222a {u}).",
+            "cite_spans": [
+                {
+                    "start": 135,
+                    "end": 139,
+                    "text": "[37]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 496,
+                    "end": 500,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "We first introduce a useful result in probability theory: if the random variable X i is distributed geometrically with parameter p i for i = 1, \u00b7 \u00b7 \u00b7, n and they are independent, then \u2227 i=1,\u00b7 \u00b7 \u00b7,n X i is distributed geometrically with parameter 1 \u2212 According to the characteristic of the DSI model, the time cost that an infected node w spends in infecting its uninfected neighbor v is distributed geometrically with parameter ip(w, v). If the initially infected node w has multi-neighbors in sensor set S, the infections to different neighbors are independent. Under the onehop assumption, the expected detection time of w can thus be calculated like this",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "If the initially infected node w has no neighbors in sensor set S, the expected detection time of w is defined as T max . If w \u2208 S, it follows that E[ (w, S)] = 0. Fig. 3 presents an example to show the calculation result of expected detection time E[ (w, S)] for each node w \u2208 V under the one-hop assumption. With the preparations above, we are about to calculate the marginal reduction \u0131 u (S) = D(S) \u2212 D(S \u222a {u}) under the one-hop assumption. Assume the set S has been selected as sensor set to detect infections. When considering adding another node u as a new sensor into S, the reduction of the expected detection time can be put as follows",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 164,
+                    "end": 170,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "which is by Eq. (5). We now use Theorem 7 to present the concrete expression of the right part of Eq. (30) . Similar with the definition of Eq. (1), we predefine the parents of set S as follows,",
+            "cite_spans": [
+                {
+                    "start": 102,
+                    "end": 106,
+                    "text": "(30)",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "Theorem 7. In the DSI model with infection probability ip(w, v) on a directed graph G = (V, E), the reduction \u0131 u (S) of the expected detection time can be calculated like this",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "under one-hop assumption, where f(u, S) is defined as The reason that we call it as Local-Reduction-UBG is that we only consider the local change in monitoring {u} and Par(u) \\ Par(S) Table 2 Statistics of the four real-world networks.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 184,
+                    "end": 191,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Local-Reduction-UBG"
+        },
+        {
+            "text": "Digger Twitter  Epinions  Small-world   #Node  8194  32,986  51,783  200,000  #Edge  56,440  763,713  476, ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 7,
+                    "end": 106,
+                    "text": "Twitter  Epinions  Small-world   #Node  8194  32,986  51,783  200,000  #Edge  56,440  763,713  476,",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Dataset"
+        },
+        {
+            "text": "We conduct experiments on both synthetic and real-world data sets to evaluate the UBG algorithm, the Quickest-Path-UBG algorithm and Local-Reduction-UBG algorithm. We implement the algorithms using C++ with the Standard Template Library (STL). All experiments are run on a Linux (Ubuntu 11.10) machine with six-core 1400 MHz AMD CPU and 32 GB memory.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiments"
+        },
+        {
+            "text": "Three real and one synthetic data sets are used for comparisons. The Digger data 1 is a heterogeneous network, including Digg stories, user actions (submit, digg, comment and reply) with respect to the stories, and friendship relations among users. The Twitter and Epinions data sets can both be obtained from Stanford Datasource 2 . Epinions is a general consumer review site where visitors can read reviews about a variety of items to help them decide a purchase. The synthetic Small-world data set is the type of graphs in which each node can be reached by a small number of hops. For smallworld model we set the parameter of the nearest neighbors k = 15 and the rewiring probability p = 0.1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data Sets"
+        },
+        {
+            "text": "The above networks are representative ones, covering a variety of networks with different types of relations and sizes. The details of the data sets are listed in Table 2 where degree means in-degree. In our experiments, an undirected graph is regarded as a bidirectional graph.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 163,
+                    "end": 170,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Data Sets"
+        },
+        {
+            "text": "We compare the UBG in Algorithm 2, the Quickest-Path-UBG in Algorithm 3, and Local-Reduction-UBG in Algorithm 4 with both the greedy and heuristic algorithms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Benchmark methods"
+        },
+        {
+            "text": "\u2022 CELF [24] . The state-of-the-art greedy algorithm, where uses 10,000 snapshots in the whole process for any network. \u2022 DEGREE [37] . A heuristic algorithm based on \"degree centrality\", with high-degree nodes as key ones. The seeds are the nodes with the k highest in-degrees. \u2022 INTER-MONITOR DISTANCE [35] . A heuristic algorithm which requires any pair of sensors to be at least d hops away, where d is as large as it can choose k monitors. \u2022 PageRank [5] . A link analysis algorithm which ranks the importance of pages in a Web graph. We implement the power method with a damping factor of 0.85, and pick the k highest-ranked nodes as seeds. \u2022 Random. It simply selects k random vertices in the graph as the seed set, which is taken as the baseline.",
+            "cite_spans": [
+                {
+                    "start": 7,
+                    "end": 11,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 128,
+                    "end": 132,
+                    "text": "[37]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 303,
+                    "end": 307,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 455,
+                    "end": 458,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Benchmark methods"
+        },
+        {
+            "text": "In our experiments, to obtain the detection time of sensor sets provided by heuristic algorithms, we run Monte-Carlo simulation on the networks 10, 000 times and calculate the mean. The simple greedy algorithm is not compared because many works have reported that CELF has the same optimization result and less running time. Since the DEGREE heuristic is the state-of-the-art [37] , we do not implement heuristics such as distance centrality and betweenness centrality-based heuristics.",
+            "cite_spans": [
+                {
+                    "start": 376,
+                    "end": 380,
+                    "text": "[37]",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Benchmark methods"
+        },
+        {
+            "text": "We mainly report results on a uniform infection probability of 0.1 assigned to each directed link in the network, i.e., ip(u, v) = 0.1 for any directed edge (u, v) \u2208 E. One can refer to the work [14, 33, 36] for learning real values of the parameters {ip(u, v) : (u, v) \u2208 E} from available data. Besides, we let the time horizon T max = 30 and the prior distribution be uniform in the network.",
+            "cite_spans": [
+                {
+                    "start": 195,
+                    "end": 199,
+                    "text": "[14,",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 200,
+                    "end": 203,
+                    "text": "33,",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 204,
+                    "end": 207,
+                    "text": "36]",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Parameter Setting"
+        },
+        {
+            "text": "In Section 3, we proposed two Monte-Carlo methods to estimate D(S). Table 3 shows the estimation results of Propagation Simulation and Snapshot Simulation. Here we select 10 nodes with the highest in-degrees in each network as the sensor set S. We can find that Propagation Simulation and Snapshot Simulation release almost the same estimation results, which confirms their equivalence in estimating D(S). Fig. 4 shows the cumulative time cost of these two Monte-Carlo methods. Here we randomly select 10 sensor sets {S 1 , S 2 , . . ., S 10 } from the Digger data and every sensor set has five sensor nodes, i.e. |S i | = 5 for all i = 1, 2, . . ., 10. We can see that the cumulative time cost of Propagation Simulation increases linearly, while that of Snapshot Simulation has a big jump at the first sensor set and then increases slowly. The reason behind is that Snapshot Simulation needs to establish numerous snapshots to estimate the first D(S 1 ), and these established snapshots can be reused in the posterior estimations of {D(S i )} 10 i=2 . Table 4 shows the gap between the real value of remaining time R(S) and its upper bounds. Here we also select ten nodes with the highest in-degrees in each network as the sensor set S. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 68,
+                    "end": 75,
+                    "text": "Table 3",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 406,
+                    "end": 412,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 1053,
+                    "end": 1060,
+                    "text": "Table 4",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Evaluations of Monte-Carlo methods"
+        },
+        {
+            "text": "In Table 5 , we compare the number of estimation or approximation calls at the first 10 iterations among CELF, UBG, Quickest-Path-UBG and Local-Reduction-UBG on the four data sets. From the results, we can observe that the call number in UBG and its two accelerations are significantly reduced compared to that in CELF, especially at the first round. One may notice that in Table 5 , CELF occasionally defeats our methods, but the total call number of our methods are much less than CELF. As listed in 5, the total call number of the first 10 iterations of UBG and its two accelerations, compared to CELF, is reduced at a rate of 94% at least on the four data sets. Similarly, at least 81% reduction of call numbers of CELF can be observed in the first 50 iterations. From the observation, we can conclude that our UBG is more efficient than CELF on large networks.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Table 5",
+                    "ref_id": null
+                },
+                {
+                    "start": 374,
+                    "end": 381,
+                    "text": "Table 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Number of Estimation calls"
+        },
+        {
+            "text": "Detection time measures the time delay of a message propagated from a diffusion source to a sensor. We run tests on the four data sets and obtain detection time results w.r.t. parameter k (the number of sensors), where k increases from 1 to 50 as shown in Fig. 5 . UBG, as an updated version of CELF, has competitive results on the four data sets. More importantly, the detection times of UBG and CELF are completely the same in the four figures, which explains again that UBG and CELF share the same results in sensor selection. The only difference between UBG and CELF is the number of remaining time estimation calls. The Quickest-Path-UBG and Local-reduction-UBG always perform better than other heuristics. More specifically, if the networks are sparse like Digger and Epinions, the Quickest-Path-UBG is more competitive; if the networks are dense like Twitter and Smallworld, the Local-reduction-UBG is more competitive.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 256,
+                    "end": 262,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF19"
+                }
+            ],
+            "section": "Detection time"
+        },
+        {
+            "text": "Selection time measures the time cost of an algorithm selecting sensors. Fig. 6 shows the time cost of selecting sensors with k = 50. UBG is 4-8 times faster than CELF. One may argue that such a low improvement of UBG can be neglected in large networks. In fact, UBG scales well to large networks. Because, with the size of a network increase, Monte-Carlo simulations take more time, and thus UBG will achieve better performance by pruning more unnecessary Monte-Carlo simulations.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 73,
+                    "end": 79,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF20"
+                }
+            ],
+            "section": "Selection time"
+        },
+        {
+            "text": "As to heuristics, Degree and Random are very fast in selecting candidate nodes, which take less than 1 second. Quickest-Path-UBG and Local-Reduction-UBG are exciting and adoptable, due to their good performance in detection time. The PageRank and Inter-Monitor Distance are slightly slower and undesirable, in view of their poor performance in detection time.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Selection time"
+        },
+        {
+            "text": "We run tests on Twitter data set and obtain the selection time w.r.t. parameter ip (the infection probability). In the experiments, ip increases from 0.1 to 0.5. We assign a uniform infection probability ip to each directed link under the DSI Model. From the results in Fig. 7 , we can conclude that with the parameter ip growing larger, the CELF is more time-consuming. By contrast, the UBG and its accelerations are robust and insensitive to the parameter ip. 2) First, we prove T(u, S 1 \u222a S 2 ) = T(u, S 1 ) \u222a T(u, S 2 ). For any t \u2208 T(u, S 1 \u222a S 2 ), I t \u2229 (S 1 \u222a S 2 ) / = \u2205 holds. From I t \u2229 (S 1 \u222a S 2 ) = (I t \u2229 S 1 ) \u222a (I t \u2229 S 2 ) / = \u2205, we know either I t \u2229 S 1 or I t \u2229 S 2 is nonempty, which implies t \u2208 T(u, S 1 ) \u222a T(u, S 2 ). Hence T(u, S 1 \u222a S 2 ) \u2282 T(u, S 1 ) \u222a T(u, S 2 ) works. Conversely, for any t \u2208 T(u, S 1 ) \u222a T(u, S 2 ), t will be located in T(u, S 1 ) or T(u, S 2 ). Without loss of generality, we assume t \u2208 T(u, S 1 ), which means ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 270,
+                    "end": 276,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF22"
+                }
+            ],
+            "section": "Sensitivity analysis"
+        },
+        {
+            "text": "is nonempty, which indicates t \u2208 T(u, S 1 \u222a S 2 ). Hence T(u, S 1 ) \u222a T(u, S 2 ) \u2282 T(u, S 1 \u222a S 2 ) also works.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sensitivity analysis"
+        },
+        {
+            "text": "Second, we prove T(u, S 1 \u222a S 2 ) = T(u, S 1 ) \u2227 T(u, S 2 ). We take infimum operations on both sides of the first step conclusion, i.e., inf T(u, S 1 \u222a S 2 ) = inf T(u, S 1 ) \u222a T(u, S 2 ). Since all these sets are be composed of integers, we obviously get T(u, S 1 \u222a S 2 ) = T(u, S 1 ) \u2227 T(u, S 2 ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sensitivity analysis"
+        },
+        {
+            "text": "Finally, we take the infimums with T max on both sides of the second step conclusion, i.e., T(u, S 1 \u222a S 2 ) \u2227 T max = T(u, S 1 ) \u2227 T(u, S 2 ) \u2227 T max , which means (u, S 1 \u222a S 2 ) = (u, S 1 ) \u2227 (u, S 2 ) by the definition of .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sensitivity analysis"
+        },
+        {
+            "text": "3) Similarly, in order to prove this property, we only need to , {u}) , i.e., for any t \u2265 0, the probability that t is located in T(u, {v}) equals the probability that t is located in 4) If S \u2282 T, in order to prove this property, we only need to prove T(u, S) \u2282 T(u, T ) and notice the fact that the infimum of a larger set is smaller. For any t \u2208 T(u, S), I t \u2229 S / = \u2205 holds. Besides, as S \u2282 T, I t \u2229 S / = \u2205 implies I t \u2229 T / = \u2205, which means t is also in T(u, T ). So, T(u, S) \u2282 T(u, T ), by which we can easily conclude the property, is verified. 5) If T(u, S) is empty, then T(u, S) =+\u221e. (u, S) =+ \u221e \u2227 T max = T max \u2208 [0, T max ]. If T(u, S) is nonempty, then every element in it is greater than 0 and notice that (u, S) = T(u, S) \u2227 T max \u2264 T max . Therefore, we can conclude 0 \u2264 (u, S) \u2264 T max .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 63,
+                    "end": 69,
+                    "text": ", {u})",
+                    "ref_id": null
+                }
+            ],
+            "section": "Sensitivity analysis"
+        },
+        {
+            "text": "We prove the theorem by a reduction from the counting problem of the positive partitioned 2-DNF assignment [9] , denoted by (A1).",
+            "cite_spans": [
+                {
+                    "start": 107,
+                    "end": 110,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Proof of Theorem 1 in Section 3"
+        },
+        {
+            "text": "(A1): Let E be a subset of N 2 and X i , Y j , (i, j) \u2208 E are pairwise distinct variables. We define a formula F : = \u2228 {X i \u2227 Y j : (i, j) \u2208 E}, which is a disjunction of all the conjunctive clauses X i \u2227 Y j , (i, j) \u2208 E. How many valuations that satisfy the formula F? Then we introduce the following problem (A2).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 1 in Section 3"
+        },
+        {
+            "text": "(A2): G = (V, E) is a directed graph, where each edge e \u2208 E is associated with a weight w e which is geometrically distributed with a parameter p, i.e. P(w e = i) = p(1 \u2212 p) i\u22121 , i \u2265 1. s, t are two nodes in G and k is a positive integer. What is the probability of the event that the shortest path from s to t has length T at least k?",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 1 in Section 3"
+        },
+        {
+            "text": "Now we prove that (A1) is reducible to (A2). We map the variable X i to a node x i and variable Y j to a node y j . If (i, j) exists in E, then we add an edge from x i to y j . Also, we add a source node s and an edge (s, x i ), associated with weight w (s,x i ) which is geometrically distributed with parameter 1/2, for any i \u2208 {i : (i, j) \u2208 E}. Thus, w (s,x i ) equals 1 with probability 1/2 and strictly greater than 1 with probability 1/2. Similarly, we add a terminal node t and an edge from each y j to t with a weight identically distributed as w (s,x i ) . So we construct a graph with geometrically distributed weights on edges. Now we can build a probability-preserving bijection between the valuations of X i , Y j and the subgraphs of the constructed random graph: for a valuation , the corresponding subgraph is the one where each edge adjacent to x i has length 1 iff (X i ) = 1. The same argument for Y j .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 1 in Section 3"
+        },
+        {
+            "text": "We set k = 3 and claim the fact that the probability P(T \u2265 3) in (A2) is the number of valuations satisfying that F is divided by 2 N , where N is the number of variables. Indeed, the fact is based on the following observation: a valuation is true iff some adjacent pair of X i and Y j is true if the incident edges to the corresponding x i and y j have length 1 in the corresponding subgraph. Note that any edge of length greater than 1 is irrelevant as the structure of the graph, which ensures it can never be part of a path of length 3 from s to t, For any path from s to t must jump three times: from s to some x i , from x i to some y j , and from y j to t. Thus, from what we have stated, (A1) can be reducible to (A2), which implies (A2) is #P-hard.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 1 in Section 3"
+        },
+        {
+            "text": "We aim to solve the problem (denoted by (A)) of calcu- ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 1 in Section 3"
+        },
+        {
+            "text": "In order to prove the random variables T(u, S) and c(u, S) are identically distributed, we need to prove P[T (u, S) = t] = P[c(u, S) = t] for any t > 0.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 2 in Section 3"
+        },
+        {
+            "text": "On the one hand, we can prove P[T (u, S) = t] \u2264 P[c(u, S) = t]. Given t > 0, we find that for any simulation with T(u, S) = t, a snapshot with c(u, S) = t can be constructed. By definition, if T(u, S) = t, then J i \u2229 S = \u2205, i = 0, 1, \u00b7 \u00b7 \u00b7, t \u2212 1 and J t \u2229 S / = \u2205. For any node v i+1 \u2208 J i+1 \\J i / = \u2205, suppose that v i+1 is infected through the edge (s, v i+1 ) with s \u2208 J i , v i+1 \u2208 J i+1 . Denote n s = inf{j : s \u2208 J j }. Then we let the edge (s, v i+1 ) take weight c(s, v i+1 ) = i + 1 \u2212 n s . For any node s \u2208 J t , we denote n s , i.e. n s = sup{j : s \u2208 J j }. Then for any v \u2208 V \\J t , let the edge (s , v i+1 ) take weight c(s , v) = t \u2212 n s + C, where C is sampled from a geometric distribution. In addition, we take a weight sampled from geometric distribution on each of the rest edges. In such operations, a snapshot with c(u, S) = t is constructed, which implies P[T (u, S) = t] \u2264 P[c(u, S) = t].",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 2 in Section 3"
+        },
+        {
+            "text": "On the other hand, we can also get P[c(u, S) = t] \u2264 P[T (u, S) = t]. For any snapshot with c(u, S) = t, a simulation with T(u, S) = t can be constructed. We let node u be the initiator, i.e. J 0 = {u} and denote the smallest number in the set {c(u, v) : u \u2208 J 0 , v \u2208 V \\J 0 } by n 0 . Meanwhile, we denote the set of nodes {v : c(u, v) = n s , u \u2208 J 0 , v \u2208 V \\J 0 } by n 0 . Let J n 0 = J 0 \u222a n 0 . Complementally, we define all the J i = J 0 , i = 0, \u00b7 \u00b7 \u00b7, n 0 \u2212 1. Denote the smallest number in the set {c(u, v) : u \u2208 J t , v \u2208 V \\J t } by n t and the set of nodes {v : c(u, v) = n s , u \u2208 J t , v \u2208 V \\J t } by n t . Let J t+n t = J n t = J t \u222a n t . Complementally, we define J i : = J t for all i = t, \u00b7 \u00b7 \u00b7, t + n t \u2212 1. We now can construct a simulation of the diffusion model (I t ) t\u22650 = (J t+1 \\J t ) t\u22650 . Hence, we have a simulation with T(u, S) = t, which implies P[c(u, S) = t] \u2264 P[T (u, S) = t].",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 2 in Section 3"
+        },
+        {
+            "text": "Therefore, we have P[T (u, S) = t] = P[c(u, S) = t] for any t > 0, which implies that T(u, S) and c(u, S) are identically distributed. Hence, the simulation and snapshot simulations are equivalent in estimating D(S).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proof of Theorem 2 in Section 3"
+        },
+        {
+            "text": "In this paper, we discussed scalable solutions to detection time minimization problem for early detection of dynamic harmful cascades in networks. To address this problem, we proposed an upper bound based greedy (UBG) algorithm and its two accelerative algorithms to cater for lager scale networks. The UBG solution guarantees a near-optimal detection time, pruning at least 80% Monte-Carlo calls of CELF. The novel accelerations on UBG can significantly reduce the selection time and further achieve at least 10 2 times speed-raising. There are several interesting future directions. First, the detection time D(S) is # P-hard to calculate exactly, it is still a question how to design an efficient algorithm to estimate D(S) with a theoretical guarantee. Second, the infection probability ip and prior distribution are predefined in this paper, how to learn these parameters for the DSI model from available cascade data still remains unexplored.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions and further works"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Towards optimal event detection and localization in acyclic flow networks",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Suresh",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Stoleru",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Denton",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Zechman",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Shihada",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "ICDCN",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Identifying the productive and influential bloggers in a community",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Akritidis",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Katsaros",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bozanis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "IEEE Trans. Syst. Man Cybern. Part C",
+            "volume": "41",
+            "issn": "5",
+            "pages": "759--764",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "The Mathematical Theory of Infectious Diseases and its Applications",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Bailey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1975,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Sensor placement in municipal water networks with temporal integer programming models",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Berry",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Hart",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Phillips",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Uber",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-P",
+                    "middle": [],
+                    "last": "Watson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. water Resour. Plan. Manag",
+            "volume": "132",
+            "issn": "4",
+            "pages": "218--224",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "The anatomy of a large-scale hypertextual web search engine",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Brin",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Page",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Comput. Netw. ISDN Syst",
+            "volume": "30",
+            "issn": "1-7",
+            "pages": "107--117",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Emerging topic detection on Twitter based on temporal and social terms evaluation",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Cataldi",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "Di"
+                    ],
+                    "last": "Caro",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Schifanella",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "MDMKDD",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Social network sensors for early detection of contagious outbreaks",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Christakis",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Fowler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "PLoS ONE",
+            "volume": "5",
+            "issn": "9",
+            "pages": "1--8",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Efficient immunization strategies for computer networks and populations",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Cohen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Havlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ben-Avraham",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Phys. Rev. Lett",
+            "volume": "91",
+            "issn": "24",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Efficient query evaluation on probabilistic databases",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Dalvi",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Suciu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Probability: Theory and Examples",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Durrent",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Online distributed sensor selection",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Golovin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Faulkner",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "IPSN",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Learning influence probabilities in social networks",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Goyal",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Bonchi",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Lakshmanan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "WSDM",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Source tracing and pursuing of network virus",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Deng",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "He",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proc. 8th IEEE Int. Conf. Comput. Inf. Technol. Workshops",
+            "volume": "",
+            "issn": "",
+            "pages": "230--235",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Review of sensor placement strategies for contamination warning systems in drinking water distribution systems",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Hart",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Murray",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Water Resour. Plan. Manag",
+            "volume": "136",
+            "issn": "6",
+            "pages": "611--619",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Directed-graph epidemiological models of computer viruses",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Kephart",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "White",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Proc. IEEE Comput. Soc. Symp. Res. Security Privacy",
+            "volume": "",
+            "issn": "",
+            "pages": "343--359",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Efficient sensor placement optimization for securing large water distribution networks",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Leskovec",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vanbriesen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Faloutsos",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Water Resour. Plan. Manag",
+            "volume": "134",
+            "issn": "6",
+            "pages": "516--526",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Optimizing sensing: From water to the web, DTIC Document",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Simultaneous placement and scheduling of sensors",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rajagopal",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "IPSN",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Submodularity and its applications in optimized information gathering",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "ACM Trans. Intell. Syst. Technol",
+            "volume": "2",
+            "issn": "4",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Robust sensor placements at informative and communication-efficient locations",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kleinberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "ACM Trans. Sens. Netw",
+            "volume": "7",
+            "issn": "4",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "The robot journalist in the age of social physics: the end of human journalism? in: The New World of Transitioned Media",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Latar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "65--80",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Cost-effective outbreak detection in networks KDD",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Leskovec",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krause",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Guestrin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Faloutsos",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vanbriesen",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Glance",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Random-walk domination in large graphs",
+            "authors": [
+                {
+                    "first": "R.-H",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "ICDE",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Determining content power users in a blog network: an approach and its applications",
+            "authors": [
+                {
+                    "first": "S.-H",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S.-W",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Park",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "IEEE Trans. Syst. Man Cybern. A",
+            "volume": "41",
+            "issn": "5",
+            "pages": "853--862",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Structured Data Challenges in Finance and Statistics",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Mckinney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Wiggins: Detecting Valuable Information in Dynamic Networks Using Limited Resources",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Mahmoody",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Riondato",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "arXiv": [
+                    "arXiv:1504.03275v2"
+                ]
+            }
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Twittermonitor: Trend detection over the twitter stream",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Mathioudakis",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Koudas",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "SIGMOD",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "An analysis of the approximations for maximizing submodular set functions",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Nemhauser",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Wolsey",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fisher",
+                    "suffix": ""
+                }
+            ],
+            "year": 1978,
+            "venue": "Math. Program",
+            "volume": "14",
+            "issn": "",
+            "pages": "265--294",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "The battle of the water sensor networks (BWSN): a design challenge for engineers and algorithms",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ostfeld",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Water Resour. Plan. Manag",
+            "volume": "134",
+            "issn": "6",
+            "pages": "556--568",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Immunization of complex networks",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Pastor-Satorras",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vespignani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Phys. Rev. E",
+            "volume": "65",
+            "issn": "3",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Prediction of information diffusion probabilities for independent cascade model",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Saito",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Nakano",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kimura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "KES",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Efficient mitigation strategies for epidemics in rural regions",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Scoglio",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Schumm",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Schumm",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Easton",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Chowdhury",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Sydney",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Youssef",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "PLoS ONE",
+            "volume": "5",
+            "issn": "7",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Identifying rumors and their sources in social networks",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Seo",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Mohapatra",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Abdelzaher",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Proc. SPIE",
+            "volume": "8389",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Social influence analysis in large-scale networks",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sun",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "KDD",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Social Network Analysis: Methods and Applications",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wasserman",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Faust",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Mining subcascade features for cascade outbreak prediction in big networks",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Ji",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "IJCNN",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "On the minimum differentially resolving set problem for diffusion source inference in networks",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "W.-X",
+                    "middle": [],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Guo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "AAAI",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "On the upper bounds of spread for greedy algorithms in social network influence maximization",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zang",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Guo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "IEEE Trans. Knowl. Data Eng",
+            "volume": "27",
+            "issn": "10",
+            "pages": "2770--2783",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": ", consider a directed graph G = (V, E) with N nodes in V and edge labels ip : E \u2192 (0, 1]. For each edge (u, v) \u2208 E, ip(u, v) denotes the infection probability that v is infected by u in every attempt through the edge. If (u, v) / \u2208 E, ip(u, v) := 0. Let Par(v) be the set of parent nodes of v, i. e ., Par(v) := {u \u2208 V, (u, v) \u2208 E}.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "The random detection time (u, S) has the following useful properties: 1 If u \u2208 S, then (u, S) = 0; 2 For any sensor sets S 1 and S 2 , then (u, S 1 \u222a S 2 ) = (u, S 1 ) \u2227 (u, S 2 ); 3 If the graph is undirected, then (u, {v}) d = (v, {u}) for any nodes u and v;4 If S \u2286 T, then (u, S) \u2265 (u, T) for any node u; 5 0 \u2264 (u, S) \u2264 T max for any node u and sensor set S.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "The detection time minimization problem in Eq. (6) under DSI model is NP-hard.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "The remaining time function R : 2 V \u2192 R + is monotone and submodular with R(\u2205) =0.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "derive a new upper bound for the remaining time under the DSI model. For simplicity, we denote R(v) := R({v}), D(v) := D({v}) and (u, v) := (u, {v}) for all u, v \u2208 V hereafter.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "is the element at position v in vector a.\u1b80 Define the remaining time row vector R = {R(v)} v \u2208 V , then the upper bound in Eq. (20) turns to be",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "An illustration of the upper bound calculation.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "If the infection probabilities {ip(u, v)} are relatively small, we have the following approximation",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "We still use the network in Example 1 for explanation. The goal here is to find the top-1 node with maximum remaining time. Obviously, the upper bound of R( ), 7.6006, is the largest in the graph. Thus, we use MC simulation to estimate R( ), and get R( ) \u22486.5159. Now, we can observe that 6.5159 is already larger than the upper bounds of R( ), R( ) and R( ). Thus, we do not need extra MC simulations to estimate the remaining time of the other three nodes, and R( ) is the node with the maximal remaining time in the network. \u1b80 We summarize the UBG algorithm in Algorithm 2.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "the infection probability matrix IP of G = (V, E), a budget k, a prior distribution 02:Output: the sensor set S with k nodes 03:initial S \u2190\u2212 \u2205, R(S) \u2190\u2212 0, and \u2426 \u2190\u2212 Tmax \u00b7 \u00b7 (E + Tmax \u22121 2 IP) 04:for i = 1 to k do 05:set I(v) \u2190\u2212 0 for v \u2208 V \\S 06: while TRUE do 07: {u \u2190\u2212 argmax v \u2208 V \\S \u0131v 08: if I(u) = 0 09: \u0131u \u2190\u2212 MC(S \u222a {u}) \u2212 R(S) 10: I(u) \u2190\u2212 1 11: end if 12: if \u0131u \u2265 max v \u2208 V \\(S\u222a{u}) \u0131v 13: R(S \u222a {u}) \u2190\u2212 R(S) + \u0131u 14: S \u2190\u2212 S \u222a {u} 2,the column vector, \u2426 = {\u0131 u }, denotes upper bounds of marginal increments under the current sensor set S, i.e., \u0131 u \u2265 R(S \u222a {u}) \u2212 R(S) . Before searching for the first node (i.e. S =\u2205), we estimate an upper bound for each node by Eq. (26). Then, the algorithm proceeds similar to CELF. Note that due to the submodular properties, these upper bounds of marginal increments can be dynamically adjusted by estimation calls, which becomes smaller and smaller with the algorithm carrying on. In the algorithm, MC(S) denotes the Monte-Carlo simulations that are used to estimate R(S) for the sensor set S, I(v) = 0 denotes that Monte-Carlo simulations have not been used on node v in the current iteration, and I(v) = 1 means that Monte-Carlo simulations have already been computed on node v.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "An illustration of graph conversion.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Based on this observation, we label the graph G = (V, E) with a time cost function m : E \u2192 [1, \u221e) as follows: m(u, v)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "Quickest-Path-UBG 01 -02, 04 -08, 10 -18: the same with that of Algorithm 2 03: initial S \u2190\u2212 \u2205, R(S) \u2190\u2212 0, the distance d on G and \u2426 \u2190\u2212 Tmax \u00b7 \u00b7 (E + Tmax \u22121 2",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "An example to show the calculation results of expected detection times under the one-hop assumption. Here the seed set S = {a, b} is selected as sensor set for monitoring and Tmax is assigned to be larger than 10. The red boldfaced character on the left of each node w is the numerical value of E[ (w, S)] calculated by Eq. (29) for each w \u2208 {a, b, c, d, e, f, g}.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF14": {
+            "text": "Under one-hop assumption, the reduction \u0131 u (S) of the expected detection time incurred on selecting u into the sensor set S mainly includes: (a) u itself reduced from f(u, S) to 0; (b) each w in the remaining non-detected parents of u reduced from T max to f (w, S); and (c) each w in the intersection of parents of u and parents of S reduced from f (w, S) to f (w, S \u222a {u}). In other cases, we have E[ (w, S)] = E[ (w, S \u222a {u})]. Hence Eq. (32) is followed. \u1b80",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF15": {
+            "text": "the marginal reduction D(S) \u2212 D(S \u222a {u}), which is right in response to the one-hop assumption. For the DSI model with small propagation probabilities pp and time terminal T max , the assumption is reasonable. Now we are back to the UBG algorithm. We can approximate the marginal return \u0131 u (S) : = R(S \u222a {u}) \u2212 R(S) = D(S) \u2212 D(S \u222a {u}) by Eq. (32) to avoid the heavy Monte-Carlo estimation in the 09th row of UBG algorithm. We call this new method as Local-Reduction-UBG, which is shown explicitly in Algorithm 4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF16": {
+            "text": "Local-Reduction-UBG 01 -08, 10 -12, 14 -18: the same with that of Algorithm 2 09: \u0131u\u2190\u2212 the right part of Eq.(32) 13: This row is removed.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF17": {
+            "text": "The real value of remaining time R(S) is obtained by Propagation Simulations. The Upper Bound (I) means the upper bound value presented in Eq. (21), and the Upper Bound (II) means the upper bound value presented in Eq. (26). The experimental results reveal that the real",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF18": {
+            "text": "The cumulative time cost in estimating detection time D(S) of ten different sensor sets.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF19": {
+            "text": "Detection time w.r.t. the number of sensors k on the four data sets.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF20": {
+            "text": "The selection time of the algorithms.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF21": {
+            "text": "For simplicity, we denote the set {t \u2265 0 : I t \u2229 S / = \u2205 withI 0 = {u}} by T(u, S) and denote inf T(u, S) by T(u, S). Then the definition in Eq. (2) can be rewritten as (u, S) := T (u, S) \u2227 T max = inf T(u, S) \u2227 T max . 1) If u \u2208 S and I 0 = {u}, which means 0 \u2208 T(u, S). Hence (u, S) = 0 by definition in Eq. (2).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF22": {
+            "text": "Selection time of different greedy algorithms w.r.t. network infection probability with seed size k = 50.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF23": {
+            "text": "For any instance t \u2208 T(u, {v}), as the graph is undirected, we can regard v as the initiator and reverse the process. So, in these instances t is also located in T(v, {u}). Since there may be other instances with t \u2208 T(v, {u}), the inequality P[t \u2208 T(u, {v})] \u2264 P[t \u2208 T(v, {u})] holds. Conversely, we can also verify P[t \u2208 T(u, {v})] \u2265 P[t \u2208 T(v, {u})]. Therefore, T(u, {v}) d =T(v, {u}), by which we can easily get the property.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Major variables in the paper.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": ") \u22644.1376, and R( ) \u22647.6006. \u1b80The matrix calculation used in the upper bound is expensive, because",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Evaluations of the upper bounds.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "lating the detection time E[ (u, v)] under the DSI model. Note that E[ (u, v)] = E[T (u, v) \u2227 T max ] and P(T \u2265 3) = E[T (u, v) \u2227 3] \u2212 E[T (u, v) \u2227 2].Hence (A2) can be reducible to (A), and (A) is #Phard. Therefore, Computing the detection time E[ (u, v)] under the DSI model is #P-hard.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": " Table 5 The number of estimation calls at the first ten iterations. Algorithms  1  2  3  4  5  6  7  8  9 10 Sum(1:10) Sum (1:50)   Digger  CELF  8194  14  22  32  55  38  19  38  17  28  8457  10237  UBG  67  52  23  9  41  38  22  38  82  52  424  1894  Quickest-Path-UBG  71  56  24  21  42  54  32  29  79  56  464  1923  Local-Reduction-UBG  56  49  34  32  59  34  34  39  68  44  458  1892   Twitter  CELF  32,986  323  121  28  18  78  67  38  98  82  33839  36262  UBG  448  31  23  179  112  152  36  251  134  97  1463  3256  Quickest-Path-UBG  452  29  28  147  149  141  31  302  135  102  1516 Prof. Li Guo is a professor in the Institute of Information Engineering, Chinese Academy of Sciences. She is also the chairman of the Intelligent Information Processing Research Center in Institute of Information Engineering, Chinese Academy of Sciences. Her research interests include data stream management systems and information security.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1,
+                    "end": 8,
+                    "text": "Table 5",
+                    "ref_id": null
+                },
+                {
+                    "start": 69,
+                    "end": 106,
+                    "text": "Algorithms  1  2  3  4  5  6  7  8  9",
+                    "ref_id": null
+                },
+                {
+                    "start": 124,
+                    "end": 608,
+                    "text": "(1:50)   Digger  CELF  8194  14  22  32  55  38  19  38  17  28  8457  10237  UBG  67  52  23  9  41  38  22  38  82  52  424  1894  Quickest-Path-UBG  71  56  24  21  42  54  32  29  79  56  464  1923  Local-Reduction-UBG  56  49  34  32  59  34  34  39  68  44  458  1892   Twitter  CELF  32,986  323  121  28  18  78  67  38  98  82  33839  36262  UBG  448  31  23  179  112  152  36  251  134  97  1463  3256  Quickest-Path-UBG  452  29  28  147  149  141  31  302  135  102  1516",
+                    "ref_id": null
+                }
+            ],
+            "section": "annex"
+        }
+    ]
+}

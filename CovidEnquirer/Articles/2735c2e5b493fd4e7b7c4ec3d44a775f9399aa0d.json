@@ -1,0 +1,1083 @@
+{
+    "paper_id": "2735c2e5b493fd4e7b7c4ec3d44a775f9399aa0d",
+    "metadata": {
+        "title": "Enhancing Time-Series Detection Algorithms for Automated Biosurveillance",
+        "authors": [
+            {
+                "first": "Jerome",
+                "middle": [
+                    "I"
+                ],
+                "last": "Tokars",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Howard",
+                "middle": [],
+                "last": "Burkom",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Jian",
+                "middle": [],
+                "last": "Xing",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Roseanne",
+                "middle": [],
+                "last": "English",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Steven",
+                "middle": [],
+                "last": "Bloom",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Kenneth",
+                "middle": [],
+                "last": "Cox",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Julie",
+                "middle": [
+                    "A"
+                ],
+                "last": "Pavlin",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "BioSense is a US national system that uses data from health information systems for automated disease surveillance. We studied 4 time-series algorithm modifi cations designed to improve sensitivity for detecting artifi cially added data. To test these modifi ed algorithms, we used reports of daily syndrome visits from 308 Department of Defense (DoD) facilities and 340 hospital emergency departments (EDs). At a constant alert rate of 1%, sensitivity was improved for both datasets by using a minimum standard deviation (SD) of 1.0, a 14-28 day baseline duration for calculating mean and SD, and an adjustment for total clinic visits as a surrogate denominator. Stratifying baseline days into weekdays versus weekends to account for day-of-week effects increased sensitivity for the DoD data but not for the ED data. These enhanced methods may increase sensitivity without increasing the alert rate and may improve the ability to detect outbreaks by using automated surveillance system data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "S ince the late 1990s, the threats of bioterrorist attacks, the potential for outbreaks of natural disease such as severe acute respiratory syndrome and pandemic infl uenza, and the availability of computerized data have prompted the use of automated disease surveillance systems (1) . Sources of information include clinical data, such as records of hospital emergency department visits, and nonclinical information, such as sales of over-the-counter remedies (2) .",
+            "cite_spans": [
+                {
+                    "start": 280,
+                    "end": 283,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 461,
+                    "end": 464,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "However, human resources are limited for interpreting the large volume of available information. Thus, statistical algorithms are needed to fi lter large volumes of data, focus attention on potential public health problems, and provide an objective measure of increases in disease activity.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "BioSense is a US national automated surveillance system that receives data from various sources and makes them available for public health use. The data may be viewed simultaneously by local, state, and federal public health offi cials through the Internet-based BioSense Application, which may be accessed on a jurisdiction-specifi c basis through the Centers for Disease Control and Prevention (CDC) Secure Data Network (3) . Data received include coded fi nal diagnoses and free-text chief complaints, which are assigned as appropriate to >1 of 11 syndrome groupings representing general illness categories such as respiratory and gastrointestinal illnesses (4) and to >1 of 78 subsyndromes representing more specifi c categories such as asthma or cough (5) . To identify days when disease indicator activity is higher than expected, BioSense uses a modifi ed version of the C2 algorithm, 1 of 3 algorithms (C1, C2, and C3) developed for the Early Aberration Reporting System (EARS) (6, 7) .",
+            "cite_spans": [
+                {
+                    "start": 422,
+                    "end": 425,
+                    "text": "(3)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 661,
+                    "end": 664,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 757,
+                    "end": 760,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 986,
+                    "end": 989,
+                    "text": "(6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 990,
+                    "end": 992,
+                    "text": "7)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "The C2 algorithm uses a sliding baseline of 7 consecutive recent days' counts to calculate a mean (\u03bc) and SD (s t ). The test statistic is (x t -\u03bc)/s t , the number of SDs by which the current value x t exceeds \u03bc, or 0 if x t does not exceed \u03bc. EARS uses a test statistic >3 to signal an alert (6, 7) . Owing to their simplicity, ease of implementation, and implicit correction for seasonal trends (only data from the prior 9 days are used), the EARS algorithms are widely used (8) (9) (10) . However, the algorithms do not perform optimally under all circumstances. First, because daily counts often vary by day of week, many alerts may be produced on high-count days such as Mondays and Tuesdays, and few may be produced on low-count days such as weekend days. Second, the short (7-day) baseline period may produce unstable values for the mean and SD; thus, the minimum daily count that triggers an alert may vary widely over a short period. Third, using simple count data does not account for the population at risk, which is generally unknown in these systems and which may vary, especially during crisis situations. Although C2 can be used on rates rather than counts, prior evaluations have not shown that using rates improves performance (L. Hutwagner, pers. comm.). Finally, occurrences of many disease indicators are rare, resulting in calculations for both expected values and SDs of 0; the EARS methods are not recommended in such instances. A minimum SD may be used to avoid division by zero, but if this minimum value is set to 0.2, a count of 1 will be 5 SDs above the mean and trigger a high-level alert.",
+            "cite_spans": [
+                {
+                    "start": 294,
+                    "end": 297,
+                    "text": "(6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 298,
+                    "end": 300,
+                    "text": "7)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 478,
+                    "end": 481,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 482,
+                    "end": 485,
+                    "text": "(9)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 486,
+                    "end": 490,
+                    "text": "(10)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "This article describes and evaluates modifi cations of C2 that retain its inherent advantages, address its potential limitations, and improve its performance. We used real daily syndrome counts from 2 sources as baseline data and assessed the ability of various algorithms to detect additional counts artifi cially added to the data. Because all analyses were conducted at a constant alert rate of 1%, improvements in sensitivity were not accompanied by an increase in alerts.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "Four algorithm modifi cations, designed to address shortcomings in the C2 algorithm, were tested. The fi rst modifi cation tested was stratifi cation by weekdays versus weekend days. Although many methods have been used to adjust for differing counts by day of week (11) , these methods may require customization to specifi c datasets and a long data history (up to several years). Our simple method is to stratify the baseline days used to calculate \u03bc and s t into weekdays versus weekend days. This stratifi cation is denoted the W2 algorithm. For example, a 7-day W2 baseline for weekdays contains the most recent 7 weekdays. For unstratifi ed and stratifi ed analyses, the 2 days immediately before the index day were excluded from the baseline, a standard practice for C2, to avoid contamination with the upswing of an outbreak.",
+            "cite_spans": [
+                {
+                    "start": 266,
+                    "end": 270,
+                    "text": "(11)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "The second modifi cation tested was lengthening the baseline period. Because a 7-day period may provide insuffi cient data for an accurate and stable calculation of \u03bc and s t , we tested baseline periods of 7, 14, and 28 days. However, because we used data from <56 days before the index day, the stratifi ed 28-day baseline will include only \u224816 days for weekend days.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "The third modifi cation tested was adjustment for total daily visits. For the adjustment procedure, we used a formula in which n 0 = count of visits on the index day for the chosen syndrome (e.g., visits for the respiratory syndrome), and d 0 = the total number of facility visits on the index day, including visits that were both assigned and unassigned to any of the 11 syndromes. \u03a3n i = total syndrome visits summed for all i baseline days. \u03a3d i = total facility visits summed for all i baseline days. The formula for the adjusted expected value was e 0 = d 0 \u00d7 \u03a3n i /\u03a3d i , which differed considerably from the mean of the n i if d 0 was high or low. Fewer visits for a given syndrome were thus expected on a day when the facility had fewer total visits. The estimated adjusted SD, s 0 , was taken as the mean absolute value of (n i -d i \u00d7 \u03a3n i /\u03a3d i ) over i baseline days; that is, s 0 = \u03a3 (abs (n i -d i \u00d7 \u03a3n i /\u03a3d i ))/i. The test statistic adjusted for total visits was (n 0 -e 0 )/s 0 , analogous to the C2 statistic (n 0 -\u03bc)/ s t , where \u03bc and s t are the mean and SD of n i , the counts on baseline days. In the discussion below, we refer to this adjustment as the rate algorithm.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "The fourth modifi cation tested was increased minimum value for SD. We studied minimum values of 0.2 and 1.0.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "To test these modifi cations, 2 datasets were used: records of Department of Defense (DoD) facility fi nal diagnoses for September 2004-November 2007 and records of hospital emergency department (ED) chief complaints for March 2006-November 2007. The DoD data consisted primarily of data from outpatient clinics; however, \u224815% of the visits in this evaluation were from patients seen in emergency facilities and cannot currently be differentiated in the BioSense System. We studied the 11 syndrome groups designed to be indicative of infections resulting from exposure to pathogens plausibly used in a bioterrorist attack (4). The DoD data consisted of daily counts of patient visits with International Classifi cation of Diseases, 9th Revision (ICD-9)-coded diagnoses categorized into the 11 syndrome groups. The hospital ED data consisted of freetext chief complaints, which were fi rst parsed for a specifi ed set of keywords, abbreviations, and misspellings and then categorized into 10 of the syndrome groups (1 syndrome, specifi c infection, was used for diagnosis but not for chief complaint data). Some ICD-9 codes and chief complaints may be included in >2 syndromes. However, counts of different syndromes were analyzed separately, not added together, and therefore are not double-counted in the analyses. For both datasets, we analyzed counts aggregated by facility. We included facility-syndrome combinations that had mean counts >0.5 over all facility-syndrome days in the study period. Many DoD clinics are closed on holidays. Therefore, for the DoD data, 11 days (days on which federal holidays are observed and the day after Thanksgiving) were recoded as weekend days for purposes of stratifi ed algorithm calculations (5) . Because hospital EDs typically are open on these holidays, no recoding for holidays was performed for this dataset.",
+            "cite_spans": [
+                {
+                    "start": 1735,
+                    "end": 1738,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "The mean count for each facility syndrome was calculated and categorized as follows: 0.5 to <2, 2 to <4, 4 to <6, 6 to <8, 8 to <10, 10 to <20, 20 to <40, and >40. Empirical distributions of the test statistic (e.g., number of SDs by which the observed count exceeds the expected value) were conducted separately for each dataset, algorithm, and mean count category; the 99th percentile value for each of these distributions was used as the cutoff value to defi ne an alert rate of 1%. For example, for the standard C2 algorithm in DoD data with mean count 4 to <6, a cutoff value of 3.9 was used because 1% of the facility-syndrome days had a test statistic >3.9. Because no attempt was made to fi nd and exclude real outbreaks from the data, these cutoff values defi ne an alert rate rather than a false alert rate, the latter being equivalent to 1-specifi city (12) .",
+            "cite_spans": [
+                {
+                    "start": 864,
+                    "end": 868,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "At a constant alert rate of 1% for all methods, the sensitivity for detecting additional counts was calculated by performing the following steps: 1) running the algorithm to determine expected values and SDs for each facilitysyndrome-day; 2) fi nding the 99th percentile cutoff value for the test statistic for each dataset-algorithm-mean count category as explained above; 3) for each facility-syndrome day, determining whether the observed count plus additional counts is greater than or equal to the threshold value (threshold value = expected value + SD \u00d7 99th percentile cutoff value); and 4) calculating sensitivity as the percentage of days on which the additional counts would exceed the threshold value and therefore be detected. Using this method, a single computer run can calculate sensitivity for detecting single-day additional counts on all days in the dataset; if the additional counts are spread over multiple days, separate computer runs would be needed (7).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "The DoD diagnosis data contained 1,939,993 facilitysyndrome days from 308 facilities in 48 states with an overall mean of 7.7 counts per facility per day; of the 11 syndromes, respiratory visits comprised the highest percentage (16% of total facility-syndrome days) and had the highest mean count (26.0 visits per facility per day) ( Table 1 ). The hospital ED data contained 768,195 facility-syndrome days from 340 facilities in 21 states and had an overall mean of 7.8 counts per facility per day; no visits for lymphadenitis and severe injury and death were included because no facilities had a mean count >0.5 per day for these syndromes.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 334,
+                    "end": 341,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "The DoD data had a strong day-of-week effect; 16%-21% of total weekly visits occurred per day on weekdays, and only 3%-4% of visits occurred per day on weekend days and holidays ( Figure 1 ). The hospital ED data had a minimal day-of-week effect: 14%-16% of visits occurred per day on weekdays, and 14%-15% of visits occurred per day on weekend days.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 180,
+                    "end": 188,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "The accuracy of expected value calculation was evaluated by using mean absolute residuals. For lower residuals, expected values are closer to observed values than they are for higher residuals. Similarly, the expected value calculation is more accurate for lower residuals than for higher residuals. For the DoD data, lower residuals were seen with stratifi cation (W2) and the rate algorithm: mean residual 4.2 for unstratifi ed count algorithm versus 2.2 for stratifi ed rate algorithm (Table 2) . For the hospital ED data, residuals were lower for the rate algorithm, and stratifi cation had a minimal effect. Varying the baseline duration and minimum SD had no effect on the accuracy of expected value calculation (data not shown).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 488,
+                    "end": 497,
+                    "text": "(Table 2)",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "The effect of modifi cations of the initial algorithm on the sensitivity for detecting additional counts was examined; each modifi cation was added consecutively (Table  3) . For the DoD data, sensitivity was 40.6% for the initial algorithm and increased to 43.9% when the rate method was used; 70.8% when the minimum SD was increased to 1.0; 79.4% when the baseline duration was increased to 28 days; and 82.0% when a stratifi ed baseline was used. Comparing the initial algoithm to the best algorithm showed a 41.4% increase in sensitivity. For the hospital ED data, sensitivity was 40.2% for the initial algorithm and increased to 64.8% for the best method (minimum SD = 1, 28-day baseline, rate method, unstratifi ed baseline); however, when the stratifi ed baseline was used, sensitivity decreased to 62.1%; the initial algorithm compared with the best algorithm showed a 24.6% increase in sensitivity. When these sensitivity calculations were stratifi ed by mean count for each facility-syndrome (data not shown), we found that the modifi cations increased sensitivity in all strata of the DoD data; for the hospital ED data, the rate method reduced sensitivity by 1.0% in the 8 to <10 count category and by 0.5% in the 10 to <20 count category, but increased sensitivity in other categories and overall. When we limited analysis to ED data with a mean count of 4 to <6 per day and explored sensitivity for detecting varying numbers of additional counts (Figure 2 ), we found, as expected, that as the number of additional counts increased, sensitivity increased. The difference between the initial and best algorithms was highest when sensitivity was \u224850% for the initial algorithm. That is, for 10 additional counts, sensitivity was 49.8% for the initial algorithm and 85.3% for the best algorithm, an improvement of 35.5%. However, if the initial C2 algorithm had either low or high sensitivity, the modifi cations had little effect.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 162,
+                    "end": 172,
+                    "text": "(Table  3)",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 1460,
+                    "end": 1469,
+                    "text": "(Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "As an example, we analyzed fever syndrome data from 1 ED. The mean count was 4.9 per day, and the 99th percentile threshold values were 3.86 SDs for the initial and 3.55 for the best algorithm. Over 632 days, the sensitivity for detecting 8 additional counts was 47.2% for the initial and 70.9% for the best algorithm (23.7% difference). Data for a 2-month period showed that the calculated SD (Figure 3 , panel A) and the threshold value (i.e., count needed to trigger an alert; Figure 3 , panel B) varied substantially for the initial algorithm but were comparatively stable for the best algorithm. During the 2-month period, 8 additional counts would be detected by initial and best algorithms on 30 days, by only the initial algorithm on 2 days, and by only the best algorithm on 19 days; neither algorithm detected the additional counts on 10 days (Figure 3 , panel C).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 394,
+                    "end": 403,
+                    "text": "(Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 480,
+                    "end": 488,
+                    "text": "Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 853,
+                    "end": 862,
+                    "text": "(Figure 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "Our results demonstrate that simple modifi cations of the widely used C2 algorithm can substantially improve the ability to accurately recognize 1-day increases in disease syndrome activity. Depending on the dataset, mean count in the data, and the number of additional counts added, the enhanced methods may increase sensitivity by 20%-40%. These improvements were achieved without an increase in the alert rate, which was held constant at 1% for all methods. Although we chose a 1% alert rate for testing purposes, in practice, it is useful to vary the alert rate to fi t the circumstances, and the BioSense application enables the alert rate to be varied between 0.1% and 2%. Regardless of the alert rate used, the modifi ed methods have higher sensitivity. For the DoD and hospital ED datasets, sensitivity was improved by using a higher minimum SD of 1.0, a longer baseline duration of 28 days, and adjusting for total visits. Stratifying baseline days into weekdays versus weekends/ holidays increased sensitivity in the DoD data, which has a strong day-of-week effect, but modestly decreased sensitivity in the hospital ED data, which does not have such an effect. Thus, the best analytic methods depend on dataset characteristics, especially the day-of-week effect, and could be varied by manual or automated selection. These fi ndings can be used to improve both early event detection and situation awareness because accurate recognition of unusually high counts is needed for both uses.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "These modifi cations were apparently effective for the following reasons. Accounting for total visits to the facility (i.e., rate method) produces a more accurate expected value and lower residuals ( Table 2 ). Although number of total visits is not the ideal denominator, in general it is better than no denominator at all. An advantage of the rate method is that calculations may be made when only partial data for a given day are available. However, adjusting for total visits may reduce sensitivity slightly in some subgroups, as we found for the hospital ED data when the mean count was 8 to <20. Stratifi cation by weekday versus weekend day improves expected value calculations when a substantial day-of-week effect exists, such as in the DoD data. When such an effect is not present, stratifi cation causes days further from the index day to be used in the baseline period, therefore producing slightly less accurate expected values. Longer baseline durations have no effect on the accuracy of expected value calculation and improve sensitivity by producing more accurate and stable SD values. Using a higher minimum SD avoids nuisance alerts that may be prompted by small fl uctuations in the daily visit count. This method also changes the distribution of test statistic values, which results in a lower 99th percentile cutoff value, which increases sensitivity for detecting moderate-to-high numbers of added counts. Using a higher minimum SD is benefi cial if disease indicators with low and high counts are analyzed; an alternate approach is to use different methods for lowversus high-count data. The issues focused on by our suggested modifi cations may alternately be addressed by various sophisticated mathematical modeling approaches. However, health departments, which are generally limited in resources and in analysis expertise, may resist use of decision-support methods that are expensive, diffi cult to implement, or not transparent to human data monitors. For example, sophisticated Serfl ing-type regression models have long been used by CDC for tracking the progress of infl uenza season (13, 14) and have been used to analyze selected data in the Bio-Sense system. However, these models have both strengths and weaknesses and have not been widely embraced for daily disease surveillance. Even if the expertise and hardware capability for applying them were made available to local health departments, many time series are unsuitable for this approach. We present simple and easily understood and implemented enhancements to C2 to extend its applicability and improve its performance. These enhancements may be applicable to other control chart-based algorithms as well.",
+            "cite_spans": [
+                {
+                    "start": 2115,
+                    "end": 2119,
+                    "text": "(13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 2120,
+                    "end": 2123,
+                    "text": "14)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 200,
+                    "end": 207,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "Automated surveillance systems based on chief complaints and diagnoses have a number of uses: providing assistance in data collection; monitoring seasonal infl uenza (15) ; monitoring total ED visits during a crisis; and monitoring simple surrogates of infectious diseases, injuries, and chronic diseases during large outbreaks or disasters (16) . The utility of these systems has not been demonstrated for Additional counts Sensitivity Figure 2 . Sensitivity of detecting various numbers of additional counts, by using initial versus best algorithms for hospital emergency department chief complaint data, for selected BioSense data. Red line shows the initial algorithm (minimum SD = 0.2, 7-day baseline, count method, unstratifi ed baseline), and black line shows the best algorithm (minimum SD = 1.0, 28-day baseline, rate method, unstratifi ed baseline).",
+            "cite_spans": [
+                {
+                    "start": 166,
+                    "end": 170,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 341,
+                    "end": 345,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 437,
+                    "end": 445,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "monitoring small-or intermediate-sized outbreaks or illnesses defi ned primarily by laboratory testing. Even when using these suggested modifi cations, sensitivity for detecting additional counts at the facility level remains modest. However, the utility of automated biosurveillance will be expanded with the availability of better population coverage and more specifi c data, the use of multiple data types in combination, and improved detection algorithms, such as those proposed here. The limitations of this study include using only data with a mean count >0.5 per day; analyses of sparser data might show different results. We studied only facility-level aggregation of data, selected patient types (e.g., hospital inpatients were not studied), selected data types (e.g., ED diagnoses were not studied), and broadly defi ned syndromes (the more granular subsyndromes, which are likely to yield lower counts, were not studied). Although we evaluated only a simple time-series detection method, optimizing performance of simple methods is useful before they can be meaningfully compared with more sophisticated methods, such as regression. Also, we studied effects of additional counts on single days rather than multiday outbreak effects; however, because the C2 algorithm considers data from only 1 day at a time, this is a reasonable initial approach. These results must be confi rmed by trials of multiday signal injection and performance evaluated for multiple subgroups (e.g., syndrome, day of week, season). We adopted the approach of evaluating sensitivity at a fi xed 1% alert rate defi ned empirically for each algorithm and dataset, as used by Jackson et al. (12) . Our approach is in accord with a recent review that recommended basing alert thresholds on empirical data rather than on classical statistical theory (17) . A major strength of the study is that BioSense is a national system that provided access to 2 major datasets with differing characteristics and to data from hundreds of facilities in many states. The length, geographic spread, and syndrome variation of the study datasets lend weight to the results.",
+            "cite_spans": [
+                {
+                    "start": 1674,
+                    "end": 1678,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 1831,
+                    "end": 1835,
+                    "text": "(17)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The fi eld of electronic biosurveillance is in its infancy and is rapidly changing. Early work focused on attempts to detect outbreaks (early event detection) by using broadly defi ned syndromes (e.g., respiratory syndrome) based on chief complaints and diagnoses. Emphasis has recently shifted to monitoring for ongoing outbreaks (situational awareness) and for specifi c disease indicators (e.g., cough, dyspnea) called subsyndromes. The fi eld is now beginning to develop methods for case-based surveillance (i.e., automated application of a formal case defi nition using computerized data) (18) . Each data type and disease indicator may have unique characteristics that require modifi cations of standard data analysis methods. However, because the adaptation of time-series methods to recognize outbreaks will be an ongoing need, the enhanced methods identifi ed by this study are likely to have lasting usefulness. Figure 3 . Comparison of initial versus best algorithms for analysis of fever syndrome data at an example emergency department, October-November 2006. A) SD comparison. Count, fever syndrome counts; SD (initial), SD by using initial algorithm (minimum SD = 0.2, 7-day baseline, count method, unstratifi ed baseline); SD (best), SD by using best algorithm (minimum SD = 1.0, 28-day baseline, rate method, unstratifi ed baseline). B) Count threshold comparison. Count, fever syndrome counts; threshold 1, minimum count needed to trigger an alert by using initial method; threshold 2, minimum count needed to trigger an alert by using best method (for the best algorithm, which accounts for rate, 8 counts were added to total visits for calculating the threshold). C) Detection of 8 additional counts. Count, daily fever syndrome counts; count + 8, daily count plus 8 counts; both methods, 30 days with the additional counts detected by both the initial and best methods; initial only, 2 days with the additional counts detected by using initial method only; and best only, 19 days with additional counts detected by using best method only.",
+            "cite_spans": [
+                {
+                    "start": 594,
+                    "end": 598,
+                    "text": "(18)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 922,
+                    "end": 930,
+                    "text": "Figure 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discussion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Implementing syndromic surveillance: a practical guide informed by early experience",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Mandl",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Overhage",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wagner",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Lober",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Sebastiani",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Mostashari",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J Am Med Inform Assoc",
+            "volume": "11",
+            "issn": "",
+            "pages": "141--50",
+            "other_ids": {
+                "DOI": [
+                    "10.1197/jamia.M1356"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Framework for evaluating public health surveillance systems for early detection of outbreaks; recommendations from the CDC Working Group",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Buehler",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hopkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Overhage",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Sosin",
+                    "suffix": ""
+                },
+                {
+                    "first": "V; Cdc Working",
+                    "middle": [],
+                    "last": "Tong",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Group",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "MMWR Recomm Rep",
+            "volume": "53",
+            "issn": "5",
+            "pages": "1--12",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Implementation of a national early event detection and situational awareness system",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Bradley",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Rolka",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Walker",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Loonsk",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Biosense",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "MMWR Morb Mortal Wkly Rep",
+            "volume": "54",
+            "issn": "",
+            "pages": "11--20",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Syndrome defi nitions for diseases associated with critical bioterrorism-associated agents",
+            "authors": [],
+            "year": 2003,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "BioSense real-time hospital data user guide, application version 2",
+            "authors": [],
+            "year": 2007,
+            "venue": "",
+            "volume": "11",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "The bioterrorism preparedness and response Early Aberration Reporting System (EARS)",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hutwagner",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Thompson",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Seeman",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Treadwell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J Urban Health",
+            "volume": "80",
+            "issn": "1",
+            "pages": "89--96",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Comparing aberration detection methods with simulated data",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hutwagner",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Browne",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Seeman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Fleishauer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Emerg Infect Dis",
+            "volume": "11",
+            "issn": "",
+            "pages": "314--320",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Should we be worried? Investigations of signals generated by an electronic syndromic surveillance system",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Terry",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ostrowsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "MMWR Morb Mortal Wkly Rep",
+            "volume": "53",
+            "issn": "",
+            "pages": "190--195",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "A pilot study of aberation detection algorithms with simulated data",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Cochrane",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Allegar",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Burkom",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Tokars",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Adv Dis Surv",
+            "volume": "4",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Electronic disease surveillance in North Carolina",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Deyneke",
+                    "suffix": ""
+                },
+                {
+                    "first": "J-M",
+                    "middle": [],
+                    "last": "Maillard",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "NC Detect",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Disease surveillance: a public health approach",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Burkom",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "143--192",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "A simulation study comparing aberration detection algorithms for syndromic surveillance",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jackson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Baer",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Painter",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Duchin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "BMC Med Inform Decis Mak",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1186/1472-6947-7-6"
+                ]
+            }
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Methods for current statistical analysis of excess pneumonia-infl uenza deaths",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Serfl Ing",
+                    "suffix": ""
+                }
+            ],
+            "year": 1963,
+            "venue": "Public Health Rep",
+            "volume": "78",
+            "issn": "",
+            "pages": "494--506",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Infl uenza fact sheet. Overview of infl uenza surveillance in the United States",
+            "authors": [],
+            "year": 2008,
+            "venue": "Centers for Disease Control and Prevention",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Code-based syndromic surveillance for infl uenza-like illness by International Classifi cation of Diseases, ninth revision",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Marsden-Haug",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Foster",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Gould",
+                    "suffix": ""
+                },
+                {
+                    "first": "Elbert",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Pavlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Emerg Infect Dis",
+            "volume": "13",
+            "issn": "",
+            "pages": "207--223",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Monitoring health effects of wildfi res using the BioSense system",
+            "authors": [],
+            "year": 2007,
+            "venue": "Centers for Disease Control and Prevention",
+            "volume": "57",
+            "issn": "",
+            "pages": "741--745",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Algorithms for rapid outbreak detection: a research synthesis",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Buckeridge",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Burkom",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Campbell",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hogan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Moore",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J Biomed Inform",
+            "volume": "38",
+            "issn": "",
+            "pages": "99--113",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.jbi.2004.11.007"
+                ]
+            }
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Electronic medical record support for public health (ESP): automated detection and reporting of statutory notifi able diseases to public health authorities",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Klompas",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lazarus",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Daniel",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Haney",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Campion",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kruskal",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Advances Dis Surv",
+            "volume": "3",
+            "issn": "",
+            "pages": "1--5",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "TABREF0": {
+            "text": "Distribution of hospital emergency department visits and mean count per day, by syndrome and dataset, for selected BioSense data used in algorithm modification study*",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Mean absolute residual, by method and dataset, for selected BioSense data used in algorithm modification study*",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Sensitivity for detection of additional counts, by method and dataset, for selected BioSense data used in algorithm",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank the DoD, state and local health departments, and hospitals and hospital systems for providing data to BioSense; and Colleen Martin for assistance in development of algorithms and the BioSense system.Dr Tokars is an acting branch chief in the National Center for Public Health Informatics, CDC. He works primarily on the BioSense Project, which uses data in electronic databases for early event detection, situational awareness, and emergency surveillance. His main research interests are analytic epidemiology methods, biostatistics, and the use of electronic databases for public health surveillance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

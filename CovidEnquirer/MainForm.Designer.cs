@@ -88,7 +88,7 @@
             this.SearchResultsListBox.Location = new System.Drawing.Point(0, 0);
             this.SearchResultsListBox.Name = "SearchResultsListBox";
             this.SearchResultsListBox.Size = new System.Drawing.Size(257, 424);
-            this.SearchResultsListBox.TabIndex = 2;
+            this.SearchResultsListBox.TabIndex = 0;
             this.SearchResultsListBox.SelectedIndexChanged += new System.EventHandler(this.SearchResultsListBox_SelectedIndexChanged);
             // 
             // SearchResultsContextMenu
@@ -160,7 +160,7 @@
             this.GoogleButton.Location = new System.Drawing.Point(322, 96);
             this.GoogleButton.Name = "GoogleButton";
             this.GoogleButton.Size = new System.Drawing.Size(75, 23);
-            this.GoogleButton.TabIndex = 8;
+            this.GoogleButton.TabIndex = 2;
             this.GoogleButton.Text = "Google";
             this.GoogleButton.UseVisualStyleBackColor = true;
             this.GoogleButton.Click += new System.EventHandler(this.GoogleButton_Click);
@@ -170,7 +170,7 @@
             this.SaveArticleButton.Location = new System.Drawing.Point(403, 96);
             this.SaveArticleButton.Name = "SaveArticleButton";
             this.SaveArticleButton.Size = new System.Drawing.Size(75, 23);
-            this.SaveArticleButton.TabIndex = 9;
+            this.SaveArticleButton.TabIndex = 3;
             this.SaveArticleButton.Text = "Save Article";
             this.SaveArticleButton.UseVisualStyleBackColor = true;
             this.SaveArticleButton.Click += new System.EventHandler(this.SaveArticleButton_Click);
@@ -180,7 +180,7 @@
             this.OpenArticleButton.Location = new System.Drawing.Point(484, 96);
             this.OpenArticleButton.Name = "OpenArticleButton";
             this.OpenArticleButton.Size = new System.Drawing.Size(75, 23);
-            this.OpenArticleButton.TabIndex = 10;
+            this.OpenArticleButton.TabIndex = 4;
             this.OpenArticleButton.Text = "Open Article";
             this.OpenArticleButton.UseVisualStyleBackColor = true;
             this.OpenArticleButton.Click += new System.EventHandler(this.OpenArticleButton_Click);
