@@ -1,0 +1,3142 @@
+{
+    "paper_id": "1bb5464402133a23adce74998e5658cf9f3fa491",
+    "metadata": {
+        "title": "Comparing Neural-Network Scoring Functions and the State of the Art: Applications to Common Library Screening",
+        "authors": [
+            {
+                "first": "Jacob",
+                "middle": [
+                    "D"
+                ],
+                "last": "Durrant",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Aaron",
+                "middle": [
+                    "J"
+                ],
+                "last": "Friedman",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of California San Diego",
+                    "location": {
+                        "addrLine": "La Jolla",
+                        "postCode": "92093",
+                        "region": "California",
+                        "country": "United States"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Kathleen",
+                "middle": [
+                    "E"
+                ],
+                "last": "Rogers",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of California San Diego",
+                    "location": {
+                        "addrLine": "La Jolla",
+                        "postCode": "92093",
+                        "region": "California",
+                        "country": "United States"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "J",
+                "middle": [
+                    "Andrew"
+                ],
+                "last": "Mccammon",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of California San Diego",
+                    "location": {
+                        "addrLine": "La Jolla",
+                        "postCode": "92093",
+                        "region": "California",
+                        "country": "United States"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "We compare established docking programs, AutoDock Vina and Schrodinger's Glide, to the recently published NNScore scoring functions. As expected, the best protocol to use in a virtual-screening project is highly dependent on the target receptor being studied. However, the mean screening performance obtained when candidate ligands are docked with Vina and rescored with NNScore 1.0 is not statistically different than the mean performance obtained when docking and scoring with Glide. We further demonstrate that the Vina and NNScore docking scores both correlate with chemical properties like small-molecule size and polarizability. Compensating for these potential biases leads to improvements in virtual screen performance. Composite NNScore-based scoring functions suited to a specific receptor further improve performance. We are hopeful that the current study will prove useful for those interested in computer-aided drug design.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Because of the high cost and time requirements associated with traditional high-throughput screens, many researchers now use computational methods to prefilter candidate ligands prior to experimental testing. A number of ligand-based computational techniques for identifying likely binders have been utilized. These include 2D screening with fingerprints, 1\u22123 shape-based screening, 4, 5 and pharmacophore matching, 6 which identify potential actives by comparing their atomic connectivities, three-dimensional shapes, and three-dimensional pharmacophores to those of known ligands, respectively.",
+            "cite_spans": [
+                {
+                    "start": 383,
+                    "end": 385,
+                    "text": "4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 386,
+                    "end": 387,
+                    "text": "5",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 416,
+                    "end": 417,
+                    "text": "6",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 INTRODUCTION"
+        },
+        {
+            "text": "When structural information about a macromolecular drug target is known (e.g., from X-ray crystallography or NMR), computer docking programs are often used to identify candidate ligands. These programs position three-dimensional models of small molecules into models of target binding pockets; associated scoring functions subsequently predict the binding affinities of these \"posed\" candidate ligands. While certainly useful as an enrichment tool, docking has not yet reached its full potential. In part, the inaccuracies inherent in this technique stem from factors that are independent of the scoring function itself. For example, most docking programs do not account for full receptor flexibility, despite the fact that flexibility plays a critical role in modern theories of smallmolecule binding (e.g., induced-fit 7, 8 and population-shift 9\u221212 models). Indeed, efforts to account for receptor flexibility have proven effective and have led to the identification of a number of experimentally validated ligands. 8, 13, 14 Similarly, most docking programs do not account for binding-pocket water molecules, which can in some cases play critical roles in mediating receptor\u2212ligand interactions. 15 Even a \"perfect\" docking program would fail to identify true ligands when presented with sterically incompatible binding-pocket conformations and/or pockets devoid of crucial water molecules.",
+            "cite_spans": [
+                {
+                    "start": 821,
+                    "end": 823,
+                    "text": "7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 824,
+                    "end": 825,
+                    "text": "8",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1019,
+                    "end": 1021,
+                    "text": "8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1022,
+                    "end": 1025,
+                    "text": "13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1026,
+                    "end": 1028,
+                    "text": "14",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1200,
+                    "end": 1202,
+                    "text": "15",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 INTRODUCTION"
+        },
+        {
+            "text": "However, some of the inaccuracies associated with computer docking are intrinsic to the scoring functions themselves. In recent years, much work has been directed toward improving these functions without sacrificing speed. 16, 17 Some of our own recent efforts have focused on training neural networks to rapidly predict the binding energies of protein\u2212ligand complexes leading to the creation of two neural-networkbased scoring functions, NNScore 1.0 18 and NNScore 2.0. 19 Neural networks are computer models that mimic, albeit inadequately, the microscopic architecture and organization of the brain. Biological neurons and synapses are simulated in silico as \"neurodes\" and \"connections.\" Data to be analyzed is encoded on an input layer of neurodes, triggering a cascade of signals that propagates through the network. Both the organization and number of the neurodes as well as the weights (i.e., strengths) assigned to each neurode\u2212neurode connection serve to modify the initial input signal during propagation. The cascade eventually reaches an output layer of artificial neurons, where an analysis of the original input signal is ultimately encoded.",
+            "cite_spans": [
+                {
+                    "start": 223,
+                    "end": 226,
+                    "text": "16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 227,
+                    "end": 229,
+                    "text": "17",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 452,
+                    "end": 454,
+                    "text": "18",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 472,
+                    "end": 474,
+                    "text": "19",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 INTRODUCTION"
+        },
+        {
+            "text": "In the NNScore implementations, the strengths of the connections between neurodes were varied until the networks could reliably predict binding affinity when given descriptors of a ligand\u2212receptor complex. For NNScore 1.0, these descriptors included the number of protein\u2212ligand close contacts, categorized by AutoDock atom types; the electrostatic energy of those close contacts; the number of ligand atoms of each atom type; and the number of ligand rotatable bonds. For NNScore 2.0, the input additionally included the descriptors provided by the BINANA algorithm 20 (counts of the number of hydrophobic, \u03c0\u2212\u03c0, hydrogen-bond, and salt-bridge interactions), as well as the components of the Vina scoring function (steric, hydrophobic, hydrogen-bond, and ligand-rotatablebond terms). 21 While some efforts have been made to demonstrate the favorable performance of these neural-network scoring functions, these efforts focused on a limited number of systems, and the neural-network functions were not directly compared to top-tier proprietary docking programs like Schrodinger's Glide. 22\u221225 In the current work, we use AutoDock Vina 21 and Glide 26, 27 to dock the diverse compounds of the NCI diversity set III, a popular compound library available through the National Cancer Institute (NCI), into the 40 protein receptors of the Directory of Useful Decoys (DUD). 28 Additionally, Vina-and Glide-docked poses are reevaluated using NNScore 1.0 and 2.0. The mean screening performance obtained when candidate ligands are docked with Vina and rescored with NNScore 1.0 is not statistically different than the mean performance obtained when docking and scoring with Glide. This is particularly noteworthy given that Glide, while state of the art, is expensive and has a restrictive token system. In contrast, AutoDock Vina and NNScore 1.0 are both free and open source.",
+            "cite_spans": [
+                {
+                    "start": 567,
+                    "end": 569,
+                    "text": "20",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 784,
+                    "end": 786,
+                    "text": "21",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1086,
+                    "end": 1091,
+                    "text": "22\u221225",
+                    "ref_id": null
+                },
+                {
+                    "start": 1147,
+                    "end": 1150,
+                    "text": "26,",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 1151,
+                    "end": 1153,
+                    "text": "27",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1367,
+                    "end": 1369,
+                    "text": "28",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 INTRODUCTION"
+        },
+        {
+            "text": "Additionally, we note a correlation between certain chemical properties and the associated docking scores, suggesting systematic bias. For both Vina and NNScore, docking scores tended to correlate with small-molecule chemical properties like size and polarizability, regardless of the target receptor. Compensating in part for these potential biases improves virtual-screen performance. Creating composite scoring functions suited to a specific receptor can improve performance further still.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 INTRODUCTION"
+        },
+        {
+            "text": "Though the mean screening performances of Glide and (Vina + NNScore 1.0) over all 40 DUD receptors are not statistically different, our results do confirm what has been found by others: the best scoring function to use for a specific pharmacological target, be it Vina, NNScore, or Glide, is highly system dependent. 23,29\u221232 Positive controls (known inhibitors), when available, should be included in virtual screens to ensure that the docking protocol chosen is suited to the system at hand. However, when positive controls are not available, we recommend (Vina + NNScore 1.0) as a potential alternative to proprietary docking programs like Schrodinger's Glide.",
+            "cite_spans": [
+                {
+                    "start": 317,
+                    "end": 325,
+                    "text": "23,29\u221232",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 INTRODUCTION"
+        },
+        {
+            "text": "Receptor Preparation. The 40 protein receptors of the DUD 28 were downloaded from the DUD website (http://dud. docking.org/). All ligands and water molecules were removed. Hydrogen atoms were added to the protein structures (neutral pH) and hydrogen bonds were optimized using Schrodinger Maestro's Protein Preparation Wizard. 61 These processed models were then converted to the AutoDock PDBQT format with MGLTools 1.5.4 33 for use in the Vina and NNScore screens.",
+            "cite_spans": [
+                {
+                    "start": 58,
+                    "end": 60,
+                    "text": "28",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 327,
+                    "end": 329,
+                    "text": "61",
+                    "ref_id": "BIBREF61"
+                },
+                {
+                    "start": 422,
+                    "end": 424,
+                    "text": "33",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "Ligand Preparation. Models of ligands known to bind to the 40 DUD receptors were likewise downloaded from the DUD website. Additionally, the compounds of the NCI diversity set III were obtained from the website of the NCI/ NIH Developmental Therapeutics program (http://dtp.nci.nih. gov/). All these small molecules were processed with Schrodinger's LigPrep module to generate models with appropriate tautomeric, isomeric, and ionization states for pH values ranging from 5.0 to 9.0. These models were ultimately converted to the PDBQT format using MGLTools 1.5.4 33 for use in the Vina and NNScore screens, and to the SDF format for use in the Glide screens. A few molecular models could not be generated; 1560 NCI models were ultimately used in the virtual screens.",
+            "cite_spans": [
+                {
+                    "start": 564,
+                    "end": 566,
+                    "text": "33",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "Docking Parameters. For Vina docking, the default parameters were used. All ligands were docked into regions (boxes) centered on the respective receptor binding pockets. The centers and dimensions of the boxes were taken from the DUD. Edge lengths ranged from 35.9 to 50.0 \u00c5, and box volumes ranged from 56,365.8 to 88,845.5 \u00c5 3 . Each Vina docking generated multiple poses. For the Vina analysis, the best-scoring pose as judged by the Vina docking score was used. For the NNScore analysis, all Vina poses were reevaluated with NNScore 1.0 18 and NNScore 2.0, 19 and the best-scoring Vina pose as judged by NNScore was considered for subsequent analysis. In the case of NNScore 1.0, the original programmers provided 24 neural networks that were particularly adept at identifying potent ligands when given descriptors of crystallographic ligand\u2212receptor complexes. The final NN1 scores for each docking were derived by averaging the output of these 24 networks.",
+            "cite_spans": [
+                {
+                    "start": 561,
+                    "end": 563,
+                    "text": "19",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "For Glide docking, parameters similar to the defaults were likewise used. The docking grid was defined by two cubes centered on the DUD-specified active sites. The inner cube, with 14 \u00c5 edges, imposed restrictions on the location of the ligand center, and the outer cube, with 45 \u00c5 edges, imposed restrictions on the location of all ligand atoms. For each system, both the positive controls and the compounds of the NCI diversity set III were first docked with Glide HTVS. To test more advanced Glide docking protocols, the top 50% of these compounds were subsequently docked with Glide SP, and the top 25% of the remaining compounds were docked with Glide XP. 34 Glide-HTVS-and Glide-XP-docked models were also rescored with NNScore 1.0 and 2.0. The default parameters were again used for both.",
+            "cite_spans": [
+                {
+                    "start": 661,
+                    "end": 663,
+                    "text": "34",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "In all screens, where there were multiple models of a distinct compound due to alternate tautomeric, stereoisomeric, or protonation states, the best-scoring model was selected, and all others were discarded.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "Calculating Molecular Properties. Molecular properties were calculated using Schrodinger's Maestro suite. Compounds were processed with LigPrep to optimize geometry and ensure electrical neutrality. QikProp was then used to calculate molecular properties.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "Assessing the Performance of the Virtual Screens. Receiver operating characteristic (ROC 35 ) curves can be generated when performing virtual screens of compound libraries that include known binders. Following docking and scoring, the compounds are ordered by their docking scores. A moving cutoff is then employed that sweeps from the best predicted binder to the worst. At each cutoff, the list of compounds is partitioned. The compounds above the cutoff are tentatively considered to be binders, and the compounds below are considered to be nonbinders. If all compounds not known to be binders are considered decoys, true and false positive rates can then be calculated for each partition. The ROC curve is generated by plotting all (false positive rate, true positive rate) points. ROC or partial ROC curves were calculated for all screens. The trapezoidal rule was used to determine the areas under these curves.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 MATERIALS AND METHODS"
+        },
+        {
+            "text": "ROC curves assess the performance of a virtual screen from the best predicted binder to the worst. In practice, however, computational chemists are typically interested in the topranked compounds. One useful way to assess the topperforming ligands is to determine the true positive rate for a given fixed false positive rate. 36 In the current work, we identify the true positive rate when the false positive rate is fixed at 5%. When required to facilitate the optimization of this metric, the ROC curve was smoothed using a linear interpolation as implemented in NumPy/SciPy. 37\u221241 The ROC curves generated using the multi-tiered (HTVS-SP-XP) Glide protocol against dihydrofolate reductase and epidermal growth factor receptor were not complete enough to calculate the early-performance metric. To maintain equal sample sizes for the ANOVA and t-test analyses, all screens against these two receptors were discarded when appropriate, regardless of the docking scoring protocol used. Mean and median early-performance metrics over all 40 DUD receptors were calculated using all available screen results.",
+            "cite_spans": [
+                {
+                    "start": 326,
+                    "end": 328,
+                    "text": "36",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 578,
+                    "end": 583,
+                    "text": "37\u221241",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "The purpose of the current study is two-fold. First, we perform a systematic comparison of common AutoDock Vina, 21 NNScore, 18, 19 and Glide protocols. In this study, a \"protocol\" refers to the two-step process used to computationally identify potential ligands. First, a compound model must be placed within a model of the binding pocket. Second, the binding affinity of that posed compound must be estimated. These two steps are called docking and scoring, respectively, and are often combined into a single algorithm. Vina and Glide, for example, both dock and score potential ligands; NNScore 1.0 and 2.0 only score (or rescore).",
+            "cite_spans": [
+                {
+                    "start": 113,
+                    "end": 115,
+                    "text": "21",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 125,
+                    "end": 128,
+                    "text": "18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 129,
+                    "end": 131,
+                    "text": "19",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "We compare two neural-network docking scoring protocols, Vina\u2212NNScore-1.0 and Vina\u2212NNScore-2.0 (henceforth abbreviated Vina-NN1 and Vina-NN2, respectively) and several popular protocols that are based exclusively on either Vina or Glide. We show that while the performance of these docking schemes is highly receptor dependent, the mean screening performances of the Vina-NN1 and Glide protocols are not statistically different. 22\u221225 Second, we demonstrate that there are biases in most of the docking protocols studied, as has been demonstrated for other scoring functions. 23,29\u221232 Correcting for these biases improves the performance of the Vina-NN1 protocol further.",
+            "cite_spans": [
+                {
+                    "start": 429,
+                    "end": 434,
+                    "text": "22\u221225",
+                    "ref_id": null
+                },
+                {
+                    "start": 576,
+                    "end": 584,
+                    "text": "23,29\u221232",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "Testing Docking Protocols: Receptor, Active, and Decoy Selection. In order to compare multiple docking protocols, it is useful to perform a series of \"mock\" virtual screens that draw from compound libraries containing both known ligands (\"actives\") and presumed decoy molecules. As the actives are known a priori, screen performance can be assessed by examining the ability of a given docking protocol to accurately separate out actives from decoys. The performance of a given protocol is often receptor specific; consequently, it is prudent to perform multiple screens into many diverse receptors when attempting to assess global utility.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "The Directory of Useful Decoys (DUD), 28 an excellent resource for facilitating these assessments, contains 40 diverse protein receptors and 2950 known actives. For each active, the DUD contains 36 topologically distinct presumed decoys that are by design chemically similar to the known inhibitors, as judged by metrics like molecular weight, cLogP, and the number of hydrogen-bonding groups. In the current work, we use the DUD receptors and known active compounds to assess several docking protocols; however, rather than using the DUD decoy molecules, we instead used 1560 models of compounds from the NCI diversity set III (presumed decoys), a set of publically available, diverse, drug-like molecules provided by the National Cancer Institute free of charge.",
+            "cite_spans": [
+                {
+                    "start": 38,
+                    "end": 40,
+                    "text": "28",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "Without wishing to in any way disparage the DUD decoy set, which is certainly useful in many contexts, it is important to understand why we opted to use the NCI compounds as decoys instead. Factors that influence molecular binding can be divided into two general categories: those that are ligand specific (i.e., independent of the receptor) and those that are binding specific (i.e., dependent on specific receptor\u2212ligand interactions). The number of ligand rotatable bonds is a good example of a ligand-specific factor, as the immobility of highly flexible ligands that generally occurs upon binding is thought to be entropically unfavorable, independent of the receptor. In contrast, receptor\u2212ligand complementarity of hydrogen-bond donors and acceptors is a good example of a binding-specific factor, as it depends specifically on interactions between the ligand and the receptor. In predicting ligand binding, it is prudent to consider both ligand-and binding-specific factors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "The DUD decoys were specifically selected so as to be chemically similar to known actives; they consequently may lack the chemical heterogeneity that one would see in a set of compounds selected with diversity in mind (e.g., the NCI diversity set). On one hand, it is certainly possible that some scoring functions may be inappropriately biased in their assessment of ligand-specific factors. What if, for example, a scoring function inappropriately assigns better docking scores to compounds with larger dipole moments independent of the receptor, and coincidentally, the actives being screened tend to have larger dipole moments than the decoys? The idea of controlling for this inappropriate bias by intentionally selecting decoy molecules with dipole moments similar to those of the actives certainly has its appeal.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "On the other hand, insufficient chemical heterogeneity in the decoys may unfairly bias the evaluation of scoring functions that rely on valid assessments of ligand-specific factors. What if, for example, a scoring function correctly considers the number of ligand rotatable bonds in assessing the likelihood of binding but the actives and decoys all have the same number of rotatable bonds? Such a scoring function would be inappropriately penalized because its ability to utilize information about ligand rotatable bonds would be underexploited. Indeed, these types of concerns have lead others to use modified versions of the DUD decoy set. 42, 43 Of note, Vina includes one ligand-specific term in its scoring function (number of rotatable bonds), 21 and the NNScore functions include additional ligand-specific terms related to the number of ligand atom types. 18, 19 Consequently, while we believe convincing arguments can be made in favor of using the DUD decoys, in the current work, we opted to use the NCI compounds as decoys instead. A separate issue related to decoy selection must also be addressed. High-throughput screens typically have hit rates that range from 0.1% to 1.0%; 44\u221250 it is therefore reasonable to assume that for each DUD protein, the NCI set contains between 1 and 16 \"decoys\" that are in fact actives. A similar assumption underlies the set of DUD decoys, which have likewise not been explicitly tested to rule out binding. Possible inaccuracies in comparison metrics introduced by these kinds of assumptions are at least in part ameliorated by the fact that all the docking scoring protocols being compared are subject to the same assumption. Furthermore, the NCI set used in the current project may well have fewer true binders than the widely used DUD set, given that the DUD decoys were, as mentioned above, carefully chosen to be chemically similar to the DUD actives.",
+            "cite_spans": [
+                {
+                    "start": 643,
+                    "end": 646,
+                    "text": "42,",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 647,
+                    "end": 649,
+                    "text": "43",
+                    "ref_id": null
+                },
+                {
+                    "start": 751,
+                    "end": 753,
+                    "text": "21",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 865,
+                    "end": 868,
+                    "text": "18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 869,
+                    "end": 871,
+                    "text": "19",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "\u25a0 RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "Comparing Docking Protocols: ROC Curves. Having selected the receptors, actives, and decoys, we next turn to the question of how best to evaluate virtual-screening performance. Among the many methods that have been considered, 36, 51 receiver operating characteristic (ROC) curves are appealing because they are independent of the ratio of actives vs inactives and have desirable statistical properties. The area under the ROC curve (ROC-AUC) is thought to correspond to the probability that a known binder picked at random will rank higher than a known nonbinder picked at random.",
+            "cite_spans": [
+                {
+                    "start": 227,
+                    "end": 230,
+                    "text": "36,",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 231,
+                    "end": 233,
+                    "text": "51",
+                    "ref_id": "BIBREF51"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "To compare docking scoring protocols using the ROC-AUC metric, we docked NCI decoys and DUD actives into the 40 DUD receptors using AutoDock Vina 28 and Glide HTVS, a state of the art, fast docking algorithm designed specifically for screening large libraries. The Vina-docked poses were then rescored with NNScore 1.0 18 and NNScore 2.0. 19 The more rigorous Glide SP and Glide XP docking protocols were not used at this juncture because, while impressively precise, they are not as well suited for use in high-throughput virtual screens. Given that an average of 1634 compounds had to be docked into each of the 40 DUD receptors (74 DUD actives and 1560 NCI decoys), 65,350 individual dockings were required to test each docking protocol. We note that others have similarly eschewed an exclusive use of Glide SP/XP for projects requiring comparable numbers of individual dockings. 52 As has been shown previously, 19,23,29\u221232 our results demonstrate that the ideal docking protocol for a given project is highly system dependent. For example, when the screens were assessed by the ROC-AUC metric, Vina\u2212Vina performed better than Vina\u2212NN1, Vina\u2212NN2, and HTVS\u2212HTVS for docking into the progesterone receptor and glycinamide ribonucleotide transformylase. Vina\u2212NN1 performed best for docking into hydroxymethylglutaryl\u2212CoA reductase and the glucocorticoid receptor. Vina\u2212NN2 performed best for docking into epidermal growth factor receptor and plateletderived growth factor receptor kinase. HTVS\u2212HTVS performed best for docking into adenosine deaminase and AmpC \u03b2-lactamase ( Table 1) .",
+            "cite_spans": [
+                {
+                    "start": 146,
+                    "end": 148,
+                    "text": "28",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 339,
+                    "end": 341,
+                    "text": "19",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 883,
+                    "end": 885,
+                    "text": "52",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1575,
+                    "end": 1583,
+                    "text": "Table 1)",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Given that NN2 considers features of molecular binding that NN1 neglects, it is curious that for many individual receptors Vina\u2212NN1 performs substantially better than Vina\u2212NN2 ( Table 2 ). One common criticism of neural networks is that, unlike some other machine-learning techniques, they are essentially \"black boxes\"; it is difficult to impossible to determine precisely how they come to their ultimate conclusions. Though speculative, we suspect two factors explain the favorable performance of Vina\u2212NN1. First, the additional features of molecular binding that NN2 explicitly considers may not provide additional information over what NN1 can infer implicitly. For example, in estimating binding affinity, NN2 explicitly considers the number \u03c0\u2212\u03c0 stacking interactions; however, NN1 might be able to implicitly infer \u03c0\u2212\u03c0 stacking by considering the number of receptor and ligand aromatic carbon atoms that are in close proximity. Second, NN1 and NN2 assess ligand potency very differently. NN1 is trained to return a binary response: good binder or poor binder. In contrast, NN2 is trained to return a range of scores roughly equivalent to pK i or pIC 50 values. It may be that binary classification is more Setting the specific details of virtual screens against individual proteins aside, the best way of assessing the global utility of a docking scoring function is to consider its performance over multiple diverse receptors. When the average area under the ROC curve calculated over all 40 DUD receptors was considered, Vina\u2212NN1 and Vina\u2212NN2 outperformed Vina\u2212 Vina and HTVS\u2212HTVS. To determine whether or not this difference was statistically significant, we used a technique called analysis of variance (ANOVA). 53 ANOVA asserts the null hypothesis that the means of multiple samples are equal (i.e., that multiple samples are drawn from populations with the same mean). In this sense, ANOVA is similar to the t-test, which is limited to two samples. When assessing multiple samples, one might be tempted to simply perform multiple ttests between all sample pairs; however, each t-test carries with it the risk of incorrectly rejecting the null hypothesis (i.e., committing a type I error by rejecting the conclusion that two samples have statistically equal means when in fact they are statistically equal). As more and more t-tests are performed, the chances of committing this error increase. ANOVA avoids the problem by considering multiple samples in conjunction rather than pairwise. Both ANOVA and the t-test allow one to assess the degree of statistical significance via a p value. The p value in this case represents the probability that the multiple samples could have means that differ to the degree observed or greater, given that the null hypothesis is true (i.e., given that the samples are drawn from populations with equal means). If p < 0.05, the null hypothesis is rejected.",
+            "cite_spans": [
+                {
+                    "start": 1156,
+                    "end": 1158,
+                    "text": "50",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 1722,
+                    "end": 1724,
+                    "text": "53",
+                    "ref_id": "BIBREF53"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 178,
+                    "end": 185,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "ANOVA analysis suggested that the mean screening performances of the Vina\u2212NN1, Vina\u2212NN2, Vina\u2212Vina, and HTVS\u2212HTVS protocols were not statistically different (p = 0.16, not quite the 0.05 required to reject the null hypothesis). Clearly, known inhibitors, when available, should be included in a virtual screen and used to determine which docking scoring protocol is best suited to the specific system at hand. In the absence of any information about known binders, however, we recommend docking with Vina and rescoring with NNScore 1.0, as that protocol did have the highest ROC-AUC mean and median performances.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Comparing Docking Protocols: The Metric of Early Performance. Though the ROC-AUC metric is frequently used to evaluate virtual-screening performance, some have criticized its use because it assesses that performance by considering all screened compounds from the best predicted binder to the worst. 54 In practice, computational chemists are most interested in the top-ranked compounds, the ones that will be subsequently submitted for experimental validation. It is therefore the initial portion of the ROC curve, some argue, that ought to be of primary interest. A number of performance metrics have been proposed to address this issue (e.g., the BEDROC metric 54 derived from a modified ROC curve that weights top-ranked compounds). Additionally, Hawkins et al. 36 recently suggested a simple approach using the \"metric of early performance based on the ROC curve.\" In this scheme, one analyzes a ROC curve to determine the true positive rate for a fixed false positive rate (5% in the current work).",
+            "cite_spans": [
+                {
+                    "start": 299,
+                    "end": 301,
+                    "text": "54",
+                    "ref_id": "BIBREF54"
+                },
+                {
+                    "start": 765,
+                    "end": 767,
+                    "text": "36",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "We used the metric of early performance to compare the Vina-, NNScore-, and HTVS-based protocols to a common multi-tiered Glide protocol (HTVS\u2212SP\u2212XP) 34 that has been used extensively in the literature (see, for example, refs 52, 55, 56, and 57) . The top 50% best ligands as judged by the HTVS\u2212 HTVS protocol were subsequently redocked with Glide SP. The top 25% of the Glide-SP compounds were then redocked with Glide XP. These XP-docked poses were additionally rescored with NNScore 1.0 18 and NNScore 2.0 19 to facilitate comparison.",
+            "cite_spans": [
+                {
+                    "start": 221,
+                    "end": 245,
+                    "text": "refs 52, 55, 56, and 57)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "We note that the multi-tiered HTVS\u2212SP\u2212XP approach is best suited for docking large compound libraries. Admittedly, the analysis herein described required that only 1634 compounds be docked into each DUD receptor on average, suggesting that Glide-SP or -XP docking alone might have been feasible. However, as mentioned above, because we considered all 40 DUD receptors simultaneously, 65,350 dockings would have ultimately been required had the multi-tiered approach been abandoned. Others have similarly turned to multi-tiered Glide protocols for projects requiring comparable numbers of individual dockings. 52 Many compounds were filtered out in the initial HTVS and SP steps of the HTVS\u2212SP\u2212XP protocol and so were never docked/scored using Glide XP. Consequently, it was not possible to calculate a complete ROC curve for the HTVS\u2212 SP\u2212XP protocol. However, by assuming that compounds filtered out in the preliminary HTVS and SP steps truly were poor binders (the reasoning implicit in the multi-tiered approach), it was possible to generate the arguably paramount initial portion of the ROC curve.",
+            "cite_spans": [
+                {
+                    "start": 609,
+                    "end": 611,
+                    "text": "52",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "While individual results were system dependent, Vina\u2212NN1 and Vina\u2212NN2 again performed better on average than Vina\u2212 Vina as judged by the average early-performance metric (Table  2) . Surprisingly, the mean performances of the HTVS\u2212HTVS, HTVS\u2212SP\u2212XP, and Vina\u2212NN1 protocols were not statistically different (ANOVA, p = 0.72). In contrast, t-tests comparing the mean performance of the HTVS\u2212SP\u2212XP protocol to that of the Vina\u2212Vina and Vina\u2212NN2 protocols led us to reject the null hypothesis of equivalence (t-test, p = 0.002 and 0.049, respectively). HTVS\u2212SP\u2212XP performed better, on average, than Vina\u2212Vina and Vina\u2212NN2.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 170,
+                    "end": 180,
+                    "text": "(Table  2)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "To further compare the Glide XP and NNScore scoring functions, we reevaluated the HTVS\u2212SP\u2212XP poses with NNScore 1.0 and 2.0. As expected, early performance Correlations between Molecular Properties and Docking Scores: Artifactual or Physical? In hopes of further improving virtual-screening accuracy, we next sought to specifically characterize scoring-function biases. Schrodinger's QikProp program was used to analyze the screened compounds (known inhibitors and putative decoys). A statistical correlation between certain chemical properties and the average rank of each compound across all 40 DUD receptors was noted. Vina\u2212 Vina, Vina\u2212NN1, and Vina\u2212NN2 scores tended to correlate with properties associated with molecular size (molecular weight, total solvent accessible surface area, volume, number of ring atoms, and number of heteroatoms) and polarizability (Table 3 ). It is interesting that both Vina and the neuralnetwork scoring functions demonstrated similar trends, even though they evaluate ligand binding using very different methodologies. Others have identified similar biases in the FlexX and Gold docking programs. 58 The HTVS\u2212HTVS and HTVS\u2212SP\u2212XP protocols did not exhibit these biases to the same extent (Table 3) . For the interested reader, we provide a real-world example of how scoring-function biases can affect screening results in the Supporting Information. These potentially artifactual correlations between ligand properties and docking scores may result in part from a general neglect of penalty terms that ought to be associated with binding (e.g., ligand desolvation, trapping binding-site waters, etc.). We do not mean to imply that Vina and NNScore neglect penalty terms entirely. The Vina scoring function, for example, has three steric-interaction terms. 21 Additionally, NNScore may be able to implicitly account for some penalty terms as well; information about energetically unfavorable buried polar groups, for example, could potentially be extracted from the pairwise receptor\u2212ligand atom-type information that NNScore considers. Nevertheless, both Vina and NNScore are likely \"blind\" to many important penalty phenomena. Indeed, Glidebased protocols may perform well relative to many other scoring functions 24 because they better account for these penalties, as evidenced by the fact that HTVS and XP scores are not strongly correlated with molecular weight (Table 3) . Future versions of NNScore currently being developed will consider three-dimensional descriptions of ligand\u2212receptor binding and so may be even more effective than current implementations.",
+            "cite_spans": [
+                {
+                    "start": 1134,
+                    "end": 1136,
+                    "text": "58",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 1792,
+                    "end": 1794,
+                    "text": "21",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 865,
+                    "end": 873,
+                    "text": "(Table 3",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 1224,
+                    "end": 1233,
+                    "text": "(Table 3)",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 2402,
+                    "end": 2411,
+                    "text": "(Table 3)",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "On the other hand, one must consider the possibility that at least a portion of these scoring-function \"biases\" in fact represent accurate characterizations of small-molecule binding.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "To this end, we tested whether or not correlations exist between the molecular properties and experimentally measured binding affinities of known ligands independent of receptor. All the binding data deposited in the Binding MOAD database as of March 2013 was considered. 59 In total, 2081 entries representing 1598 unique compounds had both known structures and precise or approximate K i measurements (i.e., measurements described as \"=\" or \"\u2248\"). We were ultimately able to calculate molecular properties for 1531 of these compounds.",
+            "cite_spans": [
+                {
+                    "start": 272,
+                    "end": 274,
+                    "text": "59",
+                    "ref_id": "BIBREF59"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Interestingly, both molecular weight and polarizabiliy were correlated with the experimentally measured pK i values; these molecular properties are plotted as a function of average pK i (independent of receptor) in Figure 1A and B, respectively. Linear regression suggested that the relationship between molecular weight and pK i was MW = 39.2710 (pK i ) + 122.1835, with a R 2 value of 0.23. A t-test on the slope coefficient yielded a p-value of 0.0, leading us to reject the null hypothesis that there is no true relationship between pK i and molecular weight (i.e., that the true slope coefficient is 0). Similarly, the regression equation describing the relationship between polarizability and pK i was pol = 4.3326 (pK i ) + 7.3163, with a R 2 value of 0.30. A t-test on the slope coefficient of this regression similarly produced a p-value of 0.0; the hypothesis that polarizability and pK i are not correlated was thus similarly rejected.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 215,
+                    "end": 224,
+                    "text": "Figure 1A",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Subjectively, the notion that ligand binding may be in part dependent on factors that are entirely ligand centric has some appeal. For example, while it is certainly true that in the absence of ligand\u2212binding-site complementarity bigger is not necessarily better, larger molecules may well have more interacting moieties on average that serve to enhance potency if complementarity is assumed. On the other hand, it may be that the noted correlations between molecular properties and experimentally measured pK i values are more reflective of traditional and perhaps flawed approaches to medicinal chemistry than of actual physical phenomena. For example, during the drug-optimization process, molecules do tend to increase in size. 60 Regardless, our goal ought to be to compensate for true biases while maintaining correlations that reflect actual physical phenomena.",
+            "cite_spans": [
+                {
+                    "start": 732,
+                    "end": 734,
+                    "text": "60",
+                    "ref_id": "BIBREF60"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Compensating for Bias: General-Purpose Scoring Functions. To compensate for potential scoring-function biases, we considered 15 relevant QikProp properties for each NCI decoy and known DUD inhibitor: accptHB (estimated number of hydrogen-bond acceptors), CIQPlogS (predicted aqueous solubility), dipole (computed ligand dipole moment), donorHB (estimated number of hydrogen-bond donors), SASA (total solvent accessible surface area, \u00c5 2 ), FISA (hydrophilic component of the SASA, \u00c5 2 ), FOSA (hydrophobic component of the SASA, \u00c5 2 ), mol_MW (molecular weight, daltons), nonHatm (number of heavy atoms), PISA (\u03c0 component of the SASA, \u00c5 2 ), QPlogPC16 (predicted hexadecane/gas partition coefficient), QPlogPo/w (predicted octanol/water partition coefficient), Qppolrz (predicted polarizability, \u00c5 3 ), rotor (number of rotatable bonds), and volume (total solventaccessible volume, \u00c5 3 ). Composite scoring functions were considered of the form",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "where NN1 is the Vina\u2212NN1 score, P i is the i th chemical property (listed above), and C i is a coefficient associated with that property.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "A stepwise selection method was used to identify the composite scoring functions that best improved screen performance. First, training sets were generated for each DUD receptor by randomly selecting 75% of the associated known actives and merging them with the set of all NCI decoys. Similar testing sets were generated using the remaining known actives. All 15 coefficients were initially set to 0.0 so that the composite and Vina\u2212NN1 scores were identical. The downhill simplex algorithm (SciPy) was then used to adjust the coefficients so as to maximize the average screen performance over all 40 training sets. Once training was complete, the resulting composite scoring function was then evaluated by calculating the average early-performance metric over the 40 testing sets, now without adjusting the coefficients.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "The above protocol was repeated; each time, a different coefficient was fixed at 0.0 so that the associated chemical property was essentially ignored. The single chemical property that when discounted was associated with the smallest drop in the average screen performance over the 40 testing sets was identified. A new set of 14 chemical properties was generated by excluding this chemical property. In total, this elimination step was repeated 15 times until no additional chemical properties remained (Figure 2A) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 504,
+                    "end": 515,
+                    "text": "(Figure 2A)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "A general-purpose scoring function was identified by considering the minimum number of chemical properties required to maintain optimal early performance ( Figure 2A) . Specifically, when the compounds were ranked by (NN1 + 0.1093 \u00d7 donorHB + 0.0011 \u00d7 FOSA + 0.0008 \u00d7 PISA), the average early-performance metric over all 40 receptors was 0.48, substantially improved over the 0.35 obtained with Vina\u2212 NN1 alone. A t-test in fact required that we reject the notion that the mean performances of these two screens were statistically equal (p = 0.04) ( Table 2 , composite/general).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 156,
+                    "end": 166,
+                    "text": "Figure 2A)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 550,
+                    "end": 557,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Given that we opted to use decoys that were not necessarily chemically similar to the DUD actives, it was especially important to ensure that the above general-purpose scoring function was not overtrained. For example, consider the hypothetical possibility that the decoys and DUD actives all have fewer than three and more than four hydrogen-bond donors, respectively. It would be possible to identify the actives using ligand-specific factors alone, independent of any important ligand\u2212receptor interactions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "On the other hand, some ligand-specific factors (e.g., the number of rotatable bonds) may well be legitimately useful for distinguishing actives from decoys. It is not unreasonable to expect some genuine enrichment when compounds are ranked by a scoring function comprised exclusively of ligand-specific terms; nevertheless, one would expect that screen performance would improve further still when additional binding-specific terms (e.g., the NNScore) are included.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "To ensure that actives were not being identified based on their chemical properties alone, we generated a second scoring function of the same form (0.1093 \u00d7 donorHB + 0.0603 \u00d7 FOSA + 0.0458 \u00d7 PISA), comprised exclusively of the ligandspecific terms of the parent general-purpose function. The average early-performance metric over all 40 receptors when the ligands were ranked by this ligand-specific scoring function was 0.22. A t-test required that we reject the null hypothesis that the mean performances of the ligand-specific scoring function and its parent function were statistically equivalent (p = 0.00005), suggesting that the general-purpose function achieved its enhanced performance by considering both ligand-specific and binding-specific factors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "Compensating for Bias: Receptor-Specific Scoring Functions. The implicit assumption behind the creation of any general-purpose scoring function is that a single function can perform optimally across any number of receptors; however, given the demonstrated system dependence of scoring functions in general, this supposition is not likely to be correct. We therefore repeated the above scoring-function optimizations, now generating an independent composite scoring function for each receptor ( Figure 2B ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 494,
+                    "end": 503,
+                    "text": "Figure 2B",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "The average early-performance metric over the 40 receptors was substantially improved when receptor-specific scoring functions that included terms for FISA, mol_MW, and volume were employed (0.68). A t-test required us to reject the null hypothesis that the mean early-performance metrics of this scoring function and the general-purpose scoring function described above were statistically equivalent (p = 0.00073; Table 2 , composite/individual). An analogous scoring function containing only ligand-specific terms was also generated, as above. Again, we rejected the null hypothesis that the mean performances of the ligand-specific scoring function and its parent function with the additional NN1 term were statistically equivalent (0.53 vs 0.68, p = 0.01). It is not necessarily our purpose to provide specific composite functions for others to use in their virtual screens; rather, we wish to demonstrate the general utility of deriving such functions when positive controls (known inhibitors) are available. A composite scoring function tailored to a specific receptor and designed to optimize the ranking of known inhibitors can potentially enhance virtual-screening performance.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 415,
+                    "end": 422,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Journal of Chemical Information and Modeling"
+        },
+        {
+            "text": "The performance of a docking scoring protocol is highly dependent on the specific receptor being studied. When possible, positive controls (known binders) should be included in the screen so many different protocols can be tested. However, in the absence of known ligands and when a free, open source, general-purpose solution is sought, docking with AutoDock Vina and rescoring with NNScore 1.0 is an excellent option. We are hopeful that this work will help guide computational chemists in their efforts to best utilize computer-docking programs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 CONCLUSION"
+        },
+        {
+            "text": "Real-world example of how scoring-function biases can affect screening results. This material is available free of charge via the Internet at http://pubs.acs.org.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "* S Supporting Information"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Similarity-based virtual screening using 2D fingerprints. Drug Discovery Today",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Willett",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "11",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Large-scale systematic analysis of 2D fingerprint methods and parameters to improve virtual screening enrichments",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sastry",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Lowrie",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Dixon",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Sherman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "50",
+            "issn": "5",
+            "pages": "771--784",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Analysis and comparison of 2D fingerprints: Insights into database screening performance using eight fingerprint methods",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Duan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Dixon",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Lowrie",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Sherman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Mol. Graphics Modell",
+            "volume": "29",
+            "issn": "2",
+            "pages": "157--170",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "A novel shapefeature based approach to virtual library screening",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Putta",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Lemmen",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Beroza",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Greene",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Chem. Inf. Comp. Sci",
+            "volume": "42",
+            "issn": "5",
+            "pages": "1230--1240",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Ultrafast shape recognition to search compound databases for similar molecular shapes",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ballester",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Richards",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Comput. Chem",
+            "volume": "",
+            "issn": "10",
+            "pages": "1711--1723",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Pharmacophore modeling and applications in drug discovery: Challenges and recent advances",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Drug Discov. Today",
+            "volume": "12",
+            "issn": "11",
+            "pages": "444--450",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Application of a theory of enzyme specificity to protein synthesis",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Koshland",
+                    "suffix": ""
+                }
+            ],
+            "year": 1958,
+            "venue": "Proc. Natl. Acad. Sci. U.S.A",
+            "volume": "44",
+            "issn": "2",
+            "pages": "98--104",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Implications of protein flexibility for drug discovery",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Teague",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nat. Rev. Drug Discovery",
+            "volume": "2",
+            "issn": "7",
+            "pages": "527--541",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Folding funnels and binding mechanisms",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Tsai",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Nussinov",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Protein Eng",
+            "volume": "12",
+            "issn": "9",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Folding funnels and conformational transitions via hinge-bending motions",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Tsai",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wolfson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Nussinov",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Cell Biochem. Biophys",
+            "volume": "31",
+            "issn": "2",
+            "pages": "141--164",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Folding funnels, binding funnels, and protein function",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Tsai",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Nussinov",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Protein Sci",
+            "volume": "8",
+            "issn": "6",
+            "pages": "1181--1190",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Multiple diverse ligands binding at a single protein site: A matter of pre-existing populations",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Shatsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wolfson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Nussinov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Protein Sci",
+            "volume": "11",
+            "issn": "2",
+            "pages": "184--197",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Protein flexibility and drug design: how to hit a moving target",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Carlson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Curr. Opin. Chem. Biol",
+            "volume": "6",
+            "issn": "4",
+            "pages": "447--452",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Computer-aided drugdiscovery techniques that account for receptor flexibility",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Durrant",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mccammon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Curr. Opin. Pharmacol",
+            "volume": "",
+            "issn": "6",
+            "pages": "770--774",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Ligand-protein cross-docking with water molecules",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Thilagavathi",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Mancera",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "50",
+            "issn": "3",
+            "pages": "415--421",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Towards the development of universal, fast and highly accurate docking/scoring methods: a long way to go",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Moitessier",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Englebienne",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lawandi",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Corbeil",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Br. J. Pharmacol",
+            "volume": "153",
+            "issn": "",
+            "pages": "7--26",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Scoring functions and their evaluation methods for protein-ligand docking: recent advances and future directions",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Grinter",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zou",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Phys. Chem. Chem. Phys",
+            "volume": "2010",
+            "issn": "40",
+            "pages": "12899--12908",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "NNScore: A neural-networkbased scoring function for the characterization of protein\u2212ligand complexes",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Durrant",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mccammon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "",
+            "issn": "10",
+            "pages": "1865--1871",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "NNScore 2.0: A neuralnetwork receptor-ligand scoring function",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Durrant",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mccammon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "51",
+            "issn": "11",
+            "pages": "2897--2903",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "BINANA: A novel algorithm for ligand-binding characterization",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Durrant",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mccammon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J. Mol. Graphics Modell",
+            "volume": "29",
+            "issn": "6",
+            "pages": "888--893",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "AutoDock Vina: Improving the speed and accuracy of docking with a new scoring function, efficient optimization, and multithreading",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Trott",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Olson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Comput. Chem",
+            "volume": "",
+            "issn": "2",
+            "pages": "455--461",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Comparison of automated docking programs as virtual screening tools",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Cummings",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Desjarlais",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Gibbs",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Mohan",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Jaeger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Med. Chem",
+            "volume": "48",
+            "issn": "4",
+            "pages": "962--976",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "A detailed comparison of current docking and scoring methods on systems of pharmaceutical relevance",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Perola",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Walters",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Charifson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Proteins",
+            "volume": "56",
+            "issn": "2",
+            "pages": "235--249",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Comparison of several molecular docking programs: Pose prediction and virtual screening accuracy",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Cross",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Rai",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Baber",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Fan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Humblet",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "49",
+            "issn": "6",
+            "pages": "1455--1474",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Comparison of topological, shape, and docking methods in virtual screening",
+            "authors": [],
+            "year": 2007,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "47",
+            "issn": "4",
+            "pages": "1504--1519",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "A new approach for rapid, accurate docking and scoring. 1. Method and assessment of docking accuracy",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Friesner",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Banks",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Murphy",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Halgren",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Klicic",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Mainz",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Repasky",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Knoll",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Shelley",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Perry",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Shaw",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Francis",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Shenkin",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Glide",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "7",
+            "pages": "1739--1749",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Glide: A new approach for rapid, accurate docking and scoring. 2. Enrichment factors in database screening",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Halgren",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Murphy",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Friesner",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Beard",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Frye",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Pollard",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Banks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "7",
+            "pages": "1750--1759",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Benchmarking sets for molecular docking",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Shoichet",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Irwin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "23",
+            "pages": "6789--6801",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Protein-based virtual screening of chemical databases. 1. Evaluation of different docking/ scoring combinations",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Bissantz",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Folkers",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Rognan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "25",
+            "pages": "4759--4767",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Detailed analysis of scoring functions for virtual screening",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Stahl",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Rarey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "7",
+            "pages": "1035--1042",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Binding site characteristics in structure-based virtual screening: Evaluation of current docking tools",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Schulz-Gasch",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Stahl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Mol. Model",
+            "volume": "9",
+            "issn": "1",
+            "pages": "47--57",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "A critical assessment of docking programs and scoring functions",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Warren",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Andrews",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Capelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Clarke",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lalonde",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lambert",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lindvall",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Nevins",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Semus",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Senger",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Tedesco",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Wall",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Woolven",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "20",
+            "pages": "5912--5931",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Python: A programming language for software integration and development",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Sanner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. Mol. Graphics Modell",
+            "volume": "17",
+            "issn": "1",
+            "pages": "57--61",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Flexible Ligand Docking with Glide",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Repasky",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Shelley",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Friesner",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Current Protocols in Bioinformatics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Signal Detection Theory and Psychophysics",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Green",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Swets",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "How to do an evaluation: Pitfalls and traps",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "C D"
+                    ],
+                    "last": "Hawkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Warren",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Skillman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Nicholls",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Comput.-Aided Mol. Des",
+            "volume": "22",
+            "issn": "3\u22124",
+            "pages": "179--190",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Open Source Scientific Tools for Python",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Oliphant",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Peterson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Extending Python with Fortran",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Dubois",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Comput. Sci. Eng",
+            "volume": "1",
+            "issn": "5",
+            "pages": "66--73",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Guide to NumPy",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Oliphant",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "A tool for connecting Fortran and Python programs",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Peterson",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "F2py",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Int. J. Comput. Sci. Eng",
+            "volume": "4",
+            "issn": "4",
+            "pages": "296--305",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "43) Good, A. C.; Oprea, T. I. Optimization of CAMD techniques 3. Virtual screening enrichment studies: A help or hindrance in tool selection?",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Jahn",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Hinselmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Fechner",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Zell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Comput.-Aided Mol. Des",
+            "volume": "22",
+            "issn": "3\u22124",
+            "pages": "169--178",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Molecular docking and high-throughput screening for novel inhibitors of protein tyrosine phosphatase-1B",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Doman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Mcgovern",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Witherbee",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Kasten",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Kurumbail",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Stallings",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Connolly",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Shoichet",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Med. Chem",
+            "volume": "",
+            "issn": "11",
+            "pages": "2213--2221",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Virtual screening to enrich hit lists from high-throughput screening: a case study on smallmolecule inhibitors of angiogenin",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jenkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Kao",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Shapiro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Proteins",
+            "volume": "50",
+            "issn": "1",
+            "pages": "81--93",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "High-throughput screening assay for inhibitors of heat-shock protein 90 ATPase activity",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Rowlands",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Newbatt",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Prodromou",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Pearl",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Workman",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Aherne",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Anal. Biochem",
+            "volume": "327",
+            "issn": "2",
+            "pages": "176--183",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "High-throughput screening for potent and selective inhibitors of Plasmodium falciparum dihydroorotate dehydrogenase",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Baldwin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Michnoff",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Malmquist",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "White",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Roth",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Rathod",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Phillips",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Biol. Chem",
+            "volume": "",
+            "issn": "23",
+            "pages": "21847--21853",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "High-throughput screening identifies novel inhibitors of Escherichia coli dihydrofolate reductase that are competitive with dihydrofolate",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zolli-Juran",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Cechetto",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Hartlen",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Daigle",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Brown",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioorg. Med. Chem. Lett",
+            "volume": "13",
+            "issn": "15",
+            "pages": "2493--2496",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "High-throughput screening identifies inhibitors of the SARS coronavirus main proteinase",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Blanchard",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Elowe",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Huitema",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Fortin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Cechetto",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Eltis",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Brown",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Chem. Biol",
+            "volume": "11",
+            "issn": "10",
+            "pages": "1445--1453",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "A fluorescence-based high-throughput screening assay for inhibitors of human immunodeficiency virus-1 reverse transcriptaseassociated ribonuclease H activity",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Parniak",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Min",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Budihas",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Le Grice",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Beutler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Anal. Biochem",
+            "volume": "322",
+            "issn": "1",
+            "pages": "33--39",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Evaluating docking programs: Keeping the playing field level",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Liebeschuetz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Comput.-Aided Mol. Des",
+            "volume": "22",
+            "issn": "3\u22124",
+            "pages": "229--238",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Novel and selective DNA methyltransferase inhibitors: Docking-based virtual screening and experimental evaluation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Kuck",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Singh",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Lyko",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Medina-Franco",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Bioorg. Med. Chem",
+            "volume": "18",
+            "issn": "2",
+            "pages": "822--829",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Statistical Methods for Research Workers",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Fisher",
+                    "suffix": ""
+                }
+            ],
+            "year": 1925,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Evaluating virtual screening methods: Good and bad metrics for the \"early recognition\" problem",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Truchon",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Bayly",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "47",
+            "issn": "2",
+            "pages": "488--508",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Discovery of novel alpha 4 beta 2 neuronal nicotinic receptor modulators through structure-based virtual screening",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Mahasenan",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Pavlovicz",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Henderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Gonzalez-Cestari",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Yi",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Mckay",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "ACS Med. Chem. Lett",
+            "volume": "2011",
+            "issn": "11",
+            "pages": "855--860",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Novel inhibitors of dengue virus methyltransferase: Discovery by in vitrodriven virtual screening on a desktop computer grid",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Podvinec",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Schmidt",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Scarsi",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Wen",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Sonntag",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Sanschagrin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Shenkin",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Schwede",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Med. Chem",
+            "volume": "53",
+            "issn": "4",
+            "pages": "1483--1495",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Identification of novel selective antagonists for cyclin C by homology modeling and virtual screening",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Rajender",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Vasavi",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vuruputuri",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Int. J. Biol. Macromol",
+            "volume": "48",
+            "issn": "2",
+            "pages": "292--300",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "Multiple active site corrections for docking and virtual screening",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Vigers",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Rizzi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Med. Chem",
+            "volume": "47",
+            "issn": "1",
+            "pages": "80--89",
+            "other_ids": {}
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "Binding MOAD (mother of all databases)",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Benson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Lerner",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Carlson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proteins",
+            "volume": "60",
+            "issn": "3",
+            "pages": "333--340",
+            "other_ids": {}
+        },
+        "BIBREF60": {
+            "ref_id": "b60",
+            "title": "Fragmentbased lead discovery",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Rees",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Congreve",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Murray",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Carr",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nat. Rev. Drug Discovery",
+            "volume": "3",
+            "issn": "8",
+            "pages": "660--672",
+            "other_ids": {}
+        },
+        "BIBREF61": {
+            "ref_id": "b61",
+            "title": "Protein and ligand preparation: parameters, protocols, and influence on virtual screening enrichments",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Sastry",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Adzhigirey",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Day",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Annabhimoju",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Sherman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "J. Comput.-Aided Mol. Des",
+            "volume": "27",
+            "issn": "3",
+            "pages": "221--234",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "dx.doi.org/10.1021/ci400042y | J. Chem. Inf. Model. 2013, 53, 1726\u22121735",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "dx.doi.org/10.1021/ci400042y | J. Chem. Inf. Model. 2013, 53, 1726\u22121735",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "was highly system dependent. Nevertheless, ANOVA demonstrated that the mean performances of the HTVS\u2212SP\u2212XP, HTVS\u2212 SP\u2212XP\u2212NN1, and HTVS\u2212SP\u2212XP\u2212NN2 protocols were not statistically different (p = 0.88). The mean performances of HTVS\u2212SP\u2212XP\u2212NN1 and Vina\u2212NN1 were likewise not statistically different (t-test, p = 0.70).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Molecular properties vs average experimentally measured pK i values independent of the receptor. Linear regression is shown as a bolded line. (A) Molecular weight. (B) Polarizability.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Screen performance when composite scoring functions were used. In each graph, the leftmost data point describes the average performance over all 40 DUD receptors when a composite function that incorporates the Vina\u2212NN1 score together with 15 smallmolecule properties is used. Advancing rightward, composite functions are used that progressively incorporate fewer chemical properties. The rightmost data point shows screen performance when Vina\u2212NN1 alone is used. (A) Single general-purpose function. (B) Independent composite scoring functions generated for each receptor.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Areas under ROC Curves (ROC-AUC)",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "True Positive Rates When the False Positive Rates Are Fixed at 5%",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "R 2 (Goodness of Fit) Values Associated with Correlations between Average Rank Over All 40 Receptors and Selected NCI Small-Molecule Chemical Properties, As Determined Using Schrodinger's Qikprop a",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors declare no competing financial interest.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Notes"
+        },
+        {
+            "text": "Funding for this work was provided by NIH 5T32GM007752-32 to A.J.F. and K.E.R. and NIH GM31749, NSF MCB-1020765, and MCA93S013 to J.A.M. Support from the Howard Hughes Medical Institute, the NSF Supercomputer Centers, the San Diego Supercomputer Center, the W.M. Keck Foundation, the National Biomedical Computational Resource, and the Center for Theoretical Biological Physics is gratefully acknowledged.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "\u25a0 ACKNOWLEDGMENTS"
+        }
+    ]
+}

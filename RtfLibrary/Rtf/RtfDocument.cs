@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ESCommon.Rtf
+﻿namespace ESCommon.Rtf
 {
     /// <summary>
     /// Specifies RTF document character set.

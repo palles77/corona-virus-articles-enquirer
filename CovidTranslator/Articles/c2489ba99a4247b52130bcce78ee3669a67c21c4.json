@@ -1,0 +1,3054 @@
+{
+    "paper_id": "c2489ba99a4247b52130bcce78ee3669a67c21c4",
+    "metadata": {
+        "title": "An improved particle swarm optimization method for locating time-varying indoor particle sources",
+        "authors": [
+            {
+                "first": "Qilin",
+                "middle": [],
+                "last": "Feng",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Army Engineering University of PLA",
+                    "location": {
+                        "postCode": "210007",
+                        "settlement": "Nanjing",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Hao",
+                "middle": [],
+                "last": "Cai",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing Tech University",
+                    "location": {
+                        "postCode": "210009",
+                        "settlement": "Nanjing",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Fei",
+                "middle": [],
+                "last": "Li",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing Tech University",
+                    "location": {
+                        "postCode": "210009",
+                        "settlement": "Nanjing",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Xiaoran",
+                "middle": [],
+                "last": "Liu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing Tech University",
+                    "location": {
+                        "postCode": "210009",
+                        "settlement": "Nanjing",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Shichao",
+                "middle": [],
+                "last": "Liu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Worcester Polytechnic Institute",
+                    "location": {
+                        "postCode": "01609",
+                        "settlement": "Worcester",
+                        "region": "MA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Jiheng",
+                "middle": [],
+                "last": "Xu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Army Engineering University of PLA",
+                    "location": {
+                        "postCode": "210007",
+                        "settlement": "Nanjing",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The indoor transmission of airborne particles can spread disease and have health-related and even life-threatening effects on occupants, thus necessitating effective ways to locate indoor particle sources. The identification of particle sources from concentration distributions is a difficult task because particles are often released at a time-varying rate, and particle transport mechanisms are more complex than those of gas. This study proposes an improved multi-robot olfactory search method for locating two types of time-varying indoor particle sources: 1) periodic sources such as occupants' respiratory activities and 2) decaying sources such as laboratory leaky containers with hazardous chemicals. The method considers both particle concentrations and indoor air velocities by including an upwind term in the standard particle swarm optimization (PSO) algorithm, preventing robots from becoming trapped into a local optimum, which occurs when using other algorithms. We also considered two ventilation types (mixing ventilation and displacement ventilation) when particles are emitted from different source types, comprising four scenarios. For each scenario, particle concentration and air velocity were simulated using computational fluid dynamics (CFD) and then fed to the PSO algorithm for source localization. In addition, we validated the CFD approach for one scenario by comparing experimental data (e.g., velocities and particle concentrations) under laboratory settings. The results showed that the proposed method can locate the two types of particle sources within approximately 55 s, and the success rates of source localization exceeding 96%, which is a much higher level than levels achieved from the standard PSO and wind utilization II algorithms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Humans spend nearly 90% of their time indoors or in other enclosed environments [1, 2] , creating significant health concerns associated with the inhalation of indoor airborne particles. Infectious respiratory droplets or droplet nuclei exhaled from inflected occupants can serve as pathogen carriers [3] . Virus-laden aerosol particles like those containing severe acute respiratory syndrome (SARS) and H1N1-A influenza can be transported through indoor space (e.g., air cabins) by human respiratory activities. Additionally, the release of toxic chemicals and bio-aerosols in a laboratory threatens personnel health, and these contaminants must be identified in a timely manner. Extreme cases may involve the use of biochemical weapons or terrorist attacks (e.g., the Tokyo subway sarin attack of 1995) [4] . The mitigation of adverse effects of the transport of infectious bio-aerosols or the release of hazardous airborne particles necessitates effective approaches to indoor source localization.",
+            "cite_spans": [
+                {
+                    "start": 80,
+                    "end": 83,
+                    "text": "[1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 84,
+                    "end": 86,
+                    "text": "2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 301,
+                    "end": 304,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 805,
+                    "end": 808,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Fixed-sensor networks and active olfactory searches are two commonly used source localization methods. The fixed-sensor network method arranges one or more sensors in indoor spaces in advance and then determines the location of release sources from measured concentrations while the active olfactory search method utilizes mobile robots equipped with sensors to initiatively \"search\" and \"track\" sources.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The fixed-sensor network method can apply \"forward\" or \"backward\" models. A forward model stores all potential release scenarios that are pre-simulated as a database, and then a potential indoor source can be identified by matching the pre-simulated and measured concentrations from an efficient search algorithm such as the Bayesian probability algorithm [5] [6] [7] [8] [9] or optimization algorithm [10] [11] [12] [13] [14] . contrast, a backward model obtains source locations and other characteristics by reversely solving transport equations for indoor pollutants. The reverse simulation often involves measuring concentrations from a few locations as boundary or initial conditions. Typical approaches include the quasi-reversibility method [15, 16] , pseudo-reversibility method [17] , regularization method [18, 19] and probabilitybased inverse method [20] [21] [22] [23] . A more detailed review is given in Refs. [24, 25] . In practical applications, the fixed-sensor network method must install sensors in advance, limiting the application scope of this type of method. Under most emergency conditions (e.g., accidents and intentional attacks), it is infeasible to quickly install enough sensors to identify a given source, and the sensor network can be easily damaged. In addition, this type of method depends on the computing of numerical models (e.g., computational fluid dynamics (CFD) or multi-zone models) requiring the use of environmental information (e.g., building sizes, obstacles and ventilation systems).",
+            "cite_spans": [
+                {
+                    "start": 356,
+                    "end": 359,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 360,
+                    "end": 363,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 364,
+                    "end": 367,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 368,
+                    "end": 371,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 372,
+                    "end": 375,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 402,
+                    "end": 406,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 407,
+                    "end": 411,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 412,
+                    "end": 416,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 417,
+                    "end": 421,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 422,
+                    "end": 426,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 748,
+                    "end": 752,
+                    "text": "[15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 753,
+                    "end": 756,
+                    "text": "16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 787,
+                    "end": 791,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 816,
+                    "end": 820,
+                    "text": "[18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 821,
+                    "end": 824,
+                    "text": "19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 861,
+                    "end": 865,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 866,
+                    "end": 870,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 871,
+                    "end": 875,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 876,
+                    "end": 880,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 924,
+                    "end": 928,
+                    "text": "[24,",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 929,
+                    "end": 932,
+                    "text": "25]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The active olfactory method inspired by the odor source localization behaviors of many animals [26] divides source localization into three subtasks: plume finding (contacting the aerosol particles), plume traversal (following the detected information toward the source), and source declaration (determining whether the source is found) [27] . In principle, these three subtasks can be conducted by directly using sensor readings without solving complex transport equations. Sensors for a contaminant of interest are often used with a mobile platform using a single robot or multiple robots. Multi-robot methods are typically more efficient and robust in localizing indoor sources through particle swarm optimization (PSO) [28, 29] , ant colony optimization (ACO) [30] and adapted algorithms [31] [32] [33] [34] .",
+            "cite_spans": [
+                {
+                    "start": 95,
+                    "end": 99,
+                    "text": "[26]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 336,
+                    "end": 340,
+                    "text": "[27]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 722,
+                    "end": 726,
+                    "text": "[28,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 727,
+                    "end": 730,
+                    "text": "29]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 763,
+                    "end": 767,
+                    "text": "[30]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 791,
+                    "end": 795,
+                    "text": "[31]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 796,
+                    "end": 800,
+                    "text": "[32]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 801,
+                    "end": 805,
+                    "text": "[33]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 806,
+                    "end": 810,
+                    "text": "[34]",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Despite emerging approaches to source localization, most studies we reviewed focus on gaseous sources with constant release rates, which can be very limited in locating indoor particle sources. This may be related to complex processes of dispersion and transport such as those of deposition, re-suspension, coagulation, adherence, and phase change. These behaviors significantly differ from those of gaseous contaminants and render particle transport more complex, potentially complicating source localization efforts [35] . Moreover, source localization is more difficult when the release rate of a particle source changes with time [36] . In addition, different indoor ventilation systems (such as the typical mixing and displacement ventilation systems) can alter contaminant dispersion features and exacerbate source localization complications [37] . Few studies have considered the effects of indoor ventilation modes on source identification results.",
+            "cite_spans": [
+                {
+                    "start": 518,
+                    "end": 522,
+                    "text": "[35]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 634,
+                    "end": 638,
+                    "text": "[36]",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 848,
+                    "end": 852,
+                    "text": "[37]",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To improve the efficiency of source localization efforts using multirobot active olfactory methods, recent studies have incorporated airflow information into such methods, which have typically only dealt with concentrations [28, 31, 32] . Jatmiko et al. [28] considered the effects of airflows on updating the velocities of each robot and developed two modified PSO methods, the wind utilization I (WUI) and wind utilization II (WUII) algorithms. Both modified algorithms can help robots follow the concentration gradient and upwind direction to quickly locate a source. However, as the velocity of each robot is confined by the respective airflow, both algorithms inhibit the search capacities of robots and increase the likelihood of robots becoming trapped within a local optimum.",
+            "cite_spans": [
+                {
+                    "start": 224,
+                    "end": 228,
+                    "text": "[28,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 229,
+                    "end": 232,
+                    "text": "31,",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 233,
+                    "end": 236,
+                    "text": "32]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 254,
+                    "end": 258,
+                    "text": "[28]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To enhance the search capacities of robots and to prevent them from becoming trapped within a local optimum, we developed an improved multi-robot active olfactory method that uses both airflow and concentration information to locate time-varying particle sources of 3D indoor environments. The improved method was validated through the experiments and CFD simulations and was compared to the standard PSO and WUII methods. The main contributions of this study are as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "1) The performance of the multi-robot active olfactory method was improved by adding a new upwind term to the standard PSO algorithm.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "2) The proposed method was successfully used to identify two types of time-varying particle sources (periodic and decaying sources) while previous studies have focused on constant gaseous sources. 3) Indoor environments with mixing and displacement ventilation systems were investigated to determine the effects of different ventilation modes on source localization.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "2. Multi-robot active olfactory method with concentration and airflow information 2.1. Locating time-varying particle sources using the improved PSO algorithm",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The PSO algorithm has been widely used to locate sources and in other fields due to its rapid convergence, high-efficiency cooperation and simple implementation features. Nevertheless, the algorithm tends to converge to a local optimum rather than to a pollutant source because it depends solely on concentration information to update the velocity and location of robots to find the optimum [28] . In most real indoor release scenarios, the chemical plume meanders, and multiple local concentration optima can form due to turbulent flows, obstacles, and the confinement of indoor spaces [26] . Therefore, source localization can become \"trapped\" within these optima when using traditional PSO algorithms.",
+            "cite_spans": [
+                {
+                    "start": 391,
+                    "end": 395,
+                    "text": "[28]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 587,
+                    "end": 591,
+                    "text": "[26]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In addition to concentration information, airflow patterns serve as a reliable directional cue in searching for sources, as a substance released from its source is carried by the airflow and forms a plume in the downstream direction [26] . Therefore, to avoid entrapment within a local optimum and to improve search efficiency levels, we added a new upwind term to the standard PSO algorithm [28] to track the plume and to develop an improved PSO algorithm that combines concentrations with airflow velocities. Concentration information guides robots to areas of higher concentration while airflow velocities help robots travel in the correct direction and to quickly find a source. Moreover, when robots converge to a local extremum area where concentrations are higher than those of nearby areas, the new upwind term can help robots search for more new areas and can prevent them from becoming entrapped within the same area.",
+            "cite_spans": [
+                {
+                    "start": 233,
+                    "end": 237,
+                    "text": "[26]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 392,
+                    "end": 396,
+                    "text": "[28]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In our previous study [37] , we detailed theories and principles of the standard PSO algorithm for tracking plumes. For brevity, this work only describes the key characteristics of this algorithm and focuses on difference between the standard PSO algorithm and the improved PSO algorithm. The PSO algorithm uses a fitness value to evaluate whether a robot is located in a proper position. The fitness value of the i-th robot",
+            "cite_spans": [
+                {
+                    "start": 22,
+                    "end": 26,
+                    "text": "[37]",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": ", which is the concentration measured by R i . In the standard PSO algorithm, the location and velocity of each robot are updated to improve the fitness value, which can be expressed as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "are the location and speed vector of R i at moment t, respectively; \u0394t is the time step, and w, l 1 and l 2 are dimensionless parameters (for a detailed explanation, refer to Feng et al. [37] ) set to 1.0, 2.0 and 2.0, respectively. * P t ( ) i and * P t ( ) g are the best local location of R i and the best global location of the robot swarm for the period running from 0 to t, respectively.",
+            "cite_spans": [
+                {
+                    "start": 187,
+                    "end": 191,
+                    "text": "[37]",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In the improved PSO algorithm, each robot updates its location and velocity to move toward the higher concentration area and source by adding an upwind term. The velocity of R i is updated as: where l 3 like l 1 and l 2 is a dimensionless factor that reflects the effects of airflow on the velocity of a robot; r 3 like r 1 and r 2 is a random number uniformly distributed within a range of [0, 1]; and V i u is the upwind velocity of R i at moment t (m/s) expressed as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "where V max is the maximum moving speed of a robot (m/s); where V i s is the airflow velocity of R i obtained at moment t (m/s); where V s min is the threshold of the airflow sensor; and where V r is a random direction vector uniformly distributed within a range of [-1, 1] and which is added to the upwind velocity of R i when the airflow speed is lower than the sensor threshold.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To rapidly make contact with the plume, we applied a simple random search strategy in the plume-finding stage [28] . With the random search strategy, multiple robots start from an initial position and move at a random spatial angle and speed until the plume is found, which occurs when a robot detects a particle concentration exceeding the preset threshold c min . Furthermore, once the robots lose contact with the plume during plume tracking, they move randomly to search through nearby areas until they find the plume again. When * P t ( ) g remains unchanged for \u0394T , then it is assumed that the robots cannot explore a better location, and the source locating task ends. When the source localization time reaches T max , the robots end the locating algorithm and declare a failure.",
+            "cite_spans": [
+                {
+                    "start": 110,
+                    "end": 114,
+                    "text": "[28]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In practice, each robot can use stereo vision, laser radar, ultrasonic waves, or other technologies autonomously and promptly to avoid obstacles (walls, desks, or other robots) through an obstacle avoidance algorithm. When the airflow collides with an obstacle, it would flow along or separated from the surface of the obstacle, depending on the local flow dynamics. More complex turbulence would be caused and complicates particle tracking. For the indoor environments investigated in this study, we propose an obstacle avoidance algorithm with known obstacle information based on airflow features. As shown in Fig. 1 , when the airflow collided with an obstacle, it changed its direction and flowed along the surface of the obstacle. The velocity and location of R i after avoiding an obstacle are updated as:",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 612,
+                    "end": 618,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "where",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "is the original velocity of robot R i at time + t \u0394t calculated from the source localization algorithm based on the avoidance of obstacles; and where N is the unit normal vector of the obstacle surface where R i will collide.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The procedures of the proposed method are as follows (see Fig. 2 ): 1) Location and velocity initialization. The initial location and velocity of each robot are randomly assigned according to real conditions and features of each robot. 2) Plume finding. The robots update their locations and velocities to find a plume via the random search strategy until the concentration detected by a robot is greater than c min (",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 58,
+                    "end": 64,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Method procedure"
+        },
+        {
+            "text": "3) Plume tracking. The robots use the improved PSO algorithm (Eq.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method procedure"
+        },
+        {
+            "text": "(3)) to track the plume. 4) Plume retrieval. Once the plume is lost during plume traversal, the robots move randomly to find the plume again. 5) Algorithm locating termination. When * P t ( ) g has not changed for \u0394T or when the localization time reaches T max , the locating algorithm is terminated.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method procedure"
+        },
+        {
+            "text": "All of the cases were established on the basis of an experimental chamber with dimensions of 6 m \u00d7 4.5 m \u00d7 3 m (Fig. 3 ) [38] . When the chamber was ventilated under a mixing ventilation mode, air was supplied through a diffuser on the rear wall close to the ceiling and was exhausted through an outlet on the left wall close to the ceiling; the ventilation rate was set to 3.2 air changes per hour (ACHs) (Fig. 3 (a) ). When the chamber was ventilated under the displacement ventilation mode, the same settings as those used for the mixing ventilation mode were applied except that the air supply diffuser was positioned on the rear wall close to the floor (Fig. 3 (b) ). For both ventilation modes, two cylinders with a diameter of 0.3 m and a height of 1.5 m were used to simulate two occupants. Both cylindrical manikins were coated with electrical resistance wire, each of which generated a heat flux of 90 W.",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 125,
+                    "text": "[38]",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 111,
+                    "end": 118,
+                    "text": "(Fig. 3",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 406,
+                    "end": 417,
+                    "text": "(Fig. 3 (a)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 658,
+                    "end": 669,
+                    "text": "(Fig. 3 (b)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Case setup"
+        },
+        {
+            "text": "For each ventilation mode, the olfactory method was validated by two typical time-varying source types, namely, a periodic source and a decaying source. The periodic source represented pathogen droplets from infected people, and the decaying source represented leakages or malicious release of particles from a container with a limited volume. According to the ventilation modes and source types used, four release scenarios were developed, and their settings are shown in Table 1 . Periodic and decaying release curves used in this study were drawn from Zhu et al. [39] and Tam and Higgins [40] , respectively. Additionally, particles with a diameter of 8 \u03bcm were used because most of human expiratory droplets are ranged from 4 \u03bcm to 32 \u03bcm, and the median size is approximately 8 \u03bcm [41] , and their distribution characteristics differ from those of gases due to their poor tracking behavior [42] .",
+            "cite_spans": [
+                {
+                    "start": 566,
+                    "end": 570,
+                    "text": "[39]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 591,
+                    "end": 595,
+                    "text": "[40]",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 785,
+                    "end": 789,
+                    "text": "[41]",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 894,
+                    "end": 898,
+                    "text": "[42]",
+                    "ref_id": "BIBREF43"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 473,
+                    "end": 480,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Case setup"
+        },
+        {
+            "text": "The source localization method was validated through the combined use of experiments and CFD simulations. The validation procedure used is shown in Fig. 4 . Laboratory measurements of an experimental chamber (Fig. 3) were first collected to validate the accuracy of the CFD modeling of indoor airflow and particle dispersion. Airflow velocity and particle concentration distributions were measured and compared to those of the simulated data. After validation, the CFD model was used to simulate four typical particle release scenarios (Table 1) from the same experimental chamber. Finally, the simulated results were transferred to the MATLAB platform and taken as virtual environments to test the effectiveness of the proposed source localization method.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 148,
+                    "end": 154,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 208,
+                    "end": 216,
+                    "text": "(Fig. 3)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 536,
+                    "end": 545,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Validation procedure"
+        },
+        {
+            "text": "In this study, the unsteady Reynolds-averaged Navier-Stokes (URANS) approach with the Renormalization Group (RNG) k-\u03b5 model was employed to simulate airflow and particle distributions of the rooms. For indoor environment simulations, the RNG k-\u03b5 model has been widely used with considerable success [43] [44] [45] . The governing equations can be generally written as:",
+            "cite_spans": [
+                {
+                    "start": 299,
+                    "end": 303,
+                    "text": "[43]",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 304,
+                    "end": 308,
+                    "text": "[44]",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 309,
+                    "end": 313,
+                    "text": "[45]",
+                    "ref_id": "BIBREF46"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Numerical method"
+        },
+        {
+            "text": "where \u03d5 denotes flow variables such as velocity, enthalpy and turbulence parameters; where S \u03d5 is the source term and where \u0393 \u03d5 eff , is the effective diffusion coefficient. Further information on coefficients for the different variables can be found in Zhang et al. [46] .",
+            "cite_spans": [
+                {
+                    "start": 267,
+                    "end": 271,
+                    "text": "[46]",
+                    "ref_id": "BIBREF47"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Numerical method"
+        },
+        {
+            "text": "The Eulerian drift flux model was used to predict indoor particle distributions. This model integrates particle gravity settling effects into the concentration equation and can be expressed as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Numerical method"
+        },
+        {
+            "text": "and",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Numerical method"
+        },
+        {
+            "text": "where C is the concentration of particles; where \u03c3 C is the turbulent Schmidt number, which is equal to 1.0 [47] ; where S C is the generation rate of the particle source; where \u03bc eff is the sum of laminar and turbulent dynamic viscosity; where \u2207\u22c5 \u2192 \u03c1 u C ( ) is the drift flux term representing the difference in velocity observed between particles and air resulting from the particle drag force and gravity; and where \u2192 V S is the settling velocity of particles [48] , which is expressed as:",
+            "cite_spans": [
+                {
+                    "start": 108,
+                    "end": 112,
+                    "text": "[47]",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 464,
+                    "end": 468,
+                    "text": "[48]",
+                    "ref_id": "BIBREF49"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Numerical method"
+        },
+        {
+            "text": "where C D is the drag coefficient; where d p is the diameter of the particle; and where \u03c1 p is the density of the particle. In addition, the drift flux model assumes that particle movements cannot affect turbulence. To make these assumptions, the computational element should contain enough particles for reasonable statistical calculations, particles should fall significantly below the Kolmogorov micro scale of the airflow field, and particle phase volumes should be lower. These assumptions were found to be applicable to indoor particle simulations by Holmberg and Li [47] . For discretization schemes, PRESTO! and second-order upwind discretization were applied to discretize pressure levels and all other variables, and the SIMPLE scheme was used for pressure and velocity coupling. Residual values of energy and other variables were set to less than 10 \u22126 and 10 \u22124 , respectively. A Boussinesq approximation was used to calculate buoyancy effects of the manikins. In our previous study [38] , grids of 247,000, 500,000, and 1,000,000 were used to conduct a grid-independence test of the RANS model, and 500,000 grids proved sufficient for this simulation based on grid convergence index calculations [49] . The time step size was set at 0.05 s, and the data sampling period was set to 300 s, covering the experimental sampling period. The inner surface temperature of the chamber was also controlled to mimic thermal boundaries such as walls and windows. The boundary conditions of walls and manikins were set as heat fluxes, and further information on the boundary settings used can be found in Liu and Novoselac [38] . Fig. 5 shows a schematic of the experimental chamber [38] , which was identical to the mixing ventilation model used in our case study ( Fig. 3 (a) ). Mono-dispersed 2.5 \u03bcm particles generated by latex with a density of 1050 kg/m 3 were released from a transient source in the ventilation duct. The injection period was set to 100 s. The injection period was set to 100 s. Optical particle counters were used to measure particle concentrations, and omni-directional low-velocity anemometers were used to measure air velocities. Table 2 presents the specifications of the instruments. Particle transmission experiments were repeated three times to calculate the standard deviation. Further information can be found in a previous publication [38] . Fig. 6 quantitatively compares velocities measured with height between the CFD simulations and measurements, and the positions of L1-L6 are shown in Fig. 5 . Differences in the air movement observed were not significant due to mixing effects. A meaningful discrepancy was found between simulation and measurement results at L5-L6 at lower levels (below 0.6 m). Fig. 7 presents the predicted dimensionless particle concentration profiles of P1-P3 shown in Fig. 5 . For P2 and P3, the simulation results agree well with the experimental data, and concentration values decreased after the first 100 s of release. However, for P1, a significant discrepancy was found because P1 was positioned in the recirculation region, and concentration fluctuations were significant. The above validation shows that the URANS model can generate reasonable flow distributions and that the Eulerian drift flux model can predict particle dispersion with acceptable accuracy. Therefore, these models can be used to test and evaluate the presented source localization method. For mixing ventilation ( Fig. 8 (a) ), air was supplied from the inlet and was sent through the room along the ceiling. Swirling airflow was generated between the wall and the cylindrical manikins, and a thermal plume was found around the manikins. Velocity magnitudes almost fell below 0.3 m/s. For displacement ventilation ( Fig. 8 (b) ), velocity magnitudes were much lower than those of mixing ventilation because an in-plane diffuser was not used. In Fig. 8 (b) a thermal plume is also observable around the manikins. Fig. 9 shows particle distributions of the four release scenarios (MP, MD, DP, and DP (Table 1) ) measured 50 s after the particles were released. For scenario MP, an isolated local extremum area of particles appeared far from the particle source and a small local extremum area appeared around the source. For scenarios MD and DP, only a large local extremum area of particles appeared around the particle source. For scenario DD, the local extremum area of particles around the source decreased in size compared to those observed for scenarios MD and DP. In addition, no isolated local extremum area formed, which may have facilitated mobile robot source locating.",
+            "cite_spans": [
+                {
+                    "start": 573,
+                    "end": 577,
+                    "text": "[47]",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 995,
+                    "end": 999,
+                    "text": "[38]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 1209,
+                    "end": 1213,
+                    "text": "[49]",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 1623,
+                    "end": 1627,
+                    "text": "[38]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 1683,
+                    "end": 1687,
+                    "text": "[38]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 2370,
+                    "end": 2374,
+                    "text": "[38]",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1630,
+                    "end": 1636,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 1767,
+                    "end": 1777,
+                    "text": "Fig. 3 (a)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 2158,
+                    "end": 2165,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 2377,
+                    "end": 2383,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 2526,
+                    "end": 2532,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 2738,
+                    "end": 2744,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF9"
+                },
+                {
+                    "start": 2832,
+                    "end": 2838,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 3456,
+                    "end": 3466,
+                    "text": "Fig. 8 (a)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 3758,
+                    "end": 3768,
+                    "text": "Fig. 8 (b)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 3887,
+                    "end": 3897,
+                    "text": "Fig. 8 (b)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 3954,
+                    "end": 3960,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                },
+                {
+                    "start": 4040,
+                    "end": 4049,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Numerical method"
+        },
+        {
+            "text": "To test the improved PSO-based method under different indoor airflow environments, we simulated four release scenarios: MP, MD, DP, and DD (Table 1) . For each release scenario, the maximum speed of each robot and the concentration threshold c min for plume identification were set as 0.3 m/s and 50 \u03bcg/m 3 according to the model geometry and the release rate of the potential particle source, respectively. Note that the maximum speed and concentration threshold can be set depending on the specific robot, sensor and environment used. Additionally, we assumed that source localization efforts were successful when the distance between the source location determined by the robots and the actual location differed by within 0.5 m. As a particle source itself is of a certain size, it is unrealistic to determine the central position of such a source without error. This localization error is acceptable from an engineering perspective [50] . During plume finding, a simple random search strategy was used whereby each coordinate value of the robot's velocity used in the rectangular coordinate was set as a random number uniformly distributed within the range of [-0.3, 0.3].",
+            "cite_spans": [
+                {
+                    "start": 936,
+                    "end": 940,
+                    "text": "[50]",
+                    "ref_id": "BIBREF51"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 139,
+                    "end": 148,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Source localization using the improved PSO-based method"
+        },
+        {
+            "text": "Under all four scenarios, the robots could successfully locate the particle source. Fig. 10 shows the source locating process of the improved PSO-based method for scenario MP. Note that the location of each robot represents the positioning of the equipped sensor. Six robots (R1-R6) were randomly initialized in the room after particles were released for 20 s (Fig. 10 (a) and (f)). After 3 s of movement according to the random search strategy, robot R6 found the plume first ( Fig. 10 (b) and (g)). Then, the robots used the improved PSO algorithm to track the plume and moved toward the local extremum area with higher particle concentrations (Fig. 10 (c) and (h)), and the robots then left this area and approached the source (Fig. 10 (d) and (i) ). Finally, the robots successfully found the source 67 s after the particles were released (Fig. 10 (e) and (j) ). The source locating process shown in Fig. 10 is drawn from an animation provided in the supplementary files. Fig. 11 illustrates the movement of robots R1-R6 under scenario MP. First, all of the robots moved randomly according to the random search strategy until the plume was found by R6 ( Fig. 11 (b) ). The robots then adjusted their velocities by using the improved PSO algorithm to track the plume and approached the area of higher particle concentrations and the source (Fig. 11 (a) ). Finally, the robots stopped near the periodic source after leaving the local extremum area. Live trajectories of robots R1-R6 shown in Fig. 11 are presented as animations in the supplementary files.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 84,
+                    "end": 91,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 360,
+                    "end": 372,
+                    "text": "(Fig. 10 (a)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 479,
+                    "end": 486,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 646,
+                    "end": 658,
+                    "text": "(Fig. 10 (c)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 730,
+                    "end": 750,
+                    "text": "(Fig. 10 (d) and (i)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 843,
+                    "end": 863,
+                    "text": "(Fig. 10 (e) and (j)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 904,
+                    "end": 911,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 976,
+                    "end": 983,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1158,
+                    "end": 1169,
+                    "text": "Fig. 11 (b)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1343,
+                    "end": 1355,
+                    "text": "(Fig. 11 (a)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1494,
+                    "end": 1501,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Source localization using the improved PSO-based method"
+        },
+        {
+            "text": "To analyze the performance of the improved PSO-based method under different indoor environments, we conducted 25 independent experiments under each release scenario and used two indices to evaluate its performance: (1) the success rate (SR) and (2) the localization time (LT). The SR is the ratio of the number of runs through which the method successfully found the source to the total number of runs, reflecting the capacities or robustness of the method in successfully locating the source. The LT is the amount of time required to find the source using the proposed method, reflecting the method's efficiency. Statistical results of the independent experiments are presented in Fig. 12 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 682,
+                    "end": 689,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Source localization using the improved PSO-based method"
+        },
+        {
+            "text": "As is shown in Fig. 12 (a) , the SRs of each release scenario are very high and only differ marginally. The SR of scenarios DP and DD for the displacement ventilation room reached 100% and is slightly higher than that found for scenarios MP and MD (96%) for the mixing ventilation room. The higher SR found for displacement ventilation may be attributed to the fact that airflows of displacement ventilation are more uniform than those of mixing ventilation (Fig. 8) . As is shown in Fig. 12 (b), the localization time of each scenario (approximately 55 s) shows no obvious differences. The maximum average localization period of scenario MD is the longest (56.8 s) and only 14% longer than that of scenario DD with the shortest average localization period (49.7 s). In addition, the average localization period and standard deviation of scenario DP are slightly greater than those of scenario MP. These results may be attributed to the fact that the local extremum area around the source used for scenario DP was larger than that used for scenario MP (Fig. 9) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 15,
+                    "end": 26,
+                    "text": "Fig. 12 (a)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 458,
+                    "end": 466,
+                    "text": "(Fig. 8)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 484,
+                    "end": 491,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1052,
+                    "end": 1060,
+                    "text": "(Fig. 9)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Source localization using the improved PSO-based method"
+        },
+        {
+            "text": "In summary, the results presented in Fig. 12 show that the improved method is robust and efficient at locating time-varying sources under different indoor environments and that the method's robustness and efficiency are slightly affected by source types, source locations and airflow fields involved.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 37,
+                    "end": 44,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Source localization using the improved PSO-based method"
+        },
+        {
+            "text": "The performance of the improved PSO-based source localization method (IPSO) was further compared to the performance of two other PSO-based active olfaction methods: the standard PSO-based (SPSO) method and the WUII method [28] . To employ the same benchmarks of comparison, the same plume finding strategies, obstacle avoidance algorithms and other settings (e.g., the number and maximum speed of robots used) were applied across the three methods. Fig. 13 shows statistical results for the three methods. The SR generated from the IPSO method is significantly greater than values generated from the SPSO and WUII methods for each release scenario ( Fig. 13 (a) ). The maximum SR generated from both the SPSO and WUII methods for scenario DD was measured as 44% while the minimum SR values generated from these methods for scenario MP are 24% and 20%, respectively. These results indicate that the SPSO and WUII methods are not suited to practical conditions under which the release rate of a particle source changes with time. For these cases, the SPSO and WUII methods entrapped the robots within the local extremum area so that they could not successfully locate the source. In contrast, the minimum SR of the proposed IPSO method was measured as greater than 96%. Therefore, the IPSO method is more promising than the other two tested methods for applying to practical situations because the IPSO method can enhance robot search capacities by using the upwind term and guiding robots to leave the local extremum area until they find the source (Fig. 10) .",
+            "cite_spans": [
+                {
+                    "start": 222,
+                    "end": 226,
+                    "text": "[28]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 449,
+                    "end": 456,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 650,
+                    "end": 661,
+                    "text": "Fig. 13 (a)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1548,
+                    "end": 1557,
+                    "text": "(Fig. 10)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Comparison of the improved method and previous methods"
+        },
+        {
+            "text": "As shown in Fig. 13 (b) , the localization periods of the IPSO method is slightly longer than that of the SPSO and WUII methods for each scenario. This can mainly be attributed to the fact that the IPSO method requires more time to search through a larger area to avoid becoming entrapped in local extremum areas and to find the source successfully. When a method cannot successfully locate a source, the localization period is meaningless. From this perspective, the proposed IPSO method still presents obvious advantages over the SPSO and WUII methods due to its much higher SR (Fig. 13 (b) ). Particle sources are widely found in indoor environments with timevarying release rates (e.g., pathogen droplets emitted by infected people or the leakage or malicious release of particles from a container). This work presents a novel multi-robot active olfactory method for rapidly locating time-varying particle sources and assesses the proposed method under a variety of indoor release scenarios. This study extends the application of the active olfactory method from gaseous to particle sources and improves source localization performance outcomes.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 12,
+                    "end": 23,
+                    "text": "Fig. 13 (b)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 580,
+                    "end": 592,
+                    "text": "(Fig. 13 (b)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Comparison of the improved method and previous methods"
+        },
+        {
+            "text": "The improved multi-robot active olfactory method was developed based on three major assumptions. First, only one particle source was considered under each release scenario. This assumption specifies the scope of this study. A future study may apply the proposed method to indoor conditions involving multiple particle sources (involving simultaneous or sequential release).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison of the improved method and previous methods"
+        },
+        {
+            "text": "We also assumed that the airflow field was steadily maintained, which applies to most indoor environments supplied with mechanical ventilation systems. In addition, effects of robot movements on the steady airflow field were neglected because robots and sensors can be separated by a scalable rod or string [51] and because the sizes of the sensors could be much smaller than that of the indoor environment. Nevertheless, we cannot exclude indoor environments with dynamic airflows such as those of natural ventilation, hybrid ventilation (a combination of mechanical and natural ventilation), and flow disturbance resulting from the movement of people, vehicles, and equipment. The source localization issues of dynamic airflow fields will be investigated in our future studies.",
+            "cite_spans": [
+                {
+                    "start": 307,
+                    "end": 311,
+                    "text": "[51]",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparison of the improved method and previous methods"
+        },
+        {
+            "text": "This study focused on testing the source localization method from the perspective of environmental factors, such as the ventilation mode, source release rate profile, and source location. Therefore, we validated the source localization method by the combination of experiments and CFD simulations. Experiments were used to validate the accuracy of the CFD modeling of indoor airflows and particle dispersion, and the CFD model was used to simulate a variety of particle release scenarios owing to its advantages in terms of time and cost requirements compared to those of experiments. As the airflow field and particle concentration distribution were obtained through CFD simulations, sensor measurement errors were neglected; these errors are inevitable in practice. In the future we will test the source localization method by employing real robots and we will investigate effects of sensor thresholds, of measurement errors, and of the number and speed of robots used on the method's effectiveness.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison of the improved method and previous methods"
+        },
+        {
+            "text": "In practical settings, the proposed method can locate a particle source by directly using sensor measurements rather than CFD simulations. The applicability and reliability of the proposed method were verified and illustrated via CFD simulations because the CFD method has many advantages, such as higher repeatability, less time required and lower cost consumption, compared with the experimental method. Nevertheless, experimental studies using real robots and corresponding results will be reported in the future. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison of the improved method and previous methods"
+        },
+        {
+            "text": "This work proposes an improved multi-robot active olfactory method for locating time-varying particle sources in indoor environments. We added an upwind term to the standard PSO algorithm from which both concentration and airflow information were considered for source tracking. The proposed method was assessed and validated by locating two types of transient particle sources (periodic and decaying sources) in a room with mixing and displacement ventilation systems. We also compared the performance of the proposed method to the performance of the standard PSO and WUII methods. The following conclusions are drawn:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "1) The proposed method can help robots successfully leave local extremum areas and rapidly locate time-varying particle sources in indoor environments with varying combinations of ventilation modes, release rate profiles, and source locations. 2) The proposed method proved robust and efficient in locating transient particle sources under each examined scenario. The method achieved a success rate of above 96% and a localization time of approximately 55 s. Moreover, source generation rates, source locations and air distributions had limited effects on the performance of the proposed method.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "3) The proposed method performs better than the standard PSO and WUII methods in terms of success rates.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Automated mobile sensing: towards highgranularity agile indoor environmental quality monitoring",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Schiavon",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Spanos",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Build. Environ",
+            "volume": "127",
+            "issn": "",
+            "pages": "268--276",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "The national human activity pattern survey (NHAPS): a resource for assessing exposure to environmental pollutants",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Klepeis",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Nelson",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Ott",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Robinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Tsang",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Switzer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Behar",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Hern",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Engelmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "J. Expo. Anal. Environ. Epidemiol",
+            "volume": "11",
+            "issn": "3",
+            "pages": "231--252",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Contribution of indoor-generated particles to residential exposure",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Isaxon",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gudmundsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Nordin",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "L\u00f6nnblad",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dahl",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Wieslander",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bohgard",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Wierzbicka",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Atmos. Environ",
+            "volume": "106",
+            "issn": "",
+            "pages": "458--466",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Biochemical terrorism: too awful to contemplate, too serious to ignore -subjective literature review",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Alexander",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Klein",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Br. J. Psychiatry",
+            "volume": "183",
+            "issn": "6",
+            "pages": "491--497",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Systems approach to evaluating sensor characteristics for real-time monitoring of high-risk indoor contaminant releases",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Sreedharan",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Sohn",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gadgil",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Nazaroff",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Atmos. Environ",
+            "volume": "40",
+            "issn": "19",
+            "pages": "3490--3502",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Influence of indoor transport and mixing time scales on the performance of sensor systems for characterizing contaminant releases",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Sreedharan",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Sohn",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Nazaroff",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gadgil",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Atmos. Environ",
+            "volume": "41",
+            "issn": "40",
+            "pages": "9530--9542",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "A Gaussian process emulator approach for rapid contaminant characterization with an integrated multizone-CFD model",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Tagade",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Jeong",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Choi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Build. Environ",
+            "volume": "70",
+            "issn": "",
+            "pages": "232--244",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Turbulent Schmidt number for source term estimation using Bayesian inference",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Xue",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ooka",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kikumoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Build. Environ",
+            "volume": "125",
+            "issn": "",
+            "pages": "414--422",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Bayesian source term estimation of atmospheric releases in urban areas using LES approach",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Xue",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kikumoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ooka",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "J. Hazard Mater",
+            "volume": "349",
+            "issn": "",
+            "pages": "68--78",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Real-time identification of indoor pollutant source positions based on neural network locator of contaminant sources and optimized sensor networks",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Vukovic",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Tabares-Velasco",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Srebric",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Air Waste Manag. Assoc",
+            "volume": "60",
+            "issn": "9",
+            "pages": "1034--1048",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Contaminant source identification within a building: toward design of immune buildings",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bastani",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Haghighat",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kozinski",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Build. Environ",
+            "volume": "51",
+            "issn": "5",
+            "pages": "320--329",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Applying neural networks to solve the inverse problem of indoor environment",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "You",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Indoor Built Environ",
+            "volume": "23",
+            "issn": "8",
+            "pages": "1187--1195",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Fast identification of multiple indoor constant contaminant sources by ideal sensors: a theoretical model and numerical validation",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Kong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Indoor Built Environ",
+            "volume": "22",
+            "issn": "6",
+            "pages": "897--909",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Rapid identification of multiple constantlyreleased contaminant sources in indoor environments with unknown release time",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Build. Environ",
+            "volume": "81",
+            "issn": "",
+            "pages": "7--19",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Marching-jury backward beam equation and quasi-reversibility methods for hydrologic inversion: application to contaminant plume spatial distribution recovery",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Bagtzoglou",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Atmadja",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Water Resour. Res",
+            "volume": "39",
+            "issn": "2",
+            "pages": "180--189",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Identification of contaminant sources in enclosed environments by inverse CFD modeling",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Indoor Air",
+            "volume": "17",
+            "issn": "3",
+            "pages": "167--177",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Identification of contaminant sources in enclosed spaces by a single sensor",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Indoor Air",
+            "volume": "17",
+            "issn": "6",
+            "pages": "439--449",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "A variational finite element method for source inversion for convective-diffusive transport",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Biros",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Ghattas",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Long",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "V B"
+                    ],
+                    "last": "Waanders",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Finite Elem. Anal. Des",
+            "volume": "39",
+            "issn": "8",
+            "pages": "683--705",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "An inverse method based on CFD to quantify the temporal release rate of a continuously released pollutant source",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Yin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Atmos. Environ",
+            "volume": "77",
+            "issn": "",
+            "pages": "62--77",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Responding to sudden pollutant release in office buildings: 1. Framework and analysis tools",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Sohn",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Sextro",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gadgil",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Daisey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Indoor Air",
+            "volume": "13",
+            "issn": "3",
+            "pages": "267--276",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Location identification for indoor instantaneous point contaminant source by probability-based inverse Computational Fluid Dynamics modeling",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Indoor Air",
+            "volume": "18",
+            "issn": "1",
+            "pages": "2--11",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Prompt tracking of indoor airborne contaminant source location with probability-based inverse multi-zone modeling",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "Q J"
+                    ],
+                    "last": "Zhai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Build. Environ",
+            "volume": "44",
+            "issn": "6",
+            "pages": "1135--1143",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Inverse modeling of indoor instantaneous airborne contaminant source location with adjoint probability-based method under dynamic airflow field",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zhai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Build. Environ",
+            "volume": "117",
+            "issn": "",
+            "pages": "178--190",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Inverse modeling methods for indoor airborne pollutant tracking: literature review and fundamentals",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Indoor Air",
+            "volume": "17",
+            "issn": "6",
+            "pages": "419--438",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Statistical results of different source localization methods for each scenario: (a) success rate and (b) localization time",
+            "authors": [],
+            "year": null,
+            "venue": "Fig. 13",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "A review of source term estimation methods for atmospheric dispersion events using static or mobile sensors",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hutchinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Oh",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Inf. Fusion",
+            "volume": "36",
+            "issn": "",
+            "pages": "130--138",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Chemical Sensing in robotic applications: a review",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ishida",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wada",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Matsukura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "IEEE Sensor. J",
+            "volume": "12",
+            "issn": "11",
+            "pages": "3163--3173",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Distributed odor source localization",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Hayes",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Martinoli",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Goodman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Sensor. J",
+            "volume": "2",
+            "issn": "3",
+            "pages": "260--271",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "A PSO-based mobile robot for odor source localization in dynamic advection-diffusion with obstacles environment: theory, simulation and measurement",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Jatmiko",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Sekiyama",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Fukuda",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "IEEE Comput. Intell. Mag",
+            "volume": "2",
+            "issn": "2",
+            "pages": "37--51",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Using multi-robot active olfaction method to locate time-varying contaminant source in indoor environment",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Feng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Build. Environ",
+            "volume": "118",
+            "issn": "",
+            "pages": "101--112",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Swarm Robotic Odor Source Localization Using Ant Colony Algorithm",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Zou",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Luo",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "IEEE International Conference on Control and Automation",
+            "volume": "",
+            "issn": "",
+            "pages": "792--796",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Localising odour source using multi-robot and anemotaxis-based particle swarm optimisation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Gong",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Qi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "IET Control Theory & Appl",
+            "volume": "6",
+            "issn": "11",
+            "pages": "1661--1670",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Adapting an ant colony metaphor for multi-robot chemical plume tracing",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Meng",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zeng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Sensors",
+            "volume": "12",
+            "issn": "4",
+            "pages": "4737--4763",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "A PSO-based multi-robot cooperation method for target searching in unknown environments",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Dadgar",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jafari",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hamzeh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Neurocomputing",
+            "volume": "177",
+            "issn": "",
+            "pages": "62--74",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Locating hazardous gas leaks in the atmosphere via modified genetic, MCMC and particle swarm optimization algorithms",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Yan",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Dong",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Atmos. Environ",
+            "volume": "157",
+            "issn": "",
+            "pages": "27--37",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Inversely tracking indoor airborne particles to locate their release sources",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Atmos. Environ",
+            "volume": "55",
+            "issn": "",
+            "pages": "328--338",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Inverse identification of the release location, temporal rates, and sensor alarming time of an airborne pollutant source",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Indoor Air",
+            "volume": "25",
+            "issn": "4",
+            "pages": "415--427",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Locating time-varying contaminant sources in 3D indoor environments with three typical ventilation systems using a multirobot active olfaction method",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Build. Simul",
+            "volume": "11",
+            "issn": "3",
+            "pages": "597--611",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Lagrangian particle modeling in the indoor environment: a comparison of RANS and LES turbulence methods (RP-1512)",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Novoselac",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "HVAC R Res",
+            "volume": "20",
+            "issn": "4",
+            "pages": "480--495",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Study on inhalation region by means of CFD analysis and experiment",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kato",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Murakami",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Hayashi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Build. Environ",
+            "volume": "40",
+            "issn": "10",
+            "pages": "1329--1336",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Simple transient release models of pressurized liquid petroleum gas from pipelines",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [
+                        "H Y"
+                    ],
+                    "last": "Tam",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Higgins",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Hazard Mater",
+            "volume": "25",
+            "issn": "1-2",
+            "pages": "193--203",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Characterization of expiration air jets and droplet size distributions immediately at the mouth opening",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "Y H"
+                    ],
+                    "last": "Chao",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Wan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Morawska",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Johnson",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Ristovski",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hargreaves",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Mengersen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Corbett",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Xie",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Aerosol Sci",
+            "volume": "40",
+            "issn": "2",
+            "pages": "122--133",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Experimental study of gaseous and particulate contaminants distribution in an aircraft cabin",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pei",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Atmos. Environ",
+            "volume": "85",
+            "issn": "2",
+            "pages": "223--233",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Predicting self-pollution inside school buses using a CFD and multi-zone coupled model",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Zhu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Atmos. Environ",
+            "volume": "107",
+            "issn": "",
+            "pages": "16--23",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Predicting contaminant dispersion using modified turbulent Schmidt numbers from different vortex structures",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ren",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Build. Environ",
+            "volume": "130",
+            "issn": "",
+            "pages": "120--127",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Experimental and numerical study of airflow distribution optimisation in high-density data centre with flexible baffles",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yuan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yuan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Build. Environ",
+            "volume": "140",
+            "issn": "",
+            "pages": "128--139",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Evaluation of various turbulence models in predicting airflow and turbulence in enclosed environments by CFD: Part 2-comparison with experimental data from literature",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "HVAC R Res",
+            "volume": "13",
+            "issn": "6",
+            "pages": "871--886",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "Modelling of the indoor environment -particle dispersion and deposition",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Holmberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Indoor Air",
+            "volume": "8",
+            "issn": "2",
+            "pages": "113--122",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Aerosol technology: properties, behavior, and measurement of airborne particles",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Hinds",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "J. Aerosol Sci",
+            "volume": "31",
+            "issn": "9",
+            "pages": "1121--1122",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "CFD analysis of pollutant dispersion around buildings: effect of cell geometry",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hefny",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ooka",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Build. Environ",
+            "volume": "44",
+            "issn": "",
+            "pages": "1699--1706",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Odor source localization using a mobile robot in outdoor airflow environments with a particle filter algorithm",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Meng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zeng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Aut. Robots",
+            "volume": "30",
+            "issn": "3",
+            "pages": "281--292",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Tracking Chemical Plumes in 3-Dimensions",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Russell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "IEEE International Conference on Robotics and Biomimetics",
+            "volume": "",
+            "issn": "",
+            "pages": "31--36",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "By https://doi.org/10.1016/j.buildenv.2018.10.008 Received 24 July 2018; Received in revised form 22 September 2018; Accepted 3 October 2018",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Schematic of obstacle avoidance.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Source",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Experimental chamber with two typical ventilation systems: (a) mixing ventilation and (b) displacement ventilation.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Constant release rate (g/s); t : Contaminant release time (s); and n (integer)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "shows the airflow pattern predicted on the X = 0.0 m plane.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Flow chart of the validation procedure.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Sampling lines (L1-L6) and points (P1-P3) for comparison. (P1 (0.0 m, \u22122.35 m, 0.59 m), P2 (2.05 m, 0.63 m, 2.55 m), P3 (0.0 m, 2.72 m, 1.3 m)).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Comparison of velocity distributions. Diamonds: measurement; solid.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "Comparison of experimental and numerical particle concentrations.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "Airflow distribution on the YZ plane (X = 0.0 m) through the middle plane of each model: (a) the mixing ventilation room and (b) the displacement ventilation room.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Particle distributions on the YZ plane (X = 0.0 m) measured 50 s after particles were released for scenarios (a) MP, (b) MD, (c) DP, and (d) DD. Source localization under scenario MP using the improved method: (a)-(e) 3D plot; (f)-(j) projection onto the YZ plane (X = 0.0 m).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "Robot trajectories observed under scenario MP: (a) trajectories of R1-R6 and (b) the trajectory of R6.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "Statistical results of source locating processes of the four scenarios (25 independent experiments were conducted for each scenario): (a) success rate and (b) localization time.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "Validation case settings.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Instruments used in the experiment.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This study was supported by the National Natural Science ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        }
+    ]
+}

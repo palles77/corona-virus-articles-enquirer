@@ -1,0 +1,1643 @@
+{
+    "paper_id": "14c9ca5bf096d03bde8e8ffe88c7419ef5b79b13",
+    "metadata": {
+        "title": "KnotInFrame: prediction of \u00c01 ribosomal frameshift events",
+        "authors": [
+            {
+                "first": "Corinna",
+                "middle": [],
+                "last": "Theis",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Bielefeld University",
+                    "location": {
+                        "postCode": "33615",
+                        "settlement": "Bielefeld",
+                        "country": "Germany"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Jens",
+                "middle": [],
+                "last": "Reeder",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Bielefeld University",
+                    "location": {
+                        "postCode": "33615",
+                        "settlement": "Bielefeld",
+                        "country": "Germany"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Robert",
+                "middle": [],
+                "last": "Giegerich",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Bielefeld University",
+                    "location": {
+                        "postCode": "33615",
+                        "settlement": "Bielefeld",
+                        "country": "Germany"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Programmed \u00c01 ribosomal frameshift (\u00c01 PRF) allows for alternative reading frames within one mRNA. First found in several viruses, it is now believed to exist in all kingdoms of life. Strong stimulators for \u00c01 PRF are a heptameric slippery site and an RNA pseudoknot. Here, we present a new algorithm KnotInFrame, for the automatic detection of \u00c01 PRF signals from genomic sequences. It finds the frameshifting stimulators by means of a specialized RNA-pseudoknot folding program, fast enough for genome-wide analyses. Evaluations on known \u00c01 PRF signals demonstrate a high sensitivity.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "In the middle of the last century, George Beadle and Edward Tatum (1) proposed the 'one gene-one enzyme' theory, stating that one gene holds the genetic information of one enzyme, performing one enzymatic reaction. It was later changed to 'one gene-one polyprotein' to account for the discovery of polyproteins. However, today there are several cases which violate this assumption. By alternative splicing several protein variants are made by selecting different sets of exons from one single gene. With trans-splicing, proteins are synthesized from exons of different genes (2) . Another way of enhancing the information content of an mRNA are translational recoding events. With codon hopping (bypassing) (3), the ribosome skips over a gap in the open reading frame (ORF) and resumes translation at a downstream codon. In procaryotes, UGA codons followed by a characteristic stemloop structure are redefined from stop codons to insertion of selenocystein (4) .",
+            "cite_spans": [
+                {
+                    "start": 575,
+                    "end": 578,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 957,
+                    "end": 960,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Programmed ribosomal frameshift (PRF), examined in this work, alters the reading frame by shifting the ribosome exactly 1 nt to either the +1 or \u00c01 direction. A stop codon in the original reading frame is then bypassed in the shifted reading frame. This way, two different protein products can be obtained from one mRNA. The frequency of frameshifting events at a particular site is used by viruses for a defined ratio between the two proteins. Changes in the ratio can lead to less efficient virus propagation and thus, can be a target for antiviral therapeutics. Recently, a role of \u00c01 PRF in posttranscriptional regulation has been proposed in Saccharomyces cerevisiae (5) . The authors propose a model where \u00c01 PRF leads to premature termination targeting the mRNA for rapid degradation via the nonsense-mediated mRNA decay pathway.",
+            "cite_spans": [
+                {
+                    "start": 672,
+                    "end": 675,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "When two cis-acting signals are present, \u00c01 PRF is most effective: a heptameric slippery site and a stable secondary structure. The slippery site is the location of the actual frameshift event having the consensus sequence X XXY YYZ (triplets are shown for the preshifted reading frame). The structural element follows within a few bases and can be a simple stem-loop structure or a pseudoknot. It is believed that the pseudoknot promotes a higher frameshift efficiency, since it is more effective in pausing the ribosome. It is also known that ribosome pausing is a necessary, but not sufficient prerequisite for frameshifting (6) . The exact mechanism, by which the ribosome is brought into a different reading frame is still unknown. Two different models were recently proposed in (7) and (8) .",
+            "cite_spans": [
+                {
+                    "start": 628,
+                    "end": 631,
+                    "text": "(6)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 784,
+                    "end": 787,
+                    "text": "(7)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 792,
+                    "end": 795,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Several computational studies, with the general goal of detecting new PRF events, were undertaken in recent years (9) (10) (11) 5) . The first study by Hammell et al. (9) found over 200-putative PRF events in the yeast genome. Their approach relies on a strict pseudoknot structure consensus and requires two overlapping ORFs of at least 50 codons. In (11), a machine learning approach is used to discriminate between strong-and weak-PRF signals. Another approach (10) uses a combinatorial folding routine to identify possible frameshifting pseudoknots next to a slippery sequence.",
+            "cite_spans": [
+                {
+                    "start": 114,
+                    "end": 117,
+                    "text": "(9)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 118,
+                    "end": 122,
+                    "text": "(10)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 123,
+                    "end": 127,
+                    "text": "(11)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 128,
+                    "end": 130,
+                    "text": "5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 152,
+                    "end": 170,
+                    "text": "Hammell et al. (9)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "PREVIOUS WORK"
+        },
+        {
+            "text": "The most recent and probably most elaborate study has been used to identify over a 1000 strong and statistically significant \u00c01 PRF signals in the genome of *To whom correspondence should be addressed. Tel: +49 521 106 2903; Fax: +49 521 106 6411; Email: robert@techfak.uni-bielefeld.de \u00df 2008 The Author(s) This is an Open Access article distributed under the terms of the Creative Commons Attribution Non-Commercial License (http://creativecommons.org/licenses/ by-nc/2.0/uk/) which permits unrestricted non-commercial use, distribution, and reproduction in any medium, provided the original work is properly cited.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "PREVIOUS WORK"
+        },
+        {
+            "text": "S. cerevisiae (5) . It is based on a two-step procedure, where the first step identifies slippery sequences followed by a possible frameshift pseudoknot. In the second step, candidates are analyzed statistically. In more detail, RNAmotif (12) is used in the first step and finds all potential pseudoknots that could be formed according to a descriptor. The descriptor specifies the allowed loop and helix lengths which are extracted from known \u00c01 PRF pseudoknots. All potential pseudoknots are then subjects of statistical analysis in step two. The potential pseudoknots are refolded with pknots (13), a minimum free energy (MFE)-based RNA folding algorithm, capable of predicting a wide class of pseudoknots. The MFE of the folding is compared to folding energies of randomized sequences via z-score analysis. Finally, sequences with a low z-score (<\u00c01.65) are regarded as statistically significant, since they appear to be more stable than expected by random.",
+            "cite_spans": [
+                {
+                    "start": 14,
+                    "end": 17,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "PREVIOUS WORK"
+        },
+        {
+            "text": "This is the work we build upon. Despite its overall good architecture, there is one shortcoming in the procedure. Sequences are forced to fold into a pseudoknot in the first step but are folded freely in the second step. Thus, the result of the procedure is indeed 2-fold: (i) the final candidates have the theoretical potential to fold a pseudoknot, and (ii) they have a MFE folding which is more stable than expected by random. However, it is not guaranteed that the stable structure which causes the good z-score actually is a pseudoknot. In fact, we found that from 1679 strong candidates only 163 contain a pseudoknot. The pseudoknot, which was folded by RNAmotif in step one, may have an energy similar to the MFE folding, but more likely, it will be less stable and hence, less probable to be formed in equilibrium.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "PREVIOUS WORK"
+        },
+        {
+            "text": "In the light of these findings, we propose to avoid a purely combinatorial matching step, such as RNAmotif. We develop a specialized RNA-folding program, called pknotsRG-fs, which explicitly folds a given sequence into the most stable structure conforming to the general frameshifting pseudoknot restrictions. The restricted folding energy can then be compared with the unrestricted MFE folding. This already gives a strong indication of whether the frameshift signal is likely to form or not.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "PREVIOUS WORK"
+        },
+        {
+            "text": "In the following sections, we will first introduce the specialized folding program and show its incorporation into a tool for genome-wide annotation of \u00c01 PRF signals. We conclude with an evaluation and a detailed comparison to the findings of (5).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "PREVIOUS WORK"
+        },
+        {
+            "text": "The RECODE database (14) is the prime resource for information about translational recoding events. It contains almost a 100 \u00c01 PRF recoding events in total, of which 28 entries are annotated with a 3 0 -RNA pseudoknot as cis-element. These sequences have been derived from different sources such as eukaryotic viruses, eukaryotes and bacteria.",
+            "cite_spans": [
+                {
+                    "start": 20,
+                    "end": 24,
+                    "text": "(14)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Building a \u00c01 PRF consensus"
+        },
+        {
+            "text": "We analyzed all available sequence and structure information in order to extract the consensus information displayed in Figure 1 . The slippery sequence has the consensus X XXY YYZ, where XXX stands for any three identical nucleotides, YYY for either three As or three T/Us and Z for any nucleotide. The spacer region must contain at least 1 nt and not more than 12 nt. The stem and loop regions are chosen to include all but two examples which have unusually large loop sizes (see Supplementary Table S1 ). It should be noted that loops 2 and 3 are large enough to further fold internally and thus, can have a stabilizing effect on the overall structure. For example, the pseudoknot of the SARS coronavirus frameshift signal contains an additional third stem in loop 3 (15) .",
+            "cite_spans": [
+                {
+                    "start": 770,
+                    "end": 774,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 120,
+                    "end": 128,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 482,
+                    "end": 504,
+                    "text": "Supplementary Table S1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Building a \u00c01 PRF consensus"
+        },
+        {
+            "text": "pknotsRG-fs: a specialized RNA-folding program Following these observations, we need a specialized RNAfolding algorithm, computing the structure of lowest free energy while maintaining the given restrictions. Finding the structure with optimal energy can in general be done with dynamic programming (DP) algorithms, such as X XXY YYZ 5\u2032 Mfold (16) or RNAfold (17) for unknotted structures. However, explicitly formulating the exact recurrences which evaluate the folding space according to the above restrictions is a difficult and error-prone task. A remedy to this is to use a more high-level approach: the RNA-pseudoknot folding program pknotsRG (18, 19) describes its search space by means of a grammar. The underlying thermodynamic model (20) (also used by Mfold and RNAfold), upon which optimizations takes place, is encapsulated in an 'evaluation algebra'. This concept of describing a DP by a grammar and an evaluation algebra has been formalized in the algebraic dynamic programming approach (ADP) (21) (22) (23) .",
+            "cite_spans": [
+                {
+                    "start": 343,
+                    "end": 347,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 649,
+                    "end": 653,
+                    "text": "(18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 654,
+                    "end": 657,
+                    "text": "19)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 743,
+                    "end": 747,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1007,
+                    "end": 1011,
+                    "text": "(21)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1012,
+                    "end": 1016,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1017,
+                    "end": 1021,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Building a \u00c01 PRF consensus"
+        },
+        {
+            "text": "By certain changes to the original pknotsRG grammar, we obtain a new grammar precisely describing frameshiftinducing pseudoknots: we incorporate all explicit length constraints displayed in Figure 1 , but leave enough freedom for the loop regions to fold into any further stabilizing structures. Furthermore, the modified grammar requires stem 1 of the pseudoknot to start within 1-12 bases from the head of the sequence; this accommodates the spacer. The underlying thermodynamic model then comes for free-it has already been implemented with pknotsRG and can be re-used. We eventually compile the grammar into a low-level programming language (C) using the ADP compiler (24) . This compilation creates and implements the explicit DP recurrences that are traditionally programmed by hand.",
+            "cite_spans": [
+                {
+                    "start": 672,
+                    "end": 676,
+                    "text": "(24)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 190,
+                    "end": 198,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Building a \u00c01 PRF consensus"
+        },
+        {
+            "text": "In this way, we obtain a specialized RNA-folding program pknotsRG-fs, which computes for a given input sequence the minimal free energy \u00c01 PRF pseudoknot. Such a program has been called a thermodynamic matcher (TDM) in (18) . If a sequence cannot form a pseudoknot with negative energy, the open structure is returned (with energy equal to zero). The compiled code takes less than a second to fold a sequence of length 100. The complete grammar is available at the project website. Readers with alternative ideas about the structure of the \u00c01 PRF signal can use it as a starting point for a faithful implementation of a corresponding TDM.",
+            "cite_spans": [
+                {
+                    "start": 219,
+                    "end": 223,
+                    "text": "(18)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Building a \u00c01 PRF consensus"
+        },
+        {
+            "text": "We now explain how this program is incorporated in the \u00c01 PRF prediction pipeline KnotInFrame.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Building a \u00c01 PRF consensus"
+        },
+        {
+            "text": "Overview. The \u00c01 PRF prediction pipeline KnotInFrame is composed of three consecutive steps:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "(i) In the search phase, we scan the input sequences for occurrences of the consensus slippery site in the correct reading frame. The downstream region of each slippery site is checked for suitability as a frameshift signal. This is done by comparing the minimal free energy of an enforced pseudo-knotted folding with the MFE of a freely folded structure. The former energy is computed by pknotsRG-fs, the latter by RNAfold. (ii) In the filtering phase, three criteria based on the energy values of the free and the constrained folding are applied to reduce the number of candidates.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "(iii) In the ranking phase, the candidates passing all filters are ranked by an evaluation function based on the normalized dominance of the pseudoknot. Figure 2 gives an overview of the pipeline. Overall, KnotInFrame expects a set of sequences as input, and returns one or several predicted frameshift sites for each sequence. The predictions can then undergo comparative sequence analysis or experimental validation.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 153,
+                    "end": 161,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Definitions. Let s be a DNA sequence of length n. We require neither a start codon nor frame information. s i; j \u00bd is a substring of s starting at position i and ending at position j, and s\u00bdi; n is called a suffix of s. A slippery sequence in s is a substring s\u00bdi; i \u00fe 6 that matches the consensus slippery motif of the form X XXY YYZ, where the spacer marks the zero-frame codons, XXX stands for any three identical nucleotides, YYY for either three As or three T/Us and Z for any nucleotide.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Given a slippery sequence p in s, a candidate x is a substring of s of the form x = pu, for various lengths of u.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Scanning for slippery sites. A forward scan of s yields a set P of putative slippery sites. P may be quite large, as the significance of the slippery motif is moderate-on a sequence with 50% GC content we expect about 8.8 occurrences per kilobase pair. P is reduced by ISF, the inframe stopcodon filter. The reduction of P is realized by scanning backwards from each p 2 P, discarding p if an inframe stop codon is found before a start codon has been seen. Also, p is discarded if too close to the end of the sequence to accommodate the pseudoknot.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Folding of downstream regions with pknotsRG-fs and RNAfold. For each p 2 P, we generate five candidate sequences pu k \u00bc s\u00bdi; i \u00fe jpj \u00fe 20 \u00c3 k \u00c0 1 for 1, 2, 3, 4, 5 and 6. This accounts for the potential pseudoknot sizes, which range in length from 26 to 118 in the RECODE database. For each candidate x = pu, we compute the MFE values for the best pseudoknot consistent with our consensus and the best unconstrained folding by calls of pknotsRG-fs(u) and RNAfold(u). Candidates now take the form x \u00bc \u00f0pu; pknotsRG-fs\u00f0u\u00de; RNAfold\u00f0u\u00de\u00de.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Filtering of unlikely foldings. Subsequent filtering is based on the candidates' energy values. The low energy filter (LEF) discards candidates x \u00bc pu where pknotsRG-fs(u) > . We choose the threshold a = \u00c07.4 kcal/mol, since all pseudoknots in our test set achieve this or a lower energy value. Next, the energy difference filter (EDF) discards candidates that rather fold into an unknotted structure, i.e. RNAfold\u00f0u\u00de \u00fe < pknotsRG-fs\u00f0u\u00de. The default value for the parameter is 8.7 kcal/mol, also derived from RECODE analysis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "The resulting set of candidates may still hold several predictions for the same slippery site. The normalized dominance filter (NDF) computes for each x \u00bc pu the length-normalized energy dominance",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "\u00c1 gives an indication of the stability of a structure, i.e. how strong a structure outweighs the other referred to their energy values. A positive \u00c1 says that the pseudoknotted structure is more stable than the free-folded structure. For each p, the NDF retains only the candidate pu which maximizes \u00c1(u).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Score computation and ranking. In the last step of the pipeline, all remaining candidates are ranked in descending order of their \u00c1(u) values. Usually, we let the program report only the best (say 10) predictions per sequence. The final result of the pipeline is a list of the strongest frameshifting sites, their respective slippery site, the structural element and the free energy values leading to the ranking.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "KnotInFrame -a \u00c01 PRF prediction pipeline"
+        },
+        {
+            "text": "Here, we report on the evaluation of KnotInFrame on the RECODE DB. Since we built our consensus based on the structures stored in RECODE, this evaluation does not measure the correctness of the specialized folding program (the TDM). In fact, we take the correctness of the TDM for granted, based on our experience with implementing TDMs in ADP. What is really tested in the following is the adequacy of our scoring and ranking criterion-the normalized dominance. Naturally, our score is influenced by the thermodynamic parameters currently used. It might improve further if better thermodynamic measurements will be available for pseudoknotted structures. We assume that the \u00c01 PRF sites stored in the RECODE DB are true positives (TPs), which means a frameshift actually happens and the inducing structural element is a pseudoknot. Now, the questions we strive to answer are: (i) does KnotInFrame predict these TPs at all, (ii) on which rank does KnotInFrame predict the test candidates and (iii) what are the reasons for not finding or low ranking of TPs? Table 1 displays the rank of our prediction for the annotated pseudoknots of the RECODE DB. Altogether, our pipeline predicts the real pseudoknots 24 times within the first five ranks: 17 times on rank 1, 4 times on rank 2 and once on rank 3. This demonstrates that KnotInFrame gives strong hints for frameshift sites.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1058,
+                    "end": 1065,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Evaluation on RECODE database"
+        },
+        {
+            "text": "Next, we have a closer look at the normalized dominance of the annotated pseudoknots and in particular the false negative (FN) cases, where KnotInFrame does not find the annotated positions or assigns to them a low rank. Figure 2 . A diagram of the prediction pipeline KnotInFrame. In the search phase, a set of input sequences is searched for consensus slippery motifs. Discarding untranslatable sites by means of the first filter ISF and folding the remaining candidates with pknotsRG-fs and RNAfold flows into the filter phase. Three filters (LEF, EDF and NDF) discard further slippery sites based on the candidates' energy values. In a last phase rank the candidates will be ranked according to their normalized energy dominance. From Table 2 , one can observe, that 20 of 26 real pseudoknots have a \u00c1 > 0. Sixteen of these 20 have also been predicted with our pipeline on rank 1. This, of course, confirms that a positive \u00c1 is a strong indicator for frameshift sites. From our small RECODE test set it is hard to conclude a definite threshold for a good separation of strong and weak candidates. In Figure 3 , we show that in fact true PRF signals tend to have a higher \u00c1 than nonshifting slippery sites. However, the separation of the distributions is by no means sufficient for a clear classification. As a rule of thumb, we can state that candidates with \u00c1 ! 0:1 are most likely true signals. With \u00c1 ! 0:05, we capture approximately the same number of false positive (FPs) and TPs. Finding the appropriate balance between high sensitivity and selectivity for this problem should therefore be governed by the intended use of the program. We also note that there are annotated pseudoknots with a \u00c1 0. These are also the candidates where KnotInFrame failed to rank the true \u00c01 PRF signal on a high position. We examined those FN in more detail and give explanations for their mispredictions:",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 221,
+                    "end": 229,
+                    "text": "Figure 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 739,
+                    "end": 746,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 1104,
+                    "end": 1112,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Evaluation on RECODE database"
+        },
+        {
+            "text": "The dominance of is_m_is_is3 is undefined ('b' in Table 2 ) since the slippery site is out of KnotInFrames scope due to the remarkable appearance of the slippery sequence: it has a length of only 4 nt. The \u00c01 PRF signal of pol_m_vir_gill has a total length of 177 nt but the longest substring the pipeline folds is 120 nt. A more detailed look at the annotation, reveals that the classification as a pseudoknot is at least questionable: the \u00c01 PRF pseudoknot signal has been predicted by a hairpin folding via Mfold. Afterwards, the hairpin has been manually extended to a pseudoknot, by looking downstream for a complementary site which is able to pair with the hairpin loop region. This is also the reason for the exceptional length of the structure. An examination of the second stem with RNAduplex from the Vienna RNA package revealed a free energy of only \u00c05.7 kcal/mol. In accordance with the energy models implemented in state-ofthe-art pseudoknot folding programs, this energy might be too low to compensate for the destabilizing effects of the pseudoknot loops. A similar consideration holds for the entry of pol_m_ vir_hcv. Its annotated pseudoknot is much longer than the maximal length of our consensus model. In this case, our pipeline folds at most the first 120 nt of the whole structure and hence can only find an alternative, suboptimal pseudoknot. Thus, this site is ranked low in our evaluation. A possible reason for predicting the frameshift signal of edr_m_euk_mmus on rank 5 might be that the structural frameshift component is not the pseudoknot reported in the RECODE. In (25) a more complicated pseudoknot with a 3 nt bulge in the first stem is reported. Our consensus model does not account for such pseudoknots and hence an alternative, suboptimal structure is folded. Consequently this structure is then ranked low by KnotInFrame.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 50,
+                    "end": 57,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Evaluation on RECODE database"
+        },
+        {
+            "text": "We also The outcome is similar to the results obtained in the evaluation of RECODE. Five out of seven examples were predicted correctly on rank 1, another one was ranked second. Only one frameshift signal cannot be detected at all, since its slippery sites deviates from our consensus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation on frameshift signals from PseudoBase"
+        },
+        {
+            "text": "A note on z-score computation At this point, the question arises if the true signals will also be ranked at a high position, when more slippery sites in a possibly longer input sequence compete for rank 1. A more detailed look (Figure 3 ) at the normalized dominance reveals that in fact, true \u00c01 PRF signals have a tendency to have a higher \u00c1 than the 183 slippery sites in our test set not leading to PRF (called FPs in the following). However, the discriminative signal is not strong enough for a clear separation.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 227,
+                    "end": 236,
+                    "text": "(Figure 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Evaluation on frameshift signals from PseudoBase"
+        },
+        {
+            "text": "In order to test the hypothesis that structural RNAs have a lower MFE than random sequences, we also performed a z-score analysis for all candidates reported by KnotInFrame. For each candidate, we shuffled 100 randomized sequences with the same dinucleotide content and folded them with pknotsRG-fs. In (27) , it has been shown that using a TDM for z-score analysis provides a stronger signal than using a general folding algorithm. However, the outcome for \u00c01 PRF signals is less fruitful than the results of (27) as shown in Figure 4 . Most of the FPs have a z-score between 0 and \u00c03. The fact that the z-scores are not centered at 0 is most certainly a result of KnotInFrame discarding unfavorable folds during the filtering phase. This already introduces a bias for more stable structures than expected by random. With a z-score of \u00c03 and lower, the number of TPs equals approximately the number of true negatives (TNs). A small number of TPs is also deeply buried in the cloud of FPs which makes it hard to detect them either by z-score analysis or via the normalized dominance. Altogether, it turns out that with z-score analysis, we have the same difficulties in separating the true PRF signals from the wrong ones. Therefore, we refrain from using the z-score in KnotInFrame, since it would increase the runtime by a factor of 100 (for folding the randomized sequence) without a significant increase in performance.",
+            "cite_spans": [
+                {
+                    "start": 303,
+                    "end": 307,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 527,
+                    "end": 535,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Evaluation on frameshift signals from PseudoBase"
+        },
+        {
+            "text": "It seems that with only one sequence at hand, we can do no better. However, the situation changes, if we have a set of homologous sequences. Then, the co-occurrence of a slippery site and a conserved, stable frameshifting pseudoknot could improve the search for \u00c01 PRF signals in a future version of KnotInFrame.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluation on frameshift signals from PseudoBase"
+        },
+        {
+            "text": "We compared the predictions of KnotInFrame to the predictions of (5) on the S. cerevisiae genome. This comparison serves several purposes: since the reference set of verified signals in the RECODE DB is rather small, we use the predictions of (5) as extended test set. Of course, it is neither guaranteed nor expected that all of their predictions are in fact real frameshift events. However, a matching prediction of both approaches at a certain location strengthens the plausibility of this site. On the other hand, contradicting predictions may hint at a weak spot of either of the two approaches. We will show and discuss examples of each of these cases.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison with a previous yeast screen"
+        },
+        {
+            "text": "We downloaded the yeast genome sequences from NCBI (accessions: NC_001133, . . . , NC_001148, NC_ 001224; all versions are dated 24 January 2007) and extracted 6199 annotated ORFs with a total length of 8.76 MB. Each ORF was analyzed by KnotInFrame and for each ORF the five best predictions were stored and used in the comparison.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison with a previous yeast screen"
+        },
+        {
+            "text": "In the study of (5), 1679 candidates were classified as strong candidates, due to a good z-score and a low-MFE value. These candidates were made available by the authors in their PRFdb [(28), http://dinmanlab.umd.edu/ prfdb/]. First, we asked what portion of those 1679 candidates were also predicted by our pipeline. On the first glance, the result was astonishing: only 257 sites were confirmed by our analysis, i.e. they were predicted within one of the first five ranks for each ORF. By visual examining of some of the missed candidates the reason was immediately obvious. The predicted structure in the PRFdb often does not resemble the pseudoknot frameshift consensus. Instead, we find virtually all possible other structures, such as a single hairpin, a chain of hairpins, bifurcated structures or complex pseudoknot structures. This supports our main criticism of the approach of Jacobs et al.: the candidate sequences have the base-pairing potential to build a pseudoknot specified by the (RNAmotif) consensus, but for most sequences an alternative structure is more stable. This alternative structure is then used for the z-score computation and stored in the PRFdb. In contrast, our approach explicitly folds the consensus pseudoknot and the alternative structure and assigns to candidates with a more stable alternative structure a negative \u00c1 and consequently a low rank. Therefore, we filtered the list of strong candidates in the PRFdb for structures containing at least one pseudoknot and obtained 163 candidates. Next, we tested if our predictions are supported by Jacobs et al. We created a list of our 100 strongest candidates by setting a threshold of \u00c1 ! 0:08. Again, only a small portion (13) of these predictions are supported by the PRFdb. The reasons for this are manifold: first, Jacobs et al. are using a more stringent consensus, which allows only 1-3 bases in loop 1. Second, the folding program used in the creation of the PRFdb (pknots) uses an outdated energy model, while KnotInFrame uses the most up to date energy model for nested structures and an adapted model for pseudoknots. In consequence, it happens that a stable structure reported by KnotInFrame is rejected in the PRFdb due to a possibly worse energy reported by pknots. Remarkably, the maintainers of PRFdb started to include another RNA folding algorithm [NUPACK (29) ] into the pipeline, which uses an energy model close to ours. Database entries derived from NUPACK analysis seem to be more consistent with our results. However, we cannot quantify the improvement, since the inclusion of NUPACK seems to be work in progress and only parts of the database are currently reprocessed.",
+            "cite_spans": [
+                {
+                    "start": 2359,
+                    "end": 2363,
+                    "text": "(29)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparison with a previous yeast screen"
+        },
+        {
+            "text": "Apparently, the method presented here and the one by Jacobs et al. differ substantially in their results. Various reasons have been given above, e.g. the differences in the structure prediction methods. However, we think the most influencing difference in both methods is the scoring system. While KnotInFrame employs normalized dominance, Jacobs et al. use z-scores and free energy for ranking. The fact that these two criteria are not equivalent can already be concluded from Figure 4 , but has also been proven by our yeast screen comparison. In our opinion, normalized dominance is better suited for the task of discriminating true PRF signals from random ones. The z-score measures the evolutionary fitness of a sequence under evaluation against other (random) sequences that could have evolved instead, but were rejected during evolution due to an inferior fitness. In contrast, the normalized dominance makes an exact statement of how likely a given sequence folds into a frameshift inducing structure and not into an alternative one. In this sense, normalized dominance evaluates the 'fitness' of the PRF structure against its present competitors-those which exist in the folding space of the given RNA sequence, rather than against those that might exist in the past/future of a mutated sequence.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 478,
+                    "end": 486,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Comparison with a previous yeast screen"
+        },
+        {
+            "text": "To check the suitability of KnotInFrame for a large-scale application, we analyzed the run time of our tool which is basically effected by two factors: the folding routines and the number of slippery sites. The run time determining factor of the folding steps are the calls to pknotsRG-fs, hence we have to consider the time it needs to fold one sequence, which is on average 0.6 s for a substring of 120 nt. Note that we actually do not have to compute the foldings for the smaller subsequences (40, . . . , 100) separately. They can simply be backtraced from the dynamic programming matrix of the largest subsequence. Also, the theoretical run time depends on the probability of a slippery sequence to occur in a random sequence, given by:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Run time analysis of KnotInFrame"
+        },
+        {
+            "text": "Hence, the expected run time for an average sized bacterial genome of 5 MB with 5 \u00c1 10 6 \u00c2 0:00195 \u00bc 9750 slippery sites (and thus 9750 calls of pknotsRG-fs) is $0.6 s \u00c2 9750 = 1 h 37 min. In practice, the first filter (ISF) already discards a significant amount of slippery sites (42% for the RECODE test set), before the expensive folding step and run time decreases. This effect is somehow balanced by our observation that the real genomic sequences used in our evaluation contain more slippery sites than expected. We measured the run time that KnotInFrame requires to analyse the 8.76 MB coding sequence of yeast. The whole computation with 43841 observed slippery sites (expected: 17109) can be performed in $4.5 CPU hours, which is a definite improvement over previous approaches.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Run time analysis of KnotInFrame"
+        },
+        {
+            "text": "We presented KnotInFrame, a new and efficient tool for the automated detection of ribosomal \u00c01 frameshift events. KnotInFrame employs a specialized RNA-folding program at its core to distinguish true \u00c01 PRF events from random ones. The complete pipeline is fast enough to analyze complete genome sequences within a few hours. Our evaluation shows a high sensitivity on annotated \u00c01 PRF events from the RECODE database. KnotInFrame clearly outperforms previous approaches in terms of compute resources. With our new method it is now possible to systematically annotate available genome sequences. Positive results of such screens will help to further improve the tool's accuracy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CONCLUSIONS"
+        },
+        {
+            "text": "The KnotInFrame pipeline can be seen as a model case of developing a thermodynamic matcher, in our case pknotsRG-fs, and embedding it in a pipeline with further search criteria and filters. Development of thermodynamic matchers is supported by the tool Locomotif (30) , which allows to graphically design RNA structures, annotated with sequence information and length restrictions. From such graphics, a thermodynamic matcher is produced automatically, bypassing tedious low-level programming and debugging. In the course of this work, we have also extended the repertoire of structural building blocks in Locomotif by a pseudoknot building block. In this way, it will be easy for workers in the field to construct their own pipelines akin to KnotInFrame, for RNA motifs of moderate size, with and without pseudoknots.",
+            "cite_spans": [
+                {
+                    "start": 263,
+                    "end": 267,
+                    "text": "(30)",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CONCLUSIONS"
+        },
+        {
+            "text": "KnotInFrame is available for online use at the Bielefeld Bioinformatics Server (BiBiServ) at http://bibiserv.tech fak.uni-bielefeld.de/knotinframe. Also, we provide the underlying grammar of the folding program and detailed results of the yeast screen on the project's web site on the BiBiServ.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "AVAILABILITY"
+        },
+        {
+            "text": "Supplemantary Data are available at NAR Online.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUPPLEMENTARTY DATA"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Genetic control of biochemical reactions in neurospora",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Beadle",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Tatum",
+                    "suffix": ""
+                }
+            ],
+            "year": 1941,
+            "venue": "Proc. Natl Acad. Sci. USA",
+            "volume": "27",
+            "issn": "",
+            "pages": "499--506",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Trans-splicing of nematode premessenger RNA",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Nilsen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Annu. Rev. Microbiol",
+            "volume": "47",
+            "issn": "",
+            "pages": "413--440",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Coupling of open reading frames by translational bypassing",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Herr",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Atkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Gesteland",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "69",
+            "issn": "",
+            "pages": "343--372",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "A novel RNA structural motif in the selenocysteine insertion element of eukaryotic selenoprotein mRNAs",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Walczak",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Westhof",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Carbon",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krol",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "RNA",
+            "volume": "2",
+            "issn": "",
+            "pages": "367--379",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Identification of functional, endogenous programmed \u00c01 ribosomal frameshift signals in the genome of Saccharomyces cerevisiae",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jacobs",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Belew",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rakauskaite",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dinman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Nucleic Acids Res",
+            "volume": "35",
+            "issn": "",
+            "pages": "165--174",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Ribosomal pausing at a frameshifter RNA pseudoknot is sensitive to reading phase but shows little correlation with frameshift efficiency",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kontos",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Napthine",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Brierley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Mol. Cell. Biol",
+            "volume": "21",
+            "issn": "",
+            "pages": "8657--8670",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "A mechanical explanation of RNA pseudoknot function in programmed ribosomal frameshifting",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Namy",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Moran",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Stuart",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J C"
+                    ],
+                    "last": "Gilbert",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Brierley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Nature",
+            "volume": "441",
+            "issn": "",
+            "pages": "244--247",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "The three transfer RNAs occupying the A, P and E sites on the ribosome are involved in viral programmed \u00c01 ribosomal frameshift",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Leger",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dulude",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Steinberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Brakier-Gingras",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Nucleic Acids Res",
+            "volume": "35",
+            "issn": "",
+            "pages": "5581--5592",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Identification of putative programmed \u00c01 ribosomal frameshift signals in large DNA databases",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Hammell",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Taylor",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Peltz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dinman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Genome Res",
+            "volume": "9",
+            "issn": "",
+            "pages": "417--427",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Predicting genes expressed via \u00c01 and +1 frameshifts",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Moon",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Byun",
+                    "suffix": ""
+                },
+                {
+                    "first": "H.-J",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jeong",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nucleic Acids Res",
+            "volume": "32",
+            "issn": "",
+            "pages": "4884--4892",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Towards a computational model for \u00c01 eukaryotic frameshifting sites",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bekaert",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Bidou",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Denise",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Duchateau-Nguyen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-P",
+                    "middle": [],
+                    "last": "Forest",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Froidevaux",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Hatin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-P",
+                    "middle": [],
+                    "last": "Rousset",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Termier",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "19",
+            "issn": "",
+            "pages": "327--335",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "RNAMotif, an RNA secondary structure definition and search algorithm",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Macke",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ecker",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Gutell",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Gautheret",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Case",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sampath",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Nucleic Acids Res",
+            "volume": "29",
+            "issn": "",
+            "pages": "4724--4735",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "A dynamic programming algorithm for RNA structure prediction including pseudoknots",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Rivas",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. Mol. Biol",
+            "volume": "285",
+            "issn": "",
+            "pages": "2053--2068",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "A three-stemmed mRNA pseudoknot in the SARS coronavirus frameshift signal",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Plant",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Prez-Alvarado",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jacobs",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Mukhopadhyay",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hennig",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dinman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "PLoS Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Optimal computer folding of large RNA sequences using thermodynamic and auxiliary information",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Stiegler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1981,
+            "venue": "Nucleic Acids Res",
+            "volume": "9",
+            "issn": "",
+            "pages": "133--148",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Fast folding and comparison of RNA secondary structures",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Hofacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Fontana",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Stadler",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bonhoeffer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Tacker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Schuster",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Monatsh. Chem",
+            "volume": "125",
+            "issn": "",
+            "pages": "167--188",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Design, implementation and evaluation of a practical pseudoknot folding algorithm based on thermodynamics",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Reeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "BMC Bioinfo",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "pknotsRG: RNA pseudoknot folding including near-optimal structures and sliding windows",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Reeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Steffen",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Nucleic Acids. Res",
+            "volume": "35",
+            "issn": "",
+            "pages": "320--324",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Expanded sequence dependence of thermodynamic parameters improves prediction of RNA secondary structure",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sabina",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. Mol. Biol",
+            "volume": "288",
+            "issn": "",
+            "pages": "911--940",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "A discipline of dynamic programming over sequence data",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Meyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Steffen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Sci. Comput. Program",
+            "volume": "51",
+            "issn": "",
+            "pages": "215--263",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Versatile and declarative dynamic programming using pair algebras",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Steffen",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "BMC Bioinfo",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Challenges in the compilation of a domain specific language for dynamic programming",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Steffen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "SAC '06: Proceedings of the 2006 ACM symposium on Applied computing",
+            "volume": "",
+            "issn": "",
+            "pages": "1603--1609",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Compiling a domain specific language for dynamic programming",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Steffen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Characterization of the frameshift signal of Edr, a mammalian example of programmed \u00c01 ribosomal frameshifting",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Manktelow",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Shigemoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Brierley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Res",
+            "volume": "33",
+            "issn": "",
+            "pages": "1553--1563",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "PseudoBase: structural information on RNA pseudoknots",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Vanbatenburg",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Gultyaev",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Pleij",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Nucleic Acids Res",
+            "volume": "29",
+            "issn": "",
+            "pages": "194--195",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Thermodynamic matchers: strengthening the significance of RNA folding energies",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ho\u00a8chsmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ho\u00a8chsmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Comput. Syst. Bioinformatics. Conf",
+            "volume": "",
+            "issn": "",
+            "pages": "111--121",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "PRFdb: a database of computationally predicted eukaryotic programmed \u00c01 ribosomal frameshift signals",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Belew",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hepler",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jacobs",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dinman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "BMC Genomics",
+            "volume": "9",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "A partition function algorithm for nucleic acid secondary structure including pseudoknots",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Dirks",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Pierce",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Comput. Chem",
+            "volume": "24",
+            "issn": "",
+            "pages": "1664--1677",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Locomotif: from graphical motif description to RNA motif search",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Reeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Reeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Bioinformatics",
+            "volume": "23",
+            "issn": "",
+            "pages": "392--400",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "The consensus \u00c0PRF signal derived from the RECODE database.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Histogram of the normalized dominance values (\u00c1) of 26 annotated pseudoknots in the RECODE database (red) against the normalized dominance of 183 slippery sites in our test set not leading to \u00c01 PRF (blue).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "z-scores plotted against normalized dominance. Although only weakly correlated with \u00c1, the z-score analysis does not provide significant further information for separating \u00c01 PRF signals from the background distribution.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "RECODE rank table",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Detailed analysis of normalized dominance for the RECODE test setThere are no MFE results available, because the appropriate slippery site was not detected by KnotInFrame.The annotated structure was not found by KnotInFrame.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank Thomas Ho\u00a8chsmann for providing us with his z-score calculation scripts. We also want to thank the anonymous reviewer for pointing out to us several references which are not yet reflected by the annotations in RECODE.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        },
+        {
+            "text": "Funding for open access charge: Bielefeld University.Conflict of interest statement. None declared.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "FUNDING"
+        }
+    ]
+}

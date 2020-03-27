@@ -1,0 +1,1854 @@
+{
+    "paper_id": "4eb6e165ee705e2ae2a24ed2d4e67da42831ff4a",
+    "metadata": {
+        "title": "Automated identification of multiple micro-organisms from resequencing DNA microarrays",
+        "authors": [
+            {
+                "first": "Anthony",
+                "middle": [
+                    "P"
+                ],
+                "last": "Malanoski",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Naval Research Laboratory",
+                    "location": {
+                        "addrLine": "Code 6900",
+                        "postCode": "20375",
+                        "settlement": "Washington",
+                        "region": "DC",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Baochuan",
+                "middle": [],
+                "last": "Lin",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Naval Research Laboratory",
+                    "location": {
+                        "addrLine": "Code 6900",
+                        "postCode": "20375",
+                        "settlement": "Washington",
+                        "region": "DC",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Zheng",
+                "middle": [],
+                "last": "Wang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Naval Research Laboratory",
+                    "location": {
+                        "addrLine": "Code 6900",
+                        "postCode": "20375",
+                        "settlement": "Washington",
+                        "region": "DC",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Joel",
+                "middle": [
+                    "M"
+                ],
+                "last": "Schnur",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Naval Research Laboratory",
+                    "location": {
+                        "addrLine": "Code 6900",
+                        "postCode": "20375",
+                        "settlement": "Washington",
+                        "region": "DC",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "David",
+                "middle": [
+                    "A"
+                ],
+                "last": "Stenger",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Naval Research Laboratory",
+                    "location": {
+                        "addrLine": "Code 6900",
+                        "postCode": "20375",
+                        "settlement": "Washington",
+                        "region": "DC",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "There is an increasing recognition that detailed nucleic acid sequence information will be useful and even required in the diagnosis, treatment and surveillance of many significant pathogens. Because generating detailed information about pathogens leads to significantly larger amounts of data, it is necessary to develop automated analysis methods to reduce analysis time and to standardize identification criteria. This is especially important for multiple pathogen assays designed to reduce assay time and costs. In this paper, we present a successful algorithm for detecting pathogens and reporting the maximum level of detail possible using multipathogen resequencing microarrays. The algorithm filters the sequence of base calls from the microarray and finds entries in genetic databases that most closely match. Taxonomic databases are then used to relate these entries to each other so that the microorganism can be identified. Although developed using a resequencing microarray, the approach is applicable to any assay method that produces base call sequence information. The success and continued development of this approach means that a non-expert can now perform unassisted analysis of the results obtained from partial sequence data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "For both surveillance and diagnostic applications, fine-scale pathogen identification and near-neighbor discrimination is important; therefore, an assay that monitors at this very specific level is desirable for many types of samples such as clinical and environmental (1) (2) (3) . To successfully use any method based on DNA or RNA detection, these assays must be coupled with large databases of nucleic acid sequence information for assay design to ensure that the desired information is provided and for the interpretation of raw data. Several well-established techniques use PCR to amplify individual target pieces of sequenced genomes to provide detection of organisms (4) . These methods can roughly be divided into approaches that target individual short sequence lengths or probes (<40 bp) and methods that examine longer probes. The advantage of using short probes is that when the uniqueness of the probe has been assured and unique primers are also selected, this method gives good specificity. This approach is capable of providing fine-scale identification of several genetically close organisms by selecting a sufficient number of probes. However, this can rapidly lead to a very large number of total probes being required to detect all organisms of interest. In addition these selected probes, which in the initial selection process were determined to be unique, are often later found to be less specific as more organisms are sequenced or are less specific under conditions that differ from the original conditions. This is particularly a problem for organisms belonging to a family with a high mutation rate and also for pathogens that have relatively few neighboring pathogens sequenced. In addition, PCR approaches focused on short unique probes are not capable of detecting the presence of new significant mutations nor can they easily resolve base sequence details. Approaches that use longer individual probes avoid many of these issues at the cost of being less specific. This issue means most of these approaches are not suitable for providing the information desired, providing impetus to this work.",
+            "cite_spans": [
+                {
+                    "start": 269,
+                    "end": 272,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 273,
+                    "end": 276,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 277,
+                    "end": 280,
+                    "text": "(3)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 675,
+                    "end": 678,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "High-density resequencing microarrays produce variable length segments, 10 2 -10 5 bp, of direct sequence information. This target sequence falls in the longer target regime of PCR approaches but rather than being hybridized to a longer lessspecific probe on the microarray, many shorter specific probes are placed on the microarray to allow more detailed determinations from the entire PCR amplicon. This also means that the specificity of the primers used can be relaxed. They have been successfully used to detect single nucleotide polymorphism (SNP) and genetic variants from viral, bacterial and eukaryotic genomes (5) (6) (7) (8) (9) (10) (11) (12) . Their use for SNP detection has clearly established their ability to provide reliable quality sequence information. In most cases, the microarrays were designed to study a limited number of genetically similar target pathogens and for many cases, the detection methods relied only on recognizing hybridization patterns for identification (6, 9, 10, 13, 14) . Taking advantage of the sequential base resolution capability of resequencing microarrays that is required for SNP detection, resequencing has recently been successfully adapted recently using a different approach for organism identification of multiple bacterial and viral pathogens while allowing for fine detailed discrimination of closely related organisms and tracking mutations within the targeted pathogen (15) (16) . The new methodology differed from earlier work by using the resolved bases as the query of a similarity search of DNA databases to identify the most likely species and variants that match the base calls from the hybridization observed. The system was capable of testing for 26 pathogens simultaneously and could detect the presence of multiple pathogens. A software program, resequencing pathogen identifier (REPI), was used to simplify data analysis by performing similarity searches of a genetic database using basic local alignment search tool (BLAST) (17) . The REPI program used BLAST default settings and would only return sequences that might represent the hybridization if the expect value, a quantity calculated by the BLAST program that indicates the likelihood that the sequence match found would have occurred by random chance in the database, was <10 \u00c09 . This screened out all cases that had insufficient signal; however, the final determination of what pathogen(s) was detected and to what degree discrimination was possible required manual examination of the returned results. This method successfully allowed fine discrimination of various adenoviruses and strain identifications of Flu A and B samples in agreement with conventional sampling results (15, 16) . Two important advantages of this approach were that the information was always recovered at the most detailed level possible and that it was capable of still recognizing organisms with recent mutations. This approach also maintained specificity well, as it was not dependent on the uniqueness of a few individual short probes.",
+            "cite_spans": [
+                {
+                    "start": 620,
+                    "end": 623,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 624,
+                    "end": 627,
+                    "text": "(6)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 628,
+                    "end": 631,
+                    "text": "(7)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 632,
+                    "end": 635,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 636,
+                    "end": 639,
+                    "text": "(9)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 640,
+                    "end": 644,
+                    "text": "(10)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 645,
+                    "end": 649,
+                    "text": "(11)",
+                    "ref_id": null
+                },
+                {
+                    "start": 650,
+                    "end": 654,
+                    "text": "(12)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 995,
+                    "end": 998,
+                    "text": "(6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 999,
+                    "end": 1001,
+                    "text": "9,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1002,
+                    "end": 1005,
+                    "text": "10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 1006,
+                    "end": 1009,
+                    "text": "13,",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1010,
+                    "end": 1013,
+                    "text": "14)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1429,
+                    "end": 1433,
+                    "text": "(15)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 1434,
+                    "end": 1438,
+                    "text": "(16)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1996,
+                    "end": 2000,
+                    "text": "(17)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 2709,
+                    "end": 2713,
+                    "text": "(15,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 2714,
+                    "end": 2717,
+                    "text": "16)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Although this analysis method has utility, there are several shortcomings: it is time consuming, not optimized to maximize sensitivity, has complicated results, is suitable only for an expert, and contains redundant or duplicate information. The process was time consuming because only the initial screening was handled automatically while the remaining steps required manual interpretation before the detection analysis was complete. Because a simple criterion (expect value cutoff of 10 \u00c09 ) and non-optimized BLAST parameters were used to consider a pathogen detected, the REPI algorithm provided a list of candidate organisms but did not make a final simple conclusion or relate the results of one prototype sequence to another. Instead a manual process was used to make the final determination, but because the REPI program provided all similar results and the use of public nucleic acid databases containing redundant entries, a large amount of data was presented to a user that was not useful. In addition, with a manual process it was not possible to establish that the algorithm developed was generally applicable for any organism where nucleic acid base resolved sequence information has been provided.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "In this paper, we describe a new software expert system, Computer-Implemented Biological Sequence Identifier system 2.0 (CIBSI 2.0), that successfully uses resolved base sequence information from custom designed Affymetrix resequencing microarrays to provide a simple list of organisms that are detected. This algorithm addresses the most important shortcoming of previous methods by incorporating new features to completely automate pathogen identification. We have demonstrated the effectiveness of this algorithm for identification via several examples. The single program is capable of making correct decisions for all 26 pathogens contained on the Respiratory Pathogen Microarray v.1 (RPM v.1), whether detected alone or in combinations, with improved sensitivity. Although the program is currently applied to resequencing microarrays, the methodologies developed remain generally applicable. Only the first portion of the algorithm handles issues specific to microarrays while the remainder deals with sequences that are suitable for use as a query by the BLAST algorithm. In developing the general identification algorithm, we have identified and resolved issues specific to resequencing microarrays that complicate their use. Because the entire decision process for what is detected has been automated, it is straightforward to test whether the rules used to make identifications are rigorous and applicable to any pathogen. With this efficient program, resequencing based assays can provide a competitive method to test simultaneously for many possible pathogens, providing output that can be interpreted by a nonexpert.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The details of the RPM v.1 design and the experimental methods have been discussed in previous work (15, 16, 18) (Lin et al., submitted for publication). Briefly, the RPM v.1 chip design includes 57 tiled regions allowing resequencing of 29.7 kb of sequences from 27 respiratory pathogens and biothreat agents. These were selected based upon clinical relevance for the population of immediate interest (United States military recruit in training) (19) (20) (21) . Partial sequences from the genes containing diagnostic regions were tiled for the detection of these pathogens. The experimental microarray data used in the present analysis were obtained using a variety of purified nucleic acid templates and clinical samples culture (throat swabs and nasal washes) using random and multiplexed RT-PCR amplification schemes (for more detail description of amplification methods see Supplementary Data). Resequencing microarrays provide base call resolution by comparing the intensities between a set of four 25mer probes that differ from each other at the same position (13th base). An amplicon or target sequence is represented by numerous overlapping probe sets. GCOS\u00d4 software v1.3 (Affymetrix Inc., Santa Clara, CA) was used to align and scan hybridized microarrays to determine the intensity of each probe in every probe set. Base calls were made based on the intensity data of each probe set using GDAS v3.0.2.8 software (Affymetrix Inc.) which used an implementation of the ABACUS algorithm (5) . The sequences were represented in FASTA format for later analysis steps.",
+            "cite_spans": [
+                {
+                    "start": 100,
+                    "end": 104,
+                    "text": "(15,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 105,
+                    "end": 108,
+                    "text": "16,",
+                    "ref_id": null
+                },
+                {
+                    "start": 109,
+                    "end": 112,
+                    "text": "18)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 447,
+                    "end": 451,
+                    "text": "(19)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 452,
+                    "end": 456,
+                    "text": "(20)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 457,
+                    "end": 461,
+                    "text": "(21)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1496,
+                    "end": 1499,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Amplification, hybridization and sequencing determination"
+        },
+        {
+            "text": "In this paper, target pathogens are the organisms the assay was specifically designed to detect. The sets of probes that represent reference sequence selected from target pathogen genomes are referred to as a Prototype Sequence or 'ProSeq' for brevity. The set of resolved bases that result from hybridization of genomic material to a ProSeq is referred to as the hybridized sequence or 'HybSeq'. The HybSeq is split into possible subsequences or 'SubSeqs'.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Amplification, hybridization and sequencing determination"
+        },
+        {
+            "text": "The CIBSI 2.0 program implemented in Perl described in this study handled a hierarchy of three tasks ( Figure 1 ): (I) Pro-Seq identification; (II) ProSeq grouping; and (III) pathogen determination. The most developed and important portion of the algorithm deals with ProSeq identification Task(I) and is handled in three important subtasks: initial filtering of individual HybSeqs into SubSeqs suitable for sequence similarity comparisons ( Figure 2 ), database querying of individual SubSeqs ( Figure 3 ) and taxonomic comparison of BLAST returns for each SubSeq (Figure 4 ). The NCBI BLAST and taxonomy databases were used for the queries and images were obtained on February 7, 2006. For the ProSeq grouping Task(II), ProSeqs were compared to determine if they supported the same identified organism. In the pathogen determination Task(III), detected organisms were compared to the list of target pathogens the assay was designed for in order to determine if any were positively detected or were possibly related close genetic near neighbors. The level of discrimination that a particular sample supported was automatically determined.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 103,
+                    "end": 111,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 442,
+                    "end": 450,
+                    "text": "Figure 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 496,
+                    "end": 504,
+                    "text": "Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 565,
+                    "end": 574,
+                    "text": "(Figure 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Amplification, hybridization and sequencing determination"
+        },
+        {
+            "text": "An initial filtering algorithm, REPI, was developed previously (16) and the general concepts with revisions were incorporated into the current (automated detection) algorithm used in the CIBSI 2.0 program. Filtering and subsequence selection were used to remove potential biasing caused by reference sequence choice and by other sources (i.e. primers). When PCR amplification was used, microarrays were hybridized in the presence of only primers to determine locations where they resulted in hybridization. Any portions of the ProSeqs that hybridized with the primers were masked as N calls so that the HybSeq did not contain biased information. Normally the primers are designed to be outside the Pro-Seq region to minimize the interference caused by primers, and so minimize the bases to be masked. There is still the chance that some bases require masking because with the large number of primers used in the multiplex, short stretches of a ProSeq not corresponding to primer locations may still hybridize with the primers. Such regions could be removed from the reference sequences and so not appear on the microarray. However, determining such locations are a difficult and time-consuming task that for most cases is not worth the effort. The first subtask of ProSeq identification Task(I) is noted in Figure 1 and shown schematically in detail in Figure 2 . This subtask uses a procedure to examine a Hyb-Seq to find the longest possible subsequence of base calls (SubSeq) that can be submitted as a query to BLAST.",
+            "cite_spans": [
+                {
+                    "start": 63,
+                    "end": 67,
+                    "text": "(16)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1307,
+                    "end": 1315,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 1353,
+                    "end": 1361,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "ProSeq identification Task(I): subtask(I) filtering"
+        },
+        {
+            "text": "It produces a group of SubSeq that contain all portions of a HybSeq that have a chance of producing a limited list of returns from a BLAST query. When a HybSeq has two regions separated by a long stretch of continuous N calls, the relational positioning of the two regions cannot be trusted and so must be sent as separate queries. In addition for shorter subsequences, the number of base calls that must be made is dependent on the length. It was also recognized that for very long sequences a longer WORD size in BLAST may be used. A detailed description of the criteria and process used for each step is contained in Supplementary Data. Upon completion, the algorithm returned to the Task(I) loop and performed the BLAST subtask.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ProSeq identification Task(I): subtask(I) filtering"
+        },
+        {
+            "text": "The database query subtask performed a batch similarity search of a database using SubSeq as the queries. The BLAST program used was the NCBI Blastall -p blastn version 2.12 with a defined set of parameters. The masking of low complex regions was performed for the seeding phase to speed up the query; however, low complexity repeats were included in the actual scoring. The entire nucleotide database from NCBI acquired on February 7, 2006 was used as the reference database. (Note that earlier images of the database were used during development but all experiments were rerun with the algorithm as described with the Figure 3 . Detailed schematic representation of the second subtask of ProSeq identification Task(I), organism identification for an individual SubSeq. Each SubSeq sent to BLAST returned a list of possible matches contained in a Return array that was sorted through to find best bit score/expect value pair (MaxScore). If the MaxScore was greater than MIN (10 \u00c06 ), all returns that had this best Score were sorted into a new array Rank1. Detailed SubSeqs requirement is described in Supplementary Data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 620,
+                    "end": 628,
+                    "text": "Figure 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "ProSeq identification Task(I): subtask(II) database query"
+        },
+        {
+            "text": "image of the database obtained on this date.) The default gap penalty and nucleotide match score were used. The nucleotide mismatch penalty, -q, parameter was set to \u00c01 rather than the default. The results of any BLAST query with an expect value <0.0001 were returned in tabular format from the blastall program. The information about each return (bit score, expect value, mismatches, length of match) was placed in the Return{hash key}{info} hash using the SubSeq identity as the hash key for further analysis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ProSeq identification Task(I): subtask(II) database query"
+        },
+        {
+            "text": "The next subtask of ProSeq identification Task(I) carried out was the determination of SubSeq() states and is shown in Figure 3 . The BLAST algorithm gives a ranking score which can be reported as accounting for the size of the database (expect value) or not (bit score). The full taxonomic classifications of every return for a SubSeq were retrieved from the NCBI taxonomy database obtained on February 7, 2006. Using the scores and taxonomy relationships it was possible to find a reduced number of returns that had the best match with the HybSeq. These results were summarized by identifying the taxonomic class to which all the returns belonged to, 'identified organism', and a parameter that indicated how they are related to each other, 'organism uniqueness'. A detailed description of the steps is contained in Supplementary Data. After each SubSeq was examined, the algorithm moved to the next subtask, which was to determine the identified organism of the ProSeq from the SubSeq (Figure 4 ). The subsequences from the same ProSeq were only allowed to support a single 'identified organism' determination. The procedure shown in Figure 4 demonstrates the decision method used to arrive at this determination (detailed description in Supplementary Data). After the subtask covered in Figure 4 was completed, the ProSeq identification Task(I) loop continued until all ProSeqs were examined. A list of ProSeqs that had detected organisms was built up in the Result1 array.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 119,
+                    "end": 127,
+                    "text": "Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 988,
+                    "end": 997,
+                    "text": "(Figure 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1137,
+                    "end": 1145,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1291,
+                    "end": 1299,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "ProSeq identification Task(I): subtask(III) and subtask(IV) complete ProSeq identification"
+        },
+        {
+            "text": "After the ProSeq identification Task(I) was completed, ProSeq grouping Task(II) (Figure 1 ) was used to examine the identified organism values listed in Result1 and grouped them together if they identified the same taxonomic class. Each entry in Result1 was examined and a new entry was created in Result2 if the identified organism did not appear in this list. The entries of Result2 represented the distinct individual organisms identified, but might still contain redundant information. When the ProSeqs were designed to detect the same organism and they all hybridized well, this grouping led to a reduction in redundant information being reported. But, when one ProSeq did not hybridize as well for a variety of possible reasons, multiple entries would appear in Result2 that actually represent hybridization from the same pathogen. This is because there is an alternative cause for the ProSeq hybridizing in this manner. This hybridization could be caused by two different but closely related organisms both being present in a sample and hybridizing to the microarray. Because we have not yet developed methods to distinguish these cases, no further reduction of the list of organisms is made for in ProSeq grouping Task(II) in cases where the level of identification varied on different ProSeq targeted for the same organism.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 80,
+                    "end": 89,
+                    "text": "(Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "ProSeq grouping Task(II)"
+        },
+        {
+            "text": "Although it was difficult to relate results from separate Pro-Seqs to each other, it was desired to have a simple final detection decision be made in pathogen determination Task(III). The first task was specifically implemented so that information about what a ProSeq was intended to detect was not considered and the second task only minimal consideration of this was taken into account. This allowed these initial tasks to be capable of recognizing not only just positive and negative identifications of target pathogens but also cases that were indeterminate. In the final task, the algorithm considered whether the identified organisms belonged to the list of organisms the ProSeqs were designed to detect. The task would group organisms from ProSeq grouping Task(II) together that belonged to or were child classes of the taxonomic class of a target organism. The taxonomic class reported was the common taxonomic group of all the organisms. When all the ProSeqs for a pathogen hybridized well, a fine level discrimination was reported. But if one or more ProSeqs hybridized less well, the reported positive target pathogen was only identified at the level of the less detailed level. This is conservative because methods have not yet been developed to clearly discriminate mixtures of very closely related organisms causing different ProSeqs to hybridize from variable hybridization of a single organism on several ProSeqs. The results of all When there was a single SubSeq or one scored much better than the other, the ProSeq inherited the properties of that SubSeq. Detailed SubSeqs requirement is described in Supplementary Data. three tasks were reported and a more experienced user can view ProSeq grouping Task(II) results to clarify some cases. Note that organisms identified in ProSeq grouping Task(II) that only belonged to target pathogens were reported as positives. Clear negative ProSeqs were not mentioned in the output. ProSeqs that were indeterminate or that detected close genetic organisms were never reported as positives. These organisms were instead reported as being detected.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Pathogen determination Task(III)"
+        },
+        {
+            "text": "A resequencing microarray (RPM v.1) was designed previously for detection and sequence typing of 20 common respiratory and 6 CDC category A biothreat pathogens known to cause febrile respiratory illness based on ProSeqs without relying on predetermined hybridization patterns (15, 16, 18 ",
+            "cite_spans": [
+                {
+                    "start": 276,
+                    "end": 280,
+                    "text": "(15,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 281,
+                    "end": 284,
+                    "text": "16,",
+                    "ref_id": null
+                },
+                {
+                    "start": 285,
+                    "end": 287,
+                    "text": "18",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "RESULTS"
+        },
+        {
+            "text": "Purified Chlamydia pneumoniae nucleic acid samples with 10-1000 genome copies (via method in Lin et al., submitted for publication) were chosen to illustrate how pathogen detection and identification were done when multiple ProSeqs were targeted for the same pathogen. RPM v.1 has three highly conserved ProSeqs selected from the genes encoding for the major outer membrane proteins VD2 and VD4, and the DNA-directed RNA polymerase (rpoB) gene. The HybSeqs from the different samples differed only in the number of unique base calls as shown in Table 1 . The percentage of the ProSeq called varied from 80 to 100% except for one case at a concentration of 10 that had only 11% of the rpoB ProSeq producing unique base calls. Because the samples at this concentration are not reproducibly generating the same percentage of base calls, this is probably the detection limit of this ProSeq of the assay. Table 1 listed the determinations made for the SubSeq and at the end of each task for the various samples. The ProSeq from the different cases produced the same number of SubSeqs. These SubSeqs from different samples reported different bit scores for the same top ranked returns from BLAST. In fact VD2 and VD4 produced exactly the same results. The NCBI taxonomy database classified the returns into four distinct groups, which represented the C.pneumoniae taxonomic group and three child strain groups. AE001652, AE002167, AE017159 and BA000008 appeared in the returns of all the ProSeqs for each sample, since they represented database entries of completely sequenced genomes. One rpoB Sub-Seq produced for its organism uniqueness, SeqUniqu. All other SubSeqs were TaxAmbig as multiple returns from different taxonomic classes were returned. Since the VD2 and VD4 ProSeq each have a single SubSeq, Task(I) assigned the Pro-Seq the state of the SubSeq. For the rpoB ProSeq, the bit score of one SubSeq was large enough that the algorithm assigned that SubSeq's identification to the ProSeq. Task II of the algorithm grouped all three ProSeqs together since they all had the same identified organism and TaxAmbig was assigned. The result of Task(III) was positive for target pathogen C.pneumoniae and this decision was straightforward as all the ProSeqs agreed with each other and belonged to the same target pathogen taxonomic class. Although the rpoB ProSeq was SeqUniqu, this was not the final conclusion for Task(II) as the ProSeq that was SeqUniqu was not the child taxonomic group and other ProSeq were TaxAmbig. The three recognized strains scored the same, which indicated that the sequence selected for the ProSeqs was very conserved and would not allow discrimination between the strains. Influenza and Human Adenovirus (HAdV) were the only pathogens that had ProSeq selected that would permit detailed strain level discrimination as discussed in previous work (15, 16) . This previous work using manual analysis found that the microarray results were in excellent agreement with the conventional sequencing results for clinical samples. A few of the results of running the CIBSI 2.0 program using the updated NCBI database on the raw microarray results are presented in Table 2 (the results for all samples used in the previous work are presented in Supplementary Table A) . The identified organisms were not identical to the original findings due to the difference in database used and because all ProSeqs were considered rather than only the Flu A and B hemagglutinin. In fact, the conventional sequencing results that were submitted to NCBI from that work were found for every sample to be among the returns with the best score for the hemagglutinin ProSeq (Supplementary Table B ). It should be noted that the previous work based its analysis upon only the results of the hemagglutinin ProSeq. For 8 of 13 Influenza A and 3 of 12 Influenza B cases, the results of ProSeq identification Task(I) and ProSeq grouping Task(II) found that the conventional sequencing was the single best return for the hemagglutinin ProSeq. Owing to the large number of isolate sequences in the database for the hemagglutinin gene it was not surprising that in some cases a single unique entry was not found. In each of the remaining five Influenza A samples, the other sequences returned differed by <0.2% from the conventional sequence. The fewer samples with unique isolate identifications for Influenza B were due to an older reference sequence used for the ProSeq, which allowed less Note: Within a row the first listing of a specific strain was followed by a two-letter abbreviation used in the remaining columns of that row. hybridization to occur (18) . This also meant that when multiple sequences were returned for a sample they represented greater genetic variation, up to 2%. As a result of the current method of making pathogen determination Task(III) level identification, the final organism reported was less specific (H3N2 or Flu B) for every sample than what was reported as possible in ProSeq grouping Task(II). For HAdV samples, the algorithm also reproduced the finer scale discriminations that had been made previously by manual methods (data not shown).",
+            "cite_spans": [
+                {
+                    "start": 2872,
+                    "end": 2876,
+                    "text": "(15,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 2877,
+                    "end": 2880,
+                    "text": "16)",
+                    "ref_id": null
+                },
+                {
+                    "start": 4649,
+                    "end": 4653,
+                    "text": "(18)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 545,
+                    "end": 552,
+                    "text": "Table 1",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 900,
+                    "end": 907,
+                    "text": "Table 1",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 3182,
+                    "end": 3189,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 3276,
+                    "end": 3284,
+                    "text": "Table A)",
+                    "ref_id": null
+                },
+                {
+                    "start": 3672,
+                    "end": 3694,
+                    "text": "(Supplementary Table B",
+                    "ref_id": null
+                }
+            ],
+            "section": "Pathogen identification"
+        },
+        {
+            "text": "The next example of detection for the Mycoplasma pneumoniae pathogen demonstrated a case where there was only a single ProSeq for the target pathogen. A total of 48 test samples were performed using multiplex PCR (via method in Lin et al., submitted for publication) where for 46 of the samples M.pneumoniae organism was spiked into nasal wash with several other pathogens from 100 to 100 000 colony forming units per ml, the remaining 2 samples were purified with nucleic acid from culture stock at a concentration of 1000 genome copies per reaction volume. This ProSeq was also not optimal for fine discrimination because it was selected from a highly conserved region (345 bp) of the cytadhesin P1 gene. In every case taxonomic database entries for M.pneumoniae or its one recognized distinct strain tied for MaxScore (Supplementary Table 3 ). To better understand these returns, the database sequences were examined and subdivided into three groups of sequences, A, B and C, based on how well they matched the reference sequence used to make the ProSeq. The placement of the database entries into the three groups was determined from a CLUSTAL alignment of the sequences of this gene. This alignment confirmed that the database entries differed significantly more from each other in regions not represented by the ProSeq and contained sufficient variability that would have allowed finer discrimination. Members of Group A exactly matched the ProSeq and could not be distinguished between on the microarray. Similarly, members of group B matched the Pro-Seq except at the 199th position where the base called was C rather than T. Group C sequences contained a few database entries that were more variable and might be distinguished from other entries within the ProSeq. For the 48 experimental tests of M.pneumoniae, as much as 80% of the ProSeq hybridized for 19 samples, yet only 5 of these samples had an unambiguous base call at the 199th position. When it was unambiguous, it always matched group B sequences. In the cases where an N base call was made at the 199th location, both groups A and B sequences were returned with the same score. Regardless of this, the target pathogen positively identified was M.pneumoniae for every sample tested.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 821,
+                    "end": 843,
+                    "text": "(Supplementary Table 3",
+                    "ref_id": "TABREF4"
+                }
+            ],
+            "section": "Pathogen identification"
+        },
+        {
+            "text": "These examples showed how decisions were made independent of whether single or multiple ProSeqs were dedicated to a target pathogen. They also illustrated that the level of discrimination possible was strongly determined by the quality of the selected ProSeq. It is possible that for some pathogens fine level discrimination is not required and the currently tested selections on RPM v.1 would provide satisfactory information. The CIBSI 2.0 algorithm demonstrated its capability to automatically report the maximum level of discrimination that could be supported by the HybSeq information.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Pathogen identification"
+        },
+        {
+            "text": "To demonstrate how the algorithm handled closely related genetic species, a sample of a non-targeted pathogen was considered using multiplex PCR (via method in Lin et al., submitted for publication). For Variola major virus, one of the biothreat pathogens on the RPMv.1, the validation runs demonstrated that Variola major virus purified DNA templates of plasmids were always positively identified when detected (Table 3) . Table 4 shows the results when purified Vaccinia genomic DNA was spiked into nasal washes and processed at various concentrations using multiplex PCR. The array has two ProSeqs from hemagglutinin (VMVHA, $500 bp) and cytokine response modifier B (VMVcrmB, $300 bp) genes for Variola major virus detection. The percentage of the ProSeq that hybridizes is sufficient that if hybridization patterns were only considered one might assume that this tile is identifying the presence of its target. This would indicate that reference sequence selected was not the best choice. However, when our algorithm was applied none of the samples is in fact identified as Variola major or minor virus. Vaccinia was always one of the Orthopoxvirus species listed with the highest scores for VMVcrmB ProSeq, but in only seven cases was it uniquely identified as the probable species detected. In only one sample at the lowest concentration and fraction of VMVcrmB hybridizing, did this ProSeq even identify Variola major and minor virus as one among the Orthopoxvirus species that could be the cause of the hybridization. The lower limit of detection for the amplification method used was between this concentration and the one above it for Variola major itself. Table 2 showed that HybSeqs split into multiple SubSeqs were capable of very specific identification.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 412,
+                    "end": 421,
+                    "text": "(Table 3)",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 424,
+                    "end": 431,
+                    "text": "Table 4",
+                    "ref_id": "TABREF6"
+                },
+                {
+                    "start": 1668,
+                    "end": 1675,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Genetic near neighbors"
+        },
+        {
+            "text": "To illustrate the other filtering performed, when multiplex strategies rather than generic were used for amplification Figure 5 also contains the raw and mask filtered results of this region for the A/Puerto Rico/8/34 sample. It was necessary to perform additional filtering to remove potential biasing caused by the specific primers as described in the methods. In the case shown in Figure 5 , a sequence of 18 bases present in the raw result are made N after filtering since they are in a location that interacts with the primers. If these base calls were included in the subsequences constructed, even though the HybSeq would still be split into the same number of SubSeq, the query for the ProSeq would favor an incorrect strain.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 119,
+                    "end": 127,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 384,
+                    "end": 392,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Genetic near neighbors"
+        },
+        {
+            "text": "The algorithm we have developed successfully provided pathogen identification to the maximum level of detail possible (species or strain) depending on the quality of each Pro-Seq. This identification capability requires minimal input on the identity of the pathogens, making non-expert use feasible. The crucial feature incorporated that allowed complete automation was the use of taxonomic databases, which classify organisms into ordered groups and provide relationships between organism entries, allowing removal of redundancies, comparison of different related prototype sequences and simplification of data presentation. This allows databases, i.e. NCBI, that are redundant and subject to minimal curation but which constantly receive updated and new sequence information to be used with great success. Although we have demonstrated this using only the NCBI databases, other databases or custom made ones could have easily been used, which might improve performance. The algorithm is capable of providing accurate identifications at all analysis levels for pathogens that are less variable or are represented by highly conserved ProSeqs. For more variable or rapidly mutating pathogens, e.g. Influenza A virus, ProSeq identification Task(I) and ProSeq grouping Task(II) still provided accurate detailed identifications, but the pathogen determination Task(III) was unable to report fine scale discrimination. The comparison of the conventionally sequenced Influenza virus gene sequences illustrated that the algorithm is capable of automatically adjusting for updates in databases. The algorithm demonstrated its capability to properly distinguish hybridizations on a ProSeq caused by the specified pathogen from those caused by genetically close (near neighbor) strains and did not make incorrect identifications, eliminating one potential cause of false positives. Filtering the raw hybridization results served to reduce the computation time, accounted for potential primer interference and more importantly reduced potential biasing. This simple integrated algorithm provided sufficient and accurate identification, so that immediate use of the RPM v.1 or similar resequencing arrays and assay is possible. Although not discussed in this paper, the algorithm has successfully detected the presence of simulated multi-infections (Lin et al., submitted for publication). The algorithm as currently developed will detect mixtures when the organisms have sufficient variation; however, detection of a mixture of an organism and its mutation strain in a sample is uncertain in its present phase. In principle it may be possible to detect such mixtures as the resequencing microarray can detect and sequence diploid organisms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Besides demonstrating the success of the CIBSI 2.0 program, the work involved in developing the algorithm allowed insight into the importance of proper ProSeq selection. The RPM v.1 was the first resequencing array designed specifically for multiple pathogen detection using database similarity searching and served as a prototype for this application. We have demonstrated that a single ProSeq with as few as 100 bp, when designed correctly, can be sufficient to unambiguously identify an organism. However, it is clearly indicated that several longer ProSeqs provide better confirmation and more detailed information of a pathogen. Although the algorithm provides accuracy equivalent to manual analysis for determinations of individual ProSeqs, the current algorithm is only partially successful in integrating information from multiple ProSeqs. The emphasis of the design to this point has been on capabilities that are generally applicable to any pathogen. We are incorporating these insights in our newer more comprehensive resequencing array designs. Improving on level of detail reported in pathogen determination Task(III) will require more information about an individual pathogen and may have to be developed for each specific pathogen or class of pathogens. This information is also required for the algorithm to identify which differences between a sample and database entries represent significant mutations. Future work will involve improving the use of the current taxonomic database or potentially developing a new relational database that is specific to our needs and then incorporating more specific information of target pathogens. The hierarchal design of the data analysis makes it easy to incorporate analysis that build upon the analysis already performed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We have met with some success in the current version but want to have increased automated discrimination. We have a well-defined path to completing this aim. The use of properly designed resequencing microarrays and this automated detection algorithm provides a way forward to developing assays that can test for multiple organisms simultaneously while providing fine strain level discrimination giving access to information about detailed strain recognition, antibiotic resistance markers and pathogenicity. This is a capability that other approaches cannot currently provide. In addition, since the design of the original 30 kb RPM microarray, the possible sequence content of the current array has increased 10-fold to 300 kb and further increases in array density are still attainable. This, coupled with our identification algorithms, will allow the analysis of partial sequence information from even more organisms for applications such as differential diagnostics for illnesses with multiple potential causes (i.e. febrile respiratory illness), tracking of emergent pathogens, distinction of biological threats from harmless near genetic neighbors in surveillance applications and for tracking the impact of coinfections or super infections. The concept of categorizing and reporting different degrees of identification depending on the quality of samples and set of target sequences is not limited to resequencing microarrays but is more generally applicable to any platform that is capable of returning sequence level calls that can be used to query a reference DNA database. As the trend for assays that test for multiple pathogens increases, automated analysis tools, such as this one, become more crucial for rapid identification in simple formats useful to the non-expert on a day to day basis. The remaining hurdle to using resequencing microarrays as a routine assay method is now clearly the sample processing methods. Further automating these steps is an important area of future research and development.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "The program can be obtained free of charge for research purposes by contacting the authors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "The role of nucleic acid amplification and detection in the clinical microbiology laboratory",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Whelen",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Persing",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Annu. Rev. Microbiol",
+            "volume": "50",
+            "issn": "",
+            "pages": "349--373",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "A multiplex PCR for detection of Mycoplasma pneumoniae, Chlamydophila pneumoniae, Legionella pneumophila, and Bordetella pertussis in clinical specimens",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mcdonough",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Barrozo",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Russell",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Metzgar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Mol. Cell Probes",
+            "volume": "19",
+            "issn": "",
+            "pages": "314--322",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Use of an oligonucleotide array for laboratory diagnosis of bacteria responsible for acute upper respiratory infections",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Roth",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Jalava",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Ruuskanen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ruohola",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Nikkari",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Clin. Microbiol",
+            "volume": "42",
+            "issn": "",
+            "pages": "4268--4274",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Limitations of TaqMan PCR for detecting divergent viral pathogens illustrated by hepatitis A, B, C, and E viruses and human immunodeficiency virus",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Gardner",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kuczmarski",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Vitalis",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Slezak",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Clin. Microbiol",
+            "volume": "41",
+            "issn": "",
+            "pages": "2417--2427",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "High-throughput variation detection and genotyping using microarrays",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Cutler",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Zwick",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Carrasquillo",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Yohn",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Tobin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Kashuk",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Shah",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Eichler",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Warrington",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Genome Res",
+            "volume": "11",
+            "issn": "",
+            "pages": "1913--1925",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Simultaneous genotyping and species identification using hybridization pattern recognition analysis of generic Mycobacterium DNA arrays",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Gingeras",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Ghandour",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Berno",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Small",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Drobniewski",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Alland",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Desmond",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Holodniy",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Drenkow",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Genome Res",
+            "volume": "8",
+            "issn": "",
+            "pages": "435--448",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Resequencing and mutational analysis using oligonucleotide microarrays",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Hacia",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Nature Genet",
+            "volume": "21",
+            "issn": "",
+            "pages": "42--47",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Biological threat detection via host gene expression profiling",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Vahey",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Thach",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Stenger",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Pancrazio",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Clin. Chem",
+            "volume": "49",
+            "issn": "",
+            "pages": "1045--1049",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Sequence-specific identification of 18 pathogenic microorganisms using microarray technology",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Strout",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Desantis",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Stilwell",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Carrano",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Andersen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Mol. Cell Probes",
+            "volume": "16",
+            "issn": "",
+            "pages": "119--127",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "High-density microarray of small-subunit ribosomal DNA probes",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Radosevich",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Desantis",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Viswanathan",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kuczmarski",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Andersen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Appl. Environ. Microbiol",
+            "volume": "68",
+            "issn": "",
+            "pages": "2535--2541",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Microarray-based resequencing of multiple Bacillus anthracis isolates",
+            "authors": [],
+            "year": null,
+            "venue": "Genome Biol",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "The Human MitoChip: a high-throughput sequencing microarray for mitochondrial mutation detection",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Maitra",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Cohen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Gillespie",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Mambo",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Fukushima",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Hoque",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Shah",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Goggins",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Califano",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sidransky",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Genome Res",
+            "volume": "14",
+            "issn": "",
+            "pages": "812--819",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Tracking the evolution of the SARS coronavirus using high-throughput, high-density resequencing arrays",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Albert",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Vega",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Norton",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Cutler",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Richmond",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Stanton",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Miller",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Genome Res",
+            "volume": "14",
+            "issn": "",
+            "pages": "398--405",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Evaluation of Affymetrix severe acute respiratory syndrome resequencing GeneChips in characterization of the genomes of two strains of coronavirus infecting humans",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Sulaiman",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Frace",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Sulaiman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Olsen-Rasmussen",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Neuhaus",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rota",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wohlhueter",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Appl. Environ. Microbiol",
+            "volume": "72",
+            "issn": "",
+            "pages": "207--211",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Identifying influenza viruses with resequencing microarrays",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Daum",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Vora",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Metzgar",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Walter",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Canas",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Malanoski",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Stenger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Emerg. Infect. Dis",
+            "volume": "12",
+            "issn": "",
+            "pages": "638--646",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Broad-spectrum respiratory tract pathogen identification using resequencing DNA microarrays",
+            "authors": [],
+            "year": null,
+            "venue": "Genome Res",
+            "volume": "16",
+            "issn": "",
+            "pages": "527--535",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Basic local alignment search tool",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Altschul",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Gish",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Miller",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Myers",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lipman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Mol. Biol",
+            "volume": "215",
+            "issn": "",
+            "pages": "403--410",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Use of resequencing oligonucleotide microarrays for identification of Streptococcus pyogenes and associated antibiotic resistance determinants",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Davignon",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Walter",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Mueller",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Barrozo",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Stenger",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Clin. Microbiol",
+            "volume": "43",
+            "issn": "",
+            "pages": "5690--5695",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Large epidemic of adenovirus type 4 infection among military trainees: epidemiological, clinical, and laboratory studies",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kolavic-Gray",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Binn",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Sanchez",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Cersovsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Polyak",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Mitchell-Raymundo",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Asher",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Vaughn",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Feighner",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Innis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Clin. Infect. Dis",
+            "volume": "35",
+            "issn": "",
+            "pages": "808--818",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Molecular epidemiology of adenovirus type 7 in the United States",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Erdman",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Gerber",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Gray",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Schnurr",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Kajon",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1966,
+            "venue": "Emerg. Infect. Dis",
+            "volume": "8",
+            "issn": "",
+            "pages": "269--277",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Mortality associated with influenza and respiratory syncytial virus in the United States",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Shay",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Weintraub",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Brammer",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Cox",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Fukuda",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Am. Med. Asso",
+            "volume": "289",
+            "issn": "",
+            "pages": "179--186",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Schematic representation of the algorithm representing relationship of three main tasks and logic of subtasks associated with tasks. ProSeq identification Task(I) carries out filtering and subsequence selection, and then determines what database records Subseqs are most similar to. ProSeq grouping Task(II) figures whether prototype sequence identifications support a common organism identification. Pathogen determination Task(III) does final examination and decisions of the detected organism from the microarray data. ProSeq: prototype sequence; SubSeq: subsequences.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Schematic representation of the third subtask of ProSeq identification Task(I), which determines the organism, determined for a ProSeq based on the results found for its SubSeq. All of the SubSeq of a particular ProSeq are compared to determine the two best scoring SubSeq.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "G1) J138 (BA000008), AR39 (AE002167),Tw-183 (AE017159), C. pne (M69230, AF131889, AY555078, M64064, AF131229, AF131230); (G2) C. pne (S83995); (G3) J138 (BA000008), AR39 (AE002167), Tw-183 (AE017159). SU abbreviation for SeqUniqu; TA abbreviation for TaxAmbig; TU abbreviation for TaxUniqu.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Alignment of the influenza A NA1 ProSeq and A/Weiss/43, A/PuertoRico/8/34 strains. Raw and filtered hybridization chip results of A/puertoRico/8/ 34 are also shown. Asterisks indicate perfectly matched sequences.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "Lin et al., submitted for publication). In all cases, the algorithm correctly identified the organism at a species or strain level, depending on the length of the ProSeqs represented on the RPM v.1. Some specific examples will be discussed to illustrate how the algorithm performs under a variety of conditions.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Algorithm decisions for C.pneumoniae at several concentrations for SubSeq, ProSeq identification Task(I), ProSeq grouping Task(II) and pathogen determinationTask(III)",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Algorithm decisions for Influenza A clinical sample identified previously using a manual method for SubSeq, ProSeq identification Task(I), ProSeq grouping Task(II) and pathogen determination Task(III)",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Organism identification and algorithm decisions from Variola Major virus Nucleic Acid templates for SubSeq, ProSeq identification Task(I), ProSeq grouping Task(II) and pathogen determinationTask(III)",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF6": {
+            "text": "Organism identification and algorithm decisions from Vaccinia sample on Variola Major virus ProSeqs for SubSeq, Elephantpox, Aracatuba, Cowpox, Taterapox. (H4) H2 and Cowpox. (H5) H4 and Camelpox. (H6) H1 and Variola, Variola Major, Variola Minor.In ProSeq identification Task(I), the algorithm determined that three of the SubSeqs, which were shorter, had an identified organism of H1N1 as several isolates including A/Puerto Rico/8/34 tied with the best score, while the two other Sub-Seqs had an identified organism of only the A/Puerto Rico/ 8/34 strain as being the closest match. The organism identified by the NA1 ProSeq was A/Puerto Rico/8/34 because one of the SubSeqs had a much higher score. This ProSeq supported the same strain identification made in the matrix ProSeq. The organism identified was A/Puerto Rico/8/34 because two ProSeqs detected only that organism. The correct target pathogen was detected with filtering while without filtering the target pathogen level of identification would have been Influenza A (H1N1 subtype) because two organisms were detected, A/Puerto Rico/8/34 and A/Weiss/43. Splitting the HybSeq into SubSeqs to remove biasing may reduce the level of identification as occurred for the three of the five SubSeqs in this case. The previous example for Vaccinia was another instance where the wrong species (Camel Pox or Callithrix jacchus) identification would occur if the filtering was not used. Clinical samples in",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank Kate Blaney, Adam Ligler, Carolyn Meador, Paul Xu, Brian Weslowski and the Silent Guardian team without whom the microarray data would not be available. The opinions and assertions contained herein are those of the authors and are not to be construed as official or reflecting the views of the Department of Defense or the US Government. Funding support for this research was from the Office of Naval Research via the Naval Research Laboratory Base program. Funding to pay the Open Access publication charges for this article was provided by ONR.Conflict of interest statement. None declared.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        },
+        {
+            "text": "Supplementary Data are available at NAR Online.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUPPLEMENTARY DATA"
+        }
+    ]
+}

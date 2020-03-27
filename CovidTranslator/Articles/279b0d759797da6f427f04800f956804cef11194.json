@@ -1,0 +1,2381 @@
+{
+    "paper_id": "279b0d759797da6f427f04800f956804cef11194",
+    "metadata": {
+        "title": "An efficient pattern growth approach for mining fault tolerant frequent itemsets tolerant frequent itemset mining Frequent itemset mining Pattern growth Association rules mining",
+        "authors": [
+            {
+                "first": "Shariq",
+                "middle": [],
+                "last": "Bashir",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Foundation University",
+                    "location": {
+                        "settlement": "Islamabad",
+                        "country": "Pakistan"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Mining fault tolerant (FT) frequent itemsets from transactional databases are computationally more expensive than mining exact matching frequent itemsets. Previous algorithms mine FT frequent itemsets using Apriori heuristic. Apriori-like algorithms generate exponential number of candidate itemsets including the itemsets that do not exist in the database. These algorithms require multiple scans of database for counting the support of candidate FT itemsets. In this paper we present a novel algorithm, which mines FT frequent itemsets using frequent pattern growth approach (FT-PatternGrowth). FT-PatternGrowth adopts a divide-and-conquer technique and recursively projects transactional database into a set of smaller projected transactional databases and mines FT frequent itemsets in each projected database by exploring only locally frequent items. This mines the complete set of FT frequent itemsets and substantially reduces those candidate itemsets that do not exist in the database. FT-PatternGrowth stores the transactional database in a highly condensed much smaller data structure called frequent pattern tree (FP-tree). The support of candidate itemsets are counted directly from the FP-tree without scanning the original database multiple times. This improves the processing speed of algorithm. Our experiments on benchmark databases indicates mining FT frequent itemsets using FT-PatternGrowth is highly efficient than Apriori-like algorithms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Mining frequent itemsets from transactional databases play an important role in many data mining applications, e.g., social network mining ( Jiang, Leung, & Zhang, 2016; Moosavi, Jalali, Misaghian, Shamshirband, & Anisi, 2017 ) , finding gene expression patterns ( Becquet, Blachon, Jeudy, Boulicaut, & Gandrillon, 2001; Creighton & Hanash, 2003; Cremaschi et al., 2015; Mallik, Mukhopadhyay, & Maulik, 2015 ) , web log pattern mining ( Diwakar Tripathia & Edlaa, 2017; Han, Cheng, Xin, & Yan, 2007; Iv\u00e1ncsy, Ren\u00e1ta, & Vajk, 2006; Yu & Korkmaz, 2015 ) . In recent years, many algorithms have been proposed for efficient mining of frequent itemsets ( Apiletti et al., 2017; Bodon, 2003; Burdick, Calimlim, Flannick, Gehrke, & Yiu, 2005; Gan, Lin, Fournier-Viger, Chao, & Zhan, 2017; Han, Pei, & Yin, 20 0 0; Kosters & Pijls, 2003; Liu, Lu, Yu, Wang, & Xiao, 2003; Pei, Tung, & Han, 2001; Uno, Kiyomi, & Arimura, 2004; Vo, Pham, Le, & Deng, 2017 ) . These algorithms take a transactional database and support threshold (minimum itemset support) as input and mines complete set of frequent itemsets with support greater than minimum itemset support . Traditional frequent itemset mining (FIM) approach dis-E-mail address: shariq.bashir@fui.edu.pk covers only exact matching itemsets that are absolutely matched. This creates problem when the database contains missing items in transactions and may cause some implicit frequent itemsets not being discover ( Yu, Li, & Wang, 2015 ) . In the presence of missing items users face difficulties in setting suitable support threshold for mining desired itemsets. For example, if the support threshold is set too large then FIM discovers only a small number of frequent itemsets, which do not provide desirable output. On the other hand if the support threshold is set too small then FIM generates too many redundant short length frequent itemsets ( Cheung & Fu, 2004; Huynh-Thi-Le, Le, Vo, & Le, 2015 ; Saif-Ur-Rehman, Ashraf, Habib, & Salam, 2016 ) . This not only consumes large processing time but also increases the complexity of filtering interesting frequent itemsets. In both settings, the ultimate goal of mining interesting frequent itemsets is undermined.",
+            "cite_spans": [
+                {
+                    "start": 139,
+                    "end": 169,
+                    "text": "( Jiang, Leung, & Zhang, 2016;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 170,
+                    "end": 227,
+                    "text": "Moosavi, Jalali, Misaghian, Shamshirband, & Anisi, 2017 )",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 263,
+                    "end": 320,
+                    "text": "( Becquet, Blachon, Jeudy, Boulicaut, & Gandrillon, 2001;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 321,
+                    "end": 346,
+                    "text": "Creighton & Hanash, 2003;",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 347,
+                    "end": 370,
+                    "text": "Cremaschi et al., 2015;",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 371,
+                    "end": 409,
+                    "text": "Mallik, Mukhopadhyay, & Maulik, 2015 )",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 435,
+                    "end": 469,
+                    "text": "( Diwakar Tripathia & Edlaa, 2017;",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 470,
+                    "end": 499,
+                    "text": "Han, Cheng, Xin, & Yan, 2007;",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 500,
+                    "end": 530,
+                    "text": "Iv\u00e1ncsy, Ren\u00e1ta, & Vajk, 2006;",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 531,
+                    "end": 551,
+                    "text": "Yu & Korkmaz, 2015 )",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 648,
+                    "end": 672,
+                    "text": "( Apiletti et al., 2017;",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 673,
+                    "end": 685,
+                    "text": "Bodon, 2003;",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 686,
+                    "end": 735,
+                    "text": "Burdick, Calimlim, Flannick, Gehrke, & Yiu, 2005;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 736,
+                    "end": 781,
+                    "text": "Gan, Lin, Fournier-Viger, Chao, & Zhan, 2017;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 782,
+                    "end": 806,
+                    "text": "Han, Pei, & Yin, 20 0 0;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 807,
+                    "end": 829,
+                    "text": "Kosters & Pijls, 2003;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 830,
+                    "end": 862,
+                    "text": "Liu, Lu, Yu, Wang, & Xiao, 2003;",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 863,
+                    "end": 886,
+                    "text": "Pei, Tung, & Han, 2001;",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 887,
+                    "end": 916,
+                    "text": "Uno, Kiyomi, & Arimura, 2004;",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 917,
+                    "end": 945,
+                    "text": "Vo, Pham, Le, & Deng, 2017 )",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 1452,
+                    "end": 1476,
+                    "text": "( Yu, Li, & Wang, 2015 )",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 1887,
+                    "end": 1907,
+                    "text": "( Cheung & Fu, 2004;",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1908,
+                    "end": 1940,
+                    "text": "Huynh-Thi-Le, Le, Vo, & Le, 2015",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1959,
+                    "end": 1989,
+                    "text": "Ashraf, Habib, & Salam, 2016 )",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To mine frequent itemsets in the presence of missing items, ( Pei et al., 2001 ) proposed fault tolerant (FT) frequent itemsets mining approach. The task of mining FT frequent itemsets from a transactional database can be understand from the following conditions ( Pei et al., 2001 ) . \u2022 T is the support of X which must be greater or equals to the minimum itemset support (min _ sup \u03b4 ) . Each individual item",
+            "cite_spans": [
+                {
+                    "start": 60,
+                    "end": 80,
+                    "text": "( Pei et al., 2001 )",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 263,
+                    "end": 283,
+                    "text": "( Pei et al., 2001 )",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "i of X must appear in at least m number of FT-transactions of X . The m is the minimum item support (item _ sup \u03b4 ) under fault tolerant factor \u03b4. Table 1 shows a transactional database as our running example. It contains eleven items and nine transactions. To mine frequent itemsets if the user gives the minimum itemset support equals to 3 then there exists no itemset with length more than 2 items (see column 2 of Table 1 ). The database has many short length itemsets with low support count. To discover generalized knowledge users would be interested to mine itemsets of long length with high support count. If we further analyze the database, then we can discover some long length frequent itemsets. These are not absolutely matched in transactions but have support more than 2. For example, further analysis reveals that the itemset ( abcef ) has itemset support 3 as the transactions 10, 30, and 50 contain four out of five items of abcef , and every single item of ( abcef ) is appeared in two out of three transactions. This frequent itemset mining phenomenon is interesting in terms of that it discovers generalized frequent itemsets that are not absolutely matched by slightly relaxing the notion of traditional frequent itemset. This phenomenon motivates us to develop an automatic method to mine such kind of knowledge. This task is called mining fault tolerant (FT) frequent itemsets ( Pei et al., 2001 ) .",
+            "cite_spans": [
+                {
+                    "start": 1400,
+                    "end": 1420,
+                    "text": "( Pei et al., 2001 )",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 147,
+                    "end": 154,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                },
+                {
+                    "start": 418,
+                    "end": 425,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "Given the definition of mining FT frequent itemset if the look again at the database of Table 1 . Suppose the (min _ sup \u03b4 ) = 3 and the (item _ sup \u03b4 ) = 2 . Suppose one mismatch is allowed, i.e., fault tolerant (\u03b4 = 1) . The itemset X = (abce f ) is a FT frequent itemset since it's 4 out of 5 items are present in FT transactions 10,20 and 50 which qualifies min _ sup \u03b4 = 3 , and each single item a, b, c, e and f is present in at least two transactions with qualifies (item _ sup \u03b4 ) = 2 threshold. ( Pei et al., 2001 ) proposed FT-Apriori algorithm for mining FT frequent itemsets from transactional databases. FT-Apriori uses candidate generationand-test approach for mining FT frequent itemsets. Although, the performance of FT-Apriori is efficient when database is sparse and FT support thresholds are given large. However, FT-Apriori encounters difficulties and takes long processing time for dense and spare databases if the FT support thresholds are given small.",
+            "cite_spans": [
+                {
+                    "start": 504,
+                    "end": 533,
+                    "text": "( Pei et al., 2001 ) proposed",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 88,
+                    "end": 95,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "We list here main limitations of FT-Apriori that do not make it an attractive solution for mining FT frequent itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 FT-Apriori is based on Apriori-like candidate generationand-test approach. This approach is not efficient for databases having large number of items. For example, to mine complete set of FT frequent itemsets of a database with 200 items. FT-Apriori has to generate and test all the 2 200 candidates.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 FT-Apriori applies bottom-up search mechanism and this enumerates each subset of itemset X before mining itemset X . This implies that in order to produce FT frequent itemsets of length Y , the algorithm must generate all subsets of Y which are 2 Y , since all subsets must be frequent. This exponential complexity of FT-Apriori fundamentally restricts the algorithm to mine complete set of itemsets in a reasonable time limit.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "\u2022 To mine FT frequent itemsets of length Y the FT-Apriori requires full scan of database multiple times for counting support of itemsets. These scans are costly when the database is large and number of candidates to be examined are numerous.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To overcome these limitations in this paper we proposed a new approach for mining FT frequent itemsets using pattern growth approach (FT-PatternGrowth). FT-PatternGrowth adopts a divideand-conquer technique and recursively projects a transactional database into a set of smaller projected transactional databases and mines FT frequent itemsets in each projected database by exploring only locally frequent items. This mines the complete set of FT frequent itemsets and substantially reduces those candidate itemsets that do not exist in the database ( Han & Pei, 2014; Han et al., 20 0 0; Han, Pei, Yin, & Mao, 20 04 ) . The major advantage of mining FT frequent itemsets using pattern growth approach is that it removes two costly operations of Apriori heuristic: candidate generate-and-test and repeatedly scanning of database for counting support of itemsets. The first scan of database counts the support of all frequent items of length one. The second scan of database builds a compact data structure called frequent pattern (FP)-tree. Each node of FP-tree corresponds to an item which was found frequent in first scan of database. Next, all FT frequent itemsets are mined directly from this FP-tree without scanning the database multiple times. The approach traverses search space using depth first order and during traversing each node it generates FT frequent itemsets using conditional patterns and builds compacted child FP-trees for mining FT frequent itemsets of next level. We tested our approach on several benchmarks databases and found computationally efficient than FT-Apriori .",
+            "cite_spans": [
+                {
+                    "start": 550,
+                    "end": 568,
+                    "text": "( Han & Pei, 2014;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 569,
+                    "end": 588,
+                    "text": "Han et al., 20 0 0;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 589,
+                    "end": 618,
+                    "text": "Han, Pei, Yin, & Mao, 20 04 )",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The remainder of this paper is structured as follows. Section 2 reviews related work on mining FT frequent itemsets. In Section 3 we provide formal definition of mining FT frequent itemsets. In Section 4 we explain design and construction of pattern growth approach for mining FT frequent itemsets. Section 5 explains experimental setup and databases and analyzes the performance of algorithms on benchmark databases. Finally, Section 6 briefly summarizes the key results of our work.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "This section provides a review on related algorithms for mining FT frequent itemsets. We start this section by first introducing some applications for FT frequent itemsets, and then we introduce related algorithms of FT frequent itemsets by providing their descriptions and limitations. Li and Wang (2015) used the concept of FT frequent itemsets to mine FT frequent subgraphs from graph databases. They found that traditional exact matching algorithms generates only frequent subgraphs which have exact match in the graph databases. Thus, the interesting subgraphs could be left undiscovered if their are slightly different occurrences of edges in databases. They proposed algorithm using Apriori heuristic to mine FT frequent subgraphs. They also enhanced the working of algorithm by mining non-redundant representative frequent subgraphs which further summarizes the frequent subgraphs by allowing approximate number of matches in a graph database. They performed experiments on both real as well as synthetic databases and found their approach more efficient than traditional algorithms.",
+            "cite_spans": [
+                {
+                    "start": 287,
+                    "end": 305,
+                    "text": "Li and Wang (2015)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Related work"
+        },
+        {
+            "text": "Morales-Gonz\u00e1lez, Acosta-Mendoza, Alonso, Reyes, and Medina-Pagola (2014) used FT frequent subgraphs for image classification. They designed a classification framework in which frequent approximate subgraphs of images are utilised for classification features. They tested their approach on two real images databases and reported better classification accuracy than non mining approaches by keeping in view the fact that FT frequent subgraph mining is a better approach than exact mining approach for this particular task. Ashraf and d. Tabrez Nafis (2017) proposed FT frequent itemset mining algorithms for both certain and uncertain composite datasets. In experiments they showed their algorithms are efficient for mining such patterns. They also discovered whenever the frequent itemset mining is done on distributed computing environment, the problem of false positive and false negative can also be handled accordingly. Kargupta, Han, Yu, Motwani, and Kumar (2008) presented an approach for mining approximate frequent sequential patterns. Through experiments they showed their approach is efficient to mine globally repeating approximate sequential patterns which could not be discovered through existing exact matching techniques. Lee, Peng, and Lin (2009) developed algorithms for mining itemsets from biological databases by using FT frequent itemsets. They showed the number of tolerable faults occurred in a proportional FT itemsets are directly proportional to the length of the itemsets. They proposed two algorithms to solve this problem. First algorithm is based on Apriori heuristic which mines all FT itemsets with any number of faults occurred. The second algorithm divides complete set of FT itemsets in groups keeping in view a set ratio of tolerable faults which returns the mined itemsets from each group. They showed the working of their algorithms on real databases and reported epitopes of spike protein of SARS-CoV in resulting itemsets and reported FT frequent itesmets technique is better than exact matching techniques. Besson, Pensa, Robardet, and Boulicaut (2005) proposed a method to mine extensions of bi-set itemsets with fault tolerant factor. They also evaluated three declared specifications of FT bi-sets by considering constraints based mining methodology. As a result, their mining framework posted a better and comprehensive understanding on the requisite trade-off between pattern extraction feasibility, ease of interpretation, relevance and completeness of these fault tolerant patterns. They showed experimental demonstration empirically on real-life medical and synthetic databases.",
+            "cite_spans": [
+                {
+                    "start": 522,
+                    "end": 555,
+                    "text": "Ashraf and d. Tabrez Nafis (2017)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 934,
+                    "end": 968,
+                    "text": "Han, Yu, Motwani, and Kumar (2008)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1237,
+                    "end": 1262,
+                    "text": "Lee, Peng, and Lin (2009)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 2048,
+                    "end": 2093,
+                    "text": "Besson, Pensa, Robardet, and Boulicaut (2005)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Applications of mining FT frequent itemsets"
+        },
+        {
+            "text": "Majority of algorithms proposed in recent years are based on candidate generation-and-test approach. We presented brief descriptions and limitations of these algorithms. These algorithms apply a top down complete search space exploration. These algorithms prune infrequent FT itemset using anti-monotone Apriori heuristic. The major drawbacks of these algorithms are repeatedly scanning of full database for counting itemset support, and generating too many candidates including those that do not exist in the database. Pei et al. (2001) proposed FT-Apriori algorithm. FT-Apriori in based on candidate generation-and-test approach. The algorithm applies a top down complete search space exploration. The algorithm prunes infrequent FT itemset using anti-monotone Apriori heuristic: i.e., if any FT itemset of length k is discovered infrequent, then it discards all of its supersets since they too be infrequent. The major drawbacks of FT-Apriori is repeatedly scanning of full database for counting itemset support, and generating too many candidates including those that do not exist in the database. For example, to mine FT frequent itemsets of a database with 200 items. FT-Apriori has to generate and test all the 2 200 candidates.",
+            "cite_spans": [
+                {
+                    "start": 520,
+                    "end": 537,
+                    "text": "Pei et al. (2001)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "FT frequent itemset mining algorithms"
+        },
+        {
+            "text": "To avoid costly repeatedly scanning of database, Koh and Yo (2005) proposed an algorithm called VB-FT-Mine . VB-FT-Mine scans the database only once and constructs bit-vectors for each item. VB-FT-Mine then applies depth-first pattern generation approach to generate candidate itemsets. The bit-vectors of candidate itemsets are obtained systematically, and the VB-FT-Mine quickly counts the itemset support by applying bitwise operators on bit vectors. Although, bit-vectors increase the performance of VB-FT-Mine by quickly counting itemsets support, however, similar to FT-Apriori the VB-FT-Mine generates many non-existing candidate itemsets. Bashir, Halim, and Baig (2008) proposed an algorithm for mining FT frequent itemset using pattern growth approach. The main limitation of their algorithm is that it constructs more than one FP-trees for each itemset to mine its supersets. For example, to mine supersets of itemset X under FT factor \u03b4 = 2 . The algorithm constructs three FP-tress. The algorithm constructs first FP-tree for storing all transactions of database that have mismatch factor \u03b4 = 0 . The algorithm then constructs second FP-tree for storing all transactions that have mismatch factor \u03b4 = 1 . The algorithm then constructs third FP-tree for storing all transactions that have mismatch factor \u03b4 = 2 . Koh and Lang (2010) proposed an algorithm for mining FT-frequent itemset using pattern growth approach. Similar to Bashir et al. (2008) approach, the algorithm constructs multiple FP-trees for each itemset to mine its supersets. For example to mine supersets of itemset X = (ab) under FT factor \u03b4 = 2 , the algorithm constructs 2 | X | number of FP-trees. The algorithm constructs first FP-tree for storing all transactions that contain both items: a and b ( ab ). The algorithm constructs second FP-tree for storing all transactions that contain only item a (a b ) . The algorithm constructs third FP-tree for storing all transactions that contain only item b ( a b) . Finally, it constructs fourth FP-tree to store all transactions that do not contain both items: a and b ( ab ) .",
+            "cite_spans": [
+                {
+                    "start": 49,
+                    "end": 66,
+                    "text": "Koh and Yo (2005)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 647,
+                    "end": 677,
+                    "text": "Bashir, Halim, and Baig (2008)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1324,
+                    "end": 1343,
+                    "text": "Koh and Lang (2010)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1439,
+                    "end": 1459,
+                    "text": "Bashir et al. (2008)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "FT frequent itemset mining algorithms"
+        },
+        {
+            "text": "Both algorithms based on pattern growth approach construct multiple FP-trees for mining itemsets. Due to constructing multiple FP-trees the transactions that share a similar prefix are split into multiple trees. Thus, these algorithms could not gain full benefit of FP-tree for counting itemset support. For large databases and with low support thresholds both algorithms consume large main memory for mining itemsets. The pattern growth presented in this paper does not create multiple FP-trees. If an itemset has multiple mismatch transactions, our approach maps all mismatch transactions into a single FP-tree. Thus for large databases and with low support thresholds our algorithm is more space efficient than related algorithms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "FT frequent itemset mining algorithms"
+        },
+        {
+            "text": "To discover more interesting FT itemsets, Lee and Lin (2006) relaxed the definition of mining FT frequent itemsets by mining proportional FT frequent itemsets. The concept of mining proportional FT itemsets is similar to traditional FT itemsets, however, the fault tolerant factor in proportional FT itemsets is proportional to the length of itemset. Thus, the definition of proportional discovers much large number of itemsets than the FT itemset mining definition proposed in ( Pei et al., 2001 ) . Our proposed algorithm in based on the FT definition proposed in ( Pei et al., 2001 ) . Thus, the processing time of our proposed algorithm cannot be directly comparable with the algorithm proposed in ( Lee & Lin, 2006 ) . In ( Lee et al., 2009 ) , authors discussed the applications of proportional FT frequent itemsets in bioinformatics. To discover proportional FT frequent itemsets in a reasonable time Poon (2014, 2018) proposed efficient heuristic method to mine ap-proximation version of the itemsets. Their study showed heuristic algorithm is much faster than the exact algorithms while the error is acceptable. In all studies on mining proportional FT frequent itemsets the authors proposed algorithms by mining itemsets on the basis of Apriori-like candidate generation-and-test property. However, no effort is made how to use FP-tree structure and pattern growth for increasing the speed of counting itemset support and reducing the number of candidate itemsets. Our work is different to this research. Our proposed algorithm utilises FP-tree for quickly counting itemset support and reduces the number of candidate itemsets using pattern growth approach.",
+            "cite_spans": [
+                {
+                    "start": 42,
+                    "end": 60,
+                    "text": "Lee and Lin (2006)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 478,
+                    "end": 498,
+                    "text": "( Pei et al., 2001 )",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 566,
+                    "end": 586,
+                    "text": "( Pei et al., 2001 )",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 702,
+                    "end": 721,
+                    "text": "( Lee & Lin, 2006 )",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 727,
+                    "end": 747,
+                    "text": "( Lee et al., 2009 )",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 908,
+                    "end": 925,
+                    "text": "Poon (2014, 2018)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "FT frequent itemset mining algorithms"
+        },
+        {
+            "text": "The FT frequent itemset mining problem was first introduced by Pei et al. (2001) as fault-tolerant frequent pattern mining: problems and challenges .",
+            "cite_spans": [
+                {
+                    "start": 63,
+                    "end": 80,
+                    "text": "Pei et al. (2001)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fault tolerant (FT) frequent itemset mining: Problem statement"
+        },
+        {
+            "text": "Let I = i 1 , . . . , i m be a set of items. An itemset X \u2282 I is a subset of items, an itemset with X items is called an itemset of length | X |.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fault tolerant (FT) frequent itemset mining: Problem statement"
+        },
+        {
+            "text": "The support of an itemset X in transaction database TDB , denoted as sup ( X ), is the number of transactions in TDB containing X . Given a transactional database TDB and a minimum support threshold",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fault tolerant (FT) frequent itemset mining: Problem statement"
+        },
+        {
+            "text": "Given a user-defined fault tolerant (FT) factor ( \u03b4), a transaction t is a FT-transaction t \u03b4 if it contains at least (| X| \u2212 \u03b4) number of items of X . An itemset X with length greater than (\u03b4 + 1) is a FT frequent itemset if it satisfies the following two conditions. Given the FT frequent itemset mining definition above if the look again at the database of Table 1 . Suppose the (min _ sup \u03b4 ) = 3 and the (item _ sup \u03b4 ) = 2 . Suppose one mismatch is allowed, i.e., fault tolerant (\u03b4 = 1) . The itemset X = (abce f ) is a FT frequent itemset since it's 4 out of 5 items are present in FT transactions 10, 30 and 50 which qualifies min _ sup \u03b4 = 3 , and each single item a, b, c, e and f is present in at least two transactions with qualifies",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 360,
+                    "end": 367,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Fault tolerant (FT) frequent itemset mining: Problem statement"
+        },
+        {
+            "text": "The algorithm mines FT frequent itemsets using two phases. In first phase, the algorithm mines all itemsets directly from the FP-tree of transactional database which have itemset length equals to (\u03b4 + 1) . The second phase of algorithm mines itemsets which have itemset length greater than (\u03b4 + 1) . Both phases construct FP-trees for mining itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining fault tolerant (FT) frequent itemsets using pattern growth: Design and construction"
+        },
+        {
+            "text": "FP-tree is a compact data structure which represents complete information of transactional database ( Han & Pei, 2014; Han et al., 20 0 0; Han et al., 2004 ) . FP-tree avoids costly candidate generationand-test and multiple scans of database. Each transaction of database is mapped to a branch of FP-tree. If multiple transactions share a similar set of items, the shared parts of transactions are merged into a single branch. The merging of transactions not only increases the scalability of algorithm for large databases but also improves the processing speed of algorithm for counting itemset support. To facilitate tree traversal a header table is constructed for items. This header table contains head pointers of items of FP-tree. Nodes in the tree with similar items are linked together by making linked lists of items. For mining, the head pointers and linked lists of items are used for generating candidate itemsets.",
+            "cite_spans": [
+                {
+                    "start": 100,
+                    "end": 118,
+                    "text": "( Han & Pei, 2014;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 119,
+                    "end": 138,
+                    "text": "Han et al., 20 0 0;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 139,
+                    "end": 157,
+                    "text": "Han et al., 2004 )",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mining fault tolerant (FT) frequent itemsets using pattern growth: Design and construction"
+        },
+        {
+            "text": "Example: Table 1 shows a transactional database. Let the minimum itemset support (min _ sup \u03b4 ) = 3 and the minimum item support (item _ sup \u03b4 ) = 2 . Suppose two mismatches are allowed, i.e., FT factor \u03b4 = 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 9,
+                    "end": 16,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Mining fault tolerant (FT) frequent itemsets using pattern growth: Design and construction"
+        },
+        {
+            "text": "The first scan of database derives a list of frequent items that have frequency greater or equals to item _ sup \u03b4 . All items that have support less than item _ sup \u03b4 are removed from the transactions. This is because, if an item has support less than item _ sup \u03b4 then it cannot become part of any FT frequent itemset. The items are ordered in transactions by decreasing frequency. This ordering is important since each path of FP-tree follows this order. The scan of database discovers the following frequent items, ( e : 4), ( f : 4), ( d : 4), ( a : 4), ( c : 3), ( b : 3) , the number after \":\" indicates support of item. All transactions are mapped in the FP-tree and if multiple transactions share a similar set of items, the shared part is merged in a common branch.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining fault tolerant (FT) frequent itemsets using pattern growth: Design and construction"
+        },
+        {
+            "text": "In the second scan of database the algorithm constructs the FP-tree. The scan of the first transaction constructs the first branch of FP-tree ( e, f, c, b ) (see Fig. 1 ). The frequent items in the transaction are ordered according the order in the list of frequent items. The second transaction has ordered frequent items ( e, f, a, b ) . Items e,f of second transaction share a common prefix with the existing path ( e, f, c, b ) , the count of each shared node along the prefix is incremented by 1. One new chid node ( a : 1) is created and linked with the parent node ( f : 2), and another child node ( b : 1) is created and linked with the parent node ( a : 1) (see Fig. 2 ). The third transaction ( f, d, a ) does not share any common prefix with the existing tree, therefore it leads to the construction of the second branch of the tree (see Fig. 3 ). The fourth transaction ( e ) has only one item and it shares a common prefix with the branch ( e : 2), the count of node ( e : 2) is incremented by 1 (see Fig. 4 ). Other transactions are scanned using the same mechanism as desired for the first four transactions. If multiple transactions share a similar set of items, the common prefix of transactions is merged in a common branch. Fig. 5 shows complete FP-tree after inserting all transactions of database ( Table 1 ) .",
+            "cite_spans": [
+                {
+                    "start": 323,
+                    "end": 337,
+                    "text": "( e, f, a, b )",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 162,
+                    "end": 168,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 671,
+                    "end": 677,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 849,
+                    "end": 855,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1014,
+                    "end": 1020,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 1243,
+                    "end": 1249,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 1318,
+                    "end": 1329,
+                    "text": "( Table 1 )",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Mining fault tolerant (FT) frequent itemsets using pattern growth: Design and construction"
+        },
+        {
+            "text": "All itemsets that have length equals to (\u03b4 + 1) can be mine directly from FP-tree of database. To examine the support of of the branch becomes ( \u03b4 = 3 ), which does not qualify ( \u03b4 = 2 ). The algorithm enumerates items of X in increasing frequency order, i.e., first b , then c and then a . For X , the FP-tree generates the following set of conditional patterns.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining FT frequent itemsets of length equals to (\u03b4 + 1)"
+        },
+        {
+            "text": "\u2022 For Item b , FP-tree generates conditional patterns efab : 1 , efcb : 1 , and eacb : 1 . \u2022 FP-tree is again traversed for item c and the following three conditional patterns are discovered: efc : 1 , eac : 1 , and fdc : 1 . If a conditional pattern ( c B ) is a subset of any already discovered conditional pattern ( c A ) of previous item, then the support of c B is subtracted from the support of c A . If the support of c B becomes zero, then the conditional pattern c B is ignored. Since conditional patterns efc : 1 and eac : 1 are subsets of conditional patterns ( efcb : 1 and eacb : 1 ) of item b , and after subtracting the support of efc : 1 and eac : 1 from the support of conditional patterns of b , the support of both conditional patterns become zero. Thus, both patterns are removed from the conditional patterns of c . After removing two patterns, the item c contains only conditional pattern fdc : 1 . \u2022 The FP-tree is again traversed for item a and the following three conditional patterns are discovered: efa : 2 , ea : 1 , and fda : 1 . The pattern efa : 2 is a subset of conditional pattern efab : 1 of item b . The support of efa : 2 is subtracted from the support of ( efab : 1 ), which makes the support of efa : 2 equals to 1. The pattern ea : 1 is a subset of conditional pattern eacb : 1 of item b . The support of ea : 1 is subtracted from the support of ( eacb : 1 ), which makes the support of ea : 1 equals to 0. The pattern ea : 1 is ignored. After removing, the item a contains two conditional patterns efa : 1 and fda : 1 \u2022 The three conditional patterns of b ( efcb : 1 , efab : 1 , and eacb : 1 ), one conditional pattern of c ( fdc : 1 ), and two conditional patterns of a ( efa : 1 and fda : 2 ) are used for counting items support and itemset support. Since all items of itemset ( bca ) qualify item _ sup \u03b4 = 2 , and ( bca ) qualifies itemset support (min _ sup \u03b4 = 3) . Therefore, ( bca ) is a FT frequent itemset of length three.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining FT frequent itemsets of length equals to (\u03b4 + 1)"
+        },
+        {
+            "text": "The FP-tree is continuously scan for generating conditional patterns of other itemsets of length equals to (\u03b4 + 1) . The item support and itemset support are calculated by following the example of itemset ( bca ). Lines from 4 to 8 of Algorithm 1 show the pseudo code for mining FT frequent itemsets of length equals to (\u03b4 + 1) . FT-FP-Tree( C, \u03b2); c efc : 1 Ignored, because it has been already discovered from item b ( efcb : 1), and its support becomes zero after subtracting its support fromthe support of efcb : 1. c eac : 1 Ignored, because it has been already discovered from item b ( eacb : 1), and its support becomes zero after subtracting its support fromthe support of eacb : 1. a ea : 1 Ignored, because it has been already discovered from item b ( eacb : 1), and its support becomes zero after subtracting its support fromthe support of eacb : 1. a fda : 1 ( fd , sup : 1 , \u03b4: 2 , a : 1, c : 0, b : 0 )",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining FT frequent itemsets of length equals to (\u03b4 + 1)"
+        },
+        {
+            "text": "To mine FT frequent itemsets of length greater than (\u03b4 + 1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining FT frequent itemsets of length more than (\u03b4 + 1)"
+        },
+        {
+            "text": "we propose an approach for generating FT-FP-tree (fault tolerant FP-tree) and mining FT frequent itemsets from the FT-FP-tree. The FT-FP-tree is iteratively constructed for each FT frequent itemset of length (\u03b4 + 1) . Similar to FP-tree, FT-FP-tree of an itemset X is a compact data structure which maps all conditional patterns of X in the tree. This helps in avoiding costly candidate generation-andtest and scanning database multiple times for generating itemsets that are supersets of X . The FT-FP-Tree of X is constructed from the FT-conditional patterns of X . The FT-conditional patterns of X are generated from the conditional patterns of items in X . A conditional pattern is a FT-conditional pattern of mismatch factor f if has f number of items missing in the pattern. The value of f should be less or equals to \u03b4. If multiple FT-conditional patterns share similar set of items, then all are merged into a single FT-conditional pattern. A FT-conditional pattern of itemset ( X ) contains four segments. The first segment contains items that can generate itemsets contain X . The second segment contains support of FT-conditional pattern. The third segment contains number of missing items of X in FT-conditional pattern. The fourth segment contains item support of each item of X , which is useful for counting support of items. To map segments of FT-conditional patterns on FT-FP-Tree the algorithm creates FT-conditional pattern table ( FT-CP- Table ) at the end of each branch of FT-FP-Tree. The first segment of pattern is directly mapped on the nodes of FT-FP-Tree. The other segments of patterns are mapped on the FT-CP-Tree. Each FT-CP-Table contains three columns. The first column maps first segment ( \u03b4) of FT-conditional pattern. The second column maps second segment (support of pattern). The third column maps fourth column (items support) of FT-conditional pattern.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1458,
+                    "end": 1465,
+                    "text": "Table )",
+                    "ref_id": null
+                }
+            ],
+            "section": "Mining FT frequent itemsets of length more than (\u03b4 + 1)"
+        },
+        {
+            "text": "For example, to construct FT-FP-tree of itemset X = (bca ) . The algorithm generates conditional patterns using items b, c , and a . All FT-CP-Tables at leaf nodes are linked to each other through pointers. Table 2 lists all conditional patterns and FT-conditional patterns of itemset ( bca ), and Fig. 6 shows FT-FP-tree of ( bca ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 207,
+                    "end": 214,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 298,
+                    "end": 304,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Mining FT frequent itemsets of length more than (\u03b4 + 1)"
+        },
+        {
+            "text": "The compact FT-FP-tree provides facility that subsequent mining of itemsets can be performed directly on the FT-FP-tree without scanning the database multiple times. In this section, we will show how to explore information stored on the branches of FT-FP-tree, and develop a mining approach for generating all FT frequent itemsets. Since FT-FP-tree of itemset X maps all transactions of X on tree that are needed for obtaining the possible FT frequent itemsets that contain X . Therefore, we observe the following interesting property from the FT-FP-tree for mining FT frequent itemsets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mining FT frequent itemsets from FT-FP-tree"
+        },
+        {
+            "text": "For any FT frequent itemset X , all the possible FT frequent itemsets that contain X can be generated by traversing all conditional patterns of FT-FP-tree, staring from head of FT-CP- Table in  the header table. Example: Let us examine the mining method from the FT-FP-tree of itemset ( bca ) shown in Fig. 6 . According to the list of The algorithm discovers all these itemsets as follows.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 184,
+                    "end": 211,
+                    "text": "Table in  the header table.",
+                    "ref_id": null
+                },
+                {
+                    "start": 302,
+                    "end": 308,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF9"
+                }
+            ],
+            "section": "Mining FT frequent itemsets from FT-FP-tree"
+        },
+        {
+            "text": "To examine whether itemsets ( bcad ) is a FT frequent itemset and to generate supersets of itemsets ( bca ) having item d , the algorithm first examines the itemset support and items support of ( bcad ) form the FT-conditional patterns of itemset ( bcad ). The algorithm then generates supersets of ( bcad ) from the FT-FP-tree of itemset ( bcad ). FT-FP-tree of ( bcad ) is constructed from the conditional patterns of ( bcad ). The FT-conditional patterns of ( bcad ) are collected from the FT-FP-tree of itemset ( bca ) by traversing all pointers of the FT-CP-Table starting from the head pointer of FT-CP- Table. Note each row of FT-CP-Table generates an independent FT-conditional pattern. The pointers of FT-CP- Table drive following FT-conditional patterns: The conditional pattern ( ef , \u03b4: 2 ) is ignored because it contains FT factor \u03b4 = 2 and item d is missing from the pattern, this makes the FT factor equals to \u03b4 = 3 . All other conditional patterns qualify FT factor \u03b4 = 2 which make the support count of itemset ( bcad ) equals to 5. Table 3 shows the FT-conditional patterns of ( dacb ). The support of items are collected from the FT-conditional patterns of ( dacb ) which makes the support of items: d : 2 , a : 3 , c : 3 , and b : 3 . All items qualify item _ sup \u03b4 = 2 . Thus ( bcad ) is a FT frequent itemset of length four. The Fig. 7 shows the FT-FP-tree of ( bcad ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 610,
+                    "end": 616,
+                    "text": "Table.",
+                    "ref_id": null
+                },
+                {
+                    "start": 718,
+                    "end": 729,
+                    "text": "Table drive",
+                    "ref_id": null
+                },
+                {
+                    "start": 1050,
+                    "end": 1057,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1351,
+                    "end": 1357,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF10"
+                }
+            ],
+            "section": "Mining FT frequent itemsets from FT-FP-tree"
+        },
+        {
+            "text": "To generate and examine the support of supersets of itemsets ( bcad ) the algorithm generates itemsets and FT-conditional patterns from the FT-FP-tree of ( bcad ). The itemsets contain ( bcad ) are divided into two subsets: (1) FT frequent itemsets having item f , and (2) FT frequent itemsets having item e . Table 3 FT-conditional patterns of itemset ( bcad ). To examine whether itemsets ( bcadf ) is a FT frequent itemset and to generate supersets of itemsets ( bcad ) having item f , the algorithm first examines the itemset support and items support of ( bcadf ) form the FT-conditional patterns of itemset ( bcadf ). The algorithm then generates supersets of ( bcadf ) from the FT-FP-tree of itemset ( bcadf ). FT-FP-tree of ( bcadf ) is constructed from the conditional patterns of ( bcadf ). The FT-conditional patterns of ( bcadf ) are collected from the FT-FP-tree of itemset ( bcad ) by traversing all pointers of the FT-CP-Table starting from head of FT-CP-Table (see Fig. 7 ). The pointers of FT-CP- Table drive FT- conditional pattern ( f , sup : 2 , \u03b4: 2 , d : 2, a : 1, c : 1, b : 0 ), FT-conditional pattern ( ef , sup : 2 , \u03b4: 2 , d : 0, a : 1, c : 1, b : 2 ), and FT-conditional pattern ( e , sup : 1 , \u03b4: 2 , d : 0, a : 1, c : 1, b : 1 ). Table 4 shows the FT-conditional patterns of ( bcadf ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 310,
+                    "end": 317,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 981,
+                    "end": 987,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF10"
+                },
+                {
+                    "start": 1014,
+                    "end": 1029,
+                    "text": "Table drive FT-",
+                    "ref_id": null
+                },
+                {
+                    "start": 1260,
+                    "end": 1267,
+                    "text": "Table 4",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Mining FT frequent itemsets from FT-FP-tree"
+        },
+        {
+            "text": "All patterns qualify FT factor \u03b4 = 2 thus make the support count of itemset ( bcadf ) equals to 5. The support of items collected from the FT-conditional patterns of ( bcadf ) are: f : 4 , d : 2 , a : 3 , c : 3 , and b : 3 . The item supports of all items of ( bcadf ) qualify item _ sup \u03b4 = 2 . Thus, ( bcadf ) is a FT frequent itemset of length five. The Fig. 8 shows the FT-FP-tree of ( bcadf ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 357,
+                    "end": 363,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF13"
+                }
+            ],
+            "section": "FT-Conditional Patterns"
+        },
+        {
+            "text": "In next iteration, the algorithm generates and examines the support of supersets of itemsets ( bcadf ). The algorithm generates itemsets and FT-conditional patterns from the FT-FP-tree of ( bcadf ). Since, FT-FP-tree of ( bcadf ) has only one item e , therefore, the algorithm examines the itemset support and items support of itemsets ( bcadfe ) from the FT-conditional patterns of ( bcadfe ). The FT-conditional patterns are collected from the FT-FP-tree of ( bcadf ). The pointers of FT-CP-Table drive FT-conditional pattern ( , sup : 2 , \u03b4: 2 , f : 2, d : 2, a : 1, c : 1, b : 0 ) and FT-conditional pattern ( e , sup : 3 , \u03b4: 2 , f : 2, d : 0, a : 2, c : 2, b : 3 ). The conditional pattern ( , sup : 2 , \u03b4: 2 , f : 2, d : 2, a : 1, c : 1, b : 0 ) is ignored because it contains FT factor \u03b4 = 2 and item e is missing in the pattern, this makes the FT factor equals to \u03b4 = 3 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "FT-Conditional Patterns"
+        },
+        {
+            "text": "The second FT-conditional pattern has item support for item d equals to 0. The total item support of d in second FT-conditional patterns does not qualify item _ sup \u03b4 = 2 , thus, the itemset ( bcadfe ) is a FT infrequent itemset.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "FT-Conditional Patterns"
+        },
+        {
+            "text": "The algorithm backtracks to FT-FP-tree of itemset ( bcad ) and examines the FT conditions of itemset ( bcade ). Similarly, the algorithm mines the remaining FT-frequent itemsets by generating their corresponding FT-conditional patterns and FT-FP-trees, and then performs mining on them, respectively. Lines from 18 to 25 of Algorithm 1 and Algorithm 2 show pseudo code of mining FT frequent itemsets of length greater than (\u03b4 + 1) . ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "FT-Conditional Patterns"
+        },
+        {
+            "text": "To test the performance of algorithms we used three real databases and one synthetic database. The four databases are Retail, BMSWebView1, FoodMart , and T10I4D100K , which are frequently used in previous studies on mining frequent itemsets. The Retail, BMSWebView1, FoodMart and T10I4D100K are downloaded from FIMI repository ( http://fimi.ua.ac.be ) and ( http://www.kdd.org/kdd-cup/view/kdd-cup-20 0 0 ). Table 5 shows the characteristics of these databases, where columns of table show the average transaction length, the number of items and the number of transactions of each database.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 408,
+                    "end": 415,
+                    "text": "Table 5",
+                    "ref_id": "TABREF4"
+                }
+            ],
+            "section": "Experiments"
+        },
+        {
+            "text": "We compare the performance of our algorithm FT-PatternGrowth with FT-Apriori ( Pei et al., 2001 ) , VB-FT-Mine Koh & Lang, 2010 ) , and FT-TreeBased ( Bashir et al., 2008 ) . FT-Apriori mines the FT frequent itemsets using candidate generation-and-test approach. The limitation of FT-Apriori is it generates many candidate itemsets including those that do not exist in the database. FT-Apriori counts the support of itemset using costly full scan of database. VB-FT-Mine also mines itemsets using candidate generation-and-test approach. It also generates many nonexisting candidate itemsets. However, Table 6 explains the setting of experiments. For Retail and T10I4D100K datasets we compare the performance of algorithms with FT factors \u03b4 = 1 , \u03b4 = 2 , \u03b4 = 3 , \u03b4 = 4 and \u03b4 = 5 .",
+            "cite_spans": [
+                {
+                    "start": 77,
+                    "end": 97,
+                    "text": "( Pei et al., 2001 )",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 111,
+                    "end": 129,
+                    "text": "Koh & Lang, 2010 )",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 149,
+                    "end": 172,
+                    "text": "( Bashir et al., 2008 )",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 601,
+                    "end": 608,
+                    "text": "Table 6",
+                    "ref_id": "TABREF5"
+                }
+            ],
+            "section": "Experiments"
+        },
+        {
+            "text": "The runtime comparisons of all algorithms are shown in Figs. 9-12 . Note that, execution time here means the total execution time of algorithm, which is the period between providing input and mining all FT frequent itemsets. On low support thresholds the algorithms take very long processing time, therefore, we finish the execution of an algorithm when it takes more than 230 0 0 seconds. Fig. 9 shows the processing time of all algorithms on the Retail database. Results shows FT-PatternGrowth is efficient than FT-Apriori , VB-FT-Mine , and FT-TreeBased for each minimum item support. We observe that when the minimum item support is given very small, the FT-PatternGrowth finish its execution in less processing time than other algorithms.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 390,
+                    "end": 396,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "FT-TreeBased is efficient than VB-FT-Mine and FT-Apriori . 1 The C ++ Implementation of our algorithm ( FT-PatternGrowth ) is available on the following link to download ( https://sites.google.com/site/drshariqbashir/ shariqpublications/FTFPPatternGrowth.zip ). This is because FT-PatternGrowth generates itemsets using pattern growth approach. Whereas the FT-Apriori and VB-FT-Mine generates itemsets using candidate generationand-test approach, and this approach generates many candidate itemsets including those that do not exist in the database.",
+            "cite_spans": [
+                {
+                    "start": 59,
+                    "end": 60,
+                    "text": "1",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "VB-FT-Mine is efficient than FT-Apriori because it counts the support the itemset using efficient bit-vectors technique. On \u03b4 = 2 , the FT-TreeBased , VB-FT-Mine and FT-Apriori could not finish their execution within 230 0 0 seconds when the minimum item support is given less than 0.4%. Fig. 9 (d) shows complete set of mined FT frequent itemsets with FT \u03b4 = 1 and \u03b4 = 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 288,
+                    "end": 294,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "Figs. 10 -12 show the runtime of all algorithms on the other databases ( BMSWebView1, T10I4D100K and FoodMart ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "Once again, FT-PatternGrowth mines itemsets more efficiently than other algorithms on each minimum item support.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "FT-PatternGrowth consistently outperforms FT-Apriori , VB-FT-Mine and FT-TreeBased . Similar to Retail database FT-Apriori , VB-FT-Mine , and FT-TreeBased could not finish their execution within 230 0 0 seconds when the minimum item support is given very small. The FT-Apriori and VB-FT-Mine are slower on all support thresholds because both algorithms generate candidate itemsets using Apriori property. The FT-PatternGrowth is efficient because it generates candidate itemsets using pattern growth approach. Moreover, FT-PatternGrowth counts the support of candidate FT itemsets efficiently from few branches of FP-trees as multiple transactions of database that share a common set of items are grouped into common branches of FP-tree. FT-Apriori examines the support of candidate FT itemsets using all transactions of database as it does not group transactions that share common set of items. This increases the processing time of FT-Apriori .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "Figs. 9 (c), 10 (c), 11 (c) and 12 (c) compare the performance in terms of how much different algorithms consume memory during execution. VB-FT-Mine memory consumption is very small as compared to all other algorithms. This is because VB-FT-Mine saves transactions in bit-vectors, and multiple transactions are compressed in a single element of bit-vectors. FT-Apriori memory consumption is second best. FT-Apriori creates linked list for each frequent item, and transactions are mapped in the linked lists of frequent items. FT-PatternGrowth memory consumption is higher than VB-FT-Mine and FT-Apriori . FT-PatternGrowth maps transactions in the FP-tree and large part of memory is consumed for creating nodes of tree and connecting parent and child nodes. FT-TreeBased memory consumption is higher than all algorithms due to creating multiple FP-trees. In FT-TreeBased multiple transactions of database that share a common prefix of items are distributed into multiple FP-trees if they have different fault tolerance mismatch.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "VB-FT-Mine"
+        },
+        {
+            "text": "In above experiments we examine the performance of algorithms on various minimum item support ( item _ sup \u03b4 ). However, further analyses are required to analyze the scalability of algorithms on varying number of transactions and transaction length.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "To test the scalability of FT-PatternGrowth against the number of transactions, a set of random transactions are selected ranges from 10 k to 90 k . We select only Retail and T10I4D100K databases as both databases are sparse and have transactions of varying length. All algorithms are tested over them using the similar values of support thresholds.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "The advantage of FT-PatternGrowth is dramatic in databases with long patterns, which is challenging to the algorithms that mine the complete set of FT frequent patterns. The results on mining the real databases Retail and T10I4D100K are shown in Figs. 14 and 16 , which show the linear increase of runtime with the number of transactions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "From the figure, one can see that performance of FT-PatternGrowth is scalable even when the number of transactions are increased. To deal with large number of transactions FT-Apriori has to generate many candidates itemsets, even those that do not exist in the database. We also found that large amount of processing time of FT-Apriori is spend on counting itemset support. This is because FT-Apriroi does not provide any functionality to compress the transactions which share a common set of items. This number of candidates itemsets becomes tremendous large when the database contains large number of frequent items. In contrast, the FT-PatternGrowth is efficient because it generates only those candidate itemsets which exist in the branches of FP-trees. This mines all FT frequent itemsets in less processing time as it substantially eliminates those candidate itemsets that do not exist in the transactions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "FT-PatternGrowth provides much better speed for counting support of itemsets as it compresses transactions in the similar branches of FP-tree if they share a common set of items.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "This explains why FT-PatternGrowth is more efficient than FT-Apriori when the support threshold is low and when the number of transactions is large.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "To analyze the performance of FT-PatternGrowth on transaction length, we partitioned the Retail and T10I4D100K databases into five groups. For each group we construct database by includ-ing random 30,0 0 0 transactions. For first group, we construct the database by including transactions that have transaction length between 1 to 10. For second group, we construct database by including transactions that have transaction length between 11 to 20. For third group, we construct database by including transactions that have transaction length between 21 to 30. For fourth group, we construct database by including transactions that have transaction length between 31 to 40, and last group contains all transactions that have transaction length between 41 to 50. Figs. 13 and 15 show the processing time of all algorithms on the Retail and T10I4D100K databases. Results show FT-PatternGrowth is more efficient than FT-Apriori , VB-FT-Mine , and FT-TreeBased on varying transaction length.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "From the experiments we can observe that when the transaction length increases all algorithms take more processing time to mine complete FT frequent itemsets due to large number of frequent items. Also, from the experiments we can observe the FT-PatternGrowth finishes its execution in less processing time than other algorithms. FT-TreeBased is efficient than VB-FT-Mine and FT-Apriori . ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Scalability analysis"
+        },
+        {
+            "text": "Mining fault tolerant frequent itemsets from transactional databases are computationally more expensive than mining traditional exact matching frequent itemsets. Previous algorithms on mining FT frequent itemsets are based on Apriori-like candidate generation-and-test approach. These algorithms generate many candidate itemsets including those that do not exist in the database and require multiple scans of database for counting the support of each candidate itemsets. In this paper we present a novel algorithm for mining FT frequent itemsets using pattern growth approach (FT-PatternGrowth). FT-PatternGrowth adopts a divide-and-conquer technique and recursively projects a transactional database into a set of smaller projected transactional databases and mines FT frequent itemsets in each projected database by exploring only locally frequent items. This mines the complete set of FT frequent itemsets in less processing time and substantially reduces those candidate itemsets that do not exist in the database. FT-PatternGrowth also stores the transactional database in a highly condensed much smaller data structure called FT-FP-tree. The support of candidate itemsets and the support of items are calculated directly from the FT-FP-tree without scanning the database multiple times. This reduces the processing time of algorithm for counting support of itemsets. Our experiments on benchmark databases indicate mining FT frequent itemsets using pattern growth approach is highly efficient than Apriori-like algorithms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "None.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Declaration of Competing Interes"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Frequent itemsets mining for big data: A comparative analysis. Big Data Research",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Apiletti",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Baralis",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Cerquitelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Garza",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Pulvirenti",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Venturini",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "",
+            "volume": "9",
+            "issn": "",
+            "pages": "67--83",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.bdr.2017.06.006"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Fault tolerant frequent patterns mining in large datasets having certain and uncertain records",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "M A"
+                    ],
+                    "last": "Ashraf",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Tabrez Nafis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Advances in Computational Sciences and Technology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Mining fault tolerant frequent patterns using pattern growth approach",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bashir",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Halim",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Baig",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "6th ACS/IEEE international conference on computer systems and applications, AICCSA 2008",
+            "volume": "",
+            "issn": "",
+            "pages": "172--179",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/AICCSA.2008.4493532"
+                ]
+            }
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Strong association rule mining for large-scale gene-expression data analysis: a sase study on human sage data",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Becquet",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Blachon",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Jeudy",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-F",
+                    "middle": [],
+                    "last": "Boulicaut",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Gandrillon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Genome Biology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Constraint-based mining of fault-tolerant patterns from boolean data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Besson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Pensa",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Robardet",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Boulicaut",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Knowledge discovery in inductive databases, 4th international workshop",
+            "volume": "",
+            "issn": "",
+            "pages": "55--71",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/11733492_4"
+                ]
+            }
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "A fast APRIORI implementation. FIMI '03, frequent itemset mining implementations",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Bodon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "proceedings of the ICDM 2003 workshop on frequent itemset mining implementations",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "MAFIA: A maximal frequent itemset algorithm",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Burdick",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Calimlim",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Flannick",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gehrke",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Yiu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "IEEE Transactions on Knowledge and Data Engineering",
+            "volume": "17",
+            "issn": "11",
+            "pages": "1490--1504",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TKDE.2005.183"
+                ]
+            }
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Mining frequent itemsets without support threshold: With and without item constraints",
+            "authors": [
+                {
+                    "first": "Y.-L",
+                    "middle": [],
+                    "last": "Cheung",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Fu",
+                    "suffix": ""
+                },
+                {
+                    "first": ".-C",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "IEEE Transactions on Knowledge and Data Engineering",
+            "volume": "16",
+            "issn": "9",
+            "pages": "1052--1069",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TKDE.2004.44"
+                ]
+            }
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Mining gene expression databases for association rules",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Creighton",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Hanash",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "19",
+            "issn": "",
+            "pages": "79--86",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "An association rule mining approach to discover lncrnas expression patterns in cancer datasets",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Cremaschi",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Carriero",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Astrologo",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Col",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Lisa",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Parolo",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bione",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "BioMed Research International",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "A novel web fraud detection technique using association rule mining",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Diwakar Tripathia",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Edlaa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Procedia Computer Science",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Mining of frequent patterns with multiple minimum supports",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Gan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Fournier-Viger",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Chao",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Engineering Applications of Artificial Intelligence",
+            "volume": "60",
+            "issn": "",
+            "pages": "83--96",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.engappai.2017.01.009"
+                ]
+            }
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Frequent pattern mining: Current status and future directions",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Xin",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Data Mining and Knowledge Discovery",
+            "volume": "15",
+            "issn": "",
+            "pages": "55--86",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Pattern-growth methods",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pei",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Frequent pattern mining",
+            "volume": "",
+            "issn": "",
+            "pages": "65--81",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/978-3-319-07821-2_3"
+                ]
+            }
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Mining frequent patterns without candidate generation",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Proceedings of the 20 0 0 ACM SIGMOD international conference on management of data",
+            "volume": "",
+            "issn": "",
+            "pages": "1--12",
+            "other_ids": {
+                "DOI": [
+                    "10.1145/342009.335372"
+                ]
+            }
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Mining frequent patterns without candidate generation: A frequent-pattern tree approach",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Mao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Data Mining and Knowledge Discovery",
+            "volume": "8",
+            "issn": "1",
+            "pages": "53--87",
+            "other_ids": {
+                "DOI": [
+                    "10.1023/B:DAMI.0000005258.31418.83"
+                ]
+            }
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "An efficient and effective algorithm for mining top-rank-k frequent patterns",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Huynh-Thi-Le",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Le",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Vo",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Le",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Expert Systems with Applications",
+            "volume": "42",
+            "issn": "1",
+            "pages": "156--164",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.eswa.2014.07.045"
+                ]
+            }
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "B-mine: Frequent pattern mining and its application to knowledge discovery from social networks",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Web technologies and applications -18th asia-pacific web conference",
+            "volume": "",
+            "issn": "",
+            "pages": "316--328",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/978-3-319-45814-4_26"
+                ]
+            }
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Next Generation of Data Mining",
+            "authors": [],
+            "year": null,
+            "venue": "Data Mining and Knowledge Discovery Series",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1201/9781420085877"
+                ]
+            }
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "An efficient approach for mining fault-tolerant frequent patterns based on bit vector representations",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Koh",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Yo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Database systems for advanced applications, 10th international conference",
+            "volume": "",
+            "issn": "",
+            "pages": "568--575",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/11408079_51"
+                ]
+            }
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "A tree-based approach for efficiently mining approximate frequent itemsets",
+            "authors": [
+                {
+                    "first": "J.-L",
+                    "middle": [],
+                    "last": "Koh",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Lang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Fourth international conference on research challenges in information science (RCIS)",
+            "volume": "",
+            "issn": "",
+            "pages": "25--36",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Apriori, A depth first implementation. FIMI '03, frequent itemset mining implementations",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kosters",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Pijls",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "proceedings of the ICDM 2003 workshop on frequent itemset mining implementations",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "A study on proportional fault-tolerant data mining",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-T",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "proc. 2006 int. conf. innovations in information technology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Proportional fault-tolerant data mining with applications to bioinformatics",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "S.-L",
+                    "middle": [],
+                    "last": "Peng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-T",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Information Systems Frontiers",
+            "volume": "11",
+            "issn": "4",
+            "pages": "461--469",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10796-009-9158-z"
+                ]
+            }
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "REAFUM: Representative approximate frequent subgraph mining",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Proceedings of the 2015 SIAM international conference on data mining",
+            "volume": "",
+            "issn": "",
+            "pages": "757--765",
+            "other_ids": {
+                "DOI": [
+                    "10.1137/1.9781611974010.85"
+                ]
+            }
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "AFOPT: An efficient implementation of pattern growth approach. FIMI '03, frequent itemset mining implementations",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Xiao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "proceedings of the ICDM 2003 workshop on frequent itemset mining implementations",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "On mining proportional fault-tolerant frequent itemsets",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Poon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "19th international conference on database systems for advanced applications, bali, indonesia",
+            "volume": "",
+            "issn": "",
+            "pages": "342--356",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/978-3-319-05810-8_23"
+                ]
+            }
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "On mining approximate and exact fault-tolerant frequent itemsets",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Poon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Knowledge and Information Systems",
+            "volume": "55",
+            "issn": "2",
+            "pages": "361--391",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10115-017-1079-4"
+                ]
+            }
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Ranwar: Rank-based weighted association rule mining from gene expression and methylation data",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Mallik",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Mukhopadhyay",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Maulik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "IEEE Transactions on NanoBioscience",
+            "volume": "14",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Community detection in social networks using user frequent pattern mining",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Moosavi",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jalali",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Misaghian",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Shamshirband",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Anisi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Knowledge and Information Systems",
+            "volume": "51",
+            "issn": "1",
+            "pages": "159--186",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10115-016-0970-8"
+                ]
+            }
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "A new proposal for graph-based image classification using frequent approximate subgraphs",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Morales-Gonz\u00e1lez",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Acosta-Mendoza",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Alonso",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "B G"
+                    ],
+                    "last": "Reyes",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Medina-Pagola",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Pattern Recognition",
+            "volume": "47",
+            "issn": "1",
+            "pages": "169--177",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.patcog.2013.07.004"
+                ]
+            }
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Fault-tolerant frequent pattern mining: Problems and challenges",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pei",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "K H"
+                    ],
+                    "last": "Tung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "ACM SIGMOD workshop on research issues in data mining and knowledge discovery",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Frequent pattern mining in web log data",
+            "authors": [
+                {
+                    "first": "Ren\u00e1ta",
+                    "middle": [],
+                    "last": "Iv\u00e1ncsy",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Vajk",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Top-k miner: Top-k identical frequent itemsets discovery without user support threshold",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Saif-Ur-Rehman",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ashraf",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Habib",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Salam",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Knowledge and Information Systems",
+            "volume": "48",
+            "issn": "3",
+            "pages": "741--762",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10115-015-0907-7"
+                ]
+            }
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "LCM ver. 2: Efficient mining algorithms for frequent/closed/maximal itemsets",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Uno",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kiyomi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Arimura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "FIMI '04, proceedings of the IEEE ICDM workshop on frequent itemset mining implementations",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A novel approach for mining maximal frequent patterns",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Vo",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Pham",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Le",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Deng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Expert System with Applications",
+            "volume": "73",
+            "issn": "",
+            "pages": "178--186",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.eswa.2016.12.023"
+                ]
+            }
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Heavy path based super-sequence frequent pattern mining on web log dataset",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Korkmaz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Artificial Intelligence Research",
+            "volume": "4",
+            "issn": "2",
+            "pages": "1--12",
+            "other_ids": {
+                "DOI": [
+                    "10.5430/air.v4n2p1"
+                ]
+            }
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Mining approximate frequent patterns from noisy databases",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Under a user-defined fault tolerant (FT) factor ( \u03b4), an itemset X with length greater than (\u03b4 + 1) is a FT frequent itemsets if it has support of at least T number of FT-transactions. https://doi.org/10.1016/j.eswa.2019.113046 0957-4174/\u00a9 2019 Elsevier Ltd. All rights reserved.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Given (min _ sup \u03b4 ) minimum itemset support under fault tolerant (FT) factor ( \u03b4), the itemset X is FT frequent itemset if it has support of at least (min _ sup \u03b4 ) number of FT-transactions. \u2022 Each individual item i of X must appear in at least m number of FT-transactions of X . The m is the minimum item support (item _ sup \u03b4 ) under fault tolerant factor \u03b4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "FP-tree after inserting first transaction.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "FP-tree after inserting second transaction.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "FP-tree after inserting third transaction.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "FP-tree after inserting fourth transaction.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Complete FP-tree after inserting all transactions.itemsets of length equals to (\u03b4 + 1) the algorithm counts item support and itemset support directly from the conditional patterns of items stored in the FP-tree. Example: To examine whether itemset X = (bca ) is a frequent itemset. The algorithm generates conditional patterns of item b , item c , and item a . The algorithm ignores the conditional patterns of other items; this is because if a branch of FP-tree does not contain any item of X then the FT factor",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "fd , sup : 1 , \u03b4: 2 , a : 0, c : 1, b : 0 ) a efa : 2 ( ef , sup : 1 , \u03b4: 2 , a : 1, c : 0, b : 0 )",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Item b contains three conditional patterns: efab : 1 , efcb : 1 , and eacb : 1 . These conditional patterns are converted into FT-conditional patterns. The pattern efab : 1 is a FT-conditional pattern of FT factor \u03b4 = 1 because item c is missing from the pattern. The pattern efcb : 1 is a FT-conditional pattern of FT factor \u03b4 = 1 because item a is missing from the pattern. The pattern eacb : 1 is a FT-conditional pattern of FT factor \u03b4 = 0 because no item is missing from the pattern. The pattern efab : 1 is converted into FT-conditional pattern ef , sup : 1 , \u03b4: 1 , a : 1, c : 0, b : 1 . The FT-conditional pattern efab : 1 has four segments. The first segment contains the items that generate supersets of itemset (( bca )). The second segment contains support of pattern. The third segment says one item of itemset (( bca )) is missing in the pattern. The fourth segment contains item support of each item of ( bca ). Thepattern efcb : 1 is converted into FT-conditional pattern ef , sup : 1 , \u03b4: 1 , a : 0, c : 1, b : 1 . The pattern eacb : 1 is converted into FT-conditional pattern e , sup : 1 , \u03b4: 0 , a : 1, c : 1, b : 1 . All FT-conditional patters of item c are mapped into FT-FP-tree. The frequency ordering of items (that is discovered from the first scan of database) is followed for mapping items on branches. \u2022 Item c generates three conditional patterns: efc : 1 , eac : 1 , and fdc : 1 . Conditional patterns efc : 1 and eac : 1 are ignored as both are subsets of conditional patterns of item b with similar support, and both are already mapped on FT-FP-tree of itemset ( bca ). fdc : 1 is a FT-conditional pattern of FT factor \u03b4 = 2 because items b and a are missing from the pattern. The pattern fdc : 1 is converted into FTconditional pattern fd : 1 , sup : 1 , \u03b4: 2 , a : 0, c : 1, b : 0 .\u2022 Item a generates conditional patterns efa : 2 , ea : 1 and fda : 1 . The pattern efa : 2 is a subset of pattern efab : 1 of item b . Its support becomes 1 after subtracting its support from the support of pattern efab : 1 . The pattern ea : 1 is a subset of pattern eacb : 1 of item b . This pattern is ignored because its support becomes zero after subtracting its support from the support of pattern eacb : 1 . The pattern efa : 1 and pattern fda : 1 are FT-conditional patterns of FT factor \u03b4 = 2 because items c and b are missing from the patterns. The pattern efa : 1 is converted into FT-conditional pattern ef , sup : 1 , \u03b4: 2 , a : 1, c : 0, b : 0 . The pattern fda : 1 is converted into FT-conditional pattern fd , sup : 1 , \u03b4: 2 , a : 1, c : 0, b : 0 .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "FT-FP-tree of itemset ( bca ).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "FT-FP-tree of itemset ( bcad ). frequent items in the header table the set of frequent itemsets contain itemset ( bca ) are divided into three subsets without overlap: (1) FT frequent itemsets having item d , (2) FT frequent itemsets having item f , and (3) FT frequent itemsets having item e .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "\u2022 fd , sup : 2 , \u03b4: 2 , a : 1, c : 1, b : 0 ,\u2022 ef , sup : 2 , \u03b4: 1 , a : 1, c : 1, b : 2 , \u2022 ef , sup : 1 , \u03b4: 2 , a : 1, c : 0, b : 0 , and \u2022 e , sup : 1 , \u03b4: 0 , a : 1, c : 1, b : 1 .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "Discovered from FT-FP-tree of itemset ( bca ) FT-Conditional Patterns used for Constructing FT-FP-tree of ( bcad ) fd , sup : 2 , \u03b4: 2 , a : 1, c : 1, b : 0 f , sup : 2 , \u03b4: 2 , d : 2, a : 1, c : 1, b : 0 ef , sup : 2 , \u03b4: 1 , a : 1, c : 1, b : 2 ef , sup : 2 , \u03b4: 2 , d : 0, a : 1, c : 1, b : 2 ef , sup : 1 , \u03b4: 2 , a : 1, c : 0, b : 0 Ignored because it has \u03b4: 2 and item d is missing in the pattern e , sup : 1 , \u03b4: 0 , a : 1, c : 1, b : 1 e , sup : 1 , \u03b4: 1 , d : 0, a : 1, c : 1, b : 1",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "FT-FP-tree of itemset ( bcadf ).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF14": {
+            "text": "Conditional Patterns Discovered from FT-FP-tree of itemset ( bcad ) FT-Conditional Patterns used for Constructing FT-FP-tree of ( bcadf ) f , sup : 2 , \u03b4: 2 , d : 2, a : 1, c : 1, b : 0 , sup : 2 , \u03b4: 2 , f : 2, d : 2, a : 1, c : 1, b : 0 ef , sup : 2 , \u03b4: 2 , d : 0, a : 1, c : 1, b : 2 e , sup : 2 , \u03b4: 2 , f : 2, d : 0, a : 1, c : 1, b : 2 e , sup : 1 , \u03b4: 1 , d : 0, a : 1, c : 1, b : 1 e , sup : 1 , \u03b4: 2 , f : 0, d : 0, a : 1, c : 1, b : 1",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF15": {
+            "text": "Procedure for constructing FT-FP-Tree of itemset. Data : Conditional patterns of itemset X Result : Construct FT-FP-Tree of X 1 Procedure FT-FP-Tree( C, X) 2 for each conditional pattern c in C do 3 convert c into FT-conditional pattern c \u03b1 ; 4 if c \u03b1 contains at-least (| X| \u2212 \u03b1) items of X then 5 C \u03b1 = C \u03b1 \u222a c \u03b1 ; 6 construct FT-FP-Tree of X using C \u03b1 ; 7 if FT-FP-Tree of X != \u2205 then 8 FT-FP-Growth(FT-FP-Tree of X, X);",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF16": {
+            "text": "improves the speed of counting itemset support by storing transactions in bit-vectors. The support of itemsets are counted efficiently by performing bitwise-AND operators on bitvectors( Burdick et al., 2005 ). FT-TreeBased mines FT frequent itemsets using pattern growth approach. The major limitation of FT-TreeBased is it constructs multiple FP-trees for each discovered itemset to mine its supersets. In FT-TreeBased multiple transactions of database that share a common prefix of items are distributed into multiple FP-trees if they have different fault tolerant mismatch. Thus FT-TreeBased does not gain full advantage of FP-tree for counting itemset support. All algorithms are implemented in C ++ 1 The experiments are performed on MacBook Pro-3.2 GHz processor with main memory of size 8GB. We analyze the performance of all algorithms on two FT factors ( \u03b4 = 1 and \u03b4 = 2 ) with various values of minimum item supports ( item _ sup \u03b4 ).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF17": {
+            "text": "The performance of FT frequent itemset mining algorithms on BMSWebView1 database. (d) Number of FT frequent itemsets discovered with \u03b4 = 1 , \u03b4 = 2 and min _ sup \u03b4 = 0 . 4% .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF18": {
+            "text": "The performance of FT frequent itemset mining algorithms on T10I4D100K database. (d) Number of FT frequent itemsets discovered with \u03b4 = 1 , \u03b4 = 2 and min _ sup \u03b4 = 2% .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF19": {
+            "text": "The performance of FT frequent itemset mining algorithms on FoodMart database. (d) Number of FT frequent itemsets discovered with \u03b4 = 1 , \u03b4 = 2 and min _ sup \u03b4 = 0 . 06% .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF20": {
+            "text": "Scalability of FT frequent itemset mining algorithms on various transaction length for Retail database.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF21": {
+            "text": "Scalability of FT frequent itemset mining algorithms on various transaction size for Retail database.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF22": {
+            "text": "Scalability of FT frequent itemset mining algorithms on various transaction length for T10I4D100K database.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF23": {
+            "text": "Scalability of FT frequent itemset mining algorithms on various transaction size for T10I4D100K database.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "\u2022 A transaction t is a FT-transaction of T under FT factor if it contains at least (| X| \u2212 \u03b4) number of items of X .",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Procedure for Mining Fault Tolerant Frequent Itemsets. Data : Transactional database, min _ sup \u03b4 , item _ sup \u03b4 , Fault Result : All Fault Tolerant (FT) frequent itemests",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Conditional patterns and FT-conditional patterns of itemset ( bca ).",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "FT-conditional patterns of itemset ( bcadf ).",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Characteristics of transactional databases.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "Characteristics of experiment settings.Fig. 9. The performance of FT frequent itemset mining algorithms on Retail database. (d) Number of FT frequent itemsets discovered with \u03b4 = 1 , \u03b4 = 2 and min _ sup \u03b4 = 1% .",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

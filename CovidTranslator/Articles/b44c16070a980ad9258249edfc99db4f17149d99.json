@@ -1,0 +1,1880 @@
+{
+    "paper_id": "b44c16070a980ad9258249edfc99db4f17149d99",
+    "metadata": {
+        "title": "Evolutionary Bioinformatics colorphylo: A color code to Accurately Display Taxonomic Classifications",
+        "authors": [
+            {
+                "first": "Sylvain",
+                "middle": [],
+                "last": "Lespinats",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "UMr inSErM unit\u00e9 U722",
+                    "institution": "Universit\u00e9 Denis Diderot",
+                    "location": {
+                        "addrLine": "Paris 7, 16 rue henri huchard",
+                        "postCode": "75870",
+                        "settlement": "Paris cedex 18",
+                        "country": "France"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Bernard",
+                "middle": [],
+                "last": "Fertil",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "Laboratoire LSiS (UMr cnrS 6168)",
+                    "institution": "",
+                    "location": {
+                        "addrLine": "Equipe i&M (ESiL) case 925, 163, avenue de Luminy",
+                        "postCode": "13288",
+                        "settlement": "Marseille cedex 9",
+                        "country": "France"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Color may be very useful to visualise complex data. As far as taxonomy is concerned, color may help observing various species' characteristics in correlation with classification. However, choosing the number of subclasses to display is often a complex task: on the one hand, assigning a limited number of colors to taxa of interest hides the structure imbedded in the subtrees of the taxonomy; on the other hand, differentiating a high number of taxa by giving them specific colors, without considering the underlying taxonomy, may lead to unreadable results since relationships between displayed taxa would not be supported by the color code. In the present paper, an automatic color coding scheme is proposed to visualise the levels of taxonomic relationships displayed as overlay on any kind of data plot. To achieve this goal, a dimensionality reduction method allows displaying taxonomic \"distances\" onto a Euclidean two-dimensional space. The resulting map is projected onto a 2D color space (the Hue, Saturation, Brightness colorimetric space with brightness set to 1). Proximity in the taxonomic classification corresponds to proximity on the map and is therefore materialised by color proximity. As a result, each species is related to a color code showing its position in the taxonomic tree. The so called ColorPhylo displays taxonomic relationships intuitively and can be combined with any biological result. A Matlab version of ColorPhylo is available at http://sy.lespi.free.fr/ColorPhylo-homepage.html. Meanwhile, an ad-hoc distance in case of taxonomy with unknown edge lengths is proposed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Many datasets are \"naturally\" structured as hierarchical classifications. In particular, the Darwin's evolution theory ensures that the relationships between species can be expressed within a tree (named \"phylogenic tree\"/\"taxonomic tree\"). However, the exploration of large trees (and graphs) is not easy. 1 Visualising taxonomy together with other pieces of information (obtained from various biological analyses for example) is often extremely instructive; some examples can be found in. [2] [3] [4] In those cases, a level of granularity of the tree is usually chosen and a color is assigned to each subclass thus defined. 4 Several drawbacks can be easily identified. The granularity level is obviously subject to arbitrariness. Moreover, proximity relationships between subclasses are ignored as well as their subdivisions.",
+            "cite_spans": [
+                {
+                    "start": 307,
+                    "end": 308,
+                    "text": "1",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 491,
+                    "end": 494,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 495,
+                    "end": 498,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 499,
+                    "end": 502,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 627,
+                    "end": 628,
+                    "text": "4",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction Topic"
+        },
+        {
+            "text": "In the following, we set up an automatic coloring method in order to address these problems. Indeed, we describe a simple method that automatically generates an intuitive color code showing proximity relationships between data in any hierarchical classification. The presented algorithm, named ColorPhylo, associates a specific color to each item so that the taxonomic relationships are shown by color proximity (the closer two items in the tree, the more similar their colors). Colors can thereafter be used in any user's analyses and figures so as to display taxonomy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Objective"
+        },
+        {
+            "text": "The above research field is yet relatively unexplored. An automatic coloring tool for tree exploration has been proposed by Fua and co-authors: 5, 6 in order to explore a given taxonomy, leaves are considered as an ordered list of items (the order can result for example from the reading direction when the tree is displayed on a phylogram). Each node can then be related to a color according to a chosen LUT (Look-Up Table) . The LUT may be locally stretched or compressed in order to focus on a given area. Such an interactive control of the LUT allows exploring the taxonomy while considering various depths. This approach suffers however from a major shortcoming: the leaf ordering is not unique (trees are invariant with respect to permutation of linked branches). Very different colorings can then result from various choices. Moreover, close colors can correspond to items that belong to different branches and somewhat different colors can rely to close species. These drawbacks can be observed in Figures 6 and 8 .",
+            "cite_spans": [
+                {
+                    "start": 144,
+                    "end": 146,
+                    "text": "5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 147,
+                    "end": 148,
+                    "text": "6",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 418,
+                    "end": 424,
+                    "text": "Table)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1006,
+                    "end": 1021,
+                    "text": "Figures 6 and 8",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Background"
+        },
+        {
+            "text": "In the biological field, several tools may be used to color species in taxonomic tree. 4, 7, 8 In particular, PhyloView 4 has been specially designed to display taxonomy and other analyses (phylogenetic trees) together. Strictly speaking, however, these tools are not automatic coloring tools: the user has to define the colors for taxonomic groups that are relevant from his point of view.",
+            "cite_spans": [
+                {
+                    "start": 87,
+                    "end": 89,
+                    "text": "4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 90,
+                    "end": 92,
+                    "text": "7,",
+                    "ref_id": null
+                },
+                {
+                    "start": 93,
+                    "end": 94,
+                    "text": "8",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background"
+        },
+        {
+            "text": "Node coloring is of main concern in Self-Organising Map (SOM) framework. 9,10 SOM is a non-linear dimensionality reduction method. It is designed to map items (generally from a high dimensional Euclidean space) onto a discrete grid: data are aggregated on each neuron (vector quantisation). Because the grid is discrete, the visualisation of gaps between clusters-if they exist-is uneasy. Various coloring methods have been proposed to account for this drawback, including. [11] [12] [13] [14] [15] [16] [17] In particular, Kaski et al 14, 15 display neurons in a CIELab colorimetric space; 16 Johan Himberg 17 uses a hierarchical classification in order to find clusters and use a cut-off function in the resulting tree so as to linking neurons to a LUT (thanks to a method close to the Fuas' one). 5, 6 However, the SOM context differs from the one of our present objective, despite approaches that are connected. Indeed, we focus here on taxonomies and SOM deals with multidimensional data. Moreover, if hierarchical classifications are often involved in automatic coloration of SOM, the tree is not the input of the algorithm, but a step in the method (especially in the context of cluster discovering). Such methods can be considered, however, as sources of inspiration for the present paper.",
+            "cite_spans": [
+                {
+                    "start": 474,
+                    "end": 478,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 479,
+                    "end": 483,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 484,
+                    "end": 488,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 489,
+                    "end": 493,
+                    "text": "[14]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 494,
+                    "end": 498,
+                    "text": "[15]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 499,
+                    "end": 503,
+                    "text": "[16]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 504,
+                    "end": 508,
+                    "text": "[17]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 536,
+                    "end": 539,
+                    "text": "14,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 540,
+                    "end": 542,
+                    "text": "15",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 591,
+                    "end": 593,
+                    "text": "16",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 800,
+                    "end": 802,
+                    "text": "5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 803,
+                    "end": 804,
+                    "text": "6",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background"
+        },
+        {
+            "text": "One of the examples used in the present paper (see section 3.2) is based on the Genbank taxonomy (http://www. ncbi.nlm.nih.gov/sites/entrez?db=taxonomy). Please note that the Genbank taxonomy can not be considered as a conclusive phylogeny, as clearly stated by Genbank owners (http://www.ncbi.nlm.nih.gov/Taxonomy/ taxonomyhome.html/index.cgi?chapter=howcite). We are only looking here for a way to display any given hierarchical classification, whether it is considered as a phylogeny, a taxonomy or so.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "notes concerning taxonomy"
+        },
+        {
+            "text": "ColorPhylo aims at assigning a unique color to each species of a given set so that the color differences reflect the taxonomic \"distances\" between species (see Fig. 1 ):",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 160,
+                    "end": 166,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Whole procedure overview"
+        },
+        {
+            "text": "Step 1: If not available, taxonomic distances are calculated from the taxonomic tree. Two procedures are considered depending on whether the edge lengths are known or not (see section 2.2). Thus, a distance matrix between all species is obtained.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Whole procedure overview"
+        },
+        {
+            "text": "Step 2: Species are mapped onto a 2D space while preserving the distance matrix as much as possible (section 2.3).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Whole procedure overview"
+        },
+        {
+            "text": "Step 3: The map is rescaled (and possibly rotated) (section 2.4) in order to fit a 2D colorimetric subspace (section 2.5).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Whole procedure overview"
+        },
+        {
+            "text": "Step 4: Each species located in the colorimetric subspace is consequently given a unique color. The ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Whole procedure overview"
+        },
+        {
+            "text": "Relation to the colorimetric space each species gets its own color \u2026 where the color-code is used. species coloring can therefore be used in subsequent analyses to visualise the taxonomic relationships (as done in section 3).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Branch lengths known"
+        },
+        {
+            "text": "The generation of a color-code for hierarchicallyorganised data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Branch lengths known"
+        },
+        {
+            "text": "The presented methodology relies on the availability of a distance based on a taxonomic tree.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "Two cases are possible:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "I. Edge lengths are known. Distances between species can be immediately deduced: the distance between two species corresponds to the sum of the length of edges connecting them. The \"bananaquit bird\" dataset offers a good illustration of that case (section 3.1). II. Edge lengths are unknown (the GenBank taxonomy dataset: section 3.2). We then have to (arbitrary) choose the length of edges. Many solutions can be considered. One may assign the same length for all edges. However, such a choice is inappropriate when the tree depth depends on the level of refinement along branches. Such a situation is rather common in taxonomy: the Eukaryote classification is actually more refined than that of Bacteria and Achea (Fig. 2 ). If the length of edges is set constant along the tree, humans appear closer to some bacteria (which are microscopic prokaryotes) than to octopus (which is also an animal). The toy example presented in Figure 3 , left insert (a) provides a good illustration of this bias.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 716,
+                    "end": 723,
+                    "text": "(Fig. 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 928,
+                    "end": 936,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "In fact, as far as the tree of life is concerned, the distance between two species belonging to the same subclass (branch) must always be smaller than the distance between one of these species and any species that does not belong to the subclass. In order to ensure that this property is always true, we propose to attribute a variable length for edges: an important length is given to edges close to the tree root, and the length is successively reduced when the edge gets away from the root. A geometric progression can be implemented here. The length of edges at the tree root is 1. The length of any other edge equals half the length of the parent edge (Fig. 3 , right insert (B)).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 657,
+                    "end": 664,
+                    "text": "(Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "This arbitrary choice has a critical property: Proposition: The distance between two species belonging to the same subclass is always smaller than the distance between one of these species and any species that does not belong to the subclass.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "Proof: Let us consider three species A, B and C where A and B belong to a same subclass, contrary to C: species A and B are linked by node N 1 , and species The DD-HDS projection in the two-dimensional output space is computed (code available at http://sy.lespi. free.fr/DD-HDS-homepage.html). A DD-HDS parameter (\u03bb) can be adjusted in order to more or less emphasize smallest distances: 0 (1 respectively) for minimum (maximum respectively) consideration of longer distances. In the following examples, \u03bb is set to 0.5. The output of DD-HDS is the set of coordinates in a 2D space (coordinates",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "It is worth noting that additive distances (distances in a tree) cannot be perfectly preserved onto a 2D space. However, this fact is not a drawback in the present case because we are less concerned by distances preservation than subclasses segmentation. Indeed, even if the distance mapping is not perfect, it still emphasizes the various levels of the classification thanks to DD-HDS that avoids both \"false neighbourhoods\" (when a small distance in the output space becomes a large distance in the data space) and \"tears\" (when a large distance in the output space becomes a small distance in the data space). 19 ",
+            "cite_spans": [
+                {
+                    "start": 613,
+                    "end": 615,
+                    "text": "19",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Taxonomic distance"
+        },
+        {
+            "text": "After being mapped, data are translated and rescaled so as to occupy a circle having a radius equal to 1. This step is required in order to ensure that the map can be related to the circle-shaped HSB colorimetric space (see section 2.5). Coordinates are subsequently cen-",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "rescaling and rotation"
+        },
+        {
+            "text": ", ,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "rescaling and rotation"
+        },
+        {
+            "text": "\u2033 \u2033 + and its angle is \u03d5 \u03c1",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "rescaling and rotation"
+        },
+        {
+            "text": "0 \ue024 and \u03d5 \u03c1 otherwise. Rotation around the centre and symmetry can take place now. Rotation and symmetry does not impact MDS solutions but allow modifying the color map at will while preserving relative color differences between species (for example, it may be useful to make colors close to the ones the user is familiar with).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "rescaling and rotation"
+        },
+        {
+            "text": "Each position in the mapping can now be related to a color according the HSB (Hue, Saturation, Brightness) colorimetric conic-shaped space (The HSB space is also called HSV space (V for Value) or HSL space C is linked to node N 1 by node N 2 (similarly to the example in Fig. 3) . d(x, y) corresponds to the distance between elements x and y in the tree. According to the properties of geometric progression with a common ratio equal to 1/2 (basically,",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 271,
+                    "end": 278,
+                    "text": "Fig. 3)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "The map is related to the hSB colorimetric space"
+        },
+        {
+            "text": "Thus, the contribution of edges far from the tree root is reduced, which makes it possible to emphasize most important classes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The map is related to the hSB colorimetric space"
+        },
+        {
+            "text": "It must be pointed out that such a procedure should not be considered as a way to assess \"true\" edge lengths but rather as a heuristic method to account for classes and subclasses within the actual automatic coloring procedure.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The map is related to the hSB colorimetric space"
+        },
+        {
+            "text": "Whatever the case, the next steps starts from the resulting matrix of taxonomic distances (noted d thereafter).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The map is related to the hSB colorimetric space"
+        },
+        {
+            "text": "Non-Linear Multi-Dimensional Scaling (MDS) is a set of methods designed to show relationships between items. The explored dataset is displayed as points on a low-dimensional output space. Most of the time, the output space is a Euclidean 2D space, which is proposed as a \"map\" of data. These techniques are particularly used to explore high dimensional data. Indeed, MDS techniques are expected to retrieve the spatial organisation of high dimensional dataset. To achieve this goal, linear, as well as non-linear Multi-Dimensional Scaling methods preserve the distances between data \"as much as possible\", according to criteria depending on the method. 18 Usually, small distances are emphasized.",
+            "cite_spans": [
+                {
+                    "start": 653,
+                    "end": 655,
+                    "text": "18",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "As far as our data are concerned, MDS methods are consequently expected to display taxonomic relationships (a distance matrix) onto small dimensional spaces. To achieve this goal, we have chosen the DD-HDS algorithm (Data-Driven High Dimensional Scaling), 19 for its efficiency whatever the distribution of input distances.",
+            "cite_spans": [
+                {
+                    "start": 256,
+                    "end": 258,
+                    "text": "19",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "Evolutionary Bioinformatics 2011:7 (L for Lightness)). The HSB space relates each position in a cone to a color:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "\u2022 Hue corresponds to the angle on a circle (the base of the cone) where 0\u00b0 is pure red. \u2022 Saturation corresponds to the distance to the centre of the circle: 0 for 0% of saturation (pure white), 1 for 100% (pure color). \u2022 Brightness corresponds to position on the axe of the cone. No brightness (black) at the cone tip to full brightness at the base.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "Brightness is not used in the present framework (Brightness is set to 1).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "A position in a circle is characterised by hue and saturation values (Fig. 4) . Species can subsequently be given a color, norm (\u03c1 i ) being related to saturation and angle (\u03d5 i ) being related to hue. The continuity of color in the HSB space ensures that color proximity is related to taxonomic proximity Figure 7 (section 3.2).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 69,
+                    "end": 77,
+                    "text": "(Fig. 4)",
+                    "ref_id": null
+                },
+                {
+                    "start": 306,
+                    "end": 314,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Mapping species"
+        },
+        {
+            "text": "Angle corresponds to hue while distance to centre corresponds to saturation.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "In the automatic coloring of SOM framework, Kaski et al 14, 15 propose to embed data in a CIELab colorimetric space. 16 Properties of this colorimetric space also fit very well with our context: indeed distance between positions in the CIELab colorimetric space is supposed to be linked with the human perception of color difference. However, significant constraints are placed on the mapping due to the particular shape of the CIELab space. In contrast, the mapping on circleshaped HSB sub-space is easier. Most of the times, data can be expected to fill a large part of the space after a simple rescaling procedure. Moreover, the mapping can be easily rotated and returned in the space in order to find the most convenient color code.",
+            "cite_spans": [
+                {
+                    "start": 56,
+                    "end": 59,
+                    "text": "14,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 60,
+                    "end": 62,
+                    "text": "15",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 117,
+                    "end": 119,
+                    "text": "16",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "It is worth noting that a three-dimensional mapping (such as RGB space) may offer in some instances a better fit with the matrix of distance. However, every color would be eligible, and a species color could be close (or similar) to the background color. With the two-dimensional mapping related to HSB colorimetric space, no species can correspond to grey, which can be chosen as background color.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mapping species"
+        },
+        {
+            "text": "ColorPhylo is tested on two biological applications: the first one refers to a published ornithological study, 20 the second one is related to the analysis of genomic signatures (DNA sequences characterised by oligonucleotide frequencies).",
+            "cite_spans": [
+                {
+                    "start": 111,
+                    "end": 113,
+                    "text": "20",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "It has to be remembered that, on the one hand we study specified knowledge (or analysis results) related to a given dataset (here, birds' geographical positionfirst example-and oligonucleotide counts-second example-) and on the other hand, a taxonomy (the tree) of these data is available. In the present paper, we aim to display the taxonomy and the knowledge together. The procedure described in section 2 provides a taxonomic color-code used here to color geographic position of birds or genomic signatures.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "Application to the work of E. Bellemain and co-authors: linking geographical distribution and phylogenetic data for bananaquit birds Bellemain and co-authors performed a phylogenetic analysis of bananaquit birds (Coereba flaveola) caught in various places in Latin America and Caribbean islands. 20 Geographical positions of catching sites are displayed (in their Fig. 1 ) and the genetic analyses led to two phylogenetic trees (their Figs. 2 and 3) . Relationships between geographical origin of birds and taxonomy are discussed, and conclusions about the evolutionary history are made. Despite that this work has been successfully achieved without the help of any visualisation tool, a coloring based on the taxonomic tree would have considerably helped these authors.",
+            "cite_spans": [
+                {
+                    "start": 296,
+                    "end": 298,
+                    "text": "20",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 364,
+                    "end": 370,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 435,
+                    "end": 449,
+                    "text": "Figs. 2 and 3)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "In the following, ColorPhylo is used to assign a color to each bird according to its position in the taxonomic Saturation Hue Figure 4 . hSB colorimetric 2D sub-space (Brightness is set to 1). tree (based on combined mitochondrial data, Figure 2 in) . 20 Here, edge lengths (provided by the phylogenetic analysis) are known and used (see section 2.2, subsection I). Birds are displayed as colored dots, positioned on the map on their catching site (Fig. 5) .",
+            "cite_spans": [
+                {
+                    "start": 252,
+                    "end": 254,
+                    "text": "20",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 126,
+                    "end": 134,
+                    "text": "Figure 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 237,
+                    "end": 249,
+                    "text": "Figure 2 in)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 448,
+                    "end": 456,
+                    "text": "(Fig. 5)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "Dot coloring allows easy observation of the genetic groups: Lesser Antilles and Puerto Rico (green dots), Bahamas and Quintana Roo (orange dots), continent (purple dots), and Greater Antilles except Puerto Rico (red dots) as well as smaller relationships within groups.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "We performed the analysis on the same dataset, according to the Fua et al 5,6 coloring method (Fig. 6) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 94,
+                    "end": 102,
+                    "text": "(Fig. 6)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "It must be pointed out that the interactive local stretching and compression of the LUT-an essential feature of the Fua et al method-cannot be implemented here (obviously impracticable on a printed document!). For that reason, a comparison between ColorPhylo and the Fua et al algorithm from the present figures exclusively would be highly unfair. However, there are noticeable differences between Figures 5 and 6 . A high diversity in the population of birds from Lesser Antilles and Puerto Rico could be inferred from figure 6 right insert, whereas it is not supported in fact by the evolutionary tree (Fig. 6 , left insert). Moreover, the high difference between birds ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 398,
+                    "end": 413,
+                    "text": "Figures 5 and 6",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 604,
+                    "end": 611,
+                    "text": "(Fig. 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "Confrontation of geographical positions of birds and phylogenetic analysis Figure 6 . Analysis of bananaquit birds data, similar as the one presented in Figure 1 and Figure 5 , except that the Fua et al 5, 6 coloring method is used rather than colorPhylo. from Lesser Antilles and birds from Bahamas and Quintana Roo is clearly underestimated.",
+            "cite_spans": [
+                {
+                    "start": 203,
+                    "end": 205,
+                    "text": "5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 206,
+                    "end": 207,
+                    "text": "6",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 75,
+                    "end": 83,
+                    "text": "Figure 6",
+                    "ref_id": null
+                },
+                {
+                    "start": 153,
+                    "end": 161,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 166,
+                    "end": 174,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Input tree"
+        },
+        {
+            "text": "Dot coloring allows easy observation of the genetic groups: Lesser Antilles and Puerto Rico (green dots), Bahamas and Quintana Roo (orange dots), continent (purple dots), and Greater Antilles except Puerto Rico (red dots) as well as smaller relationships within groups.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Input tree"
+        },
+        {
+            "text": "Coloring according to the Genbank tree: Species paths are from Genbank so that \"root, cellular organism, Eukaryota, Fungi/Metazoa group, Metazoa; Eumetazoa, Bilateria, Coelomata, Deuterostomia, Chordata, Craniata, Vertebrata, Gnathostomata, Teleostomi, Euteleostomi, Sarcopterygii, Tetrapoda, Amniota, Mammalia, Theria, Eutheria, Euarchontoglires, Primates, Simiiformes, Catarrhini, Hominoidea, Hominidae, Homo/Pan/Gorilla group, and Homo Sapiens\" qualifies human for example. Paths are derived from a rooted tree where edge lengths are unknown. Taxonomic distances are calculated according to the procedure described in section 2.2, subsection II. Colors are then selected according to section 2.3, 2.4 and 2.5. Data embedded in the colorimetric space are displayed in Figure 7 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 770,
+                    "end": 778,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "genomic signatures analysis"
+        },
+        {
+            "text": "Species are embedded in a two-dimensional space generated from the taxonomic distance matrix. Colors are assigned from the position in the mapping (by construction, colors are smoothly Contrasting with figure 7 , the three domains of life are not clearly segmented by color in Figure 8 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 202,
+                    "end": 210,
+                    "text": "figure 7",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 277,
+                    "end": 285,
+                    "text": "Figure 8",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "genomic signatures analysis"
+        },
+        {
+            "text": "An example of color code use: Study of the link between taxonomic proximity and genomic signature proximity: The whole set of short oligonucleotide frequencies observed in a DNA (Deoxyri-boNucleic Acid) sequence is species-specific and is thus considered as a \"genomic signature\". 2,21 Moreover, a DNA segment as short as 1 Kb (kilobase) is sufficient to characterise the genomic signature of the species. As a consequence, genomic signature appears qualifying the \"writing style\" of the species. The genomic signature is species specific:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "genomic signatures analysis"
+        },
+        {
+            "text": "it allows finding the species of origin of a DNA fragment with a fairly good efficiency. 2, 22 Note that because the genomic signature is stable along the genome, non-homolog fragments of species can be compared (homology is required for most other methods devoted to comparative genomics). Lastly, proximity between species in terms of genomic signature is known to be linked to evolutionary proximity. Indeed many phylogenies based on hierarchical classifications of signatures have been proposed. [23] [24] [25] [26] [27] [28] Another powerful approach to describe the taxonomic organisation of genomic signatures uses dimensionality reductions: data are embedded on a two-dimensional (or sometimes three-dimensional) space. These representations have been achieved by Principal Components Analysis (PCA), 2,3 by Self Organising Map (SOM) 29 or by Data-Driven High Dimensional Scaling (DD-HDS). 19 However, details of the spatial organisation of genomic signatures cannot be easily observed on a large dataset because of the limitation in term of discrete colors. In the following example we propose to visualise the taxonomic tree of species on the DD-HDS mapping of genomic signatures by means of the color code provided by ColorPhylo and Figure 7 .",
+            "cite_spans": [
+                {
+                    "start": 89,
+                    "end": 91,
+                    "text": "2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 92,
+                    "end": 94,
+                    "text": "22",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 500,
+                    "end": 504,
+                    "text": "[23]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 505,
+                    "end": 509,
+                    "text": "[24]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 510,
+                    "end": 514,
+                    "text": "[25]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 515,
+                    "end": 519,
+                    "text": "[26]",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 520,
+                    "end": 524,
+                    "text": "[27]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 525,
+                    "end": 529,
+                    "text": "[28]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 842,
+                    "end": 844,
+                    "text": "29",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 898,
+                    "end": 900,
+                    "text": "19",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1244,
+                    "end": 1252,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "genomic signatures analysis"
+        },
+        {
+            "text": "Prior to mapping, signatures are corrected using 1-order Markov model 30 as recommended in. 25, 27 A distance matrix between signatures is then obtained, based on the Pearson's correlation coefficient as recommended by. 26 The mapping is subsequently generated: spatial proximity between items expresses proximity between species from the genomic signature point of view. Colors are provided by the ColorPhylo procedure (the map of species in the related taxonomic color-space is shown in Fig. 7) : color proximity between items relies on taxonomic proximity between species. As a result, the various levels of taxonomy are simultaneously observable on a single figure (Fig. 9) . The taxonomic organisation of signatures is clearly demonstrated. In particular, the patches of homogeneous colors support concluding that the similarity between genomic signatures accurately matches the taxonomic tree of the species, the signatures come from.",
+            "cite_spans": [
+                {
+                    "start": 92,
+                    "end": 95,
+                    "text": "25,",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 96,
+                    "end": 98,
+                    "text": "27",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 220,
+                    "end": 222,
+                    "text": "26",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 489,
+                    "end": 496,
+                    "text": "Fig. 7)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 662,
+                    "end": 677,
+                    "text": "figure (Fig. 9)",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "genomic signatures analysis"
+        },
+        {
+            "text": "Using ColorPhylo is straightforward. Hierarchical classifications can be easily displayed together with their relationships with any other organisation of the data. We have observed on real life examples that the interpretation of the resulting color code is fully intuitive. In the first example, geographical origins of bananaquit birds are related to phylogenetic data in order to analyse the evolutionary history. However, because the number of items and the complexity of the dataset was somewhat low, Bellemain and co-authors succeeded in describe the relationships between taxonomy and geographical distribution in their publication (but at the price of more irksome work). When the size of the dataset and/or the complexity of their relationships increase, ColorPhylo can provide a critical benefit, as it can be observed for the second application. In that example, (genomic signature) colors express the membership of items to one of the three domains of life, with subtle shades showing subclasses. In both cases, we have instantaneously access to the structure of classification through an attractive visualisation plot.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "Although variations of color are theoretically unlimited, we rely on the perceptual discriminative power of the human eye. Surprisingly, the method gives access to a remarkable degree of detail (well above what is expected with a \"manually\" defined color code). In addition, a focus on a small region of the data is always possible by an ad hoc local color reallocation. Similarly, Colorphylo may be adapted to fit color-impaired users' requirements. The 2-dimensional color-space can be modified at will according to any desired effect, including of course satisfaction of the user's color perception.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "In this paper, we have proposed a method to study the relationship between a given knowledge on a set of data (here, the birds' geographical position and the oligonucleotide frequencies in DNA sequences of species) and a specific organisation of these data, expressed by a taxonomic tree. Our approach can easily be adapted to other contexts. For example, if the organisation of the data results from an analysis based on a distance matrix (such as the ones performed by Neighbor joining, 31 Fitch-Margoliash, 32 \u2026), the original distance matrix may be preferred to the taxonomic distance (such an approach may have been implemented for the bananaquit birds dataset). In fact, the procedure may be extended to the analysis of any kind of organisation of the data, given it is expressible as a distance matrix for which a 2D mapping makes sense.",
+            "cite_spans": [
+                {
+                    "start": 489,
+                    "end": 491,
+                    "text": "31",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "A matlab version of ColorPhylo is available at http://sy.lespi.free.fr/ColorPhylo-homepage.html.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion and conclusions"
+        },
+        {
+            "text": "SL and BF conceived the method together and wrote the manuscript. Both authors read and approved the final manuscript.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Authors' contributions"
+        },
+        {
+            "text": "We thank Eva Bellemain and collaborators, as well as Biomed Central, for the permission to reproducing their figure. We also thank Mikael Cugnet for its useful comments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgement"
+        },
+        {
+            "text": "Author(s) have provided signed confirmations to the publisher of their compliance with all applicable legal and ethical obligations in respect to declaration of conflicts of interest, funding, authorship and contributorship, and compliance with ethical requirements in respect to treatment of human and animal test subjects. If this article contains identifiable human subject(s) author(s) were required to supply signed patient consent prior to publication. Author(s) have confirmed that the published article is unique and not under consideration nor published by any other publication and that they have consent to reproduce any copyrighted material. The peer reviewers declared no conflicts of interest. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Disclosures"
+        },
+        {
+            "text": "In the Bananaquit bird example, a very similar color has been given to birds from all great Antilles Islands. We subsequently run ColorPhylo again while focusing on the Antilles Islands subclass. The result is displayed on Annexe Figure 1 . The tight matching between phylogeny and geographical data is demonstrated in details by the color code. publish with Libertas Academica and every scientist working in your field can read your article \"I would like to say that this is the most author-friendly editing process I have experienced in over 150 publications. Thank you most sincerely.\"",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 230,
+                    "end": 238,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Annexe"
+        },
+        {
+            "text": "\"The communication between your staff and me has been terrific. Whenever progress is made with the manuscript, I receive notice. Quite honestly, I've never had such complete communication with a journal.\"",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Annexe"
+        },
+        {
+            "text": "\"LA is different, and hopefully represents a kind of scientific publication machinery that removes the hurdles from free flow of scientific thought.\" Your paper will be: \u2022 Available to your entire community free of charge \u2022 Fairly and quickly peer reviewed \u2022 Yours! You retain copyright http://www.la-press.com",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Annexe"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "DOITrees revisited: scalable, space-constrained visualization of hierarchical data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Heer",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Card",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Proceedings of the working conference on Advances Visual Interfaces",
+            "volume": "",
+            "issn": "",
+            "pages": "421--425",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Genomic signature: characterization and classification of species assessed by Chaos Game Representation of sequences",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Deschavanne",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Giron",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vilain",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Fagot",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fertil",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Mol Biol Evol",
+            "volume": "16",
+            "issn": "",
+            "pages": "1391--1400",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Capturing whole-genome characteristics in short sequences using a naive Bayesian classifier",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sandberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Winberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Branden",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kaske",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Ernberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Coster",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Genome Res",
+            "volume": "11",
+            "issn": "8",
+            "pages": "1404--1413",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Taxonomic coloring of phylogenetic trees of protein sequences",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palidwor",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Reynaud",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Andrade-Navarro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinformatics",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Navigating Hierarchies with Structure-Based Brushes",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Fua",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Ward",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rundensteiner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Proceeding of IEEE Symposium on Information Visualization",
+            "volume": "",
+            "issn": "",
+            "pages": "58--64",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Structure-based brushes: A mechanism for navigating hierarchically organized data and information spaces",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Fua",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Ward",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rundensteiner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IEEE Trans. Visualization and Computer Graphics",
+            "volume": "6",
+            "issn": "2",
+            "pages": "150--159",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Interactive analysis of phylogeny and character evolution using the computer program Mac-Clade",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Maddison",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Maddison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Folia Primatol (Basel)",
+            "volume": "53",
+            "issn": "",
+            "pages": "190--202",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Self-organized formation of topologically correct feature maps",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kohonen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1982,
+            "venue": "Biol. Cybern",
+            "volume": "43",
+            "issn": "",
+            "pages": "59--69",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Self-Organizing Maps. HKV Lotsch",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kohonen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "On the use of two traditional statistical techniques to improve the readibility of Kohonen Maps",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Varfis",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Proceedings of the NATO ASI Workshop on Statistics and Neural Networks",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Classification of Ocean Color Using Self-Organizing Feature Maps",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ainsworth",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Proceedings of the 5th International Conference on Soft Computing and Information/Intelligent Systems (IIZUKA98). Japan, October",
+            "volume": "2",
+            "issn": "",
+            "pages": "996--1005",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Topology preservation in self-organizing maps",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Villman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Coloring that Reveals High-Dimensional Structures in Data",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kaski",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Venna",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kohonen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Proceedings of the 6th International Conference on Neural Information (ICONIP'99)",
+            "volume": "II",
+            "issn": "",
+            "pages": "729--763",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Coloring that reveals cluster structures in multivariate data",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kaski",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Venna",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kohonen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Australian Journal of Intelligent Information Processing Systems",
+            "volume": "6",
+            "issn": "",
+            "pages": "82--90",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "CIE (International Commission on Illumination) Technical Report. Colorimetry",
+            "authors": [],
+            "year": 1986,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "A SOM based cluster visualization and its application for false coloring",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Himberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Proceedings of International Joint Conference on Neural Networks (IJCNN2000)",
+            "volume": "3",
+            "issn": "",
+            "pages": "587--92",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Dimensionality reduction for visual exploration of similarity structures",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Venna",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "DD-HDS: a tool for visualization and exploration of highdimensional data",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lespinats",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Verleysen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Giron",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fertil",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "IEEE Transactions on Neural Networks",
+            "volume": "18",
+            "issn": "5",
+            "pages": "1265--79",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "The dynamic evolutionary history of the bananaquit (Coereba flaveola) in the Caribbean revealed by a multigene analysis",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Bellemain",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Bermingham",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Ricklefs",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "BMC Evolutionary Biology",
+            "volume": "8",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1186/1471-2148-8-240"
+                ]
+            }
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Dinucleotide relative abundance extremes: a genomic signature",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Karlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Burge",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Trends In Genetics",
+            "volume": "11",
+            "issn": "",
+            "pages": "283--90",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Genomic signature is preserved in short DNA fragments",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Deschavanne",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Giron",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vilain",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Dufraigne",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fertil",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Proceedings of the IEEE international Symposium on bio-informatics & biomedical engineering (BIBE2000)",
+            "volume": "",
+            "issn": "",
+            "pages": "161--168",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Compositional biases of bacterial genomes and evolutionary implications",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Karlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mr\u00e0zek",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Campbell",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "J Bact",
+            "volume": "179",
+            "issn": "",
+            "pages": "3--899",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "A genomic schism in birds revealed by phylogenetic analysis of DNA strings",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fertil",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Giron",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Deschavanne",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Syst Biol",
+            "volume": "51",
+            "issn": "",
+            "pages": "599--613",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Evolutionary implications of microbial genome tetranucleotide frequency biases",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Pride",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Meinersmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wassenaar",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Blaser",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Genome Res",
+            "volume": "13",
+            "issn": "2",
+            "pages": "145--58",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Relationship of SARS-CoV to other pathogenic RNA viruses explored by tetranucleotide usage profiling",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Yap",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Danchin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "BMC Bioinformatics",
+            "volume": "4",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Exploration of phylogenetic data using a global sequence analysis method",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chapus",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Dufraigne",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Giron",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fertil",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Deschavanne",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "BMC Evol Biol",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "The spectrum of genomic signatures: from dinucleotides to chaos game representation",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Hill",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Singh",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Kari",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Gene",
+            "volume": "346",
+            "issn": "",
+            "pages": "173--85",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Informatics for Unveiling Hidden Genome Signatures",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Abe",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kanaya",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kinouchi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Ichiba",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kozuki",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ikemura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Genome Res",
+            "volume": "13",
+            "issn": "",
+            "pages": "693--702",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "An efficient statistic to detect over-and under-represented words in DNA sequences",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Schbath",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "J Comput Biol",
+            "volume": "4",
+            "issn": "2",
+            "pages": "189--92",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "The neighbor-joining method: a new method for reconstructing phylogenetic trees",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Saitou",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Nei",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "Mol Evol Biol",
+            "volume": "4",
+            "issn": "4",
+            "pages": "406--431",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Construction of phylogenetic trees",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Fitch",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Margoliash",
+                    "suffix": ""
+                }
+            ],
+            "year": 1967,
+            "venue": "Science",
+            "volume": "155",
+            "issn": "",
+            "pages": "279--84",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "A typical analysis.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Depth of the genbank taxonomic tree for 2046 species. histograms for the three domains of life are displayed. The tree is often deeper for Eukaryotes (organisms with nuclear cells, ie, animals, plants and fungus among other species) than for Bacteria and Archea.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "representation of a hierarchical tree with various depths as a function of edge distance. A and B are deeper in the tree than C. When edge lengths are set to 1 -left insert (A)-, d (A,B) = 5 while d(A,C) = 4. A is then found closer to C than to B (d(A,B) . d (A,C)). however, A and B belong to the same high level branch while C does not. When edges lengths follow a geometrical progression -right insert (B)-, d(A,B)/d(N 1 ,N 2 ) = 13/8 \ue02c d(A,C)/d(N 1 ,N 2 ) = 11/4 \u21d2 d(A,B) \ue02c d(A,C).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "The evolutionary history of bananaquit birds as highlighted by colorPhylo. The data come from.20 A biological analysis can be found in that paper. This figure is similar toFigure 1in Bellemain's and co-authors 20 (original publisher: Biomed central) with superimposed colored dots instead of original black dots.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Embedding of 2046 species in the hSB colorimetric space, according to the genbank taxonomy.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Same mapping thanFigure 7, except that color is provided by the Fua et al method.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "genomic signature mapping (2046 items) colored according to genbank taxonomy.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Upper left insert: The subtree of birds from great Antilles islands. Upper right insert: the map of catching sites. Lower insert: the map of species in the colorimetric taxonomic space. colors attributed by colorPhylo are used in the three inserts.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Another analysis...",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

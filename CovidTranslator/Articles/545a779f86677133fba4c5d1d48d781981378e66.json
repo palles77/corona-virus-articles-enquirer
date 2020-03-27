@@ -1,0 +1,2048 @@
+{
+    "paper_id": "545a779f86677133fba4c5d1d48d781981378e66",
+    "metadata": {
+        "title": "Segmentation of DNA using simple recurrent neural network",
+        "authors": [
+            {
+                "first": "Wei-Chen",
+                "middle": [],
+                "last": "Cheng",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Taiwan University",
+                    "location": {
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Jau-Chi",
+                "middle": [],
+                "last": "Huang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Taiwan University",
+                    "location": {
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Cheng-Yuan",
+                "middle": [],
+                "last": "Liou",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Taiwan University",
+                    "location": {
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "We report the discovery of strong correlations between protein coding regions and the prediction errors when using the simple recurrent network to segment genome sequences. We are going to use SARS genome to demonstrate how we conduct training and derive corresponding results. The distribution of prediction error indicates how the underlying hidden regularity of the genome sequences and the results are consistent with the finding of biologists: predicated protein coding features of SARS genome. This implies that the simple recurrent network is capable of providing new features for further biological studies when applied on genome studies. The HA gene of influenza A subtype H1N1 is also analyzed in a similar way.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "DNA consists of nucleotides. Certain locations of the DNA possess special meanings. The beginning and the end of a gene are two important locations. Segment is the basic unit, or building block to interpret DNA. The intron, exon and transcription factor are sections of DNA and play different roles in the transcription process. A gene is also a segment that can be used for making protein. The collection of segmented DNA can be further analyzed to show how the genes regulate each other and how those segments works. However, the reason that the segments can only exist at certain locations and the rules behind them are still unclear.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "There are ways to accomplish the segmentation. One way to locate the beginning and the end of a segment is to search a similar sequence in the database. The idea behind this technique is that there exist similar patterns in different DNA sequences. In other words, the patterns in a strand of DNA sequence may have high possibility to be found in the strand of other DNA sequences. Researchers have dedicated to locate functional regions for decades. Statisticians try to locate the regions which satisfy the assumption of statistical models. Bernaola-Galvan et al. [1] provide a segmentation algorithm based on the Jensen-Shannon entropic divergence. This algorithm is used to decompose long-range correlated DNA sequences into statistically significant, compositionally homogeneous patches. Fujiwara et al. [2] developed a hidden Markov model that represents known sequence characteristics of mito-chondrial targeting signals to predict the existence of the mitochondrial targeting signals. The signal is the presequence that directs nascent proteins bearing it to mitochondria. Hidden Markov model were also used in extracting motifs for predicting the binding sites of unknown transcription factors, without a priori knowledge, from functionally related DNA sequences [3] . Machine learning methods are capable of building the models automatically and, then, the huge number of combinations of features can be tested [17, 18] . For example, Sonnenburg et al. [4] use the kernel weight to determine the exon start. Garc\u00eda-Pedrajas et al. [5] developed the methods to cope with class imbalance problems for decision tree and support vector machine [6, 7] in the problems of translation initiation site recognition.",
+            "cite_spans": [
+                {
+                    "start": 566,
+                    "end": 569,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 809,
+                    "end": 812,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1272,
+                    "end": 1275,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1421,
+                    "end": 1425,
+                    "text": "[17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1426,
+                    "end": 1429,
+                    "text": "18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 1463,
+                    "end": 1466,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1541,
+                    "end": 1544,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1650,
+                    "end": 1653,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1654,
+                    "end": 1656,
+                    "text": "7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "A theory proposed that DNA sequences have language structures [8, 9] . There are also attempts [11, 12] to study the relationship between biological sequences and the Chomsky hierarchy [10] . The simple recurrent network (SRN) [13] is a hyper-Turing machine [14] . It has been shown [13, 15] that it can learn arbitrary underlying grammars and automata from the presentation of sentences. Such automata-like structure is extremely difficult to reach by any statistical ways, for example, hidden Markov model. It is also argued [16] that Elman network can accommodate quasi-regular structure and makes use of this structure for predictions and inferences. Such quasi-grammartical structure cannot be analyzed by any rule-based systems. We expect that the DNA sequence could contain such kind structures. So, this network is a potential candidate to analyze DNA sequence. Specifically, the large prediction errors indicate the segmentation points [13] . We show an example to reveal such quasiregular structures in the end of Section 3. SARS genome is used in the first experiment. Then we employ two types of SRN to analyze influenza A virus. One type uses the perceptrons in the hidden layer and the other type uses self-organizing neurons in the hidden layer. The former can be trained by the back-propagation algorithm (BP). The later can be trained by the self-organizing rule. We did extensive simulations to find suitable parameters for SRN. The reason why we analyze the influenza A virus is that its subtype H1N1 was the cause of human influenza in 2009. Its HA (Hemagglutinin) region is responsible for binding the virus to the cell and causes infection [19] . Since hemagglutinin is the major surface protein of the influenza A virus and is essential to the entry process into a cell, it is the primary target of neutralizing antibodies.",
+            "cite_spans": [
+                {
+                    "start": 62,
+                    "end": 65,
+                    "text": "[8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 66,
+                    "end": 68,
+                    "text": "9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 95,
+                    "end": 99,
+                    "text": "[11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 100,
+                    "end": 103,
+                    "text": "12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 185,
+                    "end": 189,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 227,
+                    "end": 231,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 258,
+                    "end": 262,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 283,
+                    "end": 287,
+                    "text": "[13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 288,
+                    "end": 291,
+                    "text": "15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 527,
+                    "end": 531,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 945,
+                    "end": 949,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1662,
+                    "end": 1666,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "A simple recurrent network (or called Elman network) [13] is a three-layer neural network with the addition of a set of ''context neurons'' in the first layer, see Fig. 1 . These context neurons assemble an inside self-reference layer. In each iteration, the previous state of the hidden layer saved in the context layer together with the input layer activates the hidden layer. This network maintains a stream of states which allows it to perform the sequence-prediction task. This network is proposed to model temporal human behaviors [13] , like language. It can discover the underlying structure of words.",
+            "cite_spans": [
+                {
+                    "start": 53,
+                    "end": 57,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 537,
+                    "end": 541,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 164,
+                    "end": 170,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Architecture"
+        },
+        {
+            "text": "Elman generated sentences of varied lengths from fixed words. Those sentences were concatenated and formed a stream of words. Each word was represented as a combination of letters, and each letter was represented by a 5-bit randomly assigned binary vector. The network processed the concatenated binary vectors sequentially and was trained to predict the next letter by using the binary vector of the next letter as the desired output. Elman found that after training, the prediction error is very high at the beginning of a word and declines with the rest letters received. This implies that SRN has learned the various structures of words and is able to segment words from a sequence of letters.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "Biologists use biotechnology (ex. polymerase chain reaction) to interact with a virus genome and look for interesting and meaningful regions (segments) of the sequence. Since genetic information is saved in the DNA sequence, we plan to use SRN to segment the sequence in a computational way. Based on the results Elman studied [13] , we expect that SRN can learn the genome structure and detect the boundary of the protein coding region according to the prediction error. We further compare our findings with the protein coding regions found by other researchers.",
+            "cite_spans": [
+                {
+                    "start": 327,
+                    "end": 331,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "Consider a genome sequence {x(t), t = 0,1,2,. . .}, where x(t) 2 {A(adenine), C(cytosine), T(thymine), G(guanine)}. Instead of using 2 bits to encode the four nucleotides, we use 4 bits to prevent non-uniform similarity (cosine or Euclidean distance) for each nucleotide pair because any nucleotide can be joined by ester bonds to the preceding nucleotide without bias. The four nucleotides are A [1, \u00c01, \u00c01, \u00c01] T , C [\u00c01, 1, \u00c01, \u00c01] T , T [\u00c01, \u00c01, 1, \u00c01] T , and G [\u00c01, \u00c01, \u00c01, 1] T . Each positive bit indicates one nucleotide. The number of dimensions of the context layer, which is the same as that of the hidden layer, is N. The number of dimensions of output layer is the same as that of the input layer. From extensive experiments, we set 20 hidden neurons in the first part of this work. The network has M = 4 input neurons, N = 20 hidden neurons, N = 20 context neurons, and M = 4 output neurons. Let the weight matrix W contain the set of synaptic weights that connects the input layer, context layer and the hidden layer, W 2 R N\u00c2(M+N+1) . The weight matrix U contains the set of weights that connects the hidden layer and the output layer, U 2 R M\u00c2(N+1) . The initial values of all synaptic weights in W and U are randomly assigned within the range [\u00c00.2, 0.2]. The network is trained to predict the next nucleotide vector. For example, the input nucleotide at time t = 0 is x(0), and its desired output will be x(1). The input at time t = 1 is x(1), and the desired output will be x(2). The sequence of nucleotides is presented to the network one after another. For the convenience of mathematical expression, let the desired output d(0), d(1), d(2), . . . denote the input data at the next time step,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The error signal at the output of neuron i at time t is defined by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The total error is obtained by summing over all neurons in the output layer,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The input layer y in (t) consists of the input data at time t and the context layer which copies the activation of the hidden layer at the previous time step, y in \u00f0t\u00de \u00bc x\u00f0t\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The initial activation of the context layer is set to zero,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The induced local field v hid i \u00f0t\u00de produced at the input of the activation function associated with hidden neuron i is v hid",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "where the synaptic weight w i0 (corresponding to the fixed input y in",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "where the synaptic weight u i0 is the bias and y hid 0 \u00bc \u00c01. Hence the function signal y hid i appearing at the output of neuron i in the hidden layer at time t is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The y out i appearing at the output of neuron i in the output layer is In this work, we adopt the antisymmetric function, tanh\u00f0x\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": ", as the activation function of each neuron, f \u00f0x\u00de \u00bc tanh\u00f0x\u00de;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "and its derivative is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "Hence, the output of each neuron is in the range [\u00c01, 1]. The initial error is equal to f(0) = 2. We expect that the nucleotide with a very large error could be the boundary of a protein coding region. The synaptic weights W and U are adjusted by the back-propagation algorithm [20] which performs gradient descent in error space. These weights are updated slightly in the direction that reduces error as much as possible to accomplish the expectation",
+            "cite_spans": [
+                {
+                    "start": 278,
+                    "end": 282,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The correction for the weight in W is Dw ij and it is proportional to the partial derivative,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "where g is a learning rate function. g will be reduced to zero exponentially,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "where iteration t starts from t 0 . g 0 is the initial value of the rate. Set g 0 = 0.5 and a = 6 in this work. The correction for the weight in U is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Architecture"
+        },
+        {
+            "text": "The SARS-CoV RNA has been detected frequently in respiratory specimens and convalescent-phase serum specimens from the patients having antibodies that react with SARS coronavirus. There is strong evidence that this virus is etiologically associated with the outbreak of SARS [21] [22] [23] . The genome has been analyzed by seeking the genes in the database. We select 11 complete genomes of SARS-CoV recorded in GenBank [24] . The accession numbers and their lengths (number of basepairs or bps in brief) are listed in Table 1. Note that the original record is a single-stranded positive sense RNA. Every selected sequence is the cDNA converted from This function is plotted on the top left corner. S1 to S30 indicate the beginning points and ending points of biologically identified 15 segments in [25] . Five segments belong to coronavirus. The rest ten segments are still unknown.",
+            "cite_spans": [
+                {
+                    "start": 275,
+                    "end": 279,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 280,
+                    "end": 284,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 285,
+                    "end": 289,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 421,
+                    "end": 425,
+                    "text": "[24]",
+                    "ref_id": null
+                },
+                {
+                    "start": 800,
+                    "end": 804,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Analysis of SARS genomes"
+        },
+        {
+            "text": "its RNA. There is one-to-one correspondence between cDNA and RNA bases. We will use the cDNA sequence to train the network. The network processes all 11 genome sequences which are concatenated in a long single sequence. We apply the BP algorithm to adjust its synaptic weights for 1000 epochs. The learning rate is reduced by (12) during the 1000 epochs. After training, we present the sequence again and record the prediction errors for all nucleotides. We repeat this training procedure for 300 times, hence, we obtain 300 trained SRNs and get 300 different prediction error sequences. Fig. 2 plots the 300 learning curves during the training processes. Each error point in a curve is the average error of all nucleotides in the 11 sequences. The network initially outputs [\u00c01, \u00c01, \u00c01, \u00c01] for each input nucleotide pattern and the training makes the output to fit the next nucleotide in the sequence. Therefore, the training error is ffiffiffiffiffiffiffiffiffiffiffiffiffiffiffiffi ffi P i e 2 i \u00f0t\u00de q \u00bc 2 at the beginning. The learning curve does not decrease monotonously because the algorithm updates the weights immediately after presenting one input nucleotide pattern. This figure shows that after 1000 epochs, the 300 networks reached to a local or global minimum in the weight space. Each procedure takes roughly 35 min and the whole exper- In Fig. 3 , we plot the averaged prediction error for each nucleotide along the genome of ''AY274119.3''. Error magnitude is represented by the gray level, white represents the largest error and black represents no error. These prediction errors are the averaged error values obtained after the 300 training procedures. To give a clear picture, we further smooth the predicted errors over an interval of 501 nucleotides using a Gaussian function plotted on the top left corner of this figure. This genome has been analyzed in [25] , its results are also illustrated in Fig. 3 by green color. The white vertical band near the 13 kB shows that this region has large errors and it is also detected by Marra as the boundary of S2 and S3. Note that kB is the abbreviation of kilo-basepairs. The large region from 26 to 29.5 kB corresponds to the fragments detected in [25, 26] . Marra's research shows that there are overlaps of the segments in this area [25] . For this genome, the maximal mean of prediction error is 2.1647, the minimal mean of prediction error is 1.1435, and the median of the mean is 1.7063.",
+            "cite_spans": [
+                {
+                    "start": 326,
+                    "end": 330,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 1879,
+                    "end": 1883,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 2216,
+                    "end": 2220,
+                    "text": "[25,",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 2221,
+                    "end": 2224,
+                    "text": "26]",
+                    "ref_id": null
+                },
+                {
+                    "start": 2303,
+                    "end": 2307,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 588,
+                    "end": 594,
+                    "text": "Fig. 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 1356,
+                    "end": 1362,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1922,
+                    "end": 1928,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Analysis of SARS genomes"
+        },
+        {
+            "text": "Suppose that the 500 nucleotides which have the highest prediction errors are the boundaries of 501 segments. Fig. 4(a) plots the histogram of their length information. The shortest segment, which is ''CG'', has only 2 base pairs. The longest segment has 364 base pairs. Note that all 500 peaks are cytosine. Most segments have short lengths. The segment which has a long length implies that this portion of the genome has fewer mutations than other parts. Some of the short segments are codons. These segments may reveal the structural information in the genome sequence. We plot several predicted segmentation points which near the protein coding region in Fig. 4(b) . The blue vertical lines on the bottom of Fig. 4(b) indicate the boundaries of the segments obtained by [25] . There are five hits among thirteen known protein coding regions. Table 2 lists the detailed 15 genes of the identified SARS genome by the research [25] . The ''head'' means the beginning of a gene and the ''tail'' means the end of a gene along the genome location. The ''Closest Pt.'' indicates the closest point, segmented by SRN, to the head or tail point. The ''ORF'' means the open reading frame. The work [25] focuses on the segments which begin with the start codon 'ATG' and end with the stop codon 'TGA', 'TAA', 'TAG'. It then searches the biological meaning of such segments in various databases. Fig. 4(b) shows two biologically identified protein coding regions, spike glycoprotein and small envelope E protein. They belong to coronavirus and have nucleotides ATGTTTATTTT . . . ATT-ACACATAA and ATGTACTCATT . . . TTCTGGTCTAA. These two regions are marked by S5, S6, S11, and S12 in this figure. The SRN finds the stop codon 'TAAA' in three cases and the start codon 'CGAAC' in all four cases.",
+            "cite_spans": [
+                {
+                    "start": 774,
+                    "end": 778,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 928,
+                    "end": 932,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 1191,
+                    "end": 1195,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 110,
+                    "end": 119,
+                    "text": "Fig. 4(a)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 659,
+                    "end": 668,
+                    "text": "Fig. 4(b)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 712,
+                    "end": 721,
+                    "text": "Fig. 4(b)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 846,
+                    "end": 853,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 1387,
+                    "end": 1396,
+                    "text": "Fig. 4(b)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Analysis of SARS genomes"
+        },
+        {
+            "text": "Among the 501 segments, we list all short segments of lengths shorter than seven base pairs, <7, in Table 3 and construct a tree from them, see Fig. 5 . From this tree, we see the number of nodes doesn't grow exponentially with tree layers. This means those segments aren't composed from ''A'', ''C'', ''T'', ''G'' arbitrarily. They follow certain structural rules and need further biological studies.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 100,
+                    "end": 107,
+                    "text": "Table 3",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 144,
+                    "end": 150,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Analysis of SARS genomes"
+        },
+        {
+            "text": "We assume DNA sequences are structured like languages which are quasi-regular: they allow the combination of some members of syntactic categories, but not others. For example, the sentences: ''I gave food to the orphanage'' and ''I gave the orphanage food'' are both correct. However, if we replace ''gave'' with ''donated'', the sentence ''I donated the orphanage food'' is wrong. From the tree in Fig. 5 , we find the combinations of nodes are not symmetrical. It means that SRN has the capability to extract quasi-regular rule from DNA sequences. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 399,
+                    "end": 405,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Analysis of SARS genomes"
+        },
+        {
+            "text": "After analyzing the genome of SARS-CoV, we are going to analyze another virus: influenza A subtype H1N1. There are thousands of samples of this virus and it mutates frequently. We download 5580 DNA sequences of the segment HA of this virus [27] , whose function is to produce hemagglutinin. They contain duplicate sequences. We do not exclude identical sequences because redundancy may contain useful evolution information. The minimum length of these sequences is 1664 bps. The maximum length of these sequences is 1846 bps. These sequences are not aligned. The original nucleotide sequences will be used in the training of SRN.",
+            "cite_spans": [
+                {
+                    "start": 240,
+                    "end": 244,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Analysis of H1N1 sequences"
+        },
+        {
+            "text": "We randomly selected 50 sequences in a preliminary study to find suitable experiment settings. The longest sequence has 1791 bps and the shortest sequence has 1696 bps. The test settings are listed in the Tables 4-6. All simulations are repeated for 50 times with different initial weights. We try three different kinds of conditions and each of them changes only one variable. Firstly, Table 4 shows the setting with different number of hidden neurons listed in the column ''# hidden neurons''. Fig. 6(a) plots the results of the training. The learning curves in Fig. 6(a1) shows that when we use dense neurons in the hidden layer we will get small errors. Each learning curve is the average over 50 repeated simulations. Fig. 6(a2) shows the histogram of the converged errors for all 50 repeated simulations. Secondly, we use different number of sequences to train the network and plot their learning curves. Table 5 lists the number of randomly chosen sequences in different simulations and the average lengths. Fig. 6 (b1) plots the learning curves averaged over 50 simulations with different number of sequences. These curves show that when the number of sequences increases, the durations for convergence do not increase much. This phenomenon reveals that most sequences have similar hidden structures. Small group of sequences contain sufficient information to represent the rest sequences. Fig. 6(b2) shows the distribution of the converged errors. We randomly select 50 sequences and cut the rest portions of these sequences from the beginning. Table 6 lists the different lengths of those sequences. Note that the randomly chosen 50 sequences in different simulations are not the same. Fig. 6 (c1) plots the learning curves of different lengths of sequences. Fig. 6(c2) shows the distribution of the converged errors.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 387,
+                    "end": 394,
+                    "text": "Table 4",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 496,
+                    "end": 505,
+                    "text": "Fig. 6(a)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 564,
+                    "end": 574,
+                    "text": "Fig. 6(a1)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 723,
+                    "end": 733,
+                    "text": "Fig. 6(a2)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 911,
+                    "end": 918,
+                    "text": "Table 5",
+                    "ref_id": null
+                },
+                {
+                    "start": 1015,
+                    "end": 1026,
+                    "text": "Fig. 6 (b1)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 1398,
+                    "end": 1408,
+                    "text": "Fig. 6(b2)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1554,
+                    "end": 1561,
+                    "text": "Table 6",
+                    "ref_id": null
+                },
+                {
+                    "start": 1696,
+                    "end": 1702,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1769,
+                    "end": 1779,
+                    "text": "Fig. 6(c2)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Analysis of H1N1 sequences"
+        },
+        {
+            "text": "The computational complexity for training SRN is O(PM(t 1 \u00c0 t 0 ) (n 1 \u00c0 n 0 )), where P is the number of sequences. Processing all 5580 sequences is costly. From Fig. 6(b) , we see that a suitable subset of the 5580 sequences can do the training task. We employ DISOM (Distance Invariant Self-Organizing Map) [28, 29] to select the subset sequences. DISOM can sort the sequences and find their distances to the grandmother virus. We select the 1032 sequences sampled from January to May 2009 to simplify the computation. These 1032 sequences are all different. We use ClusterW2 [30] to align the 1032 sequences. The lengths of aligned sequences are all 1710 bps. The DISOM is employed to project high dimensional data onto a three dimensional space. The 100 viruses closest to the cluster center in this space are retrieved. There are 137 such sequences because some sequences are identical.",
+            "cite_spans": [
+                {
+                    "start": 310,
+                    "end": 314,
+                    "text": "[28,",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 315,
+                    "end": 318,
+                    "text": "29]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 579,
+                    "end": 583,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 163,
+                    "end": 172,
+                    "text": "Fig. 6(b)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Analysis of H1N1 sequences"
+        },
+        {
+            "text": "We set 40 neurons in the hidden layer and the context layer of the network. The network is trained by the back-propagation algorithm. The experiments are repeated 50 times. We plot the averaged error in Fig. 7 marked by BP for the sequence that is closest to the cluster center.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 203,
+                    "end": 209,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Analysis of H1N1 sequences"
+        },
+        {
+            "text": "For comparison, we further use the unsupervised SRN [31, 32] to process the H1N1 sequences. The results are plotted in Fig. 7 marked by SOR. This unsupervised SRN was proposed by Voegtlin. The self-organizing neurons are used in the hidden layer and context layer; see Fig. 1 . The topology of these neurons is a grid square map. These neurons use time-delay feedback to represent the information hidden in time. This recursive feedback makes this network different from the original self-organizing map [33] . The synaptic weights are updated according to the self-organizing rule [33] .",
+            "cite_spans": [
+                {
+                    "start": 52,
+                    "end": 56,
+                    "text": "[31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 57,
+                    "end": 60,
+                    "text": "32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 504,
+                    "end": 508,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 582,
+                    "end": 586,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 119,
+                    "end": 125,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 269,
+                    "end": 275,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Analysis H1N1 using unsupervised simple recurrent network"
+        },
+        {
+            "text": "The 137 sequences are used to train this unsupervised network. After extensive trials, we set the network with 8 \u00c2 8 hidden neurons and use it to analyze H1N1 virus. The results are marked by SOR in Fig. 7 . The training procedure is repeated 50 times. All 50 learning curves are recorded in Fig. 8(b) . The learning 50 curves for the SRN with 40 hidden neurons and trained by BP are also plotted in Fig. 8(a) . The BP learning curves show that the SRN tries to find information and rules in time and the rules compete against each other. We see that the curve jumps up and down rapidly. But the learning curve obtained by the self-organizing rule is relatively well behaved. The sequence closest to the center is used for calculating the prediction errors and these errors are plotted and marked with SOR in Fig. 7 . There are 50 converged errors. We sort these 50 errors from top to bottom and show their prediction errors in Fig. 7(d) . Note that Fig. 7(d) plot the smoothed prediction errors by a Gaussian low pass filter with a window size of 31. Stronger intensity indicates higher error in the figure. In supervised BP learning, the nucleotides in the high error regions are less predictable. In unsupervised learning, the high error regions show the nucleotides are away from the statistical center in time domain. The best converged error is plotted on the top of the image Fig. 7(d) .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 199,
+                    "end": 205,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 292,
+                    "end": 301,
+                    "text": "Fig. 8(b)",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 400,
+                    "end": 409,
+                    "text": "Fig. 8(a)",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 809,
+                    "end": 815,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 928,
+                    "end": 937,
+                    "text": "Fig. 7(d)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 950,
+                    "end": 959,
+                    "text": "Fig. 7(d)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 1383,
+                    "end": 1392,
+                    "text": "Fig. 7(d)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Analysis H1N1 using unsupervised simple recurrent network"
+        },
+        {
+            "text": "In order to visualize the structure in time, we employ the hierarchical clustering method [34] to classify the activations of the hidden layer of SRN. This method was used in Elman's work [13] to group the meanings of words. It aggregates the clusters, which have minimum distances, and constructs a binary tree by merging clusters. After constructing the tree, one can cut the leaf nodes by setting a threshold distance. In the communication between Plate and Elman, they have noticed that the activation of hidden neurons is affected by the input, ''. . . The hidden unit activation patterns are highly dependent upon preceding inputs. . . '', see line 2 of page 199 in [13] . In Fig. 9 , we generate the dendrogram with no more than eight leaf nodes instead of four in order to visualize more information. Setting eight clusters in this case means each one of the four clusters, corresponding to the four nucleotides, is further divided into two groups. The colors of the 8 leaf nodes are listed on the top of this figure. The cluster intensities are assigned by the levels of the leaf nodes. This is because nodes in the same cluster should have similar intensities. For example, in Fig. 9(a1) , the node 5 has an intensity black which corresponds to grey code 1. Node 7 has an intensity as that of code 2 and node 6 has an intensity code 3 and so on. Similar structures can be found in the two different methods. Group (1, 7, 2) in (a2) is similar to group (5, 4, 6) in (b2). Without considering the link length, (a2) is isomorphic to (b2), this is because there is a bijective mapping from nodes (5, 6, 1, 7, 2, 3, 8, 4) in (a2) to nodes (3, 2, 5, 4, 6, 1, 8, 7) in (b2). This means these two methods catch similar structure in time.",
+            "cite_spans": [
+                {
+                    "start": 90,
+                    "end": 94,
+                    "text": "[34]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 188,
+                    "end": 192,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 672,
+                    "end": 676,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1602,
+                    "end": 1605,
+                    "text": "(5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1606,
+                    "end": 1608,
+                    "text": "6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1609,
+                    "end": 1611,
+                    "text": "1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1612,
+                    "end": 1614,
+                    "text": "7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1615,
+                    "end": 1617,
+                    "text": "2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1618,
+                    "end": 1620,
+                    "text": "3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1621,
+                    "end": 1623,
+                    "text": "8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1624,
+                    "end": 1626,
+                    "text": "4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1644,
+                    "end": 1647,
+                    "text": "(3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1648,
+                    "end": 1650,
+                    "text": "2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1651,
+                    "end": 1653,
+                    "text": "5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1654,
+                    "end": 1656,
+                    "text": "4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1657,
+                    "end": 1659,
+                    "text": "6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1660,
+                    "end": 1662,
+                    "text": "1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1663,
+                    "end": 1665,
+                    "text": "8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1666,
+                    "end": 1668,
+                    "text": "7)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 682,
+                    "end": 688,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 1187,
+                    "end": 1197,
+                    "text": "Fig. 9(a1)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Clustering hidden activations"
+        },
+        {
+            "text": "The hierarchical clustering process confines the representation of the relations in a tree-like structure. We use Isomap [35] and multidimensional scaling (MDS) [36] to visualize the hidden activations in a two dimensional space, see Fig. 10 . The colors of leaf nodes obtained from hierarchical clustering are kept in this figure.",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 125,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 161,
+                    "end": 165,
+                    "text": "[36]",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 234,
+                    "end": 241,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Visualizing hidden activations in two dimensional space"
+        },
+        {
+            "text": "The grey links between points show the adjacent temporal relations along the genome sequence. One activation follows the other activation if there is a link between them. In Isomap, the number of neighborhoods are set to 60, 300, 350 in Fig. 10 (a1) , (b1) and (c1) respectively. The number of neighborhoods are also set to 60, 300, 350 in Fig. 10 (a2) , (b2), and (c2). Fig. 10 (a1-a4) are obtained from the best trained networks. We see that the best trained SRN, in Fig. 10(a1) and (a3), can resolve the activations according to their appearances in the genome sequence. This is, in some sense, similar to the polysemous of a word. Fig. 10(b1-b4) are obtained from the best 15 trained networks. Fig. 10 (c1-c4) are obtained from all 50 trained networks.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 237,
+                    "end": 249,
+                    "text": "Fig. 10 (a1)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 340,
+                    "end": 352,
+                    "text": "Fig. 10 (a2)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 371,
+                    "end": 386,
+                    "text": "Fig. 10 (a1-a4)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 469,
+                    "end": 480,
+                    "text": "Fig. 10(a1)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 635,
+                    "end": 649,
+                    "text": "Fig. 10(b1-b4)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 698,
+                    "end": 705,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Visualizing hidden activations in two dimensional space"
+        },
+        {
+            "text": "The residual variances in Fig. 11 show how much information is captured with respect to dimensionality by the two dimension reduction algorithms, Isomap and MDS. The residual variances of Isomap may not decrease monotonously for SRN trained by the BP algorithm. The residual variance decreases as the dimensionality is increased for SRN trained by the self-organizing rule. Four dimensions are enough to catch most variances of the hidden activations for the H1N1 sequences.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 26,
+                    "end": 33,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Visualizing hidden activations in two dimensional space"
+        },
+        {
+            "text": "This work presents a new technology to study genome sequences. Without any prior biological knowledge and only processing the ATCG sequences, the result is strikingly consistent with the findings from biologists. This implies that we can use this new technology to study more complicated genomes which are still a mystery to biologists. The underlying structures detected by SRN provide new types of features for further biological studies. By ranking the errors, this technology provides the priorities for biologists to choose which part of the genomes is worth to study. The results of the proposed segmentation method can be used in distinguishing an artificial DNA segment from an natural segment, because the nucleotides joined together in the natural environment may be different from the one joined in the laboratory. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Summary"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Compositional segmentation and long-range fractal correlations in dna sequences",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bernaola-Galvan",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Roman-Roldan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Oliver",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Physical Review E",
+            "volume": "53",
+            "issn": "5",
+            "pages": "5181--5189",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Prediction of mitochondrial targeting signals using hidden markov models",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Fujiwara",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Asogawa",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Nakai",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Genome Informatics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Automatic extraction of motifs represented in the hidden markov model from a number of dna sequences",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Yada",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Totoki",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ishikawa",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Asai",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Nakai",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Bioinformatics",
+            "volume": "14",
+            "issn": "4",
+            "pages": "317--325",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Large scale multiple kernel learning",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Sonnenburg",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "R\u00e4tsch",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Sch\u00e4fer",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Journal of Machine Learning Research",
+            "volume": "7",
+            "issn": "",
+            "pages": "1531--1565",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Class imbalance methods for translation initiation site recognition in dna sequences, Knowledge-Based Systems",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Garc\u00eda-Pedrajas",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "P\u00e9rez-Rodr\u00edguez",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Garc\u00eda-Pedrajas",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ortiz-Boyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fyfe",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Pattern classification using support vector machine ensemble",
+            "authors": [
+                {
+                    "first": "H.-C",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Pang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H.-M",
+                    "middle": [],
+                    "last": "Je",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Bang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proceedings of the 16th International Conference on Pattern Recognition",
+            "volume": "",
+            "issn": "",
+            "pages": "160--163",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Constructing support vector machine ensemble",
+            "authors": [
+                {
+                    "first": "H.-C",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Pang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H.-M",
+                    "middle": [],
+                    "last": "Je",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Bang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Pattern Recognition",
+            "volume": "36",
+            "issn": "",
+            "pages": "2757--2767",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Gene structure prediction by linguistic methods",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Dong",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Searls",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Genomics",
+            "volume": "23",
+            "issn": "",
+            "pages": "540--551",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "The language of genes",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Searls",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Nature",
+            "volume": "420",
+            "issn": "",
+            "pages": "211--217",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Syntactic Structures",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Chomsky",
+                    "suffix": ""
+                }
+            ],
+            "year": 1957,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Durbin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krogn",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Mitchison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "The Machine Learning Approach (Adaptive Computation and Machine Learning)",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Baldi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Brunak",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Finding structure in time",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Elman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Cognitive Science",
+            "volume": "14",
+            "issn": "",
+            "pages": "179--211",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Analog computation via neural networks",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Siegelmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Theoretical Computer Science",
+            "volume": "131",
+            "issn": "",
+            "pages": "331--360",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Extracting finite structure from infinite language, Knowledge-Based Systems",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Mcqueen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hopgood",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Allen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tepper",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "",
+            "volume": "18",
+            "issn": "",
+            "pages": "135--141",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Generalization, simple recurrent networks, and the emergence of structure",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Elman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Proceedings of the Twentieth Annual Conference of the Cognitive Science Society",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "A data mining approach to discover unusual folding regions in genome sequences",
+            "authors": [
+                {
+                    "first": "S.-Y",
+                    "middle": [],
+                    "last": "Le",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Maizel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Knowledge-Based Systems",
+            "volume": "15",
+            "issn": "",
+            "pages": "243--250",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Use of mobile phones as intelligent sensors for sound input analysis and sleep state detection",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Ondrej",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Jakub",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Dalibor",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Sensors",
+            "volume": "11",
+            "issn": "",
+            "pages": "6037--6055",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Heterosubtypic neutralizing monoclonal antibodies cross-protective against H5N1 and H1N1 recovered from human igm+ memory b cells",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Throsby",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Van Den",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Brink",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Jongeneelen",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "PloS One",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Learning internal representations by error propagation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Rumelhart",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Hinton",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Williams",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Parallel Distributed Processing: Explorations in the Microstructure of Cognition",
+            "volume": "1",
+            "issn": "",
+            "pages": "318--362",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "A novel coronavirus associated with severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ksiazek",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Erdman",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Goldsmith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "The New England Journal of Medicine",
+            "volume": "348",
+            "issn": "",
+            "pages": "1953--1966",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Coronavirus as a possible cause of severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Peiris",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lai",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Poon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "The Lancet",
+            "volume": "361",
+            "issn": "",
+            "pages": "1319--1325",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Identification of a novel coronavirus in patients with severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Drosten",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "G\u00fcther",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Preiser",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "The New England Journal of Medicine",
+            "volume": "348",
+            "issn": "",
+            "pages": "1967--1976",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "The genome sequence of the sars-associated coronavirus",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Marra",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Astell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "300",
+            "issn": "",
+            "pages": "1399--1404",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "The influenza virus resource at the national center for biotechnology information",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Bao",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bolotov",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dernovoy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Journal of Virology",
+            "volume": "82",
+            "issn": "",
+            "pages": "596--601",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Manifold construction based on local distance invariance",
+            "authors": [
+                {
+                    "first": "W.-C",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-Y",
+                    "middle": [],
+                    "last": "Liou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Memetic Computing",
+            "volume": "2",
+            "issn": "",
+            "pages": "149--160",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Visualization of influenza a protein segments in distance invariant self-organizing map",
+            "authors": [
+                {
+                    "first": "W.-C",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-Y",
+                    "middle": [],
+                    "last": "Liou",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "International Journal of Intelligent Information and Database Systems",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Multiple sequence alignment with the clustal series of programs",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chenna",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Sugawara",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Koike",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lopez",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Gibson",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Higgins",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Thompson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nucleic Acids Research",
+            "volume": "31",
+            "issn": "",
+            "pages": "3497--3500",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Recursive self-organizing maps",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Voegtlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Dominey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Advances in Self-Organizing Maps",
+            "volume": "",
+            "issn": "",
+            "pages": "210--215",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Recursive self-organizing maps",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Voegtlin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Neural Networks",
+            "volume": "15",
+            "issn": "",
+            "pages": "979--991",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Self-organized formation of topologically correct feature maps",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kohonen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1982,
+            "venue": "Biological Cybernetics",
+            "volume": "",
+            "issn": "",
+            "pages": "59--69",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Hierarchical clustering schemes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1967,
+            "venue": "Psychometrika",
+            "volume": "32",
+            "issn": "3",
+            "pages": "241--254",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "A global geometric framework for nonlinear dimensionality reduction",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tenenbaum",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "De",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Langford",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Science",
+            "volume": "290",
+            "issn": "",
+            "pages": "2319--2323",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Multidimensional scaling: I theory and method",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Torgerson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1952,
+            "venue": "Psychometrika",
+            "volume": "17",
+            "issn": "",
+            "pages": "401--419",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "The structure of the recurrent neural network used in the analysis of DNA sequence.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "The averaged prediction errors of the SARS ''AY274119.3'' genome. Each vertical band in the image shows a value that is averaged over an interval of 501 nucleotides by Gaussian function.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "(a) There are 100 bins in the histogram. Each bin has an interval of length 40 base pairs. (b) The error peaks marked by green color that are near the boundaries of the protein coding regions. The boundaries are marked by blue vertical lines. (For interpretation of the references to colour in this figure legend, the reader is referred to the web version of this article.)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Tree derived from short segments as listed inTable 3. The nodes which are the ends of protein coding regions are marked in blue color. (For interpretation of the references to colour in this figure legend, the reader is referred to the web version of this article.)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "The networks are trained by back-propagation. (a1) The learning curves with different numbers of hidden neurons. (a2) The histogram of the converged errors from (a1). (b1) The learning curves with different numbers of training DNA sequences. (b2) The histogram of the converged errors from (b1). (c1) The learning curves of different lengths of training DNA sequences. (c2) The histogram of the converged errors from (c1).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "This figure plots the averaged errors along the closest sequence. (a) The averaged prediction errors of the best trained SRN with lowest converged error. (b) The averaged prediction errors of the best 15 trained SRNs that have smallest 15 converged errors. (c) The averaged prediction errors over all 50 simulations. (d) All prediction errors of the 50 simulation. The performance of these 50 trained networks are sorted from top to bottom.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "The plots show all the 50 learning curves of two methods. (a) The learning curves by BP. (b) The learning curves by self-organizing rule.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Hierarchical clustering diagram of the activations of hidden layer in influenza analysis. Each intensity indicates a cluster. The intensities are assigned according to the levels of the leaf nodes. The plots show the results of supervised (a) and unsupervised learning (b) for different trained networks. (1-3) are the trees constructed from the activations of the hidden neurons that have the minimum converged error, minimum 15 converged errors, and all 50 trained networks respectively.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "This figure shows the results of mapping the hidden activations in two dimensional space. The 8 colors are 8 clusters by hierarchical clustering method. The grey links show the transits of hidden states.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "The residual variances of Isomap (circles), MDS (cross) in different dimensions for the hidden activations of the trained SRN, Isomap 1 and MDS 1 are plots for the best trained network. Isomap 15 and MDS 15 are for the best 15 trained networks. Isomap 50 and Isomap 50 are for all 50 trained networks. Each curve is normalized within zero and one in the y-axis.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "0950-7051/$ -see front matter \u00d3 2011 Elsevier B.V. All rights reserved. doi:10.1016/j.knosys.2011.09.001",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Information on the 11 SARS genomes.Fig. 2. Recorded 300 learning curves. The colors of curves indicate their converged mean square errors. 287 curves reach to values lower than 1.8.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Comparison of the segmentation locations.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "List of short segments that have lengths less than 7.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Setting of parameters (a).",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work was supported by National Science Council under project NSC100-2221-E-002-234-MY3.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgment"
+        }
+    ]
+}

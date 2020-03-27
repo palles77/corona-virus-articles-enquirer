@@ -1,0 +1,1631 @@
+{
+    "paper_id": "143381fcb7566228ad053f619d03efdfbc2668b3",
+    "metadata": {
+        "title": "RE-MuSiC: a tool for multiple sequence alignment with regular expression constraints",
+        "authors": [
+            {
+                "first": "Yun-Sheng",
+                "middle": [],
+                "last": "Chung",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Tsing Hua University",
+                    "location": {
+                        "postCode": "300",
+                        "settlement": "Hsinchu",
+                        "country": "Taiwan"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Wei-Hsun",
+                "middle": [],
+                "last": "Lee",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Chiao Tung University",
+                    "location": {
+                        "postCode": "300",
+                        "settlement": "Hsinchu",
+                        "country": "Taiwan"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Chuan",
+                "middle": [
+                    "Yi"
+                ],
+                "last": "Tang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Tsing Hua University",
+                    "location": {
+                        "postCode": "300",
+                        "settlement": "Hsinchu",
+                        "country": "Taiwan"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Chin",
+                "middle": [
+                    "Lung"
+                ],
+                "last": "Lu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Chiao Tung University",
+                    "location": {
+                        "postCode": "300",
+                        "settlement": "Hsinchu",
+                        "country": "Taiwan"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [],
+    "body_text": [
+        {
+            "text": "Sequence alignment tools are essential to biological research [see, e.g. (1) , for a survey of multiple sequence alignment methods]. In addition to merely the residues/ nucleotides, biologists often possess more knowledge regarding function, structure or conserved patterns of the sequences to be analyzed. It is generally desirable to have such information incorporated into an alignment procedure, so that the alignment result can be more biologically meaningful. For example, functionally important sites are generally expected to be aligned together, but a typical alignment tool often fails to achieve this if the sequence similarity is low. Imposing constraints representing such information turns out to be an effective manner to incorporate biological knowledge into an alignment tool.",
+            "cite_spans": [
+                {
+                    "start": 73,
+                    "end": 76,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and motivation"
+        },
+        {
+            "text": "Motivated by such demand, Tang et al. (2) formulated the constrained multiple sequence alignment problem, where each constraint is a single residue/nucleotide. They considered alignment of RNase sequences, which are known to have a sequence of conserved residues His (H), Lys (K) and His. Using H, K, H as constraints, in the resulting constrained alignment each of these three residues can be found aligned together in a column of the alignment, appearing in the order as specified. Chin et al. (3) then proposed an improved algorithm for pairwise alignment and an approximation algorithm for multiple alignment. It is also noted that there have been other formulations regarding alignment with constraints proposed from different perspectives with various approaches (4) (5) (6) (7) (8) (9) (10) (11) (12) (13) (14) .",
+            "cite_spans": [
+                {
+                    "start": 38,
+                    "end": 41,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 484,
+                    "end": 499,
+                    "text": "Chin et al. (3)",
+                    "ref_id": null
+                },
+                {
+                    "start": 769,
+                    "end": 772,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 773,
+                    "end": 776,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 777,
+                    "end": 780,
+                    "text": "(6)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 781,
+                    "end": 784,
+                    "text": "(7)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 785,
+                    "end": 788,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 789,
+                    "end": 792,
+                    "text": "(9)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 793,
+                    "end": 797,
+                    "text": "(10)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 798,
+                    "end": 802,
+                    "text": "(11)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 803,
+                    "end": 807,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 808,
+                    "end": 812,
+                    "text": "(13)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 813,
+                    "end": 817,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and motivation"
+        },
+        {
+            "text": "Conserved sites of a protein/RNA/DNA family are often of several residues/nucleotides long. For these patterns, the original formulation in (2) is not expressive enough. In addition, such patterns may not appear in the exact form in general. Consequently, Tsai et al. (15) proposed a generalized formulation and algorithm, where each constraint is a (usually short) string pattern allowing mismatches. Lu and Huang (16) then proposed a space efficient algorithm for this formulation. Web-based systems, MuSiC (15) (available at http:// genome.life.nctu.edu.tw/MUSIC) and MuSiC-ME (16) (available at http://genome.life.nctu.edu.tw/MUSICME), were also developed; from now on these two systems will be referred to as MuSiC jointly. With the aid of MuSiC, Tsai et al. (15) and Lu and Huang (16) successfully *To whom correspondence should be addressed. Tel: \u00fe886-3-5712121; Fax: \u00fe886-3-5729288; Email: cllu@mail.nctu.edu.tw \u00df 2007 The Author(s) This is an Open Access article distributed under the terms of the Creative Commons Attribution Non-Commercial License (http://creativecommons.org/licenses/ by-nc/2.0/uk/) which permits unrestricted non-commercial use, distribution, and reproduction in any medium, provided the original work is properly cited. identified a fragment in the 3 0 untranslated region (3 0 -UTR) of a SARS (severe acute respiratory syndrome) coronavirus sequence that can fold into a pseudoknot, which is potentially responsible for self-replication of the virus. Indeed, since its release, MuSiC has been found useful in, e.g. detection of functionally and/or structurally important residues/motifs in sequences (17, 18) , prediction of RNA pseudoknotted structures (15, 19, 20) , prediction of protein structures (21) and so on.",
+            "cite_spans": [
+                {
+                    "start": 268,
+                    "end": 272,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 402,
+                    "end": 419,
+                    "text": "Lu and Huang (16)",
+                    "ref_id": null
+                },
+                {
+                    "start": 580,
+                    "end": 584,
+                    "text": "(16)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 764,
+                    "end": 768,
+                    "text": "(15)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 773,
+                    "end": 790,
+                    "text": "Lu and Huang (16)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1632,
+                    "end": 1636,
+                    "text": "(17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1637,
+                    "end": 1640,
+                    "text": "18)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 1686,
+                    "end": 1690,
+                    "text": "(15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1691,
+                    "end": 1694,
+                    "text": "19,",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1695,
+                    "end": 1698,
+                    "text": "20)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1734,
+                    "end": 1738,
+                    "text": "(21)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and motivation"
+        },
+        {
+            "text": "There are, however, formulations of many biologically significant patterns beyond the capability of MuSiC. For example, many function-related protein sites as those collected in the PROSITE database (22) are expressed in regular expressions, which cannot be modeled using the substring-with-mismatch formulation of constraints implemented in MuSiC. An example of regular expression patterns is the EGF-like domain signature 2 (EGF_2, PS01186 in PROSITE):",
+            "cite_spans": [
+                {
+                    "start": 199,
+                    "end": 203,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and motivation"
+        },
+        {
+            "text": "which is related to the initiation of a signal transduction that results in DNA synthesis and cell proliferation. The meaning of this pattern is that, the first residue is Cys, followed by one residue of any kind, then a Cys, followed by two residues of any kind, then a Gly or Pro, etc. Regular expressions are also convenient in describing variable ranges between patterns or between blocks within a pattern, which is necessary for some single patterns themselves, and useful in applications where different patterns are expected to exhibit proximity in their occurrences. In the above example of EGF_2, the 'x(4,8)' symbol preceding the last Cys indicates a range of length varying from 4 to 8 between a residue of [F, Y or W] (Phe, Tyr or Trp) and that last Cys. Due to the usefulness of regular expressions in describing biological patterns, an enhanced web server, RE-MuSiC (Multiple Sequence Alignment with Regular Expression Constraints), capable of handling regular expression constraints, is developed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background and motivation"
+        },
+        {
+            "text": "DIALIGN (8, 9, 12, 13) (http://dialign.gobics.de/) is a well-known web server that can accept user-defined constraints as anchor points. It can be noted that the constraint formulation of DIALIGN and the one of RE-MuSiC are significantly different. In DIALIGN, a constraint consists of the exact positions of a pair of equal-length segments on two of the sequences, where these two segments are expected to be aligned together. Conflicts of constraints, if any, are resolved according to a weight function defined on the segment pairs. This formulation is more similar to the one of Myers et al. (6) . On the other hand, in RE-MuSiC, a constraint is a regular expression pattern. Each pattern may occur many times in a sequence, where each occurrence needs not have the same length. The occurrences to be aligned together so as to satisfy the constraints will be those that can make the overall alignment optimized.",
+            "cite_spans": [
+                {
+                    "start": 8,
+                    "end": 11,
+                    "text": "(8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 12,
+                    "end": 14,
+                    "text": "9,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 15,
+                    "end": 18,
+                    "text": "12,",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 19,
+                    "end": 22,
+                    "text": "13)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 596,
+                    "end": 599,
+                    "text": "(6)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and motivation"
+        },
+        {
+            "text": "RE-MuSiC provides an intuitive user interface ( Figure 1 ). The user enters or pastes the input sequences (in FASTA format) in the largest blank field. The format for the constraints follows the PROSITE pattern format (please see the help page at http://140.113.239.131/RE-MUSIC/help.html for details). Each constraint is put within quotes, and adjacent constraints are separated by space characters. The user needs to specify whether the input sequences are proteins or DNA/RNA. The preferred scoring matrix may be chosen, and the gap open/extension penalties can be assigned. The user can also enter an email address so that a hyperlink to the alignment result will be sent via email. The output page shows the constrained alignment with the regions for the satisfactions of the constraints shaded in yellow (Figure 2b ). On the output page the user can also choose to download the alignment result in FASTA format or ClustalW format.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 48,
+                    "end": 56,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 810,
+                    "end": 820,
+                    "text": "(Figure 2b",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Using RE-MuSiC"
+        },
+        {
+            "text": "The regular expression constrained sequence alignment problem was originally formulated by Arslan (23) . The algorithm proposed in (23) is for pairwise alignment with a single constraint. In (24) Arslan extended the algorithm in (23) to support multiple alignment with multiple constraints. The algorithm proposed in (24) may be implemented. It computes mathematically optimal constrained alignments. Unfortunately, the time complexity is extremely high, involving an exponential multiplicative factor in addition to the exponential time complexity for optimal (unconstrained) MSA computations. Even for pairwise alignment with multiple constraints, its worst case time and space requirements are intensive. In addition, the algorithms in (23, 24) cannot find in the resulting alignment the regions responsible for the satisfactions of the constraints; only the alignment score, without the alignment itself, is reported. But being able to report alignments is important for a web server. It is therefore necessary to propose a solution more suitable for practical applications.",
+            "cite_spans": [
+                {
+                    "start": 98,
+                    "end": 102,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 229,
+                    "end": 233,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 739,
+                    "end": 743,
+                    "text": "(23,",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 744,
+                    "end": 747,
+                    "text": "24)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "METHODS"
+        },
+        {
+            "text": "For pairwise alignment with one regular expression constraint, in a previous study (25) we have proposed an algorithm, which is more efficient both in time and in space than the one in (23) . Furthermore, the alignment in addition to the score can be reconstructed without worsening the time and space complexity. In this work we extend the algorithm in (25) to support multiple constraints and multiple sequences, as required in RE-MuSiC. The resulting algorithm is more efficient than the one in (24) for pairwise alignment with multiple constraints. To deal with multiple sequences, a progressive method is implemented, using our improved pairwise algorithm as the kernel. For details of the algorithm the reader is referred to the supplementary material (available at http://140.113.239.131/RE-MUSIC/ RE_MuSiC_method.pdf).",
+            "cite_spans": [
+                {
+                    "start": 83,
+                    "end": 87,
+                    "text": "(25)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 185,
+                    "end": 189,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 354,
+                    "end": 358,
+                    "text": "(25)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "METHODS"
+        },
+        {
+            "text": "The glutathione binding site (G-site) on glutathione S-transferase (GST) had been found to have conserved architectures across species (26) . The chemical natures of their residues acting as G-site ligands and interactions facilitated with glutathione are also analogous (26) . In a reasonable alignment of GST protein sequences, therefore, the residues for the G-site are expected to be aligned together. A structural superposition of the crystal structures of GST proteins from different species also suggests that most of these G-site residues should be aligned together (26) . The sequence identity of those GST proteins from different species, however, is quite low; for example, it is reported in (26) that the pairwise sequence identity between the A. thaliana GST and each of other six non-plant GSTs is no more than 20.2%. In such a case, interfered by the low-similarity regions, it would be difficult for a typical alignment tool to align the important residues well. An experiment is therefore undertaken to examine the performance of a typical alignment tool in this case, as well as to demonstrate how RE-MuSiC can be used to produce a more reasonable alignment.",
+            "cite_spans": [
+                {
+                    "start": 135,
+                    "end": 139,
+                    "text": "(26)",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 271,
+                    "end": 275,
+                    "text": "(26)",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 574,
+                    "end": 578,
+                    "text": "(26)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Protein sequences with active site residues"
+        },
+        {
+            "text": "In this experiment we analyze three GST proteins: (i) AtGST: a phi class GST from plant A. thaliana In the resulting alignment, RE-MuSiC annotated the region for the satisfaction of the constraint with a yellow block. It can be seen that the G-site residues are aligned properly, as desired. For both tools, the default parameter settings are adopted.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Protein sequences with active site residues"
+        },
+        {
+            "text": "(PDBID: 1GNW); (ii) SjGST: an alpha class GST from non-mammalian S. japonicum (flat worm) (PDBID: 1M99); (iii) SsGST: a pi class GST from mammalian S. scrofa (pig) (PDBID: 2GSR). These sequences are first aligned using ClustalW (27) . The result is shown in Figure 2a , where active site residues shared by these GSTs are boxed. It can be seen that, part of the G-site residues failed to be aligned together, due to the low sequence similarity among these GST proteins. By querying PROSITE with the three proteins, it is found that they all share the pattern PS00006 ([ST]-x(2)- [DE] ). Using this pattern as constraint, RE-MuSiC is applied to align the sequences again. The result is shown in Figure 2b . As expected, the common pattern is aligned together. Meanwhile, the G-site residues are aligned properly, as desired. These suggest that, with some information about common patterns, RE-MuSiC is more reliable to produce alignments in which biologically important residues can be lined up, which is particularly important when the sequence identity is low. Being more reliable in aligning together important residues, RE-MuSiC may also be applied to align an unknown sequence with other sequences whose relevant residues are known, thus providing a convenient and cheap way for a preliminary prediction of the residues in question on the unknown sequence. Note also that, in this experiment, the knowledge about the active site residues are not utilized in constructing the alignment; the constraints do not involve the active site residues themselves. Such a property is useful when the residues to be predicted are not expected to be conserved in the sequence level.",
+            "cite_spans": [
+                {
+                    "start": 228,
+                    "end": 232,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 579,
+                    "end": 583,
+                    "text": "[DE]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 258,
+                    "end": 267,
+                    "text": "Figure 2a",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 694,
+                    "end": 703,
+                    "text": "Figure 2b",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Protein sequences with active site residues"
+        },
+        {
+            "text": "There is considerable evidence that suggests phylogenetically conserved pseudoknots found in the 3 0 -UTRs of various coronaviruses are involved in RNA replication of these viruses (28) . In an alignment of the 3 0 -UTR sequences of coronaviruses, therefore, it is desirable if these pseudoknots can be aligned together. However, it is often the case that the sequence identity among the coronaviruses from different groups is low. It is not an easy task for a typical alignment tool to align together the conserved pseudoknots. In this experiment, we demonstrate that RE-MuSiC can be helpful in this situation.",
+            "cite_spans": [
+                {
+                    "start": 181,
+                    "end": 185,
+                    "text": "(28)",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "RNA sequences with phylogenetically conserved pseudoknots"
+        },
+        {
+            "text": "Four coronaviruses are considered in this experiment (GenBank accession numbers in parentheses): (i) HCoV-229E: human 229E coronavirus (af304460), (ii) PEDV: porcine epidemic diarrhea virus (af353511), (iii) BCoV: bovine coronavirus (af220295) and (iv) MHV: murine hepatitis virus (af201929). The first two are group 1 coronaviruses, while the others belong to group 2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "RNA sequences with phylogenetically conserved pseudoknots"
+        },
+        {
+            "text": "First, ClustalW is applied to align these coronavirus sequences. The result is shown in Figure 3a . Not surprisingly, since the sequence identity is low, Figure 3 . Results of the experiment on coronaviruses with 3 0 -UTR pseudoknots. (a) A partial view of the alignment produced by ClustalW. The shaded regions, corresponding to the phylogenetically conserved pseudoknots, are not aligned well. (b) A partial view of the alignment produced by RE-MuSiC. The consensus of the pseudoknots on the four coronaviruses involves variable ranges between residues. RE-MuSiC has a constraint formulation flexible enough to express this consensus. As expected, the regions for the pseudoknots are aligned properly by RE-MuSiC. For both tools, the default parameter settings are adopted. the phylogenetically conserved pseudoknots (shaded regions) are not aligned well. In (28) , predicted secondary structures of the pseudoknots found in the 3 0 -UTR of various coronaviruses are given. A consensus of the pseudoknots is to be taken. Since, in general, loops in pseudoknots are less conserved, to enhance flexibility, we exclude loop regions nucleotides from the consensus. Then the consensus of the pseudoknots can be described as 'x(5)-C-U-x(4)-C-x(15,16)-U-G-x(2)-A-x(5,7)-G-x(4)-A-G-x(7,10)-U-x(3)-A-x (5) .' Using this consensus as the constraint, RE-MuSiC is applied to align these 3 0 -UTR sequences again. In Figure 3b , the pseudoknot regions on these coronaviruses can be seen to have been aligned properly. This demonstrates that RE-MuSiC can be used to help locate fragments that are conserved in structure. Actually, this property, being a common advantage of the MuSiC series, had been utilized to predict the pseudoknot in the 3 0 -UTR of the SARS-TW1 coronavirus by aligning the 3 0 -UTR of SARS-TW1 with those of some other coronaviruses whose pseudoknot regions are known (15, 16) . RE-MuSiC further makes it possible to provide the flexibility of variable ranges between conserved nucleotides or regions in constraints, which is necessary for describing the whole consensus of the pseudoknot in this experiment. This is a significant advance over previous generations of MuSiC.",
+            "cite_spans": [
+                {
+                    "start": 861,
+                    "end": 865,
+                    "text": "(28)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1295,
+                    "end": 1298,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1879,
+                    "end": 1883,
+                    "text": "(15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1884,
+                    "end": 1887,
+                    "text": "16)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 88,
+                    "end": 97,
+                    "text": "Figure 3a",
+                    "ref_id": null
+                },
+                {
+                    "start": 154,
+                    "end": 162,
+                    "text": "Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1406,
+                    "end": 1415,
+                    "text": "Figure 3b",
+                    "ref_id": null
+                }
+            ],
+            "section": "RNA sequences with phylogenetically conserved pseudoknots"
+        },
+        {
+            "text": "Imposing constraints is an effective manner to incorporate biological knowledge into an alignment tool. Previous versions of MuSiC do not support many biologically significant patterns. RE-MuSiC adopts regular expressions as its constraint formulation, which is useful in expressing PROSITE patterns or structural elements that often involve variable ranges between conserved parts. The algorithm underlying RE-MuSiC represents an improvement over the previously proposed algorithm, and is more appropriate for implementation in a webserver. Experiments on GST proteins and on coronaviruses with phylogenetically conserved pseudoknots demonstrate that, with additional knowledge incorporated, RE-MuSiC is able to produce meaningful alignments in which important residues or structural elements can be aligned properly, even if the similarity among input sequences is low. Such ability is also useful for prediction purposes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUMMARY"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Recent progresses in multiple sequence alignment: a survey",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Notredame",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Pharmacogenomics",
+            "volume": "3",
+            "issn": "",
+            "pages": "131--144",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Constrained multiple sequence alignment tool development and its application to RNase family alignment",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D T"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Tsai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Sun",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Chao",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Chiou",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Bioinform. Comput. Biol",
+            "volume": "1",
+            "issn": "",
+            "pages": "267--287",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Efficient constrained multiple sequence alignment with performance guarantee",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [
+                        "Y L"
+                    ],
+                    "last": "Chin",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Ho",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Lam",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "W H"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Bioinform. Comput. Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "1--18",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "A workbench for multiple alignment construction and analysis",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Shuler",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Altschul",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lipman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Proteins: Struct. Funct. Genet",
+            "volume": "9",
+            "issn": "",
+            "pages": "180--190",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "MATCH-BOX: a fundamentally new algorithm for the simultaneous alignment of several protein sequences",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Depiereux",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Feytmans",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Comput. Appl. Biosci",
+            "volume": "8",
+            "issn": "",
+            "pages": "501--509",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Progressive multiple alignment with constraints",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Myers",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Selznick",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Miller",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "J. Comput. Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "563--572",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Multiple DNA and protein sequence alignment based on segment-to-segment comparison",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dress",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Werner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Proc. Natl. Acad. Sci. USA",
+            "volume": "93",
+            "issn": "",
+            "pages": "12098--12103",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "DIALIGN: finding local similarities by multiple sequence alignment",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Frech",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dress",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Werner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Bioinformatics",
+            "volume": "14",
+            "issn": "",
+            "pages": "290--294",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "DIALIGN 2: improvement of the segmentto-segment approach to multiple sequence alignment",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Bioinformatics",
+            "volume": "15",
+            "issn": "",
+            "pages": "211--218",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "DbClustal: rapid and reliable multiple alignments of protein sequences detected by database searches",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Plewniak",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-C",
+                    "middle": [],
+                    "last": "Thierry",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Poch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Nucleic Acids Res",
+            "volume": "28",
+            "issn": "",
+            "pages": "2919--2926",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Divide-andconquer multiple alignment with segment-based constraints",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sammeth",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Stoye",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "19",
+            "issn": "",
+            "pages": "189--195",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "DIALIGN: Multiple DNA and protein sequence alignment at BiBi-Serv",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nucleic Acids Res",
+            "volume": "32",
+            "issn": "",
+            "pages": "33--36",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Multiple sequence alignment with user-defined constraints at GOBICS",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Werner",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Prohaska",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S I"
+                    ],
+                    "last": "Schneider",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Subramanian",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Weyer-Menkhoff",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "1271--1273",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Multiple sequence alignment with user-defined anchor points",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Morgenstern",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Prohaska",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Pohler",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Stadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Algorithms Mol. Biol",
+            "volume": "1",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "MuSiC: a tool for multiple sequence alignment with constraints",
+            "authors": [
+                {
+                    "first": "Y.-T",
+                    "middle": [],
+                    "last": "Tsai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Bioinformatics",
+            "volume": "20",
+            "issn": "",
+            "pages": "2309--2311",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "A memory-efficient algorithm for multiple sequence alignment with constraints",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Huang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "20--30",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "ARCS: an aggregated related column scoring scheme for aligned sequences",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Song",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Choi",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Szymanski",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "K H"
+                    ],
+                    "last": "Tung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Bioinformatics",
+            "volume": "22",
+            "issn": "",
+            "pages": "2326--2332",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Exploration of glycosyl hydrolase family 75, a chitosanase from Aspergillus fumigatus",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Biol. Chem",
+            "volume": "281",
+            "issn": "",
+            "pages": "3137--3144",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "A heuristic approach for detecting RNA H-type pseudoknots",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Chiu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "3501--3508",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Beyond Mfold: Recent advances in RNA bioinformatics",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Reeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hochsmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Rehmsmeier",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Voss",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Biotechnol",
+            "volume": "124",
+            "issn": "",
+            "pages": "41--55",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Sequence comparison and protein structure prediction",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Dunbrack",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Curr. Opin. Struct. Biol",
+            "volume": "16",
+            "issn": "",
+            "pages": "374--384",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Recent improvements to the PROSITE database",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Hulo",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J A"
+                    ],
+                    "last": "Sigrist",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Le Saux",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Langendijk-Genevaux",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Bordoli",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gattiker",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "De Castro",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bucher",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bairoch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nucleic Acids Res",
+            "volume": "32",
+            "issn": "",
+            "pages": "134--137",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Regular expression constrained sequence alignment",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Arslan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proceedings of 16th Annual Symposium on Combinatorial Pattern Matching (CPM05)",
+            "volume": "3537",
+            "issn": "",
+            "pages": "322--333",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Multiple sequence alignment containing a sequence of regular expressions",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Arslan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proceedings of IEEE Symposium on Computational Intelligence in Bioinformatics and Computational Biology (CIBCB05)",
+            "volume": "",
+            "issn": "",
+            "pages": "1--7",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Efficient algorithms for regular expression constrained sequence alignment",
+            "authors": [
+                {
+                    "first": "Y.-S",
+                    "middle": [],
+                    "last": "Chung",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Tang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proceedings of 17th Annual Symposium on Combinatorial Pattern Matching (CPM06)",
+            "volume": "4009",
+            "issn": "",
+            "pages": "389--400",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Three-dimensional structure of glutathione S-transferase from Arabidopsis thaliana at 2.2 \u00c5 resolution: structural characterization of herbicide-conjugating plant glutathione S-transferases and a novel active site architecture",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Reinemer",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Prade",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Hof",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Neuefeind",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Huber",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Zettl",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Palme",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Schell",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Koelln",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "J. Mol. Biol",
+            "volume": "255",
+            "issn": "",
+            "pages": "289--309",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "CLUSTAL W: improving the sensitivity of progressive multiple sequence alignment through sequence weighting, position-specific gap penalties and weight matrix choice",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Higgins",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gibson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Nucleic Acids Res",
+            "volume": "22",
+            "issn": "",
+            "pages": "4673--4680",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "A phylogenetically conserved hairpin-type 3 0 untranslated region pseudoknot functions in coronavirus RNA replication",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Williams",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Brian",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. Virol",
+            "volume": "73",
+            "issn": "",
+            "pages": "8349--8355",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "The user-interface of RE-MuSiC. The user simply enters input sequences in FASTA format in the largest blank field. Another field with title 'Regular expression constraint(s)' is for the user to enter the regular expression constraints, in a PROSITE-like format (for details please refer to the help page at http://140.113.239.131/ RE-MUSIC/help.html). In this figure, the inputs for the GST experiment are shown (see 'Experiments').",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Results of the experiment on glutathione S-transferase (GST). The boxed residues are the G-site residues shared by these GSTs. (a) A partial view of the alignment produced by ClustalW. Not all of the G-site residues can be aligned together. (b) A partial view of the alignment produced by RE-MuSiC. A common pattern of these GST sequences, namely '[ST]-x(2)-[DE]' (PS00006), as obtained from PROSITE, is used as constraint.",
+            "latex": null,
+            "type": "figure"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors thank the anonymous reviewers for their useful comments, which improved the usability of the web interface and the clarity of this article. This work was supported in part by National Science Council of Republic of China under grant NSC95-2221-E-009-231 (C.L. Lu) and grants NSC95-2221-E-007-031 and NSC95-2627-B-007-002 (C.Y. Tang), and in part by the ATU plan of MOE. Funding to pay the Open Access publication charges for this article was provided by the ATU plan of MOE.Conflict of interest statement. None declared.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        }
+    ]
+}

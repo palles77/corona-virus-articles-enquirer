@@ -1,12 +1,13 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using CovidLib;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Net;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
-using System.Web;
 using System.Windows.Forms;
 
 namespace CovidEnquirer
@@ -73,7 +74,7 @@ namespace CovidEnquirer
                 SetOptionalMessage(string.Format("Analysing article {0} out of {1} articles", progressValue, AllArticles.Count));
                 SetProgressBarValue(progressValue);
                 
-                if (String.IsNullOrWhiteSpace(article.Title))
+                if (article.ZippedTitle.Count() == 0)
                 {
                     continue;
                 }
@@ -82,19 +83,22 @@ namespace CovidEnquirer
                 foreach (var kmp in kmpList)
                 {
                     bool wasWordFound = false;
-                    if (kmp.Search(article.Title.ToLower()))
+                    var unzippedTitle = Zipper.Unzip(article.ZippedTitle);
+                    if (kmp.Search(unzippedTitle.ToLower()))
                     {
                         howManyWordsFound++;
                         continue;
                     }
 
-                    if (!wasWordFound && kmp.Search(article.Abstract.ToLower()))
+                    var unzippedAbstract = Zipper.Unzip(article.ZippedAbstract);
+                    if (!wasWordFound && kmp.Search(unzippedAbstract.ToLower()))
                     {
                         howManyWordsFound++;
                         continue;
                     }
 
-                    if (!wasWordFound && kmp.Search(article.Content.ToLower()))
+                    var unzippedContent = Zipper.Unzip(article.ZippedContent);
+                    if (!wasWordFound && kmp.Search(unzippedContent.ToLower()))
                     {
                         howManyWordsFound++;
                     }
@@ -113,7 +117,11 @@ namespace CovidEnquirer
 
             SetSearchResultsListClear();
 
-            FoundArticles = FoundArticles.OrderBy(x => x.Title).ToList();
+            FoundArticles = FoundArticles.OrderBy(x =>
+            {
+                var unzippedTitle = Zipper.Unzip(x.ZippedTitle);
+                return unzippedTitle;
+            }).ToList();
             foreach (var article in FoundArticles)
             {
                 SearchResultsListAppend(article);
@@ -170,7 +178,11 @@ namespace CovidEnquirer
 
         private void SearchResultsListAppend(Article article)
         {
-            MethodInvoker mi = new MethodInvoker(() => SearchResultsListBox.Items.Add(article.Title));
+            MethodInvoker mi = new MethodInvoker(() =>
+            {
+                var unzippedTitle = Zipper.Unzip(article.ZippedTitle);
+                SearchResultsListBox.Items.Add(unzippedTitle);
+            });
             if (SearchResultsListBox.InvokeRequired)
             {
                 SearchResultsListBox.Invoke(mi);
@@ -206,9 +218,8 @@ namespace CovidEnquirer
         {
             var articleClicked = FoundArticles[SearchResultsListBox.SelectedIndex];
 
-            string articleContent = File.ReadAllText(articleClicked.FileName);
-            JObject article = JObject.Parse(articleContent);
-            var rtfFileName = articleClicked.FileName + ".rtf";
+            var unzippedJson = Zipper.Unzip(articleClicked.ZippedJson);
+            var article = JObject.Parse(unzippedJson);
             var rtfContent = JsonArticleToDocument.JsonArticleToRtf(article);
             ArticleRichTextBox.Rtf = rtfContent;
         }
@@ -229,9 +240,9 @@ namespace CovidEnquirer
         {
             if (SearchResultsListBox.SelectedIndex >= 0 && SearchResultsListBox.SelectedIndex < SearchResultsListBox.Items.Count)
             {
-                var article = FoundArticles[SearchResultsListBox.SelectedIndex];                
-                String searchRequest = article.Title;
-                System.Diagnostics.Process.Start("http://www.google.com.au/search?q=" + Uri.EscapeDataString(searchRequest));
+                var article = FoundArticles[SearchResultsListBox.SelectedIndex];
+                var unzippedTitle = Zipper.Unzip(article.ZippedTitle);
+                System.Diagnostics.Process.Start("http://www.google.com.au/search?q=" + Uri.EscapeDataString(unzippedTitle));
             }
         }
 
@@ -251,7 +262,8 @@ namespace CovidEnquirer
                 if (!String.IsNullOrWhiteSpace(saveFileDialog.FileName))
                 {
                     var selectedArticle = FoundArticles[SearchResultsListBox.SelectedIndex];
-                    var articleContent = File.ReadAllText(selectedArticle.FileName);
+                    var unzippedJson = Zipper.Unzip(selectedArticle.ZippedJson);
+                    var articleContent = File.ReadAllText(unzippedJson);
                     var jsonArticle = JObject.Parse(articleContent);
                     JsonArticleToDocument.JsonArticleToDocx(jsonArticle, saveFileDialog.FileName);
                 }
@@ -266,10 +278,10 @@ namespace CovidEnquirer
             }
 
             var selectedArticle = FoundArticles[SearchResultsListBox.SelectedIndex];
+            var unzippedJson = Zipper.Unzip(selectedArticle.ZippedJson);
             var tempFileName = Path.GetTempFileName() + ".rtf";
 
-            string articleContent = File.ReadAllText(selectedArticle.FileName);
-            JObject article = JObject.Parse(articleContent);
+            JObject article = JObject.Parse(unzippedJson);
             var rtfContent = JsonArticleToDocument.JsonArticleToRtf(article);
             File.WriteAllText(tempFileName, rtfContent);
             System.Diagnostics.ProcessStartInfo value = null;
@@ -292,6 +304,27 @@ namespace CovidEnquirer
             openArticleInWordPadToolStripMenuItem_Click(this, null);
         }
 
+        private List<String> GetJsonArticles(string jsonZippedCollectionName)
+        {
+            var result = new List<String>();
+
+            using (var fs = new FileStream(jsonZippedCollectionName, FileMode.Open))
+            { 
+                using (var zip = new ZipArchive(fs))
+                {
+                    var entry = zip.Entries.First();
+
+                    using (StreamReader sr = new StreamReader(entry.Open()))
+                    {
+                        BinaryFormatter serializer = new BinaryFormatter();
+                        result = serializer.Deserialize(sr.BaseStream) as List<String>;
+                    }
+                }
+            }
+
+            return result;
+        }
+
         private void GetAllArticles()
         {
             SetSearchResultsContextMenEnabled(false);
@@ -301,7 +334,9 @@ namespace CovidEnquirer
             SetOpenArticleButtonEnabled(false);
             SetPhraseToSearchButtonEnabled(false);
 
-            var files = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory + "Articles\\").GetFiles("*.json");
+            var baseDirForArticles = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + 
+                "\\CovidArticles\\Articles\\";
+            var files = new DirectoryInfo(baseDirForArticles).GetFiles("*.bin.zip");
             AllArticles.Clear();
 
             int progressValue = 0;
@@ -309,12 +344,17 @@ namespace CovidEnquirer
             foreach (var file in files)
             {
                 progressValue++;
-                SetOptionalMessage(string.Format("Creating database - article {0} out of {1} articles", progressValue, files.Count()));
+                SetOptionalMessage(string.Format("Creating database - zipped article set {0} out of {1} articles sets", progressValue, files.Count()));
 
                 SetProgressBarValue(progressValue);
 
-                var article = JsonArticleToDocument.GetArticle(file.FullName);
-                AllArticles.Add(article);
+                var listOfArticles = GetJsonArticles(file.FullName);
+                foreach (var jsonArticle in listOfArticles)
+                {
+                    var article = JsonArticleToDocument.GetArticle(jsonArticle);
+                    AllArticles.Add(article);
+                }
+                listOfArticles.Clear();
             }
 
             SetSearchResultsContextMenEnabled(true);

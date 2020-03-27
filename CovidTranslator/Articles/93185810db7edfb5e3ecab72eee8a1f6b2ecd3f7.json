@@ -1,0 +1,994 @@
+{
+    "paper_id": "93185810db7edfb5e3ecab72eee8a1f6b2ecd3f7",
+    "metadata": {
+        "title": "Management of uncertainty orderings through ASP",
+        "authors": [
+            {
+                "first": "Andrea",
+                "middle": [],
+                "last": "Capotorti",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Andrea",
+                "middle": [],
+                "last": "Formisano",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Traditionally, most of the proposed probabilistic models of decision under uncertainty rely on numerical measures and representations. Alternative proposals call for qualitative (non-numerical) treatment of uncertainty, based on preference relations and belief orders. The automation of both numerical and non-numerical frameworks surely represents a preliminary step in the development of inference engines of intelligent agents, expert systems, and decision-support tools.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "In this paper we exploit Answer Set Programming to formalize and reason about uncertainty expressed as belief orders. The availability of ASP-solvers supports the design of automated tools to handle such formalizations. Our proposal reveals particularly suitable whenever the domain of discernment is partial. We first illustrate how to automatically \"classify ^^, according to the most well-known uncertainty frameworks, any given qualitative uncertainty assessment. Then, we show how to compute an enlargement of the assessment, to any other new inference target.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Uncertainty orderings are receiving wider and wider attention in AI literature, either as theoretical tools to deal directly with belief management [1, 6, 8] , or inside the more articulated framework of decision-making theory [9] [10] [11] 13] . This burst of interest translates into a wider application of uncertainty orderings, as qualitative assessments better fit the nature of human judgments, while do not suffer intrinsic difficulties typical of numerical elicit at ions. As happened for numerical methods.",
+            "cite_spans": [
+                {
+                    "start": 148,
+                    "end": 151,
+                    "text": "[1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 152,
+                    "end": 154,
+                    "text": "6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 155,
+                    "end": 157,
+                    "text": "8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 227,
+                    "end": 230,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 231,
+                    "end": 235,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 236,
+                    "end": 240,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 241,
+                    "end": 244,
+                    "text": "13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "there have been proposed various uncertainty orderings different from traditional probabilistic ones. The main purpose of all of these proposals is to generalize the \"additive\" character of (unconditional) probabilities. Clearly, different generalizations are possible and several families of qualitative judgments appeared in literature. All of them share common basic properties, but differentiate on the way of combining pieces of information. By following [5, 8, 16, 17] , in [2] [3] [4] various preference orderings have been fully classified according to their agreement with the most well-known numerical models; both for \"complete\" (i.e. defined on well structured and closed supports) and \"partial\" assessments (i.e. defined only among some of the quantities involved). Such axiomatic classifications revealed a coarser grained differentiation with respect to numerical models: different uncertainty measures share the same qualitative properties in combining pieces of information.",
+            "cite_spans": [
+                {
+                    "start": 460,
+                    "end": 463,
+                    "text": "[5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 464,
+                    "end": 466,
+                    "text": "8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 467,
+                    "end": 470,
+                    "text": "16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 471,
+                    "end": 474,
+                    "text": "17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 480,
+                    "end": 483,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 484,
+                    "end": 487,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 488,
+                    "end": 491,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The detected classes have been characterized by identifying specific axioms that the orderings must satisfy. Apart from qualitative probabilities, such axioms are of direct declarative reading, as they involve only logical and preference relations. As we will see, such a declarative character supports a straightforward translation of the axioms within the logical framework of ASP. Consequently, we immediately obtain an executable ASP-specification able to discriminate between the different uncertainty orderings. More specifically, this is done by exploiting an ASP-solver (in our case SModels, cf. [18] ) that determines which axioms are violated by the given preference relation expressing user's believes comparisons.",
+            "cite_spans": [
+                {
+                    "start": 604,
+                    "end": 608,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Notice that, by proceeding in this way, we actually invert the usual attitude towards qualitative management of uncertainty. In fact, specific axioms are usually set in advance, so that only relations satisfying them are admitted. Here, on the contrary, given a fixed preference relation, our goal consists in ascertain which are the reasonable rules to work with.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper, we mainly focus on the treatment of partial orderings, even if also total relations can be dealt with by the very same machinery. The rational behind this choice is that incomplete assessments appear more realistic models of phenomena which are open to include new (and maybe unexpected) evidences or considerations. In this frame of mind, an interesting problem is that of finding an extension of a preference relation so as to take into account any further event extraneous to the initial assessment. This should be achieved in a way that the initial ordering and its extension satisfy the same axioms. Hence, first, the initial (partial) preference relation is classified by identifying its characterizing rules Then, by exploiting the same approach the extension sought for is determined.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In [2] [3] [4] axioms have been introduced to distinguish alternative possible approaches to qualitative uncertainty. In particular, according to the major uncertainty frameworks, a full classification of partial orderings has been proposed in [4] . In what follows we face a problem left open in [4] . Namely, we propose an inferential system to classify a given partial ordinal relation into one of the classes.",
+            "cite_spans": [
+                {
+                    "start": 3,
+                    "end": 6,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 7,
+                    "end": 10,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 11,
+                    "end": 14,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 244,
+                    "end": 247,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 297,
+                    "end": 300,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Axioms characterizing partial uncertainty orderings"
+        },
+        {
+            "text": "Let us start by briefly recalling the basic notions on uncertainty orderings and on their axiomatic classification. We will not enter into the details of the motivations for such classification, the reader is referred to [2] [3] [4] . The domain of discernment will be represented by a finite set of events \u00a3 = {Ei,... ^E^}, Among them, (p and Q. will denote the impossible and the sure event, respectively. The events in S are seen as the relevant propositions on which the subject of the analysis can, or wants, to express his/her opinion. Hence, usually S does not represent a full model, i.e. it does not comprehend all elementary situations and all of their combinations. For this reason, a crucial component of partial assessments is the knowledge of the logical relationships holding among the events ^^^'s. Usual relationships are those of incompatibility, implication, combination and equivalence. Anyhow, any logical constraint can be potentially expressed. Such constraints are usually represented as a set C of clauses among the Ei^s and such clauses are intended to be always verified. Taking into account C, the family 8 spans a minimal Boolean algebra As containing S itself. Note that As is only implicitly defined via S and C and it is not a part of the assessment. Anyway, As will be referenced as a supporting structure. More formally, we have: Definition 1. Let \u00a3^ be a set of events and C a collection of constraints on S. As is the minimal algebra {A, V, A,\"\", (/), Q) satisfying C and such that S <^ A.",
+            "cite_spans": [
+                {
+                    "start": 221,
+                    "end": 224,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 225,
+                    "end": 228,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 229,
+                    "end": 232,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Axioms characterizing partial uncertainty orderings"
+        },
+        {
+            "text": "Clearly, such an algebra induces a lattice structure on A. The ATOMS of As are the minimal elements of the (sub-)lattice As \\ {</>}\u2022 Consequently, each event corresponds to a set of atoms, and As is (partially) ordered by set inclusion. An useful piece of notation: in what follows, given any binary relation R, the writing ^{ARB) will mean that the pair {A,B) does not belong to R.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Axioms characterizing partial uncertainty orderings"
+        },
+        {
+            "text": "As be an algebra of events. A binary relation =^* over ^ is a (TOTAL) PREFERENCE ORDER if it satisfies the following conditions: (Al) ^* is a pre-order, i.e. it is reflexive, transitive, and total; (A2) (/) ^* 1) and -(O ^* c/)); (A3) for afl events A,B, A C B ^ {A ^'^ B). Let =^* be a total preference order. Then, ~* is its SYMMETRICAL PART, i.e. \\/Ei,E2 {El ~* E2 ^ El ^* E2 A E2 ^* ^1). Moreover, -<* is the ASYMMET-RICAL PART of ^*, i.e. yEi,E2 {El -<* E2 ^ Ei ^\"^ E2 A -(E2 ~* \u00a3'1)).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 2. Let"
+        },
+        {
+            "text": "Let =^ and -< be two binary relations over a set of events f, such that El ^ E2 -^ El -i E2. The pair (^, -^) is a WEAK PREFERENCE STRUCTURE for S {w.p.s.^ for short) if exists a total preference order ^* over As such that:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 3."
+        },
+        {
+            "text": "\\fEi,E2 e S {{El 4E2 ^ El ^* E2) A {El <E2 ^ El ^* E2)).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 3."
+        },
+        {
+            "text": "Notice that Definition 3 does not require neither =: <; or ^ to be total orders, nor -< to be the asymmetrical part of =<(. On the other hand, it is required that ^* extends ^, and that ^* (the asymmetrical part of :^*) extends -<. For any weak preference structure (^, ^) for \u00a3, the following properties hold: (Al') if there exist Ei,...,En G S such that Ei 4 E2 4 ---4 En 4 Ei, then ^{Ei <Ej) for alH,j e {l,...,n}; (A2') -(Q ^ 0); (A3') for all ^1, E2 G 8, Ei ^ E2 ^ E2 ^ Ei. Conditions (A1')-(A3') ensure the existence of a total preference order ^* which enlarges (^,^). As a matter of fact, Capacities constitute the most general numerical tool to manage uncertainty, as they express \"common sense\" behaviors. In our context, any reasonable relation =<; must be represent able by a partial Capacity (i.e., a restriction of a Capacity measure to the set of events at hand). This corresponds exactly to the satisfaction of the conditions (A1')-(A3'). Mathematical properties of orders satisfying such basic axioms are deeply investigated in [6] .",
+            "cite_spans": [
+                {
+                    "start": 1045,
+                    "end": 1048,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Definition 3."
+        },
+        {
+            "text": "Let \u00a3^ be a set of events. A total preference order ^* over As is said to be REPRESENTABLE by a numerical measure f : As ^ [0,1] iff for all Ei,E2 e As it holds that Ei 4\"\" ^2 ^ f{Ei) ^ f{E2).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 4."
+        },
+        {
+            "text": "A w.p.s. (^,^) for S is said to be REPRESENTABLE by a partial uncertainty measure ^ : \u00a3^ -^ [0,1] iff it admits an enlargement =^* over As which is representable by an uncertainty measure g\"^ : As -^ [0,1] extension of g to As-Differentiation among ordinal relations can be done on the basis of more specific way of combining different pieces of information. Below, we list the axioms characterizing each class. ^ Comparative probabilities. A w.p.s. (=^,^) for \u00a3 can be extended to a total preference order =^* over As representable by a probability function iff (CP) for any Ai,... ,An,Bi,. ..,Bn E f, with Bi ^ A^, Vz = 1,... ,n, such that for some ri,..., Tn > 0 sup X^ILi ^ii^i -bi) < 0 implies that Ai ~ Bi, for alH = 1,..., n (a^, bi denote the indicator functions of Ai^Bi, resp.). Comparative believes. A w.p.s. (=: <^, -<) for 8 can be extended to a total preference order ^* over As representable by a belief function or by a n-monotone function ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 4."
+        },
+        {
+            "text": "A-5^-(0^C). Comparative plausibilities. A w.p.s. (^, -<) for S can be extended to a total preference order =4* over As representable by a plausibility function or by a nalternating function (with n > 2) iff for all A^B^C^D e S s.t.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "(L')"
+        },
+        {
+            "text": "A-<B^^{Cr>.D). Comparative upper-probabilities. A w.p.s. {^, -<) for S can be extended to a total preference order ^* over As representable by an upper-probability function or by a ^-alternating function^ iff for all A.BeS",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "(L')"
+        },
+        {
+            "text": "A-<B^^{0r^B\\A). Comparative lower/upper-probabilities. A w.p.s. (^, ^) for \u00a3^ can be extended to a total preference order ^* over As representable by both a lower-probability function and by an upper-probability function iff it satisfies both (L') and (U'). Note that only (CP) does not have a pure qualitative nature since it involves also indicator functions and summations. It is the only one that should require an external numerical elaboration (e.g. involving some linear programming tool like the simplex or the interior point methods). We also considered the following necessary axiom (i.e. it alone does not guarantee the representability of =<; * by a probability function, but its failure ensure the not representability): Weak comparative probabilities. If (^, -<) can be extended to a total preference order =<(* over As representable by a probability function then (WC)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "(L')"
+        },
+        {
+            "text": "In the following sections we show how to obtain executable specifications from the axiomatic classification of preference orders described so far. To this end, we employ Answer Set Programming (ASP, for short).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "Let us first briefly recall the basics of such alternative style of logic programming [15] . A problem can be encoded-by using a function-free logic language-as a set of properties and constraints which describe the (candidate) solutions. More specifically, an ASP-program is a collection of rules of the form Li;...]Lk;notLk+i].. .]notL\u00a3 ^ Li^i,... ,Lm,notLm-^i,... ,notLn where n^m'^i^k^O and each Li is a literal, i.e., an atom A or a negation of an atom -^A. The symbol -\u2022 denotes classical negation, while not stands for negation-as-failure (Notice that V and V stand for logical conjunction and disjunction, respectively.) The left-hand side and the right-hand side of the clause are said head and body^ respectively. A rule with empty head is a constraint The literals in the body of a constraint cannot be all true, otherwise they would imply falsity.",
+            "cite_spans": [
+                {
+                    "start": 86,
+                    "end": 90,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "Semantics of ASP is expressed in terms of answer sets (or equivalently stable models, cf. [12] ). Consider first the case of an ASP-program P which does not \"0-alternating\" functions are \"sub-additive\" i.e. H A K = cj) ^ f{H V X) < f{H) + f{K).",
+            "cite_spans": [
+                {
+                    "start": 90,
+                    "end": 94,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "involve negation-as-failure (i.e., i = k and n = m). In this case, a set X of literals is said to be closed under P if for each rule in P, whenever {I/^+i,..., Lm} C X, it holds that {Li,..., Lfc} H X 7^ 0. If X is inclusion-minimal among the sets closed under P, then it is said to be an answer set for P. Such a definition is extended to any program P containing negation-as-failure by considering the reduct P^ (of P). P^ is defined as the set of rules of the form Li;...; L^ ^-L^+i,..., Lm for all rules of P such that X contains all the literals L/c+i,,,. ,Li, but does not contain any of the literals Lm-\\-i^... ,1/^. Clearly, P^ does not involve negation-as-failure. The set X is an answer set for P if it is an answer set for P^.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "Once a problem is described as an ASP-program P, its solutions (if any) are represented by the answer sets of P. Notice that an ASP-program may have none, one, or several answer sets.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "Let us consider the program P consisting of the two rules p; ^ ^-and -ir ^p. Such a program has two answer sets: {p, ->r} and {q}. If we add the rule (actually, a constraint) ^-g to P, then we rule-out the second of these answer sets, because it violates the new constraint. This simple example reveals the core of the usual approach followed in formalizing/solving a problem with ASP. Intuitively speaking, the programmer adopts a \"generate-and-test\" strategy: first (s)he provides a set of rules describing the collection of (all) potential solutions. Then, the addition of a group of constraints rules-out all those answer sets that are not desired real solutions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "To find the solutions of an ASP-program, an ASP-solver is used. Several solvers have became available (cf. [18] , for instance), each of them being characterized by its own prominent valuable features. In this work we choose smodels as solver, together with its natural front-end Iparse [14] .",
+            "cite_spans": [
+                {
+                    "start": 107,
+                    "end": 111,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 287,
+                    "end": 291,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "Expressive power of ASP, as well as, its computational complexity have been deeply investigated. The interested reader can refer to the survey [7] , among others.",
+            "cite_spans": [
+                {
+                    "start": 143,
+                    "end": 146,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "Let us give a simple example of ASP-program. In doing this, we will recall the syntax and the main features of Iparse/smodels which will be exploited in the rest of the paper (see [14] , for a more details). The problem we want to formalize in ASP is the well-known n-queens problem: \"Given a n x n chess board, place n queens in such a way that no two of them attack each other\". The two clauses below state that a candidate solution is any disposition of the queens, provided that each column of the board contains one and only one queen. (The fact that a queen is placed on the n^^ column and on the m*^ row is encoded by the atom queen(n,m).) ^ pos(l..n).",
+            "cite_spans": [
+                {
+                    "start": 180,
+                    "end": 184,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "l{queen(Col,Row) : pos(Col)}l :-pos(Row).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "The second rule is a particular form of constraint available in smodels' language.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Answer set programming"
+        },
+        {
+            "text": "where: the conditions {searchspace) in the body define the set of objects of the domain to be checked; the atom {property.def) in the head defines the property to be checked; the conjunction (range-def) defines the possible values that the property may take on the objects defined in the body, namely by providing a conjunction of unary predicates each of them defining a range for one of the variables that occur in (property-de f) but not in {searchspace) \\ k and m are the minimum and maximum number of values that the specified property may take on the specified objects. We now introduce two constraints, in order to rule out those placements where two queens control either the same row or the same diagonal of the board: ^ Here is one of the answer sets produced by smodels, when fed with our program (in this case we put n= 8): Answer: 1. queen(4,l) queen(6,2) queen(l,3) queen(5,4) queen(2,5) queen(8,6) queen(3,7) queen (7, 8) Notice that I parse offers some elementary built-in arithmetic functions (such as abs(), in the above clause) that can be used to perform simple arithmetics. More in general, I parse allows the user to employ user-defined C or C+H-functions within an ASP-program. The object code of these functions is linked with I parse at run time (cf. [14] ). We exploited this feature (not available in some other solvers) to implement a basic library of functions aimed at handling sets and operation on sets.",
+            "cite_spans": [
+                {
+                    "start": 930,
+                    "end": 933,
+                    "text": "(7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 934,
+                    "end": 936,
+                    "text": "8)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1276,
+                    "end": 1280,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The general form of such a kind of clauses is k{{property-def):{rangejdef)}m -{search.space)"
+        },
+        {
+            "text": "The pair Iparse/smodels constitutes an essential and neat tool for fast prototypical development. Notable facilities come from the simple albeit useful integration capabilities with the C programming language, the prompt availability of the source-code and documentation, and the ease of use.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The general form of such a kind of clauses is k{{property-def):{rangejdef)}m -{search.space)"
+        },
+        {
+            "text": "Our first task consists in writing an ASP-program able to classify any given w. p. s. (^,^) w.r.t. the axioms seen in Sec. 1 (Except for (CP), that, up to our knowledge, does not admit a purely declarative formulation). We start by defining in ASP the predicates prec(\u2022,\u2022), precneq(\u2022,\u2022), and equiv(-,-), to render the relators =: <(, -<, and ~, resp. Moreover, the fact of \"being an event\" (i.e. a member oiS) is stated through the monadic predicate event(-).^ Auxiliary predicates/functions are used to render set-theoretical construes, such as fl, U, and C, whose implementations rely on user-defined C-libraries. The characterization of potential legal answer sets is done by asserting properties of prec(-,-), precneq(-,-), and equiv(-,-), as follows: Having in mind (B') of Sec. 1, this clause is of immediate reading: the fact failsBl is true (i.e. belongs to the answer set) whenever there exist events falsifying (B'). All other axioms have been treated similarly. When smodels is fed with such program and a description of an input preference relation (i.e., a collection of facts of the forms prec(-,-), precneq(\u2022,\u2022), and equiv(-,-)), different outcomes may be obtained: a) If no answer set is produced, then the input weak preference structure violates some basic requirement, such as axioms (A1')-(A3'). b) Otherwise, if an answer set is generated, there exists a numerical (partial) model representing the input weak preference structure. Moreover, the presence in the answer set of a fact of the form faiIsC (say failsLl, for example), witnesses that the corresponding axiom ((L') in the case) is violated by the given preference order. Consequently, the given order (as well as its extensions) is not compatible with the uncertainty framework ruled by C (in the case of failsLl, the given order cannot be represented by a partial Lower probability). prec(B,A) . precneq(C,D). precneq(E,C). precneq(E,D). precneq(F,A). equiv(AuE,AuC). Due to events' meaning, such order seems reasonable. If it is given as input to smodels, the answer set found includes the facts failsBl and failsWC. This means that the given preference relation agrees with the basic axioms, however it cannot be managed by using neither a Probability nor a Belief function. Nevertheless, one can use comparative Lower probabilities or comparative Plausibilities. D",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1865,
+                    "end": 1874,
+                    "text": "prec(B,A)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Preference classification"
+        },
+        {
+            "text": "An interesting problem is that of finding an extension of a preference relation so as to take into account any further event extraneous to the initial assessment. This should be achieved in a way that the extension retains the same character of the initial order (e.g., both satisfy the same axioms). More precisely, let be given an initial (partial) assessment expressed as a (partial) order ^ over set of known events S. Assume that =<( satisfies the axioms characterizing a specific class, say C, of orders (cf. Sec. 3). Consider a new event S (not in \u00a3), imphcitly described by a collection C of set-theoretical constraints involving the events of S. In the spirit of [5, Thm. 3] , the problem we are going to tackle is: Determine which is the \"minimal\" extension ^+ (over \u00a3 U {S}) of =^, induced by the new event, which still belongs to the class 6. In other words, we are interested in ascertaining how the new event S must relate to the members of 8 in order that =^\"^ still is in 6. To this aim we want to determine the sub-collections \u00a3$, >V\u00a3s, Us, and WZ^s, of S so defined: E e Cs iff no extension =4* of ^ can infer that S ^* ^ E G yVCs iff no extension ^* of ^ can infer that S ^* E E G ZYs iff no extension =<; * of ^ can infer that ^ ^* S E G WUs iff no extension =^* of ^ can infer that ^ ^* S Consequently, in order to satisfy the axioms characterizing 6, any weak preference structure (^~^,-<\"^) extending (=^,^) must, at least, impose that:",
+            "cite_spans": [
+                {
+                    "start": 672,
+                    "end": 675,
+                    "text": "[5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 676,
+                    "end": 683,
+                    "text": "Thm. 3]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Partial-order extension"
+        },
+        {
+            "text": "W^s, S -<+ E VE G ZYS, S ^+ E VE G WUS. We describe now an ASP-program that solves this problem by taking advantage from the computation done during the classification phase: It gets as input the knowledge regarding the satisfied axiom(s), the preference and logical relations on the original set of events, and the description of the new event (see Example 2) .",
+            "cite_spans": [
+                {
+                    "start": 350,
+                    "end": 360,
+                    "text": "Example 2)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "E^-^S^Ee >Cs, E4^S\\fEe"
+        },
+        {
+            "text": "The handling of the axioms is done by ASP-rules of the form (we give here the rule for (L'). Other axioms are treated similarly):",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "E^-^S^Ee >Cs, E4^S\\fEe"
+        },
+        {
+            "text": ":-holdsLl, event(A;B), empty(N), empty(AnB), precneq(N,A), prec(AuB,B).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "E^-^S^Ee >Cs, E4^S\\fEe"
+        },
+        {
+            "text": "Rules of this kind (actually, constraints, in the sense described in Sec. 2), declare \"undesirable\" any extension for which the axiom is violated. For instance, consider a ground instance of the above rule; whenever the fact holdsLl is present (i.e. is true in an answer set), then to make the (ground) clause satisfied, at least one of the other literals must not belong to the answer set. (Notice that, these literals are all true exactly when (L') is violated.) Consequently, in order to activate this constraint (i.e. to impose axiom (L'), for the case at hand) it suffices to add the fact holdsLl to the input of the solver.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "E^-^S^Ee >Cs, E4^S\\fEe"
+        },
+        {
+            "text": "A further rule describes the potential answer set we are interested in: This rule simply asserts that any computed answer-set must predicate on each pair A,B of events by stating exactly one, and only one, of the three facts precneq(A,B), equiv(A,B), and precneq(B,A). Then, smodeis calculates the answer sets fulfilling the desired requirements and encoding \"legal\" total orders.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "E^-^S^Ee >Cs, E4^S\\fEe"
+        },
+        {
+            "text": "The collections Cs, W\u00a3s, Us, and WUs can be obtained by computing the intersection Cn of all these answer sets. (Or, equivalently, by computing the set of logical consequences of the ASP-program. Notice that, in general, Cn needs not to be an answer set by itself.) Unfortunately, not all the available ASP-solvers offer the direct computation of Cn as a built-in feature (DLV, for instance does, while smodels does not, cf. [18] ). In general, a simple inspection of the answer sets generated by smodels allows one to detect the minimal extension of the preference relation which is mandatory for each total order. We designed a simple post-processor which filters smodels' output and produces the imposed extension of =: <(. Example 2. Consider the weak preference structure of Example 1 and the new event S = The real state of having SARS subject to these restrictions: ScF and FflEcS. Since in Example 1 we discovered that the initial preference relation satisfies axiom (PL'), we want to impose such axiom and compute the extension of the initial order. Once filtered smodels' output, we obtained the following result:'^ precneq(S,AuC) precneq(S,AuE) precneq(S,D) precneq(S,A) precneq(S,17) prec(0,S) prec(S,F) ... showing that, apart from obvious relations induced by monotonicity, no significative constraint involving S can be inferred. Since S and E can be freely compared, this result suggests that either further investigation about relevance of the clinical test or a revision of the initial preference relation, should be performed. D The availability of automated tools able to extend preference orders, whenever new knowledge (new events) is acquired, directly suggests applications in expert systems and decision-support tools. In automated diagnosis, planning, or problem solving, to mention some examples, one could easily imagine scenarios where knowledge is not entirely available from the beginning. We could outline how a rudimental inference process could develop, by identifying the basic steps an automated agent should perform: 0) Acquisition of an initial collection of observations (events) about the object of the analysis, together with a (qualitative) partial preference assessment; 1) Detection of which is the most adequate (i.e., the most discriminant) uncertainty framework, through a \"preference classification phase\" (cf. Sec. 3); 2) Whenever new knowledge becomes available, refine agent's description of the real world by performing order extension (which substantially corresponds to knowledge inference. Cf. Sec. 4). The results of step 2) could be then exploited to guide further investigations on the real world, in order to obtain new information. Then, step 2) will be repeated and the process will continue until further pieces of knowledge are obtainable or an enough accurate degree of believe is achieved. ^ We list here only the portion of the extension involving the new event S.",
+            "cite_spans": [
+                {
+                    "start": 425,
+                    "end": 429,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 2855,
+                    "end": 2856,
+                    "text": "^",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "E^-^S^Ee >Cs, E4^S\\fEe"
+        },
+        {
+            "text": "In this paper we started an exploration of the potentialities offered by ASP for building decision support systems based on qualitative judgments. The implementation of what could be thought as a kernel of an inference engine sprouted almost naturally. Certainly, our research is at an initial stage and the implementation we reported on is just a prototype. Next step in this research would consist in validating the proposed approach by means of a number of benchmarks aimed at testing our prototype on the ground of real applications. Results of this activity will help in consolidating the prototype. In this context, a further goal consists in completing our approach so as to handle comparative Probabilities too. Since no axiomatic characterization of comparative Probabilities is known (up to our knowledge), this aim should be achieved through integration with efficient linear optimization tools (such as the column generation techniques). More in general, we envisage the design of a full-blown automated system which integrates different (in someway complementary) techniques and methods for uncertainty management; comprehending mixed numerical/qualitative assessments and conditional frameworks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Fusing interval preferences",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Bilgig",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Proc. of EUROFUSE Workshop on Preference Modelling and Applications",
+            "volume": "",
+            "issn": "",
+            "pages": "253--258",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Non additive ordinal relations representable by lower or upper probabilities",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Capotorti",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Coletti",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Vantaggi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Kybernetika",
+            "volume": "34",
+            "issn": "l",
+            "pages": "79--90",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Relationships among ordinal relations on a finite set of events",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Capotorti",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Vantaggi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "447--458",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Axiomatic characterization of partial ordinal relations",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Capotorti",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Vantaggi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Int. J. of Approximate Reasoning",
+            "volume": "24",
+            "issn": "",
+            "pages": "207--219",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Coherent qualitative probability",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Coletti",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Math. Psych",
+            "volume": "34",
+            "issn": "",
+            "pages": "297--310",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Confidence Relations and Ordinal Information",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "De Cooman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Inform. Sci",
+            "volume": "104",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Complexity and expressive power of logic programming",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Dantsin",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Eiter",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gottlob",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Voronkov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "ACM Comput. Surveys",
+            "volume": "33",
+            "issn": "3",
+            "pages": "374--425",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Belief Structure, Possibility Theory and Decomposable Confidence Measures on Finite Sets",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dubois",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Comput. Artif IntelL",
+            "volume": "5",
+            "issn": "5",
+            "pages": "403--416",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Decision-making under ordinal preferences and uncertainty",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dubois",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Fargier",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Prade",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "AAAI Spring Symposium on Qualitative Preferences in Deliberation and Practical Reasoning",
+            "volume": "",
+            "issn": "",
+            "pages": "41--46",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "A possibilistic logic machinery for qualitative decision",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dubois",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Prade",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sabbadin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "AAAI Spring Symposium on Qualitative Preferences in Deliberation and Practical Reasoning",
+            "volume": "",
+            "issn": "",
+            "pages": "47--54",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "A comparison of axiomatic approaches to qualitative decision making under possibility theory",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Giang",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Shenoy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Proc. of the 17*^ Conf. on Uncertainty in Artificial Intelligence UAIOl",
+            "volume": "",
+            "issn": "",
+            "pages": "162--170",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "The stable model semantics for logic programming",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Gelfond",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Lifschitz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Proc. ILPS-5",
+            "volume": "",
+            "issn": "",
+            "pages": "1070--1080",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Generalized qualitative probability: Savage revisited",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Lehmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Proc. of 12^^ Conf on Uncertainty in Artificial Intelligence UAI96",
+            "volume": "",
+            "issn": "",
+            "pages": "381--388",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Lparse 1.0 User's Manual",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Syrjanen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Stable models and an alternative logic programming paradigm. The Logic Programming Paradigm: a 25-Year Perspective",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Marek",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Truszczynski",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "375--398",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Varieties of modal (classificatory) and comparative probability",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Walley",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Fine",
+                    "suffix": ""
+                }
+            ],
+            "year": 1979,
+            "venue": "Synthese",
+            "volume": "41",
+            "issn": "",
+            "pages": "321--374",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Axiomatization of Qualitative Belief Structure",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "K M"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Yao",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bollmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Burger",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "IEEE Trans, on System, Man, and Cybernetics",
+            "volume": "21",
+            "issn": "",
+            "pages": "726--734",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Web resources for ASP solvers",
+            "authors": [],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "-queen(C,Rl), queen(C,R2), pos(C;Rl;R2), RKR2. :-queen(Cl,Rl), queen(C2,R2), pos(Cl;C2;Rl;R2), RKR2, abs(Cl-C2)==abs(Rl-R2).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "prec(A,B) :-event(A;B), equiv(A,B). prec(B,A) :-event(A;B), equiv(A,B). :-precneq(A,B), event(A;B), equiv(A,B).^ Here pos(C;Rl;R2) is a shorthand notation for the three facts pos(C), pos(Rl), pos(R2). ^ Actually, in our program, events are denoted by integer numbers. Here, for the sake of readability, we systematically denote events by capital letters.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Also axioms (Al')-(A3') must be imposed. For instance (A3') is rendered by weeding out all answer sets where A C B AB ^ A holds for some events A and B::-event(A;B), subset(A,B), precneq(B,A). Consider now one of the axioms of Sec. 1, say (B'), for simplicity. Since, in this phase, we do not want to impose such axiom, but we just want to test whether or not it is satisfied by the preference relation at hand, we use a rule of the form:failsBl :-event(A;B;C), subset(A,B), A!=B, empty(BnC), precneq(A,B), prec(BuC,AuC).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Suppose a physician wants to perform a preliminary evaluation about the reliability of a test for SARS (Severe Acute Respiratory Syndrome). Up to his/her knowledge, the SARS diagnosis is based on moderate or severe respiratory symptoms and on the positivity or indeterminacy of an adopted clinical test about the presence of the SARS-associated antibody coronavirus SARS-CoV). The elements appearing in his/her analysis can be schematized as:A = Normal respiratory symptoms, B = Moderate respiratory symptoms, C = Severe respiratory symptoms, D = Moderate or severe respiratory symptoms, E = Death from, pulmonary diseases, F = Positive or indeterminate clinical test, subject to these (logical) restrictions: AnB=0, BnC^0, AnC=0, AUBuC=n, D=BUC, EcC, FnA= 0. Consider the w.p.s. (:=<;, -<) so described: precneq(0,C). precneq(C,B).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "precneq(A,B), equiv(A,B), precneq(B,A) }1 :-event(A;B).",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Comparative lower-probabilities. A w.p.s. (=^, ^) for S can be extended to a",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

@@ -1,0 +1,1902 @@
+{
+    "paper_id": "eb75b255e56960c472d2d13c3b23d5b392e95253",
+    "metadata": {
+        "title": "Semantic overlay network for large-scale spatial information indexing",
+        "authors": [
+            {
+                "first": "Zhiqiang",
+                "middle": [],
+                "last": "Zou",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing University of Posts and Telecommunications",
+                    "location": {
+                        "postCode": "210003",
+                        "settlement": "Nanjing",
+                        "region": "Jiangsu",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Yue",
+                "middle": [],
+                "last": "Wang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing University of Posts and Telecommunications",
+                    "location": {
+                        "postCode": "210003",
+                        "settlement": "Nanjing",
+                        "region": "Jiangsu",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Kai",
+                "middle": [],
+                "last": "Cao",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Pittsburgh",
+                    "location": {
+                        "addrLine": "230 South Bouquet Street",
+                        "postCode": "15260",
+                        "settlement": "Pittsburgh, Pittsburgh",
+                        "region": "PA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Tianshan",
+                "middle": [],
+                "last": "Qu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing University of Posts and Telecommunications",
+                    "location": {
+                        "postCode": "210003",
+                        "settlement": "Nanjing",
+                        "region": "Jiangsu",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Zhongmin",
+                "middle": [],
+                "last": "Wang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Nanjing University of Posts and Telecommunications",
+                    "location": {
+                        "postCode": "210003",
+                        "settlement": "Nanjing",
+                        "region": "Jiangsu",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The increased demand for online services of spatial information poses new challenges to the combined filed of Computer Science and Geographic Information Science. Amongst others, these include fast indexing of spatial data in distributed networks. In this paper we propose a novel semantic overlay network for large-scale multi-dimensional spatial information indexing, called SON_LSII, which has a hybrid structure integrating a semantic quad-tree and Chord ring. The SON_LSII is a small world overlay network that achieves a very competitive trade-off between indexing efficiency and maintenance overhead. To create SON_LSII, we use an effective semantic clustering strategy that considers two aspects, i.e., the semantic of spatial information that peer holds in overlay network and physical network performances. Based on SON_LSII, a mapping method is used to reduce the multi-dimensional features into a single dimension and an efficient indexing algorithm is presented to support complex range queries of the spatial information with a massive number of concurrent users. The results from extensive experiments demonstrate that SON_LSII is superior to existing overlay networks in various respects, including scalability, maintenance, rate of indexing hits, indexing logical hops, and adaptability. Thus, the proposed SON_LSII can be used for large-scale spatial information indexing.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Overlay networks are recognized as a way of improving Internet services in many fields, most of which only related to onedimensional data (Hu et al., 2008; Tanin et al., 2007; Jelasity et al., 2009) . With the increase in demand for online services of spatial information, the challenges of fast indexing in distributed networks has become a hot research topic in the combined field of Computer Science and Geographic Information Science. The indexing information involves multi-dimensional data, the corresponding online services of which are becoming increasingly more complicated, especially in that they require complex spatial extent data (e.g. BBox, Bounding Box) with a massive number of concurrent users through network browser. For example, there exist a massive number of concurrent queries for spatial extent data about the SARS (Severe Acute Respiratory Syndrome) in the spring of 2003. The GIS (Geographic Information Systems) based on browser/server (Gogu et al., 2006) cannot efficiently support these large-scale spatial information queries and indexing since the central GIS server unavoidably suffers with hotspot bottleneck and single point of failure (Wu et al., 2010) . Here term large-scale means the number of concurrent users is very large, maybe up to thousands or even millions. There exists a contradiction between hotspot bottleneck of GIS server and a massive number of concurrent users for spatial information queries. This scientific problem has not yet been solved completely. Therefore, various new methods have been investigated to address this problem.",
+            "cite_spans": [
+                {
+                    "start": 138,
+                    "end": 155,
+                    "text": "(Hu et al., 2008;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 156,
+                    "end": 175,
+                    "text": "Tanin et al., 2007;",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 176,
+                    "end": 198,
+                    "text": "Jelasity et al., 2009)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 964,
+                    "end": 983,
+                    "text": "(Gogu et al., 2006)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1171,
+                    "end": 1188,
+                    "text": "(Wu et al., 2010)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and related work"
+        },
+        {
+            "text": "Distributed computing technologies such as Grid computing, Cloud computing and overlay networks are mainly used to support large-scale spatial information indexing. In Grid computing, there is often a central management for resource management and work load allocation. Therefore, compared with Grid computing, overlay networks have the advantages of dynamicity and scalable selfconfiguration (Foster and Iamnitchi, 2003) . Cloud computing is another computing model that distributes computing tasks in a resource pool based on a central computer cluster (Mateescu et al., 2011) . Contrary to Cloud computing, overlay networks can make full use of idle computing resources of many endpoints (Tanin et al., 2007; Jelasity et al., 2005 Jelasity et al., , 2009 Kantere et al., 2009; Wu et al., 2010; Zou et al., 2011) .",
+            "cite_spans": [
+                {
+                    "start": 393,
+                    "end": 421,
+                    "text": "(Foster and Iamnitchi, 2003)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 555,
+                    "end": 578,
+                    "text": "(Mateescu et al., 2011)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 691,
+                    "end": 711,
+                    "text": "(Tanin et al., 2007;",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 712,
+                    "end": 733,
+                    "text": "Jelasity et al., 2005",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 734,
+                    "end": 757,
+                    "text": "Jelasity et al., , 2009",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 758,
+                    "end": 779,
+                    "text": "Kantere et al., 2009;",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 780,
+                    "end": 796,
+                    "text": "Wu et al., 2010;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 797,
+                    "end": 814,
+                    "text": "Zou et al., 2011)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and related work"
+        },
+        {
+            "text": "Regarding spatial data network processing, Tanin et al. (2006 Tanin et al. ( , 2007 presented their preliminary work, DQTChord, which is the work most closely related to our study. In this paper, we compare our approach with DQTChord, in which the spatial data is first divided based on Distributed Quad-Tree, and then mapped onto a Chord. Our approach differs from theirs in that we use a hybrid structure for the overlay network, which includes two layers and considers semantic information. Peers with similar semantics in our semantic overlay network are organized into same peer clusters, which make sharing information among peers more efficiently. The benefits of our approach include a decreased indexing load and increased indexing efficiency. Other related works include (Hu et al., 2008) , which uses the P2P framework FLoD to 3D scene streaming for virtual globe applications, and Kantere et al., 2009 , which use SPATIALP2P, a totally decentralized framework for spatial data built on top of a one-dimensional DHT. In (Zhang et al., 2009) a swift tree structure for multidimensional data indexing is proposed, which has a query efficiency of O(logN) in terms of routing hops and an low maintenance cost. Our spatial information indexing is substantially different. It is based on a semantic overlay network with a multi-layer structure.",
+            "cite_spans": [
+                {
+                    "start": 43,
+                    "end": 61,
+                    "text": "Tanin et al. (2006",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 62,
+                    "end": 83,
+                    "text": "Tanin et al. ( , 2007",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 781,
+                    "end": 798,
+                    "text": "(Hu et al., 2008)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 893,
+                    "end": 913,
+                    "text": "Kantere et al., 2009",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 1031,
+                    "end": 1051,
+                    "text": "(Zhang et al., 2009)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and related work"
+        },
+        {
+            "text": "As for semantic overlays (Resnik, 1999; Doulkeridis et al., 2007; Tirado et al., 2010) , Resnik (1999) presented a measure based on the notion of information contexts. An algorithm for the distributed and decentralized construction of hierarchical SONs in unstructured P2P networks is presented by Doulkeridis et al. (2007) , which is a distributed method of clustering content in a recursive way. Tirado et al. (2010) proposed an affinity AP2P, which is similar to our approach. It uses a novel affinity-based metric to estimate the distance between clusters of nodes sharing similar content. However, there are two main differences from AP2P. First, we define the different semantic similarity function for spatial information. Second, we introduce the epidemic protocol for overlay construction.",
+            "cite_spans": [
+                {
+                    "start": 25,
+                    "end": 39,
+                    "text": "(Resnik, 1999;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 40,
+                    "end": 65,
+                    "text": "Doulkeridis et al., 2007;",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 66,
+                    "end": 86,
+                    "text": "Tirado et al., 2010)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 89,
+                    "end": 102,
+                    "text": "Resnik (1999)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 298,
+                    "end": 323,
+                    "text": "Doulkeridis et al. (2007)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 398,
+                    "end": 418,
+                    "text": "Tirado et al. (2010)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and related work"
+        },
+        {
+            "text": "There is a large amount of general purpose literature on epidemic protocols and small world networks. Some authors present general protocols based on gossip and the theoretic foundation of epidemics while our work focuses on spatial information indexing (Jelasity et al., 2005 (Jelasity et al., , 2009 Demers et al., 1987; Fabrikant et al., 2002; Renesse et al., 2008) . Other authors introduce the theory and methods for small world networks, which is the theoretical foundation for our research work (Watts and Strogatz, 1998; Li et al., 2008) .",
+            "cite_spans": [
+                {
+                    "start": 254,
+                    "end": 276,
+                    "text": "(Jelasity et al., 2005",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 277,
+                    "end": 301,
+                    "text": "(Jelasity et al., , 2009",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 302,
+                    "end": 322,
+                    "text": "Demers et al., 1987;",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 323,
+                    "end": 346,
+                    "text": "Fabrikant et al., 2002;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 347,
+                    "end": 368,
+                    "text": "Renesse et al., 2008)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 502,
+                    "end": 528,
+                    "text": "(Watts and Strogatz, 1998;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 529,
+                    "end": 545,
+                    "text": "Li et al., 2008)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background and related work"
+        },
+        {
+            "text": "In this paper, we introduce a spatial data indexing mechanism, which is based on a semantic overlay network. This network is connected by logical links between peers in a semantic quad-tree topology, which is a small world network with a small average path length and a large clustering coefficient. In our semantic quad-tree, peers with similar semantics are organized into same peer clusters, which can be further adaptively arranged into a small world network. According to this semantic proximity, we can dynamically construct the topology of an overlay network in a robust, dependable manner based on our previous work, i.e., HPSIN and SDI-CDQT (Wu et al., 2010; Zou et al., 2011) . In (Wu et al., 2010) a HPSIN was proposed by us, which combines distributed quad-tree with distributed hash table (DHT) to maintain both query efficiency and system load balance. Based on our HPSIN, we further propose a SDI-CDQT extending the quad-tree layer in HPSIN by semantic clustering strategy (Zou et al., 2011) , which makes the peers with similar interesting belong to the same cluster. However, there exist insufficiencies under a massive number of concurrent users indexing since both HPSIN and SDI-CDQT did not effectively consider the construction of overlay network for large-scale spatial information indexing. To our best knowledge, there lacks effective fast construction protocol of overlay network and the corresponding theoretical analysis for spatial information indexing.",
+            "cite_spans": [
+                {
+                    "start": 650,
+                    "end": 667,
+                    "text": "(Wu et al., 2010;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 668,
+                    "end": 685,
+                    "text": "Zou et al., 2011)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 691,
+                    "end": 708,
+                    "text": "(Wu et al., 2010)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 988,
+                    "end": 1006,
+                    "text": "(Zou et al., 2011)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Main contributions"
+        },
+        {
+            "text": "The main contributions of this paper are thereby four-fold 1) An effective semantic clustering strategy based on a uniform semantic metric is adopted that make peers with similar interests organized in same clusters. 2) A new semantic overlay network and the corresponding construction protocol based on gossip for large-scale spatial information indexing (SON_LSII) are proposed. Furthermore, the theoretical analysis of the convergence speed of SON_LSII is formally presented from four cases. The SON_LSII supports a massive number of concurrent users indexing and is a small world overlay network that achieves a very competitive tradeoff between indexing efficiency and maintenance overhead. 3) We propose efficient algorithms to support large-scale range queries of the spatial information in a parallel manner based on SON_LSII framework. 4) Extensive experiments are conducted to evaluate the performance of SON_LSII with regard to various aspects, including scalability, rate of indexing hits, indexing logical hops, adaptability, and so on.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Main contributions"
+        },
+        {
+            "text": "The rest of this paper is organized as follows: Section 2 presents an overview of our system. In Section 3, we discuss our theoretical model of a semantic overlay network and an analysis thereof. Section 4 details the large-scale spatial information indexing algorithm based on a semantic overlay network. In Section 5 we give the theoretical and experimental results that characterize key properties of this overlay network and a performance analysis of our algorithm. Section 6 presents our conclusions and future work.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Paper structure"
+        },
+        {
+            "text": "Before describing SON_LSII model in detail, we present an overview of our system. While there exist some different points from HPSIN as described in Section 1.3, the system structure of SON_LSII is similar to HPSIN (Wu et al., 2010) , which is a hybrid structure including Chord Ring Layer and Semantic Quad-tree Layer as depicted in Fig. 1 . Differing from the DQTChord (Distributed Quad-Tree Chord) structure (Tanin et al., 2007) , our hybrid structure stores subspace data directly in a semantic quad-tree rather than a Chord ring to reduce the communication cost and enhance indexing efficiency. Fig. 1 depicts the hybrid structure of SON_LSII, which is organized in layered clustering method. First, we place the head peer of the semantic cluster into the Chord ring layer according to the semantics of spatial information that peer holds. And then, in semantic quad-tree, we let each head peer maintain a cluster of four neighboring peers based on a uniform k-element Semantic Vector (SV) where k is some constant. The two main aspects of the semantic space correspond to two sub-SVs, SV 1 and SV 2 . SV\u00bc{SV 1 , SV 2 }\u00bc e 11 ; e 12 ; \u2026; e 1k 1 \u00c8 \u00c9 ; e 21 ; e 22 ; \u2026; e 2k 2 \u00c8 \u00c9 \u00c8 \u00c9 , k 1 +k 2 \u00bc k. Note that Semantic Vector corresponds to a point in the semantic space while the word \"semantic\" here means that the element in SV and the point in the semantic space both contain some concrete feature or attribute, which is represented by one element e ij in the SV with the data object including a weight ij . SV 1 and SV 2 correspond to two aspects, respectively, i.e., the semantic of spatial information that peer holds in overlay network and physical network performances, such as online time and bandwidth. For an example, if there are three peers A,B,C, peer A requests some spatial information that hold by peer B and C, and peer B and C have the same online time, peer A perhaps share data with peer B or peer C. However, if peer B have shorter online time than peer C, peer A would only create one P2P logical link with peer C and share data with peer C. One peer in a semantic overlay network can be regarded as a point in the k-dimensional semantic space. Furthermore, the proximity of two peers can be represented by the Euclidean distance between the two points in the semantic space.",
+            "cite_spans": [
+                {
+                    "start": 215,
+                    "end": 232,
+                    "text": "(Wu et al., 2010)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 411,
+                    "end": 431,
+                    "text": "(Tanin et al., 2007)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 334,
+                    "end": 340,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 600,
+                    "end": 606,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "System overview"
+        },
+        {
+            "text": "We first present the semantic clustering strategy based on SV, and then we describe the construction of SON_LSII. Finally, we provide a theoretical analysis of the convergence speed of SON_LSII model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SON_LSII model"
+        },
+        {
+            "text": "As described above, SV\u00bc{SV 1 , SV 2 }, semantics in SV 1 includes the semantics of spatial information held by the peers, such as the extent, resolution, and layer of spatial data, and the meaning of SV 2 lies in the peers' network performance, such as online time and bandwidth, which are gotten from the metadata in its caches' history information. As for the values and corresponding weights of elements in the SV 1 , especially for the element in-spatial extent data, we firstly need one method to map these multidimensional data into one-dimensional data. Therefore, we propose a novel mapping method, called Adaptive Spatial Information Linearization (ASIL).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Semantic clustering strategy and its formal analysis"
+        },
+        {
+            "text": "A spatial object typically has an extent with multi-dimensional features and cannot easily be linearized into a one-dimensional data value. The Hilbert curve or Z-curve can be used to map a regularly coordinated multi-dimensional spatial data space into a lowdimensional space (Li et al., 2008) . However, in our case, the SV includes both SV 1 and SV 2 . We introduce the ASIL method to map the spatial data space into one control point (CP) uniquely (Tanin et al., 2007) , and then let this point be an element in the SV 1 . Furthermore, combined with SV 2 , we can get the point in the uniform semantic space corresponding to SV for each peer.",
+            "cite_spans": [
+                {
+                    "start": 277,
+                    "end": 294,
+                    "text": "(Li et al., 2008)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 452,
+                    "end": 472,
+                    "text": "(Tanin et al., 2007)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Adaptive spatial information linearization"
+        },
+        {
+            "text": "The method for mapping the spatial data space into one element in the SV 1 uses the minimal boxes bounding the spatial object, i.e. BBox. Considering the Semantic Vector consists of many elements while spatial extent only is one kind of elements, therefore, we use a BBox to map spatial extent to one-dimensional control point. For any spatial extent, we can get one unique control point from the center of its BBox. Whether a spatial object is a polygon or a polyline, there exists a minimal BBox for this spatial object. Fig. 2 illustrates an example of two spatial objects and the corresponding BBox and CP. The spatial object in BBox A comprises one CP O 1 at level 1 and four recursive space subdivisions A 1 , A 2 , A 3 , A 4 , respectively. The spatial object in BBox B is divided two levels: the CP O 1 corresponds to level 1 and the CPs O 11 , O 12 , O 13 and O 14 correspond to level 2.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 523,
+                    "end": 529,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Adaptive spatial information linearization"
+        },
+        {
+            "text": "According to the semantic proximity value, a peer can decide which cluster to join. In order to compute the semantic proximity and find its location in our k-dimensional semantic space, all values and weights in the SV need to be obtained. Some values and weights of elements can be derived from the metadata, including the resolution and layer. The other values and weights of key elements in the SV, such as the extent of spatial data, are not easily obtained, and thus we propose a method to compute these. From the ASIL given above, we know that the spatial data's extent can be uniquely represented by its CP. We define Eq. (1) to compute the semantic proximity value between two CPs, CPx and CPy, and Eq. (2) to compute the value of its corresponding weight.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Semantic clustering strategy"
+        },
+        {
+            "text": "Following the theory in Sheldom (2009), Zou et al. (2011) , the more information two CPs share, the more similar they are. Equation (1) expresses the semantics of one layer in the whole division, where Set(CPx,CPy) is the common super class set of CPx and CPy, T is one element of control point, P(T) is the probability of T emerging in all level, CPNum is the emerging number of control point NSCP, N is the total number of all control points. Equation (2) expresses statistical weight for each similarity including the semantics in various layers, where N i is the number of CPs in the ith layer, and \u2211 j o Fmax j \u00bc Fmin N j is the total number of CPs between the F max and F min layers. F max and F min express the maximum and minimum number of subdivision levels, respectively.",
+            "cite_spans": [
+                {
+                    "start": 40,
+                    "end": 57,
+                    "text": "Zou et al. (2011)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Semantic clustering strategy"
+        },
+        {
+            "text": "So far, the values and corresponding weights of k-dimensional elements in the SV can be obtained, which is a uniform semantic metric. According to Eq. (3), where k 1 , k 2 , weight ij and e ij are defined in Section 2, when a new peer with similar semantics wishes to join SON_LSII, it first determines the most suitable cluster and then selects the semantic position with the maximum semantic metric in this cluster.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Semantic clustering strategy"
+        },
+        {
+            "text": "In contrast to the random joining strategy adopted in other overlay networks, this semantic clustering strategy takes advantage of the homogeneity between peers and reduces the indexing cost.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Semantic clustering strategy"
+        },
+        {
+            "text": "Based on the semantic clustering strategy, we give a fast construction protocol, by which peers with similar semantics are organized in the same peer cluster and further adaptively arranged into a small world semantic network -SON_LSII.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "There are two kinds of key protocols in building SON_LSII: a key-based routing protocol in the Chord ring layer and a gossipbased protocol in the semantic quad-tree layer. Using a key-based routing protocol, the centroid position in semantic subspace SV 1 can be hashed to address locations in the Chord ring. This routing protocol exhibits promising load-balancing behavior while without taking advantage of the homogeneity between data objects. Therefore, we introduce a clustering strategy based on the gossip protocol in the semantic quad-tree layer allowing SON_LSII to adapt dynamically to the locality of the data distribution and retain good load-balancing behavior at the same time, especially under a massive number of concurrent users.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "Herein we focus on the gossip-based protocol, which is extended according to the newscast model of computation (Jelasity et al., 2005 (Jelasity et al., , 2009 ) using the value of the metric in Eq. (3) as the clustering strategy. In this protocol, all peers periodically exchange their descriptors with other peers, thereby constantly improving their local partial views. Let \u03b1 denote the local partial views, where \u03b1(i) denotes the local partial views of peer i, \u03b1(i)\u00bc\u03b1(i)\u2295\u03b1(j) denotes the merger operation of the local partial views of peers i and j, and rank(\u03b1(i),j) denotes the operation of sorting the local partial views of peer i according to the interesting metric of peer j.",
+            "cite_spans": [
+                {
+                    "start": 111,
+                    "end": 133,
+                    "text": "(Jelasity et al., 2005",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 134,
+                    "end": 158,
+                    "text": "(Jelasity et al., , 2009",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "The basic idea of the protocol is as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "(1) initialize the \u03b1(i) of each peer i, i\u00bc{1,2,\u2026N};",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "(2) periodically wait \u03b4 time units;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "(3) peer i selects its child peers {p 1 ,p 2 ,p 3 ,p 4 } from the \u03b1(i);",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "(4) update \u03b1(i) by \u03b1(i)\u00bc \u03b1(i)\u2295\u03b1(j),j\u00bc{p 1 ,p 2 ,p 3 ,p 4 };",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "(5) send the updated view \u03b1(i) to the peers {p 1 ,p 2 ,p 3 ,p 4 }; (6) receive the views from peers {p 1 ,p 2 ,p 3 ,p 4 } and rank(\u03b1(i),j),j\u00bc {p 1 ,p 2 ,p 3 ,p 4 }; (7) repeat from step 2 until the perfect target SON_LSII is obtained.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "There are several critical steps that need to be addressed in the protocol for SON_LSII: (i) steps 5 and 6 must be executed as separate threads, thereby supporting massive concurrency of peers. (ii) The perfect target SON_LSII in step 7 means that each peer that differs from the root in the F min layer of SON_LSII must know its parent, while non-leaf peers must know their four children.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast construction protocol for SON_LSII"
+        },
+        {
+            "text": "Differing from the empirical method in (Jelasity et al., 2009) , we introduce stochastic processes to describe the relationship between convergence speed and network size of SON_LSII model under different cases (Sheldom, 1983) .",
+            "cite_spans": [
+                {
+                    "start": 39,
+                    "end": 62,
+                    "text": "(Jelasity et al., 2009)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 211,
+                    "end": 226,
+                    "text": "(Sheldom, 1983)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Theoretical analysis of the convergence speed of the SON_LSII model"
+        },
+        {
+            "text": "Let F min \u00bc2 and F max \u00bc 5 in Fig. 2, i.e., there are 4 Fmin sub quad-trees in Fig. 2 , 4 Fmax logical peers on the 5th level of our quad-tree. Let X be the number of logical peers between F min and F max in our quad-tree, X\u00bc4 Fmin \u00c2 4 Fmax\u2212Fmin\u00fe1 \u22121=3. Each peer in our quad-tree needs to match its best logical position according to the semantic metric given in Eq. (3) by broadcasting its semantic information based on epidemic theory. Let Y denote the number of physical peers in SON_LSII. We let N\u00bc max{X,Y}. Let Num_Cache denote the number of caches at each exchange. We assume that Num_Cycle is the number of cycles required for SON_LSII to converge. We use a set containing N elements to denote the N states of information exchange. Let M denote the actual total time for SON_LSII to converge. It is easy to see that Num_Cycle\u00bcM/N. Let i denote the current number of information exchanges. Then we divide this set into two subsets:{U,V}. The elements in set U know the news or are infected, whereas the elements in set V do not know the news or are not infected. Let u(i) and v(i) denote the number of elements in the subset {U,V} at the ith information exchange, where u(i)+v(i)\u00bcN.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 30,
+                    "end": 37,
+                    "text": "Fig. 2,",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 79,
+                    "end": 85,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Theoretical analysis of the convergence speed of the SON_LSII model"
+        },
+        {
+            "text": "It is easy to see that the value, u(i), can be incremented by one or remain unchanged by an exchange of information. Let random variable \u03d5 i \u00bc {0,1} denote the increasing value of the ith information exchange and p i denotes the probability of",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theoretical analysis of the convergence speed of the SON_LSII model"
+        },
+        {
+            "text": "Here we delve deeply into the convergence speed based on the stochastic process theory and consider the following four cases:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theoretical analysis of the convergence speed of the SON_LSII model"
+        },
+        {
+            "text": "\u2022 Case A (no cache & sequential): a peer selects another peer from the remaining N-1 peers and the N peers run the protocol sequentially. \u2022 Case B (cache and sequential): a peer selects another peer from its cache of Num_Cache peers and the N peers run the protocol sequentially. \u2022 Case C (no cache and parallel): a peer selects another peer from the remaining N-1 peers and the N peers run the protocol in parallel through the execution of N threads.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theoretical analysis of the convergence speed of the SON_LSII model"
+        },
+        {
+            "text": "\u2022 Case D (cache and parallel): a peer selects another peer from its cache of Num_Cache peers and the N peers run the protocol in parallel through the execution of N threads.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theoretical analysis of the convergence speed of the SON_LSII model"
+        },
+        {
+            "text": "The value of \u03bb i may be different for different cases. First, we focus on Case A. Lemma 1. Let N denote all the peers in SON_LSII, and i denote the current number of information exchanges. u(i) increases and approaches N exponentially fast according to i. Furthermore, it satisfies the following expression:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case A (no cache and sequential)"
+        },
+        {
+            "text": "Proof. The proof procedure is described in Appendix A. We assume that the actual value of i is M when u(i)-N and SON_LSII converges. It is easy to see that Num_Cycle\u00bcM/N.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case A (no cache and sequential)"
+        },
+        {
+            "text": "In Case B, the tuple (u,v) denotes the ith information exchange between peer u and peer v, \u2200u,v\u2208{U,V}. When u runs the above protocol, the probability of peer u selecting peer v is different from that in Case A, but the difference between the two cases may be ignored. It means that there is an equivalent convergence speed in Cases A and B in terms of the order of magnitude.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case B (cache and sequential)"
+        },
+        {
+            "text": "Proof. We allow each peer to have the information of Num_Cache peers in its local view by complete random assignment during initialization, the distribution of the process of selecting v N times is uniform, i.e., each peer in the set {U,V} has an equal probability p i of being selected during the entire process.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case B (cache and sequential)"
+        },
+        {
+            "text": "As shown in Lemma 1, there are two factors, I and \u03bb i , that impact u(i). Here, i is the main factor and \u03bb i is minor since i increases according to the law of natural numbers starting at 1, whereas \u03bb i increases by a very small fraction with a max value of about 1/4. So there is an equivalent convergence speed in Cases A and B in terms of the order of magnitude. We have the proof.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case B (cache and sequential)"
+        },
+        {
+            "text": "Here, we assume that a vector of probability denotes the probability of increasing one element in the set u(i) at an information exchange, and define it as P, P \u00bc[p 1 ,p 2 ,...p i ...] M .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Cases C (no cache and parallel) and Case D (cache and parallel)"
+        },
+        {
+            "text": "Considering p i , as in Case A, the random variable \u03d5 i \u00bc {0,1} denotes the increasing value of the ith information exchange and p i denotes the probability of p i \u00bc{\u03d5 i \u00bc1}. In Case C, N peers execute once during a single information exchange procedure since these peers run SON_LSII protocol in parallel with the independent and identically distributed way, which is equivalent to one peer running repeatedly N times, i.e., Bernoulli trial, denoted by B (N,p i ) . The increasing value of u(i) can be denoted by",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 456,
+                    "end": 464,
+                    "text": "(N,p i )",
+                    "ref_id": null
+                }
+            ],
+            "section": "Cases C (no cache and parallel) and Case D (cache and parallel)"
+        },
+        {
+            "text": "Theorem 1. Let N denote all the peers in SON_LSII, and i denote the current number of information exchanges. In Case C, u(i) increases and approaches N super-exponentially fast according to i based on Lemma 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Cases C (no cache and parallel) and Case D (cache and parallel)"
+        },
+        {
+            "text": "Proof. The proof procedure is described in Appendix B. In summary, u(i) increases according to i and approaches N superexponentially fast in Case C. It is easy to see that there is an equivalent convergence speed in cases C and D in terms of the order of magnitude.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Cases C (no cache and parallel) and Case D (cache and parallel)"
+        },
+        {
+            "text": "The basic idea of the spatial information indexing algorithm is that we first map the spatial information into SON_LSII. Given some requests for indexing information, we compute the semantic value and find the most suitable cluster according to the semantic clustering strategy in Eq. (3) and locate the peer that has the required value in semantic quad-tree layer in a parallel manner based on gossip-based protocol. And then one P2P logical link is created between the peer requesting for indexing information and the peer with the required value so that these two peers can share data with others.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Large-scale spatial information indexing algorithms based on the SON_LSII"
+        },
+        {
+            "text": "An overview of the indexing algorithm based on SON_LSII is illustrated in Fig. 3 . The whole process comprises two main steps: finding the required information within and outside the current semantic quad-tree. The time complexity of this indexing algorithm isO\u00f0log 2 T \u00fe log 4 N\u00de, where T and N are the numbers of peers in the Chord ring layer and the semantic quad-tree layer, respectively.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 74,
+                    "end": 80,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Large-scale spatial information indexing algorithms based on the SON_LSII"
+        },
+        {
+            "text": "This section focuses on evaluating the benefits of SON_LSII. We compare SON_LSII with DQTChord introduced in (Tanin et al., 2007) , which does not consider a peer's semantics.",
+            "cite_spans": [
+                {
+                    "start": 109,
+                    "end": 129,
+                    "text": "(Tanin et al., 2007)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Performance evaluation"
+        },
+        {
+            "text": "To understand the proposed communication protocol given in Section 3.2, we simulate push-gossip of the anti-entropy epidemic protocol in MatLab. The terms: u(i), v(i), N and Num_Cycle have the same meanings as in Section 3.3. Let P i denote the probability that a fixed node is not infected at the ith cycle,P i \u00bc \u00f0v\u00f0i\u00de=N\u00de. Assuming that N \u00bc10 4 and P 0 \u00bc 0.99, we test v(i) ten times. From Fig. 4 , we can see that v(i) decreases exponentially according to i for the data sets of practical 1 and practical 2. And the practical convergence speed for the different data sets of practical 3\u223cpractical 10 is similar to the above results. Next we analyze the theoretical convergence speed (Demers et al., 1987) . Setting P i \u00bc P i\u22121 \u00f01\u2212 1 N \u00de N\u00f01\u2212P i\u22121 \u00de ; u\u00f00\u00de \u00bc 1 we carried out an experiment under the same conditions as that in Fig. 4 too. The results show that the speed of practical convergence is equivalent to the theoretical value from the point of view of order of magnitude for the data sets of theoretic 1 and theoretic 2. And the convergence speed in theory for the different data sets of theoretic 3 $ theoretic 10 is similar to the above results.",
+            "cite_spans": [
+                {
+                    "start": 685,
+                    "end": 706,
+                    "text": "(Demers et al., 1987)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 386,
+                    "end": 397,
+                    "text": "From Fig. 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 828,
+                    "end": 834,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Numerical examples"
+        },
+        {
+            "text": "We also tested the convergence speed for different values of P 0 , P 0 \u00bc0.9, 0.99, 0.999, respectively. Each experiment was repeated 10 times and the results averaged. From Fig. 5 it can be seen that the convergence speed is faster when the initial value of P 0 is smaller.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 173,
+                    "end": 179,
+                    "text": "Fig. 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Numerical examples"
+        },
+        {
+            "text": "From the analysis above, we can easily see that the convergence speed of the anti-entropy epidemic protocol is exponentially fast and SON_LSII protocol is identical to the anti-entropy epidemic protocol in terms of the order of magnitude.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Numerical examples"
+        },
+        {
+            "text": "To further evaluate the performance of our algorithm, we developed a P2P simulator platform for a spatial data application, called PeerSimSD, which is an extension of PeerSim (PeerSim, 2011) . Furthermore, the research study in (Cheng et al., unpublished) achieved the outstanding award of team graduate design in Jiangsu Province, China. To run the protocol sequentially, PeerSimSD uses a queue based on an event driven engine to simulate the environment of Case B in Section 3.3. We use randomly generated data to simulate 10,000 queries of spatial data. ",
+            "cite_spans": [
+                {
+                    "start": 228,
+                    "end": 255,
+                    "text": "(Cheng et al., unpublished)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 175,
+                    "end": 190,
+                    "text": "(PeerSim, 2011)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Experiments"
+        },
+        {
+            "text": "We collect the data from each peer's view during convergence with Num_Cache\u00bc10. The average path length and clustering coefficient of SON_LSII can be obtained as shown in Fig. 6 . Note that the average clustering coefficient is about 0.21 while the average path length is about 2.36 when network size is 2^10; the Max average clustering coefficient is about 0.70 when network size is 2^5 and the Max average path length is about 2.70 when Network size is 2^12. These results show that SON_LSII has desirable small-world properties similar to those in (Watts and Strogatz, 1998) .",
+            "cite_spans": [
+                {
+                    "start": 551,
+                    "end": 577,
+                    "text": "(Watts and Strogatz, 1998)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 171,
+                    "end": 177,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Small world characteristics"
+        },
+        {
+            "text": "In Section 3.3, we explained that Num_Cache has an impact on the convergence speed although the impact is not significant. Now we focus on this impact under different conditions of simple peak propagation with different values of Num_Cache. First, we set Num_Cache\u00bc1 and observed the convergence. As shown in Table 1 , we found that the overlay network is not a connected graph with high probability. Next, we set Num_Cache\u00bc 2. And then we found that the overlay network is a connected graph with high probability, while the convergence speed is slower. Finally, we set 2o Num_CacheoN, for example, 10, 20, 40 or 80, and observed the cycle of convergence (Num_Cycle) for different network sizes. The results in Table 2 show that Num_Cache has no significant impact on the convergence speed, which are consistent with the analysis of Case B in Section 3.3.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 309,
+                    "end": 316,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 711,
+                    "end": 718,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Convergence and Num_Cache"
+        },
+        {
+            "text": "Here we observe the indexing efficiency varying according to both time and network size using different indexing strategies, such as the GetNear strategy and indexing cache strategy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Indexing efficiency"
+        },
+        {
+            "text": "As shown in Fig. 7 , SON_LSII is stable with respect to variations in time. Furthermore, the way \"SON_LSII_Cache_GetNear\" uses our indexing strategy \"GetNear strategy and indexing cache strategy\" is superior to the others, and the average indexing logical hops is between 2.8 and 4, which is lower than the other cases.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 12,
+                    "end": 18,
+                    "text": "Fig. 7",
+                    "ref_id": null
+                }
+            ],
+            "section": "Indexing efficiency"
+        },
+        {
+            "text": "To test whether SON_LSII is stable with respect to variations in network size from 1 to 50,000, we record the minimal, mean, and maximal logical hops, which are approximate 1.1, 8.2 and 11.1 without much change, respectively. These results show that SON_LSII works well.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Indexing efficiency"
+        },
+        {
+            "text": "In order to compare our indexing method, we introduce another famous spatial indexing method DQTChord (Tanin et al., 2007) . Our approach differs from it in that, DQTChord maps all control points to the Chord ring, whereas we let the Chord ring act as the first location function and place the remaining indexes in the semantic quad-tree layer, which is the second level of SON_LSII. This decreases the indexing stress on the Chord ring and results in some spatial information query tasks being completed within one group of the semantic quad-tree thereby improving the indexing efficiency of the spatial information.",
+            "cite_spans": [
+                {
+                    "start": 102,
+                    "end": 122,
+                    "text": "(Tanin et al., 2007)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Indexing efficiency"
+        },
+        {
+            "text": "According to Fig. 8 , the hit rate for spatial information indexing approaches 100% with an increase in time units. Furthermore, we can also see that the way \"SON_LSII_Cache_GetNear\" uses the GetNear and indexing cache strategies achieves a higher hit rate for spatial information indexing than DQTChord. This is because we often query data close to previous data with a higher probability when scanning certain spatial data such as map data. In the first 1000 time units, we simulate data queries/inserts. In the latter 1000 time units, there is a higher probability that data is repeated in SON_LSII. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 13,
+                    "end": 19,
+                    "text": "Fig. 8",
+                    "ref_id": null
+                }
+            ],
+            "section": "Indexing efficiency"
+        },
+        {
+            "text": "The goal of SON_LSII is to provide fast spatial information indexing for a massive number of concurrent users. The more the number of users is, the greater the size of network is. Let us carry out some experiments to test whether SON_LSII adapts with the dynamic change of the network size and whether the Network load distribution is balanced.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network dynamic character and network load distribution"
+        },
+        {
+            "text": "5.2.4.1. Dynamic character. Considering the fact that users of SON_LSII join and leave dynamically, we investigated the adaptability of SON_LSII. We assume that the network size increases or decreases in steps of 10.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network dynamic character and network load distribution"
+        },
+        {
+            "text": "As shown in Fig. 9 , there are three kinds of experimental data: SON_LSII (the indexing method for SON_LSII without dynamic changes), SON_LSII_Dynamics (the indexing method for SON_LSII with dynamic changes) and DQTChord. In this figure, the x-axis denotes time units and the y-axis denotes the hit rate. From the results of the experiment, it can be seen that dynamic changes in the network size have no effect on the hit rate.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 12,
+                    "end": 18,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "Network dynamic character and network load distribution"
+        },
+        {
+            "text": "Here we express the network load in terms of the frequency with which each peer is accessed in SON_LSII during a certain period.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network load."
+        },
+        {
+            "text": "In Fig. 10 , the x-axis denotes the network load of the peers, while the y-axis gives the number of peers corresponding to the network load. The network load in SON_LSII is better balanced. This is because the responsibility of indexing is assigned to some peers in our semantic quad-tree and all data are divided into four parts and evenly mapped onto the Chord ring and semantic quad-tree layers.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Network load."
+        },
+        {
+            "text": "In this paper, we proposed an effective semantic clustering strategy and presented the design of a new semantic overlay network (SON_LSII) that enables more powerful large-scale spatial information indexing. The SON_LSII has a hybrid structure that results in our indexing method achieving a very competitive tradeoff between indexing efficiency and maintenance overhead.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions and future work"
+        },
+        {
+            "text": "We have carried out more experiments over the Internet with massive amounts of actual spatial raster data. However, vector spatial data cannot be directly divided using the method mentioned above since it needs to record the topological relation between the vector spatial objects. As future work, we plan to extend SON_LSII for more practical applications, especially in online services of vector spatial data. Appendix A. The proof procedure of Lemma 1 Lemma 1. Let N denote all the peers in SON_LSII, and i denote the current number of information exchanges. u(i) increases and approaches N exponentially fast according to i. Furthermore, it satisfies the following expression:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions and future work"
+        },
+        {
+            "text": "Proof. Assume that we start analyzing from the ith information exchange and let SON_LSII protocol run for \u0394i information exchanges. This gives the following equation:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "u\u00f0i \u00fe \u0394i\u00de\u2212u\u00f0i\u00de \u00bc \u00bd\u03bb i v\u00f0i\u00deu\u00f0i\u00de\u0394i",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "If u(0)\u00bc u 0 , C \u00bc N u 0 \u22121 and the proof is complete. It should be noted that we assume that \u03bb i does not change in the above proof. In fact, \u03bb i does change to some extent. Next, we analyze this change from i\u00bc 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "In Case A,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Consider the factor function f\u00bc x(N\u2212x) \u00bcx \u00c2 N\u2212x \u00c2 x. Formally, the derivative of function f is f\u2032\u00bc N\u22122 \u00c2 x40,1\u2264x o N/2,f\u2191.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "And then we can get 1 \u2264",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Therefore, \u03bb i \u2191,u i oN/2\uff0cand the expectation of u(i) increasing is at least \u03bb i , where \u03bb i \u00bc 1 \u00fe \u2211 i k \u00bc 1 \u03bb k , while \u03bb max \u00bc N=4\u00f0N\u22121\u00de; u i \u00bc N=2; and then, \u03bb i decreases to zero after several information exchanges. Finally, by substituting \u03bb i in the equation, we have the proof.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Appendix B. The proof procedure of Theorem 1 Theorem 1. Let N denote all the peers in SON_LSII, and i denote the current number of information exchanges. In Case C, u(i)increases and approaches N super-exponentially fast according to i based on Lemma 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Proof. Let we analyze \u03bb i starting with i\u00bc1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Similarly, we can obtain the value of \u03bb i at the i th information exchange as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "According to Lemma 1, by substituting \u03bb i for u(i), the u(i) are obtained as follows: u\u00f0i\u00de \u00bc N 1 1\u00feCe \u2212i\u03bb i 4 N 1 1\u00feCe \u2212i2 i , under the condition that \u2211 i j \u00bc 1 \u03bb j o N=2, where the constant C can be obtained using u (0)\u00bc 1. We have the proof.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Key Technology Research on Semantic P2P Networks for Multi-dimension Spatial Data. Unpublished B.Sc. Thesis of team graduation project",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Miu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zou",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Epidemic algorithms for replicated database maintenance",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Demers",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Greene",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Hauser",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Irish",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Larson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Shenker",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Sturgis",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Swinehart",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Terry",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "Proceedings of the 6th Annual ACM Symposium on Principles of Distributed Computing",
+            "volume": "",
+            "issn": "",
+            "pages": "1--12",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "DESENT: decentralized and distributed semantic overlay generation in P2P networks",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Doulkeridis",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Norvag",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Vazirgiannis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "IEEE Journal on Selected Areas in Communications",
+            "volume": "25",
+            "issn": "1",
+            "pages": "25--34",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Heuristically optimized trade-offs a new Paradigm for power laws in the internet",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Fabrikant",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Koutsoupias",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Papadimitriou1",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Lecture Notes in Computer Science",
+            "volume": "2038",
+            "issn": "",
+            "pages": "122--1105",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "On death, taxes, and the convergence of peer-to-peer and grid computing",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Foster",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Iamnitchi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Lecture Notes in Computer Science",
+            "volume": "2735",
+            "issn": "",
+            "pages": "118--128",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "A geo-spatial data management system for potentially active volcanoes-GEOWARN project",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Gogu",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Dietrich",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Jenny",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Schwandner",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hurni",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Computers & Geosciences",
+            "volume": "32",
+            "issn": "",
+            "pages": "29--41",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "FLoD: a framework for peer-to-peer 3D streaming",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Sung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of the 27th Conference on Computer Communications IEEE, INFOCOM",
+            "volume": "",
+            "issn": "",
+            "pages": "1373--1381",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Gossip-based aggregation in large dynamic networks",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jelasity",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Montresor",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Babaoglu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "ACM Transaction on Computer System",
+            "volume": "23",
+            "issn": "1",
+            "pages": "219--252",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "T-MAN: gossip-based fast overlay topology construction",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jelasity",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Montresor",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Babaoglu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Computer Networks",
+            "volume": "53",
+            "issn": "",
+            "pages": "2321--2339",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Storing and indexing spatial data in P2P systems",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kantere",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Skiadopoulos",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Sellis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "IEEE Transactions on Knowledge and Data Engineering",
+            "volume": "21",
+            "issn": "2",
+            "pages": "287--300",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "SSW: a small-world-based overlay for peer-to-peer search",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Sivasubramaniam",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "IEEE Transactions on Parallel and Distributed Systems",
+            "volume": "19",
+            "issn": "6",
+            "pages": "735--749",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Hybrid computing-where hpc meets grid and cloud computing",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Mateescu",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Gentzsch",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ribbens",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Future Generation Computer Systems",
+            "volume": "27",
+            "issn": "5",
+            "pages": "440--453",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "A Peer-to-Peer Simulator",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Peersim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Efficient reconciliation and flow control for anti-entropy protocols",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Renesse",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dumitriu",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Gough",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Thomas",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of the 2nd Workshop on Large-Scale Distributed Systems and Middleware",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1145/1529974.1529983"
+                ]
+            }
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Semantic similarity in a taxonomy: an information-based measure and its application to problems of ambiguity in natural language",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Resnik",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Journal of Artificial Intelligence Research",
+            "volume": "11",
+            "issn": "",
+            "pages": "95--130",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Stochastic Processes",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Sheldom",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "First Course in Probability, eighth edn",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Sheldom",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Building and querying a P2P virtual world",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Tanin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Harwood",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Samet",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Nayar",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Nutanong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Geoinformatica",
+            "volume": "10",
+            "issn": "1",
+            "pages": "91--116",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Using a distributed quad tree index in peerto-peer networks",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Tanin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Harwood",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Samet",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "The VLDB Journal",
+            "volume": "16",
+            "issn": "2",
+            "pages": "165--178",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Affinity P2P: a self-organizing content-based locality-aware collaborative peer-to-peer network",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Tirado",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Higuero",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Isaila",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Carretero",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Iamnitchi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Computer Networks",
+            "volume": "54",
+            "issn": "12",
+            "pages": "2056--2070",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Collective dynamics of 'small-world' networks",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Strogatz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Nature",
+            "volume": "393",
+            "issn": "",
+            "pages": "440--442",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "HPSIN: a new hybrid P2P spatial indexing network",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zou",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Feng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "The Journal of China Universities of Posts and Telecommunications",
+            "volume": "17",
+            "issn": "3",
+            "pages": "66--72",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "An efficient peer-to-peer indexing tree structure for multidimensional data",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Qian",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zhou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Future Generation Computer Systems",
+            "volume": "25",
+            "issn": "",
+            "pages": "77--88",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "A P2P spatial data index mechanism based on semantic clustering distributed quad-tree",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Zou",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Geomatics and Information Science of Wuhan University",
+            "volume": "36",
+            "issn": "1",
+            "pages": "76--81",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Hybrid structure of SON_LSII.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "An example of BBox and CP.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Flowchart of the indexing algorithm.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Convergence speed of anti-entropy epidemic protocol for different initial values. Convergence speed of anti-entropy epidemic protocol. Small-world properties of SON_LSII.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Average indexing logical hops versus time units. Hit rate versus time units. Dynamic Network load.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Contents lists available at SciVerse ScienceDirect journal homepage: www.elsevier.com/locate/cageo Computers & Geosciences 0098-3004/$ -see front matter Published by Elsevier Ltd. http://dx.doi.org/10.1016/j.cageo.2013.04.019",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Convergence with Num_Cache \u00bc 1 and network size\u00bc 200.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Convergence cycle and Num_Cache.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "This work is supported by the National Natural Science Foundation of China under Grant nos.40801149, and 61272422; the China Planned Projects for Postdoctoral Research Funds (20100471356); the Open Research Fund from the Key Laboratory of Computer Networks and Information Integration at the Southeast University (K93-9-2010-06); the Project Funded by the Priority Academic Program Development of Jiangsu Higher Education Institutions (yx002001). Thanks to Y. Cheng's research team, J. Yin and Y. Kong for their dedication. Finally, we are grateful to the anonymous reviewers for their insightful and constructive suggestions.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

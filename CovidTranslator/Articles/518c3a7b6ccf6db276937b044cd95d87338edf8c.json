@@ -1,0 +1,909 @@
+{
+    "paper_id": "518c3a7b6ccf6db276937b044cd95d87338edf8c",
+    "metadata": {
+        "title": "RLadyBug-An R package for stochastic epidemic models",
+        "authors": [
+            {
+                "first": "Michael",
+                "middle": [],
+                "last": "H\u00f6hle",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Munich",
+                    "location": {
+                        "addrLine": "Ludwigstr. 33",
+                        "postCode": "80539",
+                        "settlement": "Munich",
+                        "country": "Germany"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Ulrike",
+                "middle": [],
+                "last": "Feldmann",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Munich",
+                    "location": {
+                        "addrLine": "Ludwigstr. 33",
+                        "postCode": "80539",
+                        "settlement": "Munich",
+                        "country": "Germany"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "RLadyBug is an S4 package for the simulation, visualization and estimation of stochastic epidemic models in R. Maximum likelihood and Bayesian inference can be performed to estimate the parameters in a susceptible-exposed-infectious-recovered (SEIR) model, which is a stochastic model for describing a single outbreak of an infectious disease. The package is thus one step towards statistical software supporting parameter estimation, calculation of confidence intervals and hypothesis testing for transmission models.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Understanding the dynamics and spread of infectious diseases is a key component in the design and analysis of defensive strategies. As a consequence, a multitude of epidemiological data on infectious diseases in animal, plant and human communities has been collected to gain insights into the underlying biological and epidemiological processes. The SIR (susceptible-infectious-recovered) model and its variants (S-Exposed-IR, SIS, etc.) are the mathematical tools most commonly used in such analyses. This paper describes a software program for the statistical analysis of a single outbreak in a small population. Special focus is on the spatial spread between subpopulations arranged on a lattice. In veterinary or plant epidemiology such data arise from so-called transmission experiments, where one or more individuals in a controlled environment are inoculated with the infectious disease pathogen. Subsequently, the course of the epidemic is monitored through visual inspection, clinical testing and other methods. The aim ranges in veterinary epidemiology from quantifying disease transmission (Laevens et al., 1999; St\u00e4rk et al., 2000) to determining the effect of a vaccine (Dewulf et al., 2001; Meyns et al., 2004) .",
+            "cite_spans": [
+                {
+                    "start": 1101,
+                    "end": 1123,
+                    "text": "(Laevens et al., 1999;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1124,
+                    "end": 1143,
+                    "text": "St\u00e4rk et al., 2000)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1183,
+                    "end": 1204,
+                    "text": "(Dewulf et al., 2001;",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1205,
+                    "end": 1224,
+                    "text": "Meyns et al., 2004)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Because outbreaks induced by transmission experiments are planned and occur in a controlled environment, the produced outbreak data are especially rich. However, the mathematical setup of course also applies to the analysis of ordinary outbreaks. Interesting is also the application to entirely different areas such as the analysis of computer virus in a network (Wierman and Marchette, 2004) , spread of the severe acute respiratory syndrome (SARS) (Donelly and Ghani, 2004) or outbreaks in the wards of a hospital (Grundmann and Hellriegel, 2006) .",
+            "cite_spans": [
+                {
+                    "start": 363,
+                    "end": 392,
+                    "text": "(Wierman and Marchette, 2004)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 450,
+                    "end": 475,
+                    "text": "(Donelly and Ghani, 2004)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 516,
+                    "end": 548,
+                    "text": "(Grundmann and Hellriegel, 2006)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "RLadyBug is a package implemented in R (R Development Core Team, 2006) providing functionality for the simulation, visualization and estimation in stochastic epidemic models. It enwraps the functionality of the Java program used in H\u00f6hle et al. (2005) by S4 classes and adds a volume of methods for the visualization of outbreak data and their estimation results. The aim of this paper is to describe the features of the package in order to make it accessible to statisticians and statistically trained epidemiologists who are looking for software to analyse their infectious disease data. Less attention is thus given to the statistical particulars, which are explained in H\u00f6hle et al. (2005) .",
+            "cite_spans": [
+                {
+                    "start": 59,
+                    "end": 70,
+                    "text": "Team, 2006)",
+                    "ref_id": null
+                },
+                {
+                    "start": 232,
+                    "end": 251,
+                    "text": "H\u00f6hle et al. (2005)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 674,
+                    "end": 693,
+                    "text": "H\u00f6hle et al. (2005)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "This paper is organized as follows: Section 2 gives a short introduction to stochastic epidemic models, Section 3 introduces the package and illustrates its use by providing the corresponding R code for analyzing a transmission experiment with classical swine fever virus (CSFV). Section 4 provides a discussion.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "With focus on the software dimension, only a short introduction to stochastic epidemic models in terms of the SEIR model is given. For a more thorough description see Andersson and Britton (2000) .",
+            "cite_spans": [
+                {
+                    "start": 167,
+                    "end": 195,
+                    "text": "Andersson and Britton (2000)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Stochastic epidemic models"
+        },
+        {
+            "text": "A closed population P is hosted in k units. Each individual in P can be in one of the states susceptible, exposed, infectious or recovered. A spatial dimension is introduced by assuming that the k units are arranged in a k = k 1 \u00d7 k 2 lattice. At the beginning of the outbreak, t = 0, the number of susceptibles in each unit is S(0) = (n 1 , . . . , n k ), the number of exposed is E(0) = (m 1 , . . . , m k ) and the number of infectious is I(0) = (0, . . . , 0). At time t, an individual j in unit u j meets infectious at rate",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic epidemic models"
+        },
+        {
+            "text": "where N(u j ) denotes the neighbors of u j (e.g. in the four compass directions). Furthermore, quantifies the within unit transmission rate, whilst n quantifies the transmission rate between neighboring units. If a susceptible meets an infectious it becomes exposed. After being exposed at time E j an individual j has a gamma-distributed incubation time T j E \u223c Ga( E , E ) before becoming infectious, i.e. starting from time I j = E j + T j E , j can infect others. Similarly, the infectious period lasts for T j I \u223c Ga( I , I ) after which recovery occurs, hence R j = I j + T j I labels the time of recovery.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic epidemic models"
+        },
+        {
+            "text": "Objective of analyzing outbreak data with SEIR models is the estimation of the parameters =( , n , E , E , I , I ), which permit the effect of control measures to be studied and to generalize the results to different settings. RLadyBug is a tool to accomplish this ambition.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic epidemic models"
+        },
+        {
+            "text": "Where applicable, RLadyBug uses the new S4 class system of R implemented in the methods package. This implies a more explicit class system requiring the programmer to define classes, slots and generics explicitly (Chambers, 1998). Fig. 1 shows the object oriented hierarchy of the package: The classes LBExperiment and LBLayout represent the data layer, LBOptions the algorithmic component and LBInference the results. With the help of the rJava package (Urbanek, 2006) , this S4 framework is connected to the functionality of an underlying Java program performing the computationally intensive operations. (1 , 1)",
+            "cite_spans": [
+                {
+                    "start": 454,
+                    "end": 469,
+                    "text": "(Urbanek, 2006)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 231,
+                    "end": 237,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "The RLadyBug package"
+        },
+        {
+            "text": "and R u (t) for the three units in a 1 \u00d7 3 lattice layout.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The RLadyBug package"
+        },
+        {
+            "text": "To get an understanding of the SEIR model specified in Section 2, simulation based on the Sellke construction (Andersson and Britton, 2000) is utilized to generate data from the model. Code wise, this is accomplished by creating an object of class LBExperiment using the simulate function. Several visualizations of the experiment data can then be generated by plot, e.g. the type = state \u223c time | position argument shows S u (t), E u (t) and I u (t) as a function of time for each unit u in the lattice. The below stated code creates a simulated epidemic in a 1 \u00d7 3 lattice, see Fig. 2 . Initially S(0) = (10, 9, 10) and E(0) = (0, 1, 0). > library(\"RLadyBug\") > layout < -new(\"LBLayout\", S0 = matrix(c(10, 9, 10), 1, 3),",
+            "cite_spans": [
+                {
+                    "start": 110,
+                    "end": 139,
+                    "text": "(Andersson and Britton, 2000)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 580,
+                    "end": 586,
+                    "text": "Fig. 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Simulation and visualization"
+        },
+        {
+            "text": "Further views of LBExperiment objects can be generated using type = state \u223c time or type = state \u223c 1 | position as arguments in plot. The former shows S(t), E(t) and I (t), with e.g. S(t) = k u=1 S u (t), the latter creates an animation illustrating the course of the epidemic by plotting the state given position for a set of fixed time points. As exemplification, the code below uses a 8 \u00d7 16 lattice with 15 individuals in each unit (a realistic setup for a pig farm) and creates a 20-picture animation of the epidemic. Fig. 3 shows the eighth picture of this sequence: Each stacked bar shows the current (t = 58.9 days) percentage of susceptible, exposed, infectious and recovered in the unit. -matrix(15, 8, 16 ) -E0 > exp < -simulate(options, layout = new(\"LBLayout\", S0 = S0, E0 = E0)) > plot(exp, type = state \u223c 1 | position, options = list(noOfPics = 20))",
+            "cite_spans": [
+                {
+                    "start": 698,
+                    "end": 715,
+                    "text": "-matrix(15, 8, 16",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 523,
+                    "end": 529,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Simulation and visualization"
+        },
+        {
+            "text": "Besides the ability to simulate data, the package contains several data sets from human and veterinary epidemiology. Amongst others are the Smallpox Epidemic in Abakaliki, Nigeria, analyzed e.g. in Andersson and Britton (2000) or O'Neill and Becker (2001) , and the data from CSFV experiments by Laevens et al. (1999) and Dewulf et al. (2001) . t=58.9",
+            "cite_spans": [
+                {
+                    "start": 198,
+                    "end": 226,
+                    "text": "Andersson and Britton (2000)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 230,
+                    "end": 255,
+                    "text": "O'Neill and Becker (2001)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 296,
+                    "end": 317,
+                    "text": "Laevens et al. (1999)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 322,
+                    "end": 342,
+                    "text": "Dewulf et al. (2001)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Test data"
+        },
+        {
+            "text": "Exposed Infected Recovered The next section describes a statistical analysis of the experiment by Laevens et al. (1999) using RLadyBug. In this experiment the spread of CSFV was investigated in a 1 \u00d7 3 layout with S(0) = (5, 5, 6) and E = (0, 1, 0) slaughter pigs. Every second day all pigs still alive were investigated using a virus isolation test based on blood plasma.",
+            "cite_spans": [
+                {
+                    "start": 98,
+                    "end": 119,
+                    "text": "Laevens et al. (1999)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Susceptible"
+        },
+        {
+            "text": "For full data, i.e. with known E j , I j , R j event times for all individuals, RLadyBug provides likelihood or Bayesian inference for = ( , n , E , E , I , I ). Details about the underlying equations leading to the log-likelihood and posterior distribution can be found in H\u00f6hle et al. (2005) .",
+            "cite_spans": [
+                {
+                    "start": 274,
+                    "end": 293,
+                    "text": "H\u00f6hle et al. (2005)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "In practice, however, E j is unobservable. A typical assumption is thus to assume a fixed and known incubation time c and hence compute E j as E j = I j \u2212 c. This was also done in the CSFV experiment by assuming c = 6. With this assumption all event times are known and can be illustrated as in Fig. 4 :",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 295,
+                    "end": 301,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "The individual 12:01 was inoculated at time t = 0. By maximization of the log-likelihood the maximum likelihood estimators are readily determined using RLadyBug. Nonetheless, assuming a fixed and known incubation time is not very realistic. H\u00f6hle et al. (2005) therefore use a Bayesian framework to handle the missing but gamma-distributed exposure times. Unknown (or censored) waiting times T j E \u223c Ga( E , E ) are imputed and updated through a Gibbswithin-Metropolis-Hastings Markov Chain Monte Carlo (MCMC) algorithm.",
+            "cite_spans": [
+                {
+                    "start": 241,
+                    "end": 260,
+                    "text": "H\u00f6hle et al. (2005)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "A Bayesian-analysis of the CSFV data with unknown exposure times could be conducted by the following code:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "> data(\"laevens\") > inf.mcmc < -seir(laevens, laevens.opts)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "Instead of creating the necessary LBOptionsMCMC object by hand, the call to data also loads an appropriate object laevens.opts for MCMC estimation. For example: shows the requested number of samples to draw from the posterior together with the burn-in and thinning rate; a total of samples*thin+burnin samples are generated. The results are as follows. The results of the MCMC inference are provided as realizations from the Markov chain having the posterior distribution of as stationary distribution. Access to the samples is obtained through the samplePaths method-this makes allowance for further processing using e.g. the coda (convergence diagnostic and output analysis) or boa (Bayesian output analysis) packages from the Comprehensive R Archive Network (Plummer et al., 2006; Smith, 2005) . To exemplify, the sampling paths and the marginal posterior of are inspected in Fig. 5 by > samples < -mcmc(samplePaths(inf.mcmc)) > plot(samples[, \"beta\"])",
+            "cite_spans": [
+                {
+                    "start": 761,
+                    "end": 783,
+                    "text": "(Plummer et al., 2006;",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 784,
+                    "end": 796,
+                    "text": "Smith, 2005)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 879,
+                    "end": 885,
+                    "text": "Fig. 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "A matter of particular interest in the CSFV experiment is the relationship between and n -especially whether there is a difference in spread within the pen and between neighboring pens. The following code uses the plot method for LBInferenceMCMC objects to generate Fig. 6 and to display the posterior mean together with lower and upper boundaries of a 95%-highest posterior density (HPD) interval for / n . An important epidemiological quantity of an infectious disease is the basic reproduction ratio R 0 , i.e. the expected number of new infections generated by a single infectious individual in a large susceptible population. In a multitype setup with k groups this can be computed as the largest eigenvalue of the k \u00d7 k matrix containing the mean number of infectious contacts between all units (Andersson and Britton, 2000, Section 6.2) . Samples from the posterior distribution of R 0 are generated by performing this computation for each posterior sample of . The code stated below uses the method R0 to retrieve the samples for R 0 and thus to compute the posterior median together with a symmetric 95% credibility region.",
+            "cite_spans": [
+                {
+                    "start": 801,
+                    "end": 843,
+                    "text": "(Andersson and Britton, 2000, Section 6.2)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 266,
+                    "end": 272,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "> quantile(R0(inf.mcmc, laevens), c(0.025, 0.5, 0.975)) 2.5% 50% 97.5% 0.3245193 0.6370434 1.2426485",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Analysis of an CSFV transmission experiment"
+        },
+        {
+            "text": "In this paper we have illustrated the use of RLadyBug for the simulation, visualization and estimation of infectious disease outbreak data. To our knowledge, the package is the first publicly available software for the estimation in stochastic epidemic models. By providing such specialist functionality within a standard software package as R we hope to make a thorough statistical analysis of infectious disease data a bit more routine.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Many extensions towards more complex and realistic models than provided by the package are imaginable. For example, the general multitype SEIR model (Andersson and Britton, 2000, Chapter 6 ) allows for more complicated neighbor dependencies: Letting ( ) be a k \u00d7 k matrix given as a function of the parameter vector , the transmission rates are given by (t) = ( )I( ij ) . Nearest neighborhood transmission as in (1) thus corresponds to ij = I (u i = u j ) + n I (u j \u2208 N(u j )) and hence = ( , n ). An alternative would be to let transmission from neighbors be a function of distance: ij = 1 exp(\u2212 2 dist(u i , u j )). Modifications of the Java code to handle the simulation and maximum likelihood estimation in such models should be feasible. However, obtaining MCMC estimates in case of missing data would require a substantial amount of work. The same comment applies if one wants to extend beyond the currently implemented waiting time distributions (gamma-distributed, exponential-distributed and constant).",
+            "cite_spans": [
+                {
+                    "start": 149,
+                    "end": 188,
+                    "text": "(Andersson and Britton, 2000, Chapter 6",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The multitype model could also be applied to the handling of heterogeneous units exemplified by veterinary experiments quantifying the effect of a vaccine. Here, all individuals in specific units are vaccinated, thus having different parameters than individuals in non-vaccinated units. A Monte-Carlo approach could be employed to calculate sample sizes necessary to detect a certain difference in parameters with a given accuracy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "In addition, we are currently working on an implementation of the logistic-regression approach in Klinkenberg et al. (2002) . This extension illustrates the benefits of providing a flexible and extensible package: the code is purely R-based exploiting the class structure of the package, while using the optimization routines of R for inference.",
+            "cite_spans": [
+                {
+                    "start": 98,
+                    "end": 123,
+                    "text": "Klinkenberg et al. (2002)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Sources, binaries and documentation of RLadyBug are available for download from the Comprehensive R Archive Network http://cran.r-project.org/ under the GNU Public License. Once installed, the analyses of this article can be reproduced using demo(\"article-csda\").",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Stochastic epidemic models and their statistical analysis",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Andersson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Springer Lectures Notes in Statistics",
+            "volume": "151",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "An experimental infection with classical swine fever in E2 sub-unit marker-vaccine vaccinated and in non-vaccinated pigs",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Dewulf",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Laevens",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Koenen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Vanderhallen",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Mintiens",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Vaccine",
+            "volume": "19",
+            "issn": "",
+            "pages": "475--482",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Real-time epidemiology-understanding the spread of SARS",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Donelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ghani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "",
+            "volume": "1",
+            "issn": "",
+            "pages": "176--179",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Mathematical modelling: a tool for hospital infection control",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Grundmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Hellriegel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Lancet Infect. Dis",
+            "volume": "6",
+            "issn": "",
+            "pages": "39--45",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Inference in disease transmission experiments by using stochastic epidemic models",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "H\u00f6hle",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Jzrgensen",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "O&apos;neill",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Roy. Statist. Soc. Ser. C",
+            "volume": "54",
+            "issn": "2",
+            "pages": "349--366",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Within-and between-pen transmission of classical swine fever virus: a new method to estimate the basic reproduction ratio from transmission experiments",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Klinkenberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "De Bree",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Laevens",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jong",
+                    "middle": [],
+                    "last": "De",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Epidemiol. Infect",
+            "volume": "128",
+            "issn": "2",
+            "pages": "293--299",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Experimental infection of slaughter pigs with classical swine fever virus: transmission of the virus, course of the disease and antibody response",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Laevens",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Koenen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Deluyker",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "De Kruif",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Vet. Rec",
+            "volume": "145",
+            "issn": "",
+            "pages": "243--248",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Quantification of the spread of Mycoplasma hyopneumonia in nursery pigs using transmission experiments",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Meyns",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Maes",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Dewulf",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vicca",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Haesebrouck",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "De Kruif",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Prev. Vet. Med",
+            "volume": "66",
+            "issn": "",
+            "pages": "265--275",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Inference for an epidemic when susceptibility varies",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "O&apos;neill",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Biostatistics",
+            "volume": "2",
+            "issn": "1",
+            "pages": "99--108",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "coda: output analysis and diagnostics for MCMC. R Package Version 0",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Plummer",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Best",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Cowles",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Vines",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "10--15",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing",
+            "authors": [],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "boa: Bayesian Output Analysis Program (BOA) for MCMC",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Within-farm spread of classical swine fever virus-a blueprint for a stochastic simulation model",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "St\u00e4rk",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Pfeiffer",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Morris",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Vet. Quarterly",
+            "volume": "22",
+            "issn": "1",
+            "pages": "36--43",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "rJava: Low-level R to Java interface. R Package Version 0",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Urbanek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "4--7",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Modeling computer virus prevalence with susceptible-infected-susceptible model with reintroduction",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wierman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Marchette",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Comput. Statist. Data Anal",
+            "volume": "45",
+            "issn": "",
+            "pages": "3--23",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "The object hierarchy of the RLadyBug S4 classes.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Snapshot of the animation illustrating the outbreak in a 8 \u00d7 16 lattice.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Infectious period of each individual (xy : id) in the CSFV example. Crosses denote the time of exposure (in days), lines connect the I xy:id and R xy:id events.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "betabetaN < -plot(inf.mcmc, which = \"betabetaN\") > c(mean = betabetaN$ mean, betabetaN$ hpd) Sample path and kernel density of the -samples generated using coda. Left panel: 2D-Kernel estimated posterior density surface of ( , n ). Right panel: 1D-Kernel estimate of the posterior density of / n together with posterior mean, posterior median and a 95%-HPD interval.",
+            "latex": null,
+            "type": "figure"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank Jeroen Dewulf, University of Ghent, Belgium, for providing us with the transmission experiment data of Laevens et al. (1999) and Dewulf et al. (2001) . The research was conducted with financial support from the Collaborative Research Centre SFB 386 funded by the German research foundation (DFG).",
+            "cite_spans": [
+                {
+                    "start": 112,
+                    "end": 133,
+                    "text": "Laevens et al. (1999)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 138,
+                    "end": 158,
+                    "text": "Dewulf et al. (2001)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

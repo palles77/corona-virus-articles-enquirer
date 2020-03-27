@@ -1,0 +1,1660 @@
+{
+    "paper_id": "79b3b568e3410a49377a23263dc326927d54e187",
+    "metadata": {
+        "title": "Extracting geographic locations from the literature for virus phylogeography using supervised and distant supervision methods",
+        "authors": [
+            {
+                "first": "Davy",
+                "middle": [],
+                "last": "Weissenbacher",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Arizona State University",
+                    "location": {
+                        "settlement": "Tempe",
+                        "region": "Arizona",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Abeed",
+                "middle": [],
+                "last": "Sarker",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Pennsylvania",
+                    "location": {
+                        "settlement": "Philadelphia",
+                        "region": "Pennsylvania",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Tasnia",
+                "middle": [],
+                "last": "Tahsin",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Arizona State University",
+                    "location": {
+                        "settlement": "Tempe",
+                        "region": "Arizona",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Matthew",
+                "middle": [],
+                "last": "Scotch",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Arizona State University",
+                    "location": {
+                        "settlement": "Tempe",
+                        "region": "Arizona",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Graciela",
+                "middle": [],
+                "last": "Gonzalez",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Pennsylvania",
+                    "location": {
+                        "settlement": "Philadelphia",
+                        "region": "Pennsylvania",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The field of phylogeography allows researchers to model the spread and evolution of viral genetic sequences. Phylogeography plays a major role in infectious disease surveillance, viral epidemiology and vaccine design. When conducting viral phylogeographic studies, researchers require the location of the infected host of the virus, which is often present in public databases such as GenBank. However, the geographic metadata in most GenBank records is not precise enough for many phylogeographic studies; therefore, researchers often need to search the articles linked to the records for more information, which can be a tedious process. Here, we describe two approaches for automatically detecting geographic location mentions in articles pertaining to virus-related GenBank records: a supervised sequence labeling approach with innovative features and a distant-supervision approach with novel noisereduction methods. Evaluated on a manually annotated gold standard, our supervised sequence labeling and distant supervision approaches attained F-scores of 0.81 and 0.66, respectively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Phylogeography, an emerging discipline in public health, allows researchers to model the evolution and migration patterns of viruses, and can be an especially useful tool for studying rapidly evolving viruses like RNA viruses [1] . Given that RNA viruses such as influenza, Ebola, and hepatitis C account for approximately a third of emerging and re-emerging infections, phylogeography is growing increasingly popular among public health researchers. It allows researchers to estimate the origin and drivers of infectious diseases, and has recently been applied to study outbreaks of Ebola [2] , avian influenza [3] , and Zika virus [4] , among others.",
+            "cite_spans": [
+                {
+                    "start": 226,
+                    "end": 229,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 590,
+                    "end": 593,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 612,
+                    "end": 615,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 633,
+                    "end": 636,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Phylogeographers often utilize sequence data that have been deposited into databases such as GenBank [5] , the Influenza Research Database (IRD) [6] , Global Initiative on Sharing All Influenza Data (GISAID) [7] , or the Virus Pathogen Resource (ViPR) [8] . However, in our prior work [9, 10] , we showed that the geographic metadata available in such databases are often not sufficient depending on the level of geographic granularity required for the study. For example, a GenBank record might contain the geographic metadata USA but the researcher may require a state name such as New Hampshire. One solution is to read the corresponding journal article (if one exists) in PubMed Central [11] or from the publisher's website in order to find if a more specific location is provided. However, this can be an arduous process since phylogeography datasets often contains hundreds of virus sequences, many of which contain links to different articles.",
+            "cite_spans": [
+                {
+                    "start": 101,
+                    "end": 104,
+                    "text": "[5]",
+                    "ref_id": null
+                },
+                {
+                    "start": 145,
+                    "end": 148,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 208,
+                    "end": 211,
+                    "text": "[7]",
+                    "ref_id": null
+                },
+                {
+                    "start": 252,
+                    "end": 255,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 285,
+                    "end": 288,
+                    "text": "[9,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 289,
+                    "end": 292,
+                    "text": "10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 691,
+                    "end": 695,
+                    "text": "[11]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "We developed an automated pipeline for extracting precise locations of infected hosts from full-text articles and linking them to their corresponding GenBank records. In our prior work, we described our rule-based system for performing this task [12] . The success of this system largely depends on our ability to extract and disambiguate geographic locations in the free-text content of articles related to GenBank records. This task is called toponym resolution.",
+            "cite_spans": [
+                {
+                    "start": 246,
+                    "end": 250,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Toponym resolution is usually performed in two steps. The first step detects and extract all toponyms mentioned in the article and the second step disambiguates them with their unique coordinates (e.g. the toponym Manchester is assigned with the coordinates of Manchester in New Hampshire and not Manchester in England in the sentence \"This event occurs in Boston, Portsmouth, and Manchester\"). In [13] we described and evaluated a toponym resolver, optimized for research articles linked to GenBank records. Although we achieved state-of-the-art performance for disambiguation, the performance of our toponym detection was mediocre. Based on a gazetteer and manually defined rules, our toponym detector, with a score of 0.90 recall, was able to detect most of the toponyms in each article but, * These authors contributed equally to the study. with a score of 0.60 precision, was not able to discriminate ambiguous phrases, such as names of persons or animals (like \"turkey\"), from the toponyms (\"Turkey\", the country).",
+            "cite_spans": [
+                {
+                    "start": 398,
+                    "end": 402,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In this paper, we explore two approaches for improving our toponym detection component. Our first approach is a toponym detector based on graphical models, namely conditional random fields (CRF). Modeling the problem of toponym detection as a sequence labeling task, and via the use of annotated data and the extraction of several useful features, we achieve significant improvements over our past work [13] , with an F-score of 0.81 for the toponym class. However, the performance of this approach is limited by the size of the manually annotated data set available, which is expensive and time-consuming to prepare. Therefore, we additionally explore the use of distant supervision. Distant supervision, also known as Positive and Unlabeled Learning (PU Learning) [14] , is a particular learning framework where only a finite set of positive examples are known and an important quantity of unlabeled examples are available. Knowledge resources and rules are used to automatically extract additional training examples. In this study, we propose an innovative solution exploiting GenBank and distant supervision to increase the number of toponyms examples in our corpus, and discuss its possible benefits for toponym detection.",
+            "cite_spans": [
+                {
+                    "start": 403,
+                    "end": 407,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 766,
+                    "end": 770,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our work will improve phylogeography models for tracking evolutionary changes in viral genomes and their spread. The addition of more precise geographic metadata in building such models could enable health agencies to better target areas that represent the greatest public health risk. In addition, by improving geographic metadata linked to popular sequence databases, we will enrich other sciences beyond phylogeography that utilize this information such as molecular epidemiology, population genetics, and environmental health.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Named Entity Recognition (NER) has been heavily studied by the Natural Language Processing (NLP) community. Defined as rigid designators [15] , named entities were initially limited to the names of people, companies or places [16] . They have since been extended to a larger class of entities such as disease, genes or chemicals [17] . Simpler to compute than the meaning of a document, they are useful information to extract before performing other major NLP tasks like translation, summarization or question-answering.",
+            "cite_spans": [
+                {
+                    "start": 137,
+                    "end": 141,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 226,
+                    "end": 230,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 329,
+                    "end": 333,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Named Entity Recognition"
+        },
+        {
+            "text": "Recent studies on NER apply deep learning techniques to automatically learn features used during the classification of the Named Entities (NEs). Although the mechanism is still not fully understood, in [18] the authors show how different layers of a deep convolutional neural network capture morphological features from character-level vectors, as well as syntactical/semantical features from word-level vectors. Without any handcrafted features, the authors' classifier achieved better performances than state-of-the-art systems on two well-known corpora. These results were confirmed in [19] , among other publications.",
+            "cite_spans": [
+                {
+                    "start": 202,
+                    "end": 206,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 589,
+                    "end": 593,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Named Entity Recognition"
+        },
+        {
+            "text": "With the growing availability of large knowledgebases, like Wikipedia or Freebase, multiple studies are now using distant supervision techniques to automatically create voluminous sets of training examples. The majority of these studies focus on obtaining examples of relations using distance supervision [20, 21, 22] . In addition, distant supervision has also been applied with success to generate examples of specific NEs for which existing annotated corpora do not exist [23] or to generate examples of common NEs but occurring in documents of particular types, such as Twitter [24] , or scientific domains.",
+            "cite_spans": [
+                {
+                    "start": 305,
+                    "end": 309,
+                    "text": "[20,",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 310,
+                    "end": 313,
+                    "text": "21,",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 314,
+                    "end": 317,
+                    "text": "22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 475,
+                    "end": 479,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 582,
+                    "end": 586,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Named Entity Recognition"
+        },
+        {
+            "text": "We utilized our gold standard corpus of 60 articles from PubMed Central [13] . All articles in our corpus are indexed in PubMed Central with links to the Influenza A virus entry in the NCBI's Taxonomy database (https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=197911). The corpus represents a total volume of 500,000 tokens. We converted the articles from PDF to text format using a free off-the-shelf pdf converter, pdf-to-text \u2021 . Two graduate students manually annotated the corpus. The students had knowledge in biology and past experiences in corpus annotation for natural language processing. Both annotators were asked to strictly follow a guideline for detecting and disambiguating the toponyms. The guideline was specially written for this task and is available for download with the corpus at http://diego.asu.edu/downloads. We randomly selected 16 articles and both annotators annotated them independently in order to compute the inter-annotator agreement. Here, we calculated the precision and recall of one annotator while holding the other as the gold standard. With a good precision and recall of 0.97 and 0.98 respectively, we found toponym detection on this corpus to be consistent between the \u2021 Available at http://www.foolabs.com/xpdf/download.html annotators. In [13] , we discuss the details of the disagreements and their reasons. The resulting corpus contains 1,881 occurrences of 379 distinct toponyms associated with their coordinates. We found the average number of occurrences of toponyms in an article to be four and the maximum number to be 264. We also identified China as the most frequent toponym with 209 occurrences in our corpus.",
+            "cite_spans": [
+                {
+                    "start": 72,
+                    "end": 76,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1304,
+                    "end": 1308,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data and Annotations"
+        },
+        {
+            "text": "To improve toponym detection, we modeled the problem as a sequence classification problem and attempted to solve it via the application of a Conditional Random Fields (CRF) classifier [25] . CRFs have been shown to be particularly useful for structured prediction from lexical data as they take into account neighboring samples when making classification decisions. As such, CRFs have been particularly successful in natural language classification tasks, such as named entity recognition where sequential information is crucial [24, 26] . For our problem, we used the pythonbased CRFSuite-sklearn library [27] and explored the effects of a variety of lexical and semantic features on toponym detection performance. We randomly selected 12 documents (20%) from our annotated corpus to serve as a blind test set and used the rest of the 48 annotated documents (80%) for training and feature analysis. Toponym mentions in text can consist of single tokens (e.g., Phoenix) or multiple tokens (e.g., New York). To prepare the input data for model training, we tokenized all the text in an input document and tagged each token using the beginning, inside, outside (BIO) scheme, which is a common representation for similar sequence labeling tasks. Given an untagged token, along with selected contextual information and the generated features, the task of the supervised learner is to predict in which of the three BIO classes the token is most likely to belong. In Figure 1 , we show a sample sentence and the representation used to train the CRF classifier. The leftmost column shows the tokens, the Annotation column shows the token-level annotations, and the four columns on the right show four sample features and their representations. For multi-word named entities, the first token is given the B tag and all the following tokens are given the I tag. All other tokens are given the O tag, indicating that they do not belong to any toponyms.",
+            "cite_spans": [
+                {
+                    "start": 184,
+                    "end": 188,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 529,
+                    "end": 533,
+                    "text": "[24,",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 534,
+                    "end": 537,
+                    "text": "26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 606,
+                    "end": 610,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1461,
+                    "end": 1469,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Detecting Toponyms with a Conditional Random Fields Classifier"
+        },
+        {
+            "text": "Using this model for data representation and the above mentioned CRF classifier, we explored the effects of various features on toponym detection performance. The features we used can be broadly grouped into three categories: lexical, knowledge-based and semantic. The following is a brief description of each of these three sets of features.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detecting Toponyms with a Conditional Random Fields Classifier"
+        },
+        {
+            "text": "Lexical features encapsulate various lexical properties of the token to be classified. These include, the token itself and n surrounding tokens (we experimented with several values of n and chose n=4 for our final experiments). In addition, we derived a number of simple additional lexical features such as lowercased tokens, capitalization, presence of digits, tokens with any punctuations removed and Part-of-Speech (POS) tags for the token and surrounding tokens.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lexical features"
+        },
+        {
+            "text": "The knowledge-based features are generated via the use of several sources of knowledge. We used the GeoNames dictionary from GeoNames.org [13] to identify potential toponyms in our text via simple dictionary lookup techniques. Because a significant proportion of the toponyms are country names which tend to be less ambiguous, we identified distinctly all the tokens that match with country names. Since dictionary lookup techniques can lead to large numbers of false positives, past works on toponym detection using rule-based approaches employed blacklists of terms to lower the number of false positives. We used such a blacklist which was hand-crafted to remove noisy entries and common names found in GeoNames [13] . The blacklist contains 1,242 entries and is available at http://diego.asu.edu/downloads/. These three features are binary and each token is tagged for presence and absence.",
+            "cite_spans": [
+                {
+                    "start": 138,
+                    "end": 142,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 715,
+                    "end": 719,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Knowledge-based features"
+        },
+        {
+            "text": "We also used MetaMap [28] to identify generalized concept types (UMLS CUIs) and semantic types for each token. The CUIs represent distinct lexical variants of the same concept using a unique concept ID (e.g., hypertension, high blood pressure, hbp have the UMLS CUI C0020538). UMLS CUIs are fairly fine-grained, therefore, we used the semantic types of the concepts as features in addition to the CUIs. These semantic types represent very broad categories of concepts (e.g., disease or syndrome, virus and qualitative concept). The lexical representations of the CUIs and the semantic types are added as features to the CRF.",
+            "cite_spans": [
+                {
+                    "start": 21,
+                    "end": 25,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Knowledge-based features"
+        },
+        {
+            "text": "In the recent past, techniques have been proposed to learn vector-based representations of texts from large unlabeled data sets via the application of deep neural networks [29] . These vector representations capture semantic properties of the tokens by utilizing contextual information. As a result, vectors of words that are conceptually similar, appear closer in vector space, compared to vectors of words that are dissimilar. We used vector representations of words learned from PubMed data [30] and applied k-means clustering [31] to group all the tokens into k groups, with each group consisting of tokens that are close together in semantic space (i.e., conceptually similar). Each of the k clusters is assigned a cluster number and, thus, each cluster number represents a set of very conceptually similar tokens. Figure  1 illustrates, for example, that 'China' and 'Korea' share the same cluster number. Names of other countries also belong to the same cluster. Other terms such as 'South' have the same cluster number as 'North', 'Eastern' and 'Central'. This form of generalization has been used for named entity recognition in noisy texts in the recent past with very good results [31] . For each token, we use the cluster number generated as a feature.",
+            "cite_spans": [
+                {
+                    "start": 172,
+                    "end": 176,
+                    "text": "[29]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 494,
+                    "end": 498,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 530,
+                    "end": 534,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 1192,
+                    "end": 1196,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 820,
+                    "end": 829,
+                    "text": "Figure  1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Semantic features"
+        },
+        {
+            "text": "Performances of classifiers are known to be dependent on the number of positive and negative examples on which they are trained. Since the size of our training corpus is too small to guarantee the best possible performances for our toponym detector and manually annotating training examples is a tedious and error prone task, we propose a distant supervision technique to automatically extract training examples from PubMed articles.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Improving classification using distant supervision"
+        },
+        {
+            "text": "Our method relies on the metadata associated with GenBank records to find occurrences of toponyms in sentences of PubMed articles linked to the records. In GenBank, all records are identified by an accession number. When a researcher is uploading a new genetic sequence to the database, they are asked to provide additional metadata about the sequence. This includes the research article where the sequence is described and, when available, the infected host (human or animal), its location, and the date of collection. For our experiment, we have analyzed the metadata of all viral sequences recorded in GenBank (the released of April 2016 contains around 2 million sequences). When reviewing a record, if the location of the infected host was provided, we checked if the article describing the sequence was contained in the PubMed Central Open Access subset \u00a7 . If yes, we downloaded the article and processed it with our NLP pipeline [13] . In the article, we considered all occurrences of the place of the infected host as positive examples of a toponym. For example, the sequence identified by the accession EF213768 indicates \"Japan: Hokkaido\" ** and it is linked to the article [32] . After processing the article, we found nine sentences containing at least one occurrence of the word Japan such as in the sentence S1. Following this procedure, we extracted 89,541 occurrences which we assume to be positive examples of toponyms. \uf0b7 For each word in this set we ran a statistical t-test to determine if the word was correlated with the toponyms in our corpus or not. Words like isolated, from, or near were found to appear more frequently in a sentence containing a toponym rather than to appear in a sentence with no toponym. We call the subset of words correlated with the toponyms the \"tabboo words\". \uf0b7 We computed the set A, the set of all sentences where at least one phrase occurring in a sentence was found in GeoNames (the phrase could or could not be a toponym). We removed from the set A all sentences containing at least one tabboo word. The set of sentences obtained was the set B and B was used to create our negative examples. \uf0b7 Each phrase of the sentences in the set B which was found in GeoNames is assumed to be a negative example. Such examples are the most interesting ones since they show ambiguous phrases that can legitimately be toponyms but, in the particular sentences of the set B, are not.",
+            "cite_spans": [
+                {
+                    "start": 937,
+                    "end": 941,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1185,
+                    "end": 1189,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Improving classification using distant supervision"
+        },
+        {
+            "text": "We evaluated the performance of our supervised toponym detection technique using precision, recall and F-score. As is common in named entity recognition tasks, we evaluated performance via strict and overlapping matching [33] . For strict matching, each token is treated separately and the classifier is deemed to be correct when the actual and predicted tag for a token match exactly. For overlapping matching, any overlap between an actual toponym and a predicted toponym is considered to be a match and fully rewarded. Because the data set is heavily imbalanced and most of the tokens belong to the O class, we assess the performance of the classifier for the positive classes only (e.g., B and I).",
+            "cite_spans": [
+                {
+                    "start": 221,
+                    "end": 225,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "In Table 1 , we present the evaluation of our system on the test corpus. We show the performance obtained by each of the three feature categories, along with the performance of the benchmark system for this task. The table illustrates the strength of our supervised CRF classifier, showing that it improves upon our past, rule-based system [13] by approximately 10 points in terms of F-score. The best score is obtained by combining all the three feature sets. In terms of the performances of the individual feature sets, lexical features perform significantly better than others by obtaining significantly high F-scores. Combining lexical features with the other two feature sets enables our system to significantly improve precision over the state-of-the-art knowledge-based system [13] , with relatively low loss in recall. Overlapping evaluation considers partial overlap to be correct, while strict evaluation evaluates each token separately. CRF with all the features outperforms other variants, including the state-of-the-art knowledge-based toponym detector. Note that these scores are based on the positive classes (i.e., B and I) only.",
+            "cite_spans": [
+                {
+                    "start": 340,
+                    "end": 344,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 784,
+                    "end": 788,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "To assess how performance is dependent on training set size and estimate how the performances will change if more annotated data is provided, we performed ablation experiments using fractions of the training data. In Figure 2 , we present the precision, recall, and F-score values obtained via relaxed evaluation for different training set sizes starting from 10% of the original set. From the figure it can be seen that the precision of our model is not significantly affected by the size of the training data. This is because once the supervised learning algorithm is exposed to examples of locations, it is able to correctly identify them on most occasions. Recall, however, steadily improves as more training data is included. This improvement is driven by the increase in overall coverage of the training data. We fit a logarithmic trend line to the F-scores and extrapolated to forecast the performance of our classifier in the presence of additional annotated data. The trend line indicates gradual improvements even at 150% of the data. This strongly suggests that the best performance reported here, despite being significantly better than past approaches, is still below the performance ceiling and our CRF classifier is expected to benefit from the bigger set of training examples generated during our experiment with distant supervision.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 217,
+                    "end": 225,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Analysis"
+        },
+        {
+            "text": "Our training examples produced with distant supervision contains noise. By following the guideline used for creating our gold standard, we manually analyzed the toponym occurrences found in 25 articles randomly selected to determine the quality The examples only reveal the labels of a partial number of words in a sentence. For example, in the sentence S1, we know that the two occurrences of Japan are toponyms, but since we have no examples for Nay1, Osaka and Matsuyama, we do not know if they are toponyms. Because a sequence classifier simultaneously labels all words of a given sentence, all labels of the words of a sentence have to be known during training. This constraint does not apply to train a regular classifier. A regular classifier labels each words independently based on the features describing the context and the word to classify. The classifier ignores all decisions it took on the previous phrases of the sentence. Consequently, we plan to train a regular classifier on our large set of examples and to run this classifier to annotate all the sentences containing at least one phrase found in GeoNames, the set A. We will use the set A annotated by our regular classifier in a future experiment to train a robust sequence classifier and will compare the performances of the sequence classifier with the performances of our current CRF trained on our training corpus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Analysis"
+        },
+        {
+            "text": "Precision, Recall and F-scores for our system over a blind evaluation set for various training set sizes (100% = 48 documents). The figure shows that precision remains fairly constant for our system, but recall shows steady improvement as more training data is utilized. We fit a logarithmic trend line to the F-score curve to derive the relationship between training set size and classification performance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Figure 2."
+        },
+        {
+            "text": "As a preliminary test, we designed and evaluated a Naive Bayes Classifier (NBC) to resolve NE detection on our corpus. A NBC is fast to train on a large set of training examples and can perform well under certain conditions [35] .",
+            "cite_spans": [
+                {
+                    "start": 224,
+                    "end": 228,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Figure 2."
+        },
+        {
+            "text": "Our classifier categorizes all phrases that are not found in GeoNames as \"not toponyms\". If a phrase is found in GeoNames, to perform its classification, our classifier describes the phrases and their contexts with 18 features. These features are standard features for NE detection, such as the phrase as a string, if it starts with an uppercase, the POS tags and the string of the five words that appears before and after the phrase. To evaluate our classifier, we trained our classifier on 66% of the training examples generated with distant supervision and evaluate on the rest of the examples. We achieved 94.2% accuracy where only 1,157 toponyms and 839 non-toponyms were incorrectly labeled. Surprisingly, when we trained our classifier on the full set of the training examples generated and evaluated it on the 12 articles used to evaluate our CRF classifier in the previous experiment, the performances of our regular classifier were disappointing with a 0.66 F-score (0.52 Precision and 0.89 Recall), which was lower than our initial rule-based system. A possible explanation for this result might be the strong imbalance between the positive and negative examples in the training set. The prior probability for a phrase to be a toponym is too high causing the classifier to classify most of the phrases as \"toponym\" despite the evidences of the features. For examples, the word Tris is a name of a toponym in GeoNames and it appears 79 times in our training examples. In all training examples Tris was an organic compound and correctly labeled as \"not toponym\". When evaluating on the test corpus the word Tris was found four times and always incorrectly classified as \"toponym\".",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Figure 2."
+        },
+        {
+            "text": "Phylogeographers need precise locations of hosts infected by a virus of interest to build models of its origin and spread. Such locations are often not available in existing databases and phylogeographers are forced to read original research articles to search for the information. Depending on the size of the dataset, this can be a very arduous manual process and motivate its automation using NLP systems.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions and Future Work"
+        },
+        {
+            "text": "In this article, we presented a toponym detector which automatically extracts the names of places within PubMed articles. Our toponym detector based on Conditional Random Fields exploits various categories of features to label jointly all toponyms occurring in a sentence. With an overall F-score of 0.81 our classifier can still be improved by providing more training examples. We proposed to use the metadata of GenBank to extract automatically a large number of examples from PubMed articles. The main limitation of this distant supervision method is the inability to train our CRF, a sequence classifier, directly from the examples extracted. Since only a subset of the toponyms occurring in a sentence is discovered, we were forced to label the unknown phrases of the sentence with a regular classifier.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions and Future Work"
+        },
+        {
+            "text": "We are a currently implementing a convolutional neural network following the architecture and the training process proposed in [18] . This neural network will benefit from our large set of training examples to discover automatically the features to discriminate toponyms from ambiguous phrases. We are expecting an important improvement of the precision of our classifier without sacrificing the good recall allowed by the large coverage of GeoNames. As future work, we will balance our set of training examples by generating more negative examples based on incompatible NEs. In this study, we used the country metadata field in GenBank to find toponyms in articles. Other fields such as host, strain, species or authors can be used to extract other types of NEs with the same method. We will use the occurrences of these new NEs in the articles as new negative examples of toponyms.",
+            "cite_spans": [
+                {
+                    "start": 127,
+                    "end": 131,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Conclusions and Future Work"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "The phylogeography of human viruses",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Mol Ecol",
+            "volume": "13",
+            "issn": "4",
+            "pages": "745--56",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Genetic diversity and evolutionary dynamics of Ebola virus in Sierra Leone",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Tong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nature",
+            "volume": "524",
+            "issn": "7563",
+            "pages": "93--99",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Bayesian Inference Reveals Host-Specific Contributions to the Epidemic Expansion of Influenza A H5N1",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Trovao",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Suchard",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Baele",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Gilbert",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lemey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Mol Biol Evol",
+            "volume": "32",
+            "issn": "12",
+            "pages": "3264--75",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Zika Virus Outbreak in Haiti in 2014: Molecular and Clinical Data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lednicky",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "PLoS Negl Trop Dis",
+            "volume": "10",
+            "issn": "4",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Influenza research database: an integrated bioinformatics resource for influenza research and surveillance",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Squires",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Influenza Other Respi Viruses",
+            "volume": "6",
+            "issn": "6",
+            "pages": "404--420",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Virus pathogen database and analysis resource (ViPR): a comprehensive bioinformatics database and analysis resource for the coronavirus research community",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Pickett",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Viruses",
+            "volume": "4",
+            "issn": "11",
+            "pages": "3209--3235",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Enhancing phylogeography by improving geographical information from GenBank",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Scotch",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Sarkar",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Leaman",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Cheung",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Ortiz",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Singraur",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J Biomed Inform",
+            "volume": "44",
+            "issn": "1",
+            "pages": "44--51",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Natural language processing methods for enhancing geographic metadata for phylogeography of zoonotic viruses",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Tahsin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Beard",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rivera",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lauder",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Wallstrom",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Scotch",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "AMIA Jt Summits Transl Sci Proc",
+            "volume": "",
+            "issn": "",
+            "pages": "102--113",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "A highprecision rule-based extraction system for expanding geospatial metadata in GenBank records",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Tahsin",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Weissenbacher",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rivera",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Beard",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Figaro",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Wallstrom",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Scotch",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Journal of the American Medical Informatics Association",
+            "volume": "23",
+            "issn": "5",
+            "pages": "934--975",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Knowledge-driven geospatial location resolution for phylogeographic models of virus migration",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Weissenbacher",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Tahsin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Beard",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Figaro",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rivera",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Soctch",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Bioinformatics",
+            "volume": "31",
+            "issn": "12",
+            "pages": "348--356",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Building text classifiers using positive and unlabeled examples",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Dai",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "ICDM",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Named and Necessity",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Kripke",
+                    "suffix": ""
+                }
+            ],
+            "year": 1982,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Definition, Dictionaries and Tagger for Extended Named Entity Hierarchy",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Sekine",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Nobata",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "LREC",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "TaggerOne: joint named entity recognition and normalization with semi-Markov Models",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Leaman",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zhiyong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Bioinformatics",
+            "volume": "32",
+            "issn": "18",
+            "pages": "2839--2885",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Boosting Named Entity Recognition with Neural Character Embeddings",
+            "authors": [
+                {
+                    "first": "Dos",
+                    "middle": [],
+                    "last": "Santos",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Guimaraes",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Proceedings of ACL Named Entities Workshop",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Neural Architectures for Named Entity Recognition",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Lample",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ballesteros",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Subramanian",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Kawakami",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Dyer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "proceedings of NAACL",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Learning to Extract Protein-Protein Interactions using Distant Supervision. In proceedings of robust unsupervised and semi-supervised methods in natural language processing",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Thomas",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Solt",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Klinger",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Leser",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Learning to Extract Relations from the Web using Minimal Supervision",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Bunescu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Mooney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Proceedings of ACL'07",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Distant supervision for relation extraction without labeled data",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Mintz",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bills",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Snow",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Jurafsky",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "proceedings of AFNLP",
+            "volume": "2",
+            "issn": "",
+            "pages": "1003--1011",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Fine-Grained Entity Recognition",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Ling",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Weld",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Proceedings of the 26th Conf",
+            "volume": "",
+            "issn": "",
+            "pages": "94--100",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Named entity recognition in tweets: an experimental study",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ritter",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Clark",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Mausam",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Etzioni",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Proceedings of EMNLP'11",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Conditional Random Fields: Probabilistic Models for Segmenting and Labeling Sequence Data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Lafferty",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Mccallum",
+                    "suffix": ""
+                },
+                {
+                    "first": "Fcn",
+                    "middle": [],
+                    "last": "Pereira",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "proc. 18 th International Conference on Machine Learning",
+            "volume": "",
+            "issn": "",
+            "pages": "282--289",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "BANNER: an executable survey of advances in biomedical named entity recognition",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Leaman",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Pacific Symp Biocomput",
+            "volume": "13",
+            "issn": "",
+            "pages": "652--663",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "CRFsuite: a fast implementation of Conditional Random Fields (CRFs)",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Okazaki",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Effective mapping of biomedical text to the UMLS Metathesaurus: the MetaMap program",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Aronson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "In Proceedings AMIA Symp",
+            "volume": "",
+            "issn": "",
+            "pages": "17--21",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Efficient estimation of word representations in vector space",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Mikolov",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Corrado",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Dean",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Proceedings of International Conference on Learning Representations",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Distributional Semantics Resources for Biomedical Text Processing",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Pyysalo",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Ginter",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Moen",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Salakoski",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ananiadou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "In Proceedings. LBM",
+            "volume": "",
+            "issn": "",
+            "pages": "39--43",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "The advantages of careful seeding",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Arthur",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Vassilvitskii",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Proceedings 18 th annual ACM-SIAM symposium on Discrete algorithms",
+            "volume": "",
+            "issn": "",
+            "pages": "1027--1035",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Recombinant sapovirus gastroenteritis",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hansman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Japan. Emerging Infect. Dis",
+            "volume": "13",
+            "issn": "5",
+            "pages": "786--788",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Various criteria in the evaluation of biomedical named entity recognition",
+            "authors": [
+                {
+                    "first": "Rt-H",
+                    "middle": [],
+                    "last": "Tsai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinformatics",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Speech and Language Processing",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Jurafsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Martin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "On the optimality of the simple Bayesian classifier under zero-one loss",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Domingos",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Pazzani",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Machine Learning",
+            "volume": "29",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Transmission of human hepatitis C virus from patients in secondary cells for long term culture",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Revie",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Virol J",
+            "volume": "2",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Unexpected Instability of Family of Repeats (FR), the Critical cis-Acting Sequence Required for EBV Latent Infection, in EBV-BAC Systems",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kenda",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "PLos One",
+            "volume": "6",
+            "issn": "11",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Sample sentence and token-level annotation using the BIO (Beginning, Inside, Outside) scheme.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "of the positive examples extracted. The precision of our method on this sample was 0.84 with a total number of 502 occurrences and only 78 False Positives (FP), i.e. occurrences which were not considered as toponyms by the annotator. The 78 errors can be divided in 4 categories. The first category is the use of a location name as adjective in a virus name such as \"the Aravan virus\" or \"Japan Avian Influenza Virus (H5N1)\". With 37 cases this is the most common error. However, the majority of the errors were made on one article in which the same virus name is repeated 34 times. The second category, with 22 cases, is a location used as a part of an institute name such as \"Sendai Medical Center\" or \"Damanhour University\". The third category counts only 14 cases of strains where a name of location is inserted, for example in A/chicken/Egypt/C3Br11/2007. The last category is marginal with location names in URL or email addresses.Similarly, we measured the quality of the negative examples by manually analyzing 265 occurrences that we randomly selected from our corpus. Our method shows a good precision with a score of 0.94. Among the 265 GeoNames entries mentioned in our negative examples only 15 were actual False Negative (FN), i.e. real toponym in the sentences. All 15 FNs follow the same pattern: the authors describe a product used in an experiment and provide the company manufacturing the product in parenthesis along with the location of the company (e.g. \"Purified IgG were concentrated by Microcon 50 columns (Millipore Corp., Billerica, MA) and stored at -20\u00b0C.\"[36], p\u00b05). In these sentences the toponyms are understood by their semantic relations with the companies while no lexical or syntactical clues are provided to indicate their presence. Unfortunately, our method exploits only lexical and syntactical clues.The training examples extracted with distant supervision exhibit a good quality, however a closer inspection reveals the limitations of our method. We extracted a small number of negative examples in comparison with the total number of positive examples (11,927 and 89,541 respectively). Moreover, an examination of the first 50 sentences extracted as negative examples show that, because of the construction process, the sentences tend to be short, ungrammatical and repeated. The average size of the 50 sentences was 10 words. Twelve sentences were ungrammatical because they were incorrectly segmented by our algorithm and 26 sentences were identical or followed similar patterns like \"Click here for additional data file.\" and \"Performed the experiments: MS JRCO ASDG KT CSD.\"Despite these limitations, the number and the quality of the examples extracted are high enough to train a classifier for NE detection. Although sequence classifiers, such as a CRFs, are known to perform better on NE detection than regular classifiers[34], a sequence classifier cannot be directly trained from our set of extracted examples.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "We generated 11,927 negative examples with a simple statistical inference. These negative examples are phrases which are names of places found in GeoNames but not toponyms in the sentences where the phrases appear. For example, the two negative examples Clone and Clones are two names of places \u00a7 Available at http://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/ ** Reference: https://www.ncbi.nlm.nih.gov/nuccore/EF213768 in GeoNames (permanent IDs 3304406 and 2965367 respectively) but they are clearly not toponyms in the sentence \"The entire sizes of BAC Clones 1 through 3 were calculated to be 189-kb, while that of BAC Clone 4 was calculated to be 174-kb.\"[37], p\u00b05. We extracted the negative examples by the following steps:\uf0b7 We created the set of all words which appear in the sentences where positive examples of toponyms were found.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Table 1. Toponym detection performance for various classifiers; best results in each category shown in bold.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "Research reported in this publication was supported by the National Institute of Allergy and Infectious Diseases (NIAID) of the National Institutes of Health (NIH) under grant number R01AI117011 (to GG and MS). The content is solely the responsibility of the authors and does not necessarily represent the official views of the NIH.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        }
+    ]
+}

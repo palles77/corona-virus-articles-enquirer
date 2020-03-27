@@ -1,0 +1,1986 @@
+{
+    "paper_id": "7fda5d920eac31455a74e43611957a5aaac5fcac",
+    "metadata": {
+        "title": "An efficient lattice Boltzmann model for indoor airflow and particle transport",
+        "authors": [
+            {
+                "first": "L",
+                "middle": [],
+                "last": "Ding",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "City University of Hong Kong",
+                    "location": {
+                        "addrLine": "Tat Chee Avenue",
+                        "settlement": "Kowloon Tong, Hong Kong"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "A",
+                "middle": [
+                    "C K"
+                ],
+                "last": "Lai",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "City University of Hong Kong",
+                    "location": {
+                        "addrLine": "Tat Chee Avenue",
+                        "settlement": "Kowloon Tong, Hong Kong"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The three-dimensional multiple-relaxation-time LB (MRT-LB) and Lagrangian particle tracking methods were applied to simulate turbulent airflow and particle dispersion in a ventilated room with a partition. The turbulent airflow was simulated by large eddy simulation (LES) using the MRT-LB method with the Smagorinsky model. This method was verified by comparing it with experimental and other numerical results. Good agreement was observed between airflow simulation and experimental data. It is also demonstrated that the LES carried out by the MRT-LB method can produce airflow results very similar to the RNG LES and provide better prediction than the standard and RNG k-\u03b5 models. In order to further improve the efficiency of the MRT-LB method, the multi-block grid refinement (MBGR) technique was used. The accuracy and efficiency of the MBGR and the consistency of physical quantities across the interface were investigated. In simulation of particle dispersion in the model room, particles with diameters of 1 and 10 mm were considered. It is shown that this model can successfully capture dispersion characteristics of particles.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "In recent years, the lattice Boltzmann (LB) method has emerged as a promising alternative computational technique for simulating fluid flows with complex physics (Chen & Doolen, 1998; Succi, 2001) . Unlike conventional numerical methods, which solve the discrete macroscopic Navier-Stokes (N-S) equations, the LB method is based on the solution of discrete Boltzmann equation on a lattice with discrete velocity fields (Qian et al., 1992) . It has several advantages over conventional CFD. As the pressure in the LB method is calculated by using the equation of the state, there is no need to solve the Poisson equation as the conventional CFD methods do, which often costs significant computational efforts. This makes the LB method computationally more efficient and preferred in large-scale simulations (Stratford & Pagonabarraga, 2008) . It can deal with an arbitrary complex curved boundary readily; its intrinsic parallel nature also makes it computationally efficient in that high performance computers can be fully utilized.",
+            "cite_spans": [
+                {
+                    "start": 162,
+                    "end": 183,
+                    "text": "(Chen & Doolen, 1998;",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 184,
+                    "end": 196,
+                    "text": "Succi, 2001)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 419,
+                    "end": 438,
+                    "text": "(Qian et al., 1992)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 806,
+                    "end": 839,
+                    "text": "(Stratford & Pagonabarraga, 2008)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "The potential applicability of the LB method in IAQ has not been explored fully. Only a few related works have been reported, e. g., Przekop et al. (2003) applied 2D lattice Bhatnagar-Gross-Krook (LBGK) model to study the local structure of deposited particles in fibrous filters. Jafari et al. (2010) investigated particle dispersion and deposition over a square cylinder in a 2D channel flow using LBGK. The current authors also employed multiple-relaxation-time LB (MRT-LB) method to study particle dispersion and deposition in a 3D scaled ventilated chamber (Ding et al., 2012) . Previous work was mainly focused on low Reynolds number conditions. As indoor airflow is mainly turbulent, there is a great demand for the application of LB for turbulent flows.",
+            "cite_spans": [
+                {
+                    "start": 133,
+                    "end": 154,
+                    "text": "Przekop et al. (2003)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 562,
+                    "end": 581,
+                    "text": "(Ding et al., 2012)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "Large eddy simulation (LES) is often a good choice for capturing the turbulence as computational costs are significantly lower than direct numerical simulations (DNS) while its resolution is higher as compared with Reynolds-averaged Navier-Stokes (RANS) equations. Furthermore, LES directly resolves the large eddies mainly attributed to the transport of momentum and energy of turbulence, and only the subgrid-scale eddies are modeled. This can result in transient airflow conditions which play important roles in particle transport. Conventionally, the IAQ problems are almost resolved by RANS approach, and recently the LES based on the N-S equations has become more popular (Tian et al., 2006) . LES can also be performed using the LB method. The simplest way is to incorporate the LB method with the Smagorinsky model. The computational procedure of the Smagorinsky model in LB is entirely local, which makes it compatible with the parallel nature of the LB method. The pioneering work of Hou et al. (1996) paved the way to implement the Smagorinsky model in LBGK. They applied it to study dynamics and the Reynolds number dependence of flow structures of a 2D-liddriven cavity flow. Fernandino et al. (2009) performed LES of 3D turbulent open duct flow using LBGK. In addition, it has been well demonstrated that significant improvements in numerical stability can be achieved by using MRT-LB (Lallemand & Luo, 2000), which directly results in a drastic gain in computational efficiency. It is therefore natural to incorporate MRT-LB with the Smagorinsky model to improve turbulence simulations using the LB method. Krafczyk et al. (2003) introduced the Smagorinsky model into MRT-LB and carried out simulations of the flow over a surface-mounted cube in a channel. Yu et al. (2006) applied this method to simulate turbulent square jet flow. Based on these previous studies, there is a potential to extend the application of LES using the LB method, especially MRT-LB, to indoor environments.",
+            "cite_spans": [
+                {
+                    "start": 678,
+                    "end": 697,
+                    "text": "(Tian et al., 2006)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 994,
+                    "end": 1011,
+                    "text": "Hou et al. (1996)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1772,
+                    "end": 1788,
+                    "text": "Yu et al. (2006)",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "One basic criterion about the application of MRT-LB in practical indoor environments is to make the number of grids as small as possible. In wall-bounded turbulent flows, lengths are very small when the flow is close to a wall, requiring relatively fine grids to resolve turbulent structures adequately. When it is farther from the wall, coarser grids can be introduced as the turbulence length scale is larger. Thus, there is no need to employ a uniform grid fine enough to resolve the wall regions through the domain which would entail significant computational cost. Moreover, the scales of turbulent flow vary locally in general situations (Premnath et al., 2009) . Therefore, the local grid refinement strategy in conjunction with the LB method (Yu et al., 2003) can be an attractive choice. Filippova and H\u00e4nel (1998) proposed a local refinement method in which a coarse grid covered the whole domain, and a finer grid in critical sub-regions was superimposed on the basic coarser grid. This allowed two-way information exchange at the grid interface at the post-collision stage after rescaling the density distribution functions on both grid levels. Based on Filippova and H\u00e4nel (1998), Lin and Lai (2000) proposed a method which allowed one-way information exchange at the post-streaming stage without rescaling the density distribution function. Yu et al. (2002) introduced the multi-block grid to the LB method where the computational domain was divided into different blocks which did not overlap each other. The grid size was uniform with the desired resolution in each block. The blocks were connected only through interface information exchange which followed the scheme of Filippova and H\u00e4nel (1998) . Performances of these methods, including accuracy and efficiency aspects with emphasis on the conservative properties across the grid interface, were evaluated systematically by Yu et al. (2003) .",
+            "cite_spans": [
+                {
+                    "start": 644,
+                    "end": 667,
+                    "text": "(Premnath et al., 2009)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 750,
+                    "end": 767,
+                    "text": "(Yu et al., 2003)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 1166,
+                    "end": 1179,
+                    "text": "Filippova and",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1202,
+                    "end": 1212,
+                    "text": "Lai (2000)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1355,
+                    "end": 1371,
+                    "text": "Yu et al. (2002)",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 1688,
+                    "end": 1714,
+                    "text": "Filippova and H\u00e4nel (1998)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1895,
+                    "end": 1911,
+                    "text": "Yu et al. (2003)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "In this paper, LES computation of turbulent airflow in indoor environments was carried out using the three-dimensional MRT-LB method with the Smagorinsky model. Experimental and numerical data for a model room (Posner et al., 2003; Tian et al., 2006) were employed to verify the present simulation. Moreover, we incorporated variable resolutions in the MRT-LB method by introducing a local grid refinement approach within the multi-block grid (Yu et al., 2002) . Computational accuracy and efficiency of the MRT-LB method with grid refinement were evaluated by comparing with the corresponding results of the uniform grid case. Then the particle dispersion in the model room was simulated based on the airflow conditions obtained above.",
+            "cite_spans": [
+                {
+                    "start": 210,
+                    "end": 231,
+                    "text": "(Posner et al., 2003;",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 232,
+                    "end": 250,
+                    "text": "Tian et al., 2006)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 443,
+                    "end": 460,
+                    "text": "(Yu et al., 2002)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "Flow simulation",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "In this section, the MRT-LB method with 19 discrete velocities in three dimensions (i.e. D3Q19 model), employed in our recent work (Ding et al., 2012), were also used for flow simulation. The evolution equation for density distribution function",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "After the outbreak of the Severe Acute Respiratory Syndrome (SARS) and Avian Influenza (H5N1), indoor air quality (IAQ) has been attracting increasing attention since it not only adversely impact human health (Risom et al., 2005; Weichenthal et al., 2007) and productivity (Bak\u00f3-Bir\u00f3 et al., 2004) , but also, if not managed properly, the public at large could be affected. Several experimental and numerical investigations have been carried out to gain in-depth understanding of IAQ (Lai, 2002; Zhang & Chen, 2006) . Experimental studies have provided direct evidence of airflow and particle transport phenomena and also benchmarks for verification of computational models. The complexity of indoor airflow makes high-quality experimental measurement not only difficult but also expensive, especially when the room is occupied (Jiang et al., 2009; Rey & Velasco, 2000) . Furthermore, if particles with various sizes are involved, expensive instruments have to be utilized. With advances in computer technology, CFD modeling has become another powerful tool widely adopted in IAQ research under various physical and geometric conditions (Tian & Ahmadi, 2007; Wang et al., 2012; Zhang & Chen, 2007; Zhao et al., 2004 Zhao et al., , 2008 . Compared with experiments, CFD modeling is better for conducting systematical parametric or sensitivity analysis. It can also overcome some deficiencies of experiments and extends the range of research. Since substantial computational resources are required when the CFD is applied to model the practical scenario, highly efficient numerical methods need to be developed. ",
+            "cite_spans": [
+                {
+                    "start": 209,
+                    "end": 229,
+                    "text": "(Risom et al., 2005;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 230,
+                    "end": 255,
+                    "text": "Weichenthal et al., 2007)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 273,
+                    "end": 297,
+                    "text": "(Bak\u00f3-Bir\u00f3 et al., 2004)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 484,
+                    "end": 495,
+                    "text": "(Lai, 2002;",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 496,
+                    "end": 515,
+                    "text": "Zhang & Chen, 2006)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 828,
+                    "end": 848,
+                    "text": "(Jiang et al., 2009;",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 849,
+                    "end": 869,
+                    "text": "Rey & Velasco, 2000)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1137,
+                    "end": 1158,
+                    "text": "(Tian & Ahmadi, 2007;",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1159,
+                    "end": 1177,
+                    "text": "Wang et al., 2012;",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1178,
+                    "end": 1197,
+                    "text": "Zhang & Chen, 2007;",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 1198,
+                    "end": 1215,
+                    "text": "Zhao et al., 2004",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 1216,
+                    "end": 1235,
+                    "text": "Zhao et al., , 2008",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "where subscripts i; j; k\u2208f0; 1; 2; :::; 18g represent the direction of discrete velocities. e i is the discrete velocity vector for the D3Q19 model, m k (x, t) are the moments of f i (x, t). M ij is the 19-by-19 transformation matrix and M \u22121 ij is the inverse of M ij .\u015c jk is the collision matrix in moment space. It is a diagonal matrix with the form S \u00bc diag\u00f0s 0 ; s 1 ; s 2 ; :::s 18 \u00de \u00f02\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "where s i , for i\u00bc0, 1, \u2026, 18, specifies the relaxation frequencies for all moments toward their corresponding equilibria m eq k \u00f0x; t\u00de. Here, s 0 , s 3 , s 5 and s 7 , corresponding to conserved moments in the hydrodynamic limit, i.e. density and momentum, are set to zero; s 9 , s 11 , s 13 , s 14 and s 15 are related to kinematic viscosity \u03bd, namely,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The rest of the relaxation frequencies obtained through linear analysis are as recommended by d 'Humi\u00e8res et al. (2002) . In order to simulate the turbulent flow with LES, the Smagorinsky model is incorporated into the MRT-LB framework. According to Yu et al. (2006) , an additional viscosity called the turbulent eddy viscosity \u03bd t is introduced to model the turbulence. Hence, the total viscosity \u03bd total can be expressed as the sum of \u03bd and \u03bd t",
+            "cite_spans": [
+                {
+                    "start": 96,
+                    "end": 119,
+                    "text": "'Humi\u00e8res et al. (2002)",
+                    "ref_id": null
+                },
+                {
+                    "start": 250,
+                    "end": 266,
+                    "text": "Yu et al. (2006)",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The turbulent eddy viscosity can be expressed as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "where C s denotes the Smagorinsky constant and is set to be 0.16, as suggested by Krafczyk et al. (2003) ; \u0394 represents the lattice spacing, S \u03b1\u03b2 (\u03b1; \u03b2\u2208fx; y; zg in Cartesian coordinates) is the strain rate tensor, i.e.,",
+            "cite_spans": [
+                {
+                    "start": 82,
+                    "end": 104,
+                    "text": "Krafczyk et al. (2003)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In the MRT-LB method, S \u03b1\u03b2 can be computed directly from non-equilibrium moments (m neq k \u00f0x; t\u00de \u00bc m k \u00f0x; t\u00de\u2212m eq k \u00f0x; t\u00de). They can be expressed as ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Details of the derivation of Eq. (6) can be found in Yu et al. (2006) . Then, the corresponding relaxation frequencies were modified in terms of Eq. (3).",
+            "cite_spans": [
+                {
+                    "start": 53,
+                    "end": 69,
+                    "text": "Yu et al. (2006)",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "As mentioned above, a multi-block grid refinement scheme, in accordance with Yu et al. (2002) , was employed. Only the basic theory of the method is demonstrated in the following. For simplicity, a two-block grid system in a plane is shown in Fig. 1 . The ratio of lattice spacing between the coarse and the fine block is defined as b r , i.e., b r \u00bc \u0394 c =\u0394 f (superscripts c and f are used to represent variables on the coarse and fine blocks, respectively). In order to keep the entire flow field consistent, the Reynolds number Re should be the same in different blocks involving different lattice spacings, i.e., Re c \u00bcRe f . The convective refinement is chosen which means the characteristic velocities on the coarse and fine block are equal. Thus the relaxation times \u03c4 c and \u03c4 f must follow the following relationship:",
+            "cite_spans": [
+                {
+                    "start": 77,
+                    "end": 93,
+                    "text": "Yu et al. (2002)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 243,
+                    "end": 249,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Multi-block grid refinement"
+        },
+        {
+            "text": "More attention should be paid to the way to deal with boundaries of coarse and fine blocks in order to make the variables and their derivatives continuous across the interface between the two blocks. For the MRT-LB method, the rule of data transfer from the fine block to the coarse block through the coarse block boundary is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multi-block grid refinement"
+        },
+        {
+            "text": "where subscripts l; n; p\u2208f0; 1; 2; :::; 18g.\u0108 kl is a diagonal matrix with the form ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multi-block grid refinement"
+        },
+        {
+            "text": "Similarly, the rule on the fine block boundary is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multi-block grid refinement"
+        },
+        {
+            "text": "Details of the multi-block grid refinement strategy in the MRT-LB method are provided in Appendix A.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Multi-block grid refinement"
+        },
+        {
+            "text": "Simulations of airflow in a model room with a partition, experimentally studied by Posner et al. (2003) , were performed in this paper. The schematic of the computational domain is shown in Fig. 2 . The dimensions of the model room in x, y and z directions are 0.914 m, 0.305 m and 0.457 m, respectively. A partition with half the room height, i.e., 0.1525 m, is located in the middle of the room. Ventilation air comes into the chamber vertically and exits through the outlet. The inlet and outlet are on the ceiling and dimensions of both are 0.101 m \u00c2 0.101 m. The Reynolds number based on the vertical inlet velocity u in of 0.235 m/s and inlet size is 1628. The airflow properties were kept constant with values corresponding to a room temperature of 23 1C. The air density was 1.18 kg/m 3 and the kinematic viscosity was 1.46 \u00c2 10 \u22125 m 2 /s. It should be noted that the values in physical units were converted into lattice units for the computation (see Appendix B). A uniform cubic grid was used to discretize the computational domain. Based on the characteristics of the problem, a uniform velocity profile was assumed for airflow entering into the room, along with no-slip boundary condition for the walls and the partition. Implementation of such boundary conditions in the LB method was as follows. A velocity Dirichlet boundary condition, introduced by Skordos (1993) , was imposed on the inlet, walls and the partition while a constant pressure boundary condition was imposed on the outlet. The simulations were performed in parallel mode on two Dell Precision T7500 Workstations (Dual Intel Quad-Core Xeon E5520 2.26 GHz, 48 GB RAM each) with 14 cores.",
+            "cite_spans": [
+                {
+                    "start": 83,
+                    "end": 103,
+                    "text": "Posner et al. (2003)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1365,
+                    "end": 1379,
+                    "text": "Skordos (1993)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 190,
+                    "end": 196,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Computational domain and boundary conditions"
+        },
+        {
+            "text": "Since only airflow characteristics were investigated by Posner et al. (2003) , the corresponding particle results obtained through simulation by Tian et al. (2006) were utilized for verification. The particle motion was solved by the Lagrangian particle tracking method (see Appendix C). Particles with diameters d of 1 \u03bcm and 10 \u03bcm and a density of 800 kg/m 3 were considered. Their particle relaxation times were 3.01 \u00c2 10 \u22126 s and 2.62 \u00c2 10 \u22124 s, separately. At the beginning, only the airflow was simulated. After 70 s, 144 evenly distributed monodisperse particles were injected at the inlet with initial velocities identical to the ambient airflow. The particle injections were subsequently stopped when the simulation time reached 100 s. Eighty six thousand four hundred particles were introduced in the model room. As mentioned in Tian et al. (2006) , when the particles reached the wall surface, the process of bouncing was taken into consideration with a particle wall impact model where the normal and tangential coefficients, which defined the amount of momentum retained by the particles after collision in the direction normal and parallel to the wall, were assumed to be 0.9.",
+            "cite_spans": [
+                {
+                    "start": 56,
+                    "end": 76,
+                    "text": "Posner et al. (2003)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 145,
+                    "end": 163,
+                    "text": "Tian et al. (2006)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 839,
+                    "end": 857,
+                    "text": "Tian et al. (2006)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Particle dynamic solutions"
+        },
+        {
+            "text": "The main parameters of airflow computation are listed in Table 1 . For the grid independence analysis, four different grid sizes, coarse (MRT-LB-LES1), medium (MRT-LB-LES2), fine (MRT-LB-LES3) and finer (MRT-LB-LES4), were employed. The time-averaged velocity vectors and their magnitude distributions in the mid-plane of the model room (z\u00bc0.2285 m) are shown in Fig. 3 . It can be seen that the four meshes produce results similar to each other in spite of some differences between the coarse, medium and the other two finer grids in the vicinity of the wall regions. To further analyze the independence on these four grid sizes, the grid convergence index (GCI) (Roache, 1994) was used. Using the solution of MRT-LB-LES1 as the reference, the GCI for MRT-LB-LES2-MRT-LB-LES1, MRT-LB-LES3-MRT-LB-LES1 and MRT-LB-LES4-MRT-LB-LES1 are 1.62%, 4.68% and 4.10%, respectively, where they are calculated based on values at 180 selected points distributed uniformly in the computational domain. All of them are less than 5%, indicating that the accuracy of airflow results using the coarse grid is also acceptable, especially for regions away from the wall area. On the other hand, it is noticed that the GCI for MRT-LB-LES2-MRT-LB-LES1 is only 1.62%, indicating that the improvement of airflow field is not obvious when the grid resolution is refined from MRT-LB-LES1 to MRT-LB-LES2. When the grid is refined further, improvement of the results, especially for the near-wall area, can be observed. Since the near-wall grid resolution is of crucial importance for simulation of wall-bounded turbulent flow, which has a great effect on behavior of nearwall particles, especially for submicron particles (Lai & Chen, 2006) , the fine grid was used for the rest of analysis which represents a compromise between numerical accuracy and computational cost. It should also be noted that the near-wall resolution for the uniform grids of MRT-LB-LES1 and MRT-LB-LES2 may not meet the requirement for particle simulation, nevertheless, they may work well when the multi-block grid refinement is introduced where only the near-wall area is refined. The investigation of the applicability of multi-block grid refinement is presented in Section 4.1.3. In order to reduce the side effects of coarse block resolutions on the final results, the resolution of MRT-LB-LES2 is chosen as the resolution of coarse block in this paper. Figure 4 presents the comparison of time-averaged inlet jet centerline axial velocity predicted by the MRT-LB method and the experimental data (Posner et al., 2003) as well as other numerical results (Tian et al., 2006) . Good agreement is achieved between the MRT-LB predictions and measurements as well as the RNG LES results. The MRT-LB method performs better than the standard and RNG k-\u03b5 models, especially in the region of 0.15-0.25 m. Airflow enters the model room with an axial velocity of 0.235 m/s. The velocity increases slowly along the distance until about 0.17 m from the inlet according to the experimental results, 0.13 m and 0.14 m according to the standard and RNG k-\u03b5 models and 0.17 m according to the RNG Comparison of time-averaged vertical velocity along the horizontal line at mid-partition height between all the numerical models and measurements is shown in Fig. 5 . From x \u00bc0 m to the partition, all numerical models yield results that are almost similar to the experimental data, while the MRT-LB method produces slightly better predictions in the region from x \u00bc0.13 m to the partition. The first peak velocity near the partition is 0.109 m/s measured by the experiment, about 0.114 m/s by the standard k-\u03b5 model, 0.102 m/s by the RNG k-\u03b5 model, 0.138 m/s by the RNG LES and a slightly larger value of 0.171 m/s by the MRT-LB method. The absolute difference between the MRT-LB method and the measurement is 0.062 m/s. The vertical velocity then decreases to zero very rapidly and remains low over a short distance. After that, it increases very fast in the opposite direction because of the inlet jet. The peak value, found in the region right beneath the inlet, is \u22120.273 m/s from the experiment, about \u22120.19 m/s from the standard k-\u03b5 model, \u22120.205 m/s from the RNG k-\u03b5 model, \u22120.219 m/s from the RNG LES and \u22120.222 m/s from the MRT-LB method. It is further noted that the MRT-LB method successfully captures the velocity variation and yields a peak velocity closest to the measurements. The performance of the standard and RNG k-\u03b5 models are close to each other but they do not match the measurements well. The velocity profiles they predict are less steep on the sides and rounder at the bottom compared with the MRT-LB method and the RNG LES method. There is another peak near the right wall. The measured value is 0.115 m/s, while is about 0.089 m/s, 0.087 m/s, 0.115 m/s and 0.151 m/s found by the standard k-\u03b5 model, the RNG k-\u03b5 model, the RNG LES and the MRT-LB method, respectively. Although the MRT-LB result is still a bit larger than the measurement, the absolute difference decreases to 0.036 m/s. In general, although the two turbulence models (the standard and RNG k-\u03b5 models) capture the general trends of the experimental data, a better prediction of the airflow is achieved through the RNG LES and the MRT-LB methods. The time-averaged velocity fields predicted by the MRT-LB method and other numerical models in the mid-plane of the model room are given in Fig. 6 . It is shown that the MRT-LB method successfully produces results similar to the other three models, especially for the strong recirculation zone near the right wall.",
+            "cite_spans": [
+                {
+                    "start": 664,
+                    "end": 678,
+                    "text": "(Roache, 1994)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1695,
+                    "end": 1713,
+                    "text": "(Lai & Chen, 2006)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 2551,
+                    "end": 2572,
+                    "text": "(Posner et al., 2003)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 2608,
+                    "end": 2627,
+                    "text": "(Tian et al., 2006)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 57,
+                    "end": 64,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 363,
+                    "end": 369,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 2408,
+                    "end": 2416,
+                    "text": "Figure 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 3292,
+                    "end": 3298,
+                    "text": "Fig. 5",
+                    "ref_id": null
+                },
+                {
+                    "start": 5413,
+                    "end": 5419,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Grid independence test"
+        },
+        {
+            "text": "As mentioned above, in contrast to the standard and RNG k-\u03b5 models, which are inherently time-averaged approaches for turbulence simulation, one of the advantages of LES is its ability to capture the instantaneous turbulences. Hence, besides the time-averaged airflow conditions, the root-mean-square (RMS) velocity, which is a measure of the magnitude of time-dependent fluctuating velocity, is also employed to estimate the quality of LES using the MRT-LB method. A comparison of RMS velocities simulated by the MRT-LB method and the other three numerical models is shown in Fig. 7 . It can be clearly seen that the MRT-LB method produces results very similar to the RNG LES, especially in the left zone of the model room as well as the inlet jet flow region. They predict significantly higher (one order) RMS velocities than the standard and RNG k-\u03b5 models. This indicates that the LES using MRT-LB method can perform as well as the RNG LES and can provide better predictions of the turbulent airflow characteristics than the time-averaged approach.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 577,
+                    "end": 583,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "Comparison with experimental and other numerical results"
+        },
+        {
+            "text": "In terms of characteristics of wall-bounded turbulent flows, the near-wall area in the computational domain was refined. Two kinds of grids, i.e., fine and coarse, were utilized. The fine grid was employed in the region within 0.03 m from the wall boundary, while the coarse grid was applied in the remaining area of the domain. As mentioned above, the resolution of the coarse grid was chosen to be the same as the MRT-LB-LES2. The ratio of lattice spacing between the two grids b r \u00bc2. We refer to this computation as MRT-LB-LES-MBGR hereinafter. The schematic of grid arrangement is shown in Fig. 8 . For the sake of clarity, the grid shown is 10 times as large as the actual one in the mid-plane of the model room. The time-averaged velocity distributions in the mid-plane are presented in Fig. 9 . Compared with Fig. 3(b) , some improvement in accuracy can be observed near the fine grid region. For example, velocity distributions near the top of the partition become very close to the ones in Fig. 3(c) and (d) . Velocity distributions near the bottom of the left zone are also getting better than the ones in Fig. 3(b) . The dashed lines in the figure represent the interface between the fine and coarse grids. It is worth pointing out that the velocity contours are smooth across the interface, indicating that the consistency in the transfer of the physical quantity information across the interface is maintained. The RMS velocity distribution is given in Fig. 10 . A good agreement Tian et al. (2006).) with the corresponding ones in Fig. 7 can be seen and the smoothness of the RMS velocity contours is also ensured. After the accuracy of MBGR has been verified, its computational efficiency is also investigated. As in our recent paper (Ding et al., 2012) , the average time cost per iteration of each resolution was employed as the criterion and the results are shown in Table 2 . The refinement strategy results in nearly 3.0 \u00c2 10 7 elements, about 1.1 times as many as the number of MRT-LB-LES4. Meanwhile, the near-wall grid size is only 0.75 times as long as the MRT-LB-LES4. Although the average time cost is a little larger than that of MRT-LB-LES4, it should be mentioned that if the uniform grid with the same resolution as the fine grid of MBGR is used, the total number of elements will be nearly 6.5 \u00c2 10 7 , about 2.4 times MRT-LB-LES4. The time cost will also increase with respect to the total number of elements. Since the resolution near the wall is quite crucial to the simulation of particle-wall interaction (e.g., deposition), it is much more efficient to use the MBGR technique than the uniform grid in IAQ studies. Furthermore, our work in this paper is just an attempt to test the applicability of MBGR and, therefore, a simple refinement strategy was employed and the scope of refined area in terms of flow characteristics has not been systematically investigated. For occupied rooms, distributions of airflow intensity are not uniform. Different areas can be treated with different refinement strategies. Furthermore, the cut-off limit of LES on coarse grid resolution has not been studied. It is still possible to reduce the resolution of coarse grid, e.g., just as the resolution of MRT-LB-LES1. Obviously, substantial saving and better efficiency can be achieved using the MRT-LB with MBGR.",
+            "cite_spans": [
+                {
+                    "start": 1494,
+                    "end": 1514,
+                    "text": "Tian et al. (2006).)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 1750,
+                    "end": 1769,
+                    "text": "(Ding et al., 2012)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 595,
+                    "end": 601,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 794,
+                    "end": 800,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF9"
+                },
+                {
+                    "start": 817,
+                    "end": 826,
+                    "text": "Fig. 3(b)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1000,
+                    "end": 1017,
+                    "text": "Fig. 3(c) and (d)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1117,
+                    "end": 1126,
+                    "text": "Fig. 3(b)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1467,
+                    "end": 1474,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1546,
+                    "end": 1552,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 1886,
+                    "end": 1893,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Computation with multi-block grid refinement"
+        },
+        {
+            "text": "The computation of particle dispersion in the model room was performed based on the MRT-LB simulated airflow conditions. Figure 11 shows the comparison of the number of tracked particles in the model room obtained from the current model and other numerical models for particle size d\u00bc1 \u03bcm. It can be seen that the number of tracked particles increases with respect to time when the particles were injected into the model room continuously, while it decreases gradually after 100 s when particle injection was terminated. At 85 s, 15 s after the beginning of particle injection, all numerical results predict almost the same number of tracked particles. From 100 s to 130 s, more particles are predicted through the simulation using RNG LES than the standard and RNG k-\u03b5 models, while after 145 s, the number produced based on the RNG LES is less than the other two models. Since the three-dimensional transient turbulent velocity field, which strongly affects particle transport, can be adequately simulated by LES, it is anticipated that the simulation based on the LES can predict more accurate particle dispersions than the time-averaged models. This is particularly helpful for the simulation of transient events, e.g., sneezing and coughing . Generally, the present model provides results consistent with RNG LES, although smaller numbers are obtained after 100 s, it approaches the RNG LES based results after that. A further comparison was carried out. The particle concentration simulated by the current model and the other three models in the mid-plane at 130 s is shown in Fig. 12 . The particle source in cell (PSI-C) method (Zhang & Chen, 2007) was employed to transform the Lagrangian trajectory information into the form of concentration distributions. It can be seen that more particles have dispersed into the left part of the model room at this moment and very few particles can be found inside the inlet jet flow region. The present model provides results similar to the other three models. Furthermore, concentrations predicted by the current model and the simulation using RNG LES is higher than the standard and RNG k-\u03b5 models in the middle of the left zone, while a lower concentration is obtained through the present model in the lower left corner of the partition which may partially contribute to the smaller number of tracked particles shown in Fig. 11 . The time evolution of particle concentration from 70 s to 160 s is also presented as an animation.",
+            "cite_spans": [
+                {
+                    "start": 1636,
+                    "end": 1656,
+                    "text": "(Zhang & Chen, 2007)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 121,
+                    "end": 130,
+                    "text": "Figure 11",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1583,
+                    "end": 1590,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 2371,
+                    "end": 2378,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Particle dispersion in the model room"
+        },
+        {
+            "text": "Comparisons of the number of tracked particles in the model room for particle size d \u00bc10 \u03bcm are presented in Fig. 13 . Before 100 s, the number of tracked particles also increases along with time and peaks at the end of the particle injection. This is very similar to the corresponding stage for particle size d \u00bc1 \u03bcm. All the models track nearly the same number of particles at 85 s. The number begins to decrease after 100 s, while simulations based on the time-averaged methods show a much more significant drop than the LES method and larger discrepancies can be observed between the two kinds of models. The present model presents a better agreement with the simulation using the RNG LES compared with the d\u00bc1 \u03bcm case. It is also illustrated that more particles with a diameter of 10 \u03bcm are left in the model room than its counterpart at the decay stage. The dispersion characteristics of particles are analyzed as follows in order to find the possible reason that cause the differences. At the particle injection stage, particles injected into the model room are mainly concentrated in the right zone. Only a small portion disperses into the left zone and very few particles exit through the outlet. Therefore, the number of particles in the model room is mainly determined by the injection rate at the inlet. Since the injection rates for the two kinds of particles are the same, they show a very similar variation before 100 s. At the decay stage, as can be seen in Fig. 12 , more and more particles disperse into the left zone and then the number of exiting particles increases, which reduces the total number of particles in the model room. As the particle injection is stopped after 100 s, the ventilation rate then plays the dominant role in determining the number of particles in the model room. As discussed in our recent paper (Ding et al., 2012) , the effect of ventilation on accumulation mode particles is much more significant than on coarse mode particles, resulting in less particles remaining in the model room for particle size d \u00bc1 \u03bcm than for d \u00bc10 \u03bcm. The time evolution of particle concentration for particle size d \u00bc10 \u03bcm from 70 s to 160 s is also presented as an animation for comparison.",
+            "cite_spans": [
+                {
+                    "start": 1842,
+                    "end": 1861,
+                    "text": "(Ding et al., 2012)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 109,
+                    "end": 116,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1474,
+                    "end": 1481,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Particle dispersion in the model room"
+        },
+        {
+            "text": "Finally, one additional feature of LES should be addressed. Due to its nature, there is no need to introduce any discrete random walk (DRW) model to determine the fluctuating velocity components, in contrast to the time-averaged methods. Previous studies (MacInnes & Bracco, 1992) have indicated that the DRW model may give nonphysical results in strongly nonhomogeneous flows.",
+            "cite_spans": [
+                {
+                    "start": 255,
+                    "end": 280,
+                    "text": "(MacInnes & Bracco, 1992)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Particle dispersion in the model room"
+        },
+        {
+            "text": "The three-dimensional MRT-LB and Lagrangian particle tracking methods were applied to simulate the turbulent airflow and particle dispersion in indoor environments. The LES was used in this paper. It is different from the methods conventionally used (e.g., the standard and RNG k-\u03b5 models) in IAQ investigations, which modeled the turbulence from the time-averaged point of view. It was implemented by using the MRT-LB method with the Smagorinsky model. Experimental and numerical studies of airflow characteristics and particle dispersion in a ventilated model room with a partition were employed to verify the present model. Good agreement between the present results and the experimental data were observed. The MRT-LB method with the Smagorinsky model was able to capture the turbulent airflow characteristics. It was also demonstrated that LES performed by the MRT-LB method can produce airflow results very similar to the RNG LES. Furthermore, it can give better prediction than the standard and RNG k-\u03b5 models, showing the advantages of LES computation of turbulent airflow in indoor environments over the time-averaged methods. In order to enhance the efficiency of MRT-LB method, the multi-block grid refinement technique was used. The accuracy of MBGR was verified through comparison. The consistency of physical quantities across the interface between grids with different resolutions was also confirmed. Compared with a uniform grid, the MBGR can produce higher-resolution grids in the regions of interest (e.g., near-wall areas) at a lower computational cost. The MBGR thus provides further improvements of the efficiency of the MRT-LB method and will be very useful for further studies of practical problems in IAQ. In our simulation of particle dispersion in the model room, two sizes of particles, i.e., 1 \u03bcm and 10 \u03bcm, were considered. The computations were performed using the Lagrangian particle tracking method based on the airflow conditions provided by the LES with the MRT-LB method. It is shown that the current model can successfully capture dispersion characteristics of the particles. With the development of high performance computing, particle computation based on the LES should be carried out in IAQ studies and LES computations using the MRT-LB method is a better choice because of its higher accuracy and efficiency. by the number of meshes N pu , then the relationship of space step \u0394 between physical units and lattice units can be given as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "where \u0394 lu is often set to be unit in the LB method. Meanwhile, according to the definition of \u03bd in the LB method, the relationship of \u03bd between physical units and lattice units can be expressed as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "In order to make the flow simulation equivalent between the two unit systems, the Reynolds number should be the same, i.e.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "The relationship of characteristic velocity between the two unit systems can be determined when substituting Eqs. (B1) and (B2) into Eq. (B3)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        },
+        {
+            "text": "Then the relationship of time scale and acceleration between the two unit systems can be obtained through the following equations:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Effects of pollution from personal computers on perceived air quality, SBS symptoms and productivity in offices",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Bak\u00f3-Bir\u00f3",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Wargocki",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Weschler",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Fanger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Indoor Air",
+            "volume": "14",
+            "issn": "",
+            "pages": "178--187",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Lattice Boltzmann method for fluid flows",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Doolen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Annual Review of Fluid Mechanics",
+            "volume": "30",
+            "issn": "",
+            "pages": "329--364",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Multiple-relaxation-time lattice Boltzmann models in three dimensions",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Humi\u00e8res",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Ginzburg",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Krafczyk",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lallemand",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Luo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Philosophical Transactions of the Royal Society A: Mathematical, Physical & Engineering Sciences",
+            "volume": "360",
+            "issn": "",
+            "pages": "437--451",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Numerical study on particle dispersion and deposition in a scaled ventilated chamber using a lattice Boltzmann method",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Ding",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L S"
+                    ],
+                    "last": "Fung",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Seepana",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C K"
+                    ],
+                    "last": "Lai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Journal of Aerosol Science",
+            "volume": "47",
+            "issn": "",
+            "pages": "1--11",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Large eddy simulation of turbulent open duct flow using a lattice Boltzmann approach",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fernandino",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Beronov",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ytrehus",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mathematics and Computers in Simulation",
+            "volume": "79",
+            "issn": "",
+            "pages": "1520--1526",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Grid refinement for lattice-BGK models",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Filippova",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "H\u00e4nel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Journal of Computational Physics",
+            "volume": "147",
+            "issn": "",
+            "pages": "219--228",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "A lattice subgrid model for high Reynolds number flows",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Hou",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sterling",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Doolen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "",
+            "volume": "6",
+            "issn": "",
+            "pages": "151--166",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Investigation of particle dispersion and deposition in a channel with a square cylinder obstruction using the lattice Boltzmann method",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jafari",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Salmanzadeh",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Rahnama",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Ahmadi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Journal of Aerosol Science",
+            "volume": "41",
+            "issn": "",
+            "pages": "198--206",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Experimental and numerical study of airflows in a full-scale room",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Sun",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "ASHRAE Transactions",
+            "volume": "115",
+            "issn": "",
+            "pages": "867--886",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Large-eddy simulations with a multiple-relaxation-time LBE model",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Krafczyk",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tolke",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Luo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "International Journal of Modern Physics B",
+            "volume": "17",
+            "issn": "",
+            "pages": "33--39",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Particle deposition indoors: a review",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C K"
+                    ],
+                    "last": "Lai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Indoor Air",
+            "volume": "12",
+            "issn": "",
+            "pages": "211--214",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Modeling particle deposition and distribution in a chamber with a two-equation Reynolds-averaged Navier-Stokes model",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C K"
+                    ],
+                    "last": "Lai",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Journal of Aerosol Science",
+            "volume": "37",
+            "issn": "",
+            "pages": "1770--1780",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Theory of the lattice Boltzmann method: dispersion, dissipation, isotropy, Galilean invariance, and stability",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lallemand",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Luo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Physical Review E",
+            "volume": "61",
+            "issn": "",
+            "pages": "6546--6562",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Dispersion and deposition of spherical particles from point sources in a turbulent channel flow",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Ahmadi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Aerosol Science and Technology",
+            "volume": "16",
+            "issn": "",
+            "pages": "209--226",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Lattice Boltzmann method on composite grids",
+            "authors": [
+                {
+                    "first": "C.-L",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Lai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Physical Review E",
+            "volume": "62",
+            "issn": "",
+            "pages": "2219--2225",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Stochastic particle dispersion modeling and the tracer-particle limit",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Macinnes",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Bracco",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Physics of Fluids A: Fluid Dynamics",
+            "volume": "4",
+            "issn": "",
+            "pages": "2809--2824",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Measurement and prediction of indoor air flow in a model room",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Posner",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Buchanan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dunn-Rankin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Energy and Buildings",
+            "volume": "35",
+            "issn": "",
+            "pages": "515--526",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Generalized lattice Boltzmann equation with forcing term for computation of wall-bounded turbulent flows",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Premnath",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Pattison",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Banerjee",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Physical Review E",
+            "volume": "79",
+            "issn": "",
+            "pages": "26703--026719",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Lattice-Boltzmann approach for description of the structure of deposited particulate matter in fibrous filters",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Przekop",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Moskal",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Grado\u0144",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Journal of Aerosol Science",
+            "volume": "34",
+            "issn": "",
+            "pages": "133--147",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Lattice BGK models for Navier-Stokes equation",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Qian",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Humieres",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lallemand",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Europhysics Letters",
+            "volume": "17",
+            "issn": "",
+            "pages": "479--484",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Experimental study of indoor air quality, energy saving and analysis of ventilation norms in climatised areas",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Rey",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Velasco",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Energy and Buildings",
+            "volume": "33",
+            "issn": "",
+            "pages": "57--67",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Oxidative stress-induced DNA damage by particulate air pollution. Mutation Research/Fundamental and Molecular Mechanisms of Mutagenesis",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Risom",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "M\u00f8ller",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Loft",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "",
+            "volume": "592",
+            "issn": "",
+            "pages": "119--137",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Perspective: A method for uniform reporting of grid refinement studies",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Roache",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Journal of Fluids Engineering",
+            "volume": "116",
+            "issn": "",
+            "pages": "405--413",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Experimental and numerical investigation of interpersonal exposure of sneezing in a full-scale chamber",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Seepana",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C K"
+                    ],
+                    "last": "Lai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Aerosol Science and Technology",
+            "volume": "46",
+            "issn": "",
+            "pages": "485--493",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Initial and boundary conditions for the lattice Boltzmann method",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Skordos",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Physical Review E",
+            "volume": "48",
+            "issn": "",
+            "pages": "4823--4842",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Parallel simulation of particle suspensions with the lattice Boltzmann method",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Stratford",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Pagonabarraga",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Computers & Mathematics with Applications",
+            "volume": "55",
+            "issn": "",
+            "pages": "1585--1593",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "The Lattice Boltzmann Equation for Fluid Dynamics and Beyond",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Succi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Particle deposition in turbulent duct flows-comparisons of different model predictions",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Tian",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Ahmadi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Journal of Aerosol Science",
+            "volume": "38",
+            "issn": "",
+            "pages": "377--397",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "On the numerical study of contaminant particle concentration in indoor airflow",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Tian",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Tu",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Yeoh",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "K K"
+                    ],
+                    "last": "Yuen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Building and Environment",
+            "volume": "41",
+            "issn": "",
+            "pages": "1504--1514",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Advanced turbulence models for predicting particle transport in enclosed environments",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Building and Environment",
+            "volume": "47",
+            "issn": "",
+            "pages": "40--49",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Indoor ultrafine particles and childhood asthma: exploring a potential public health concern",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Weichenthal",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dufresne",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Infante-Rivard",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Indoor Air",
+            "volume": "17",
+            "issn": "",
+            "pages": "81--91",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Viscous flow computations with the method of lattice Boltzmann equation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Luo",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Shyy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Progress in Aerospace Sciences",
+            "volume": "39",
+            "issn": "",
+            "pages": "329--367",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "A multi-block lattice Boltzmann method for viscous fluid flows",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Shyy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "International Journal for Numerical Methods in Fluids",
+            "volume": "39",
+            "issn": "",
+            "pages": "99--120",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "LES of turbulent square jet flow using an MRT lattice Boltzmann model",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Luo",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Girimaji",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Computers & Fluids",
+            "volume": "35",
+            "issn": "",
+            "pages": "957--965",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Experimental measurements and numerical simulations of particle transport and distribution in ventilated rooms",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Atmospheric Environment",
+            "volume": "40",
+            "issn": "",
+            "pages": "3396--3408",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Comparison of the Eulerian and Lagrangian methods for predicting particle transport in enclosed spaces",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Atmospheric Environment",
+            "volume": "41",
+            "issn": "",
+            "pages": "5236--5248",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Particle dispersion and deposition in ventilated rooms: Testing and evaluation of different Eulerian and Lagrangian models",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Building and Environment",
+            "volume": "43",
+            "issn": "",
+            "pages": "388--397",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Comparison of indoor aerosol particle concentration and deposition in different ventilated rooms by numerical method",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Building and Environment",
+            "volume": "39",
+            "issn": "",
+            "pages": "1--8",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "\u00f0x \u00fe e i \u0394t; t \u00fe \u0394t\u00de\u2212f i \u00f0x; t\u00de \u00bc \u2212M \u22121 ij\u015cjk \u00bdm k \u00f0x; t\u00de\u2212m eq k \u00f0x; t\u00de",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Schematic of grid refinement.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Schematic of the computational domain.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Time-averaged velocity vectors and their magnitude distributions in the mid-plane of the model room (z\u00bc 0.2285 m) ((a) MRT-LB-LES1; (b) MRT-LB-LES2; (c) MRT-LB-LES3 and (d) MRT-LB-LES4).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Comparison of the time-averaged vertical velocity along the vertical inlet jet axis. Comparison of the time-averaged vertical velocity along the horizontal line at mid-partition height.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Comparison of computational time-averaged velocity field in the mid-plane of the model room. (Results of the standard and RNG k-\u03b5 model as well as the RNG LES are reproduced with permission from Fig. 6 of",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Comparison of computational RMS velocity distribution in the mid-plane of the model room. (Results of the standard and RNG k-\u03b5 model as well as the RNG LES are reproduced with permission from Fig. 5 of Tian et al. (2006).)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Schematic of grid arrangement in the mid-plane of the model room.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "Time-averaged velocity distributions in the mid-plane of the model room (z \u00bc0.2285 m) (MRT-LB-LES-MBGR, dashed line: interface between the fine and coarse grids).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "Computational RMS velocity distribution in the mid-plane of the model room (MRT-LB-LES-MBGR, dashed line: interface between the fine and coarse grids).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Comparison of the number of tracked particles in the model room (d \u00bc1 \u03bcm).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "Comparison of computational particle concentration in the mid-plane of the model room at 130 s (d \u00bc1 \u03bcm). (Results of the standard and RNG k-\u03b5 model as well as the RNG LES are reproduced with permission fromFig. 9ofTian et al. (2006).) Comparison of the number of tracked particles in the model room (d \u00bc 10 \u03bcm).",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "Computational parameters.LES as well as the MRT-LB method. The measured peak velocity is 0.249 m/s, while the computational peak values are 0.244 m/s, 0.246 m/s, 0.242 m/s and 0.242 m/s by the standard k-\u03b5 model, the RNG k-\u03b5 model, the RNG LES and the MRT-LB method respectively. There is a difference of only 0.007 m/s between the MRT-LB method and the experimental results. The axial velocity then decreases as the airflow approaches the floor and the computational velocities drop off faster than the experimental values. The largest discrepancy occurs between the standard k-\u03b5 model and the measurements. However, it can be seen that compared with the RNG k-\u03b5 model, significant improvement has been made when the RNG LES and MRT-LB methods are employed.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Time cost of computation.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The work described in this paper was partially supported by a grant from the Research Grants ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 86,
+                    "end": 92,
+                    "text": "Grants",
+                    "ref_id": null
+                }
+            ],
+            "section": "Acknowledgment"
+        },
+        {
+            "text": "When the density distribution function is divided into two parts, i.e., the equilibrium part and the non-equilibrium part, Eq.(1) givesFor the coarse block, Eq. (A1) givesSimilarly, for the fine block,Since the velocity and density must be continuous across the interface between the two blocks, it is seen thatTo maintain continuity in deviatoric stress, it is required thatwhere I is the identity matrix. Then it can be obtained from Eq. (A5) thatwhere\u0108 kl can be expressed by Eq. (9) in Section 2.2. Substituting Eqs. (A4) and (A6) into Eq. (A2) one obtainsSimilarly, substituting Eqs. (A4) and (A6) into Eq. (A3) one obtainskl is the inverse of\u0108 kl . Then Eqs. (8) and (10) where u pi is the particle velocity, u fi is the airflow velocity at the particle position, \u03c4 p is the particle relaxation time, \u03c1 f and \u03c1 p are the air and particle density, respectively, g i is the gravitational acceleration, x pi is the particle position. The first term on the right-hand side of Eq. (C1) represents the drag force caused by the relative motion between particles and flow. Because of the airflow velocities (less than 0.5 m/s) and small particle sizes involved in this work, such particle motion can be described by Stokes' law (Lai & Chen, 2006) . Then the particle relaxation time can be expressedwhere C c is the Cunningham correction factor. The second term represents the gravitational force. The third term represents the Brownian force. The Brownian force, very important for submicron particles, is modeled as a Gaussian white noise random process. The simulation procedure for Brownian excitation has been described in detail by Li & Ahmadi (1992) . It should be mentioned that due to the relatively small effect on indoor aerosol particles (Lai & Chen, 2006) , the lift force is not taken into consideration. The velocities and trajectories of particles can be obtained by solving Eqs. (C1) and (C2). For Eq. (C1), the Euler implicit discretization scheme is used as it is unconditional stable for all particle relaxation times while the trapezoidal discretization scheme is applied to solve Eq. (C2). Since the instantaneous particle locations may not coincide with air-phase grid points, the second-order Lagrangian polynomial interpolation scheme could be used, which yields the airflow velocity at particles' positions.",
+            "cite_spans": [
+                {
+                    "start": 1226,
+                    "end": 1244,
+                    "text": "(Lai & Chen, 2006)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 1636,
+                    "end": 1654,
+                    "text": "Li & Ahmadi (1992)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1748,
+                    "end": 1766,
+                    "text": "(Lai & Chen, 2006)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Appendix A. Basics of MBGR in the MRT-LB method"
+        },
+        {
+            "text": "Supplementary data associated with this article can be found in the online version at http://dx.doi.org/10.1016/j.jaerosci. 2013.04.004.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix D. Supplementary materials"
+        }
+    ]
+}

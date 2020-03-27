@@ -1,0 +1,3299 @@
+{
+    "paper_id": "a65c8ae43245adba3cfebd0db3c87f0e43b196be",
+    "metadata": {
+        "title": "A Knowledge Base for Predicting Protein Localization Sites in Eukaryotic Cells",
+        "authors": [
+            {
+                "first": "Kenta",
+                "middle": [],
+                "last": "Nakai",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Kyoto University",
+                    "location": {
+                        "postCode": "611",
+                        "settlement": "Uji",
+                        "region": "Kyoto",
+                        "country": "Japan"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Minoru",
+                "middle": [],
+                "last": "Kanehisa",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Kyoto University",
+                    "location": {
+                        "postCode": "611",
+                        "settlement": "Uji",
+                        "region": "Kyoto",
+                        "country": "Japan"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "To automate examination of massive amounts of sequence data for biological function, it is important to computerize interpretation based on empirical knowledge of sequence-function relationships. For this purpose, we have been constructing a knowledge base by organizing various experimental and computational observations as a collection of if-then rules. Here we report an expert system, which utilizes this knowledge base, for predicting localization sites of proteins only from the information on the amino acid sequence and the source origin. We collected data for 401 eukaryotic proteins with known localization sites (subcellular and extracellular) and divided them into training data and testing data. Fourteen localization sites were distinguished for animal cells and 17 for plant cells. When sorting signals were not well characterized experimentally, various sequence features were computationally derived from the training data. It was found that 66% of the training data and 59% of the testing data were correctly predicted by our expert system. This artificial intelligence approach is powerful and flexible enough to be used in genome analyses.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Computational approaches are becoming indispensable components of molecular and cellular biology, especially in the analyses of human and other complex genomes for which massive amounts of sequence data must be examined for biological function. Functional information can be obtained from sequence information not by solving equations of first principles, but by inference based on empirical knowledge. Although the sequence data are now collected and organized in publicly available databases, functional data are not well organized, except, perhaps, in the brain of a human expert. We have been experimenting with an artificial intelligence approach called an expert system (see Waterman, 1 Present address: National Institute for Basic Biology, Okazaki 444, Japan.",
+            "cite_spans": [
+                {
+                    "start": 681,
+                    "end": 690,
+                    "text": "Waterman,",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "1986, for example) for collecting and utilizing experts' specific knowledge, as well as computationally acquired knowledge, for the task of protein sorting (Nakai and Kanehisa, 1991) . In contrast to the representation of protein sequence data by 20 letters for which no arguments can be made except for possible sequencing errors, the representation of functional data can be far more controversial because it always requires interpretation of observed phenomena.",
+            "cite_spans": [
+                {
+                    "start": 156,
+                    "end": 182,
+                    "text": "(Nakai and Kanehisa, 1991)",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "In eukaryotic cells, the sorting signals that direct proteins to proper subcellular locations are usually encoded in their own amino acid sequences. A growing body of experimental evidence has been clarifying the nature of these signals. There are multiple ways of representing such empirical knowledge for computer processing. A production system utilizes a knowledge base constructed as a collection of \"if-then\" rules. It is relatively easy to implement knowledge in this manner, and a number of expert systems are of this type. In our previous work, we constructed an expert system for predicting protein localization sites in Gram-negative bacteria by organizing the relationships between amino acid sequence features and functional aspects in the form of if-then rules (Nakai and Kanehisa, 1991 ). The expert system could discriminate 106 proteins in our database into four localization sites with 83% accuracy. In the present work, our previous system is expanded so that it can also predict the localization sites of eukaryotic proteins, incorporating knowledge of a variety of sorting signals (Verner and Schatz, 1988) . This is a first attempt to systematically allocate various protein localization sites in eukaryotic cells from a theoretical point of view, which requires consideration of the following. First, because protein-sorting signals are mutually related, it does not seem sufficient to examine each feature separately. Second, because of the variations in how such features are encoded, it is not possible to treat all signals uniformly, say, by a single discriminant function. Third, because of the difficulty of interpreting the functional data mentioned above, any theory should make experimentally testable predictions and be able to evolve as new insights are gained. A knowledgebased approach is suitable for solving problems in these circumstances. ",
+            "cite_spans": [
+                {
+                    "start": 775,
+                    "end": 800,
+                    "text": "(Nakai and Kanehisa, 1991",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 1102,
+                    "end": 1127,
+                    "text": "(Verner and Schatz, 1988)",
+                    "ref_id": "BIBREF57"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Localization sites. The localization sites considered in this study are cytoplasm (one site), nucleus (one site), mitochondrion (four sites), chloroplast (three sites), peroxisome (one site), endoplasmic reticulum (two sites), Golgi complex (one site), lysosome (two sites), vacuole (one site), plasma membrane (two sites), and extracellular space (one site). They are summarized in Table 1 . For proteins from animal cells, the lysosome is added to the repertoire, whereas the vacuole is added for plant and yeast proteins. The chloroplast, which is divided into three sites, is also included in plant proteins. Cytoplasmic proteins include cytoskeletal ones. Peroxisomal proteins include socalled microbody proteins, but those of trypanosomes are excluded. GPI-anchored plasma membrane proteins are treated separately from other integral membrane proteins because the prediction logic is different.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 383,
+                    "end": 390,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "There is some ambiguity in the definition of protein localization sites. For example, some proteins have more than one localization site (see Discussion). Peripheral membrane proteins are distinguished from integral membrane proteins and we define their localization sites to be the spaces toward which the membrane surfaces face. Some proteins become soluble after specific proteolytic processing reactions in the membrane-bound precursor form. In the present work, we regard them as membrane proteins unless the reaction is coupled with the translocation process.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "Sequence data. The amino acid sequence data of known localization sites were collected from the NBRF-PIR database, release 27.0 (Barker et al., 1990) . The total of 401 sequences can be obtained from Kenta Nakai (e-maih nakai \u00ae nibb.ac.jp).",
+            "cite_spans": [
+                {
+                    "start": 128,
+                    "end": 149,
+                    "text": "(Barker et al., 1990)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "Except for some proteins in which the N-terminal methionine was removed, all sequences were in the genetically coded (unprocessed) KANEHISA form. To eliminate redundant data, these sequences have been selected from the original database such that there were no pairs with more than 50% identical residues. Exceptions were a few isozymes localizing at different sites or with apparently different localization mechanisms. We divided our dataset into training data for extracting knowledge and testing data for evaluating the prediction ability. When a localization site contained more than 10 proteins, 30% of them were used as testing data; the remainder were used as training data. When proteins at a certain site were divided into groups sorted by different pathways, testing data were selected proportionally. The number of proteins in each category of our dataset is summarized in Table 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 885,
+                    "end": 892,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "Terminology [or sorting signals. There is as yet no consensus for the terminology of various sorting signals. We adopted Varshavsky's (1991) proposal for a systematic naming method. This naming convention, as well as part of our own, is shown in Table 2 .",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 140,
+                    "text": "Varshavsky's (1991)",
+                    "ref_id": "BIBREF56"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 246,
+                    "end": 253,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "Expert system. The architecture of our expert system is the same as that previously reported (Nakai and Kanehisa, 1991) . It is a commonly used production system consisting of if-then rules, organized in a manner similar to the design of Tanaka and Shimoi (1987) . The core of our system is written in the programming language OPS83, version 3.0 (Forgy, 1989) . The knowledge base is divided into three modules, corresponding to the order of reasoning steps. In the first module, rules are organized for classifying organism names into one of the five categories: Gram-positive bacteria, Gram-negative bacteria, yeast, animal, or plant. The second and third modules contain rules for sorting signals, the second containing general rules and the third containing more specialized rules. This distinction is somewhat arbitrary, but the reasoning with more specialized rules is performed after the general reasoning step. The calculations involving sequence data are written in C language and are called from rules when necessary. The flow of reasoning occurs in a backward fashion; each localization site of the repertoire is activated one by one as a hypothesis and the rules for examining sequence characteristics for each localization site are invoked to verify the hypothesis. Thus, given the amino acid sequence and the organism name, our expert system reports a list of probable localization sites with certainty factors.",
+            "cite_spans": [
+                {
+                    "start": 93,
+                    "end": 119,
+                    "text": "(Nakai and Kanehisa, 1991)",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 238,
+                    "end": 262,
+                    "text": "Tanaka and Shimoi (1987)",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 346,
+                    "end": 359,
+                    "text": "(Forgy, 1989)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "Discriminant analysis. Occasionally, we use the method called stepwise discriminant analysis Kanehisa, 1988, 1991) for deriving an optimal combination of various sequence features. Suppose, for example, proteins sorted to a certain localization site have amino acid compositions different from those of proteins sorted to another site. Using 20 amino acid contents as variables, the stepwise discriminant analysis determines the set of coefficients that maximally discriminates the two groups. The derived discriminant function is represented by the formula y = ~ alx i + const, i where x i is the variables to be selected (say, 20 amino acid contents) and as and const are the coefficients. When used for prediction, each unknown sequence is classified into one of the two groups according to the sign of this function. To avoid excessive dependence on training data, the stepwise procedure is usually not repeated until all 20 coefficients are determined. It is possible to regard the order of selection of variables as corresponding roughly to the order of their importance.",
+            "cite_spans": [
+                {
+                    "start": 93,
+                    "end": 114,
+                    "text": "Kanehisa, 1988, 1991)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "Other analytical methods: (i) Hydrophobic moment. The hydrophobic moment is calculated according to Eisenberg's (1984) method. The amplitude of the moment with a given angle is calculated as the average value over 11 residues around each position in the sequence. The maximum value and its position may be used as variables for discriminant analysis.",
+            "cite_spans": [
+                {
+                    "start": 100,
+                    "end": 118,
+                    "text": "Eisenberg's (1984)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "(ii) The \"apolar' algorithm. The algorithm we used to detect an apolar region is as follows. First, we define, somewhat arbitrarily, an index for the apolar value of each amino acid: Translocation from cytosol into nucleus (nuclear localization signal) Translocation from cytosol into peroxisome Translocation from cytosol into endoplasmic reticulum (signal sequence) Retention in endoplasmic reticulum (for the lumen or membrane) Generation of GPI-anchor after the cleavage (also a degron?) Golgi-mediated generation of Man6P residues; may be identical with the signal for transfer from trans-Golgi to lysosomes Translocation from cytosol into chloroplast stroma Translocation from chloroplast stroma (S) into thylakoid space (T) a Modified and extended version of Varshavsky's (1991) proposal. than -5.0. The output is the segment corresponding to the best sum value.",
+            "cite_spans": [
+                {
+                    "start": 766,
+                    "end": 785,
+                    "text": "Varshavsky's (1991)",
+                    "ref_id": "BIBREF56"
+                }
+            ],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "(iii) The \"alom'\" algorithm. Transmembrane segments in membrane proteins were detected by the alom program (Klein et al., 1985) . It is based on a discriminant function between integral and peripheral membrane proteins, applied to all 17 residue segments in the sequence.",
+            "cite_spans": [
+                {
+                    "start": 107,
+                    "end": 127,
+                    "text": "(Klein et al., 1985)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "MATERIALS AND METHODS"
+        },
+        {
+            "text": "To discriminate mitochondrial proteins, we searched for the M-transferon signal (rule 'mtmod'; see Table 4 for a summary of rules in our knowledge base; see also Table 2 for our naming convention of sorting signals), although several mitochondrial proteins without this signal are known to be sorted by other pathways (Hartl and Neupert, 1990; Baker and Schatz, 1991) . Since there had been no proposed method of recognizing unknown M-transferons, we searched for an optimal set of sequence features that best discriminate M-transferons. We utilized the features reported previously. Von Heijne et al. (1989) used comparisons of aligned sequences to indicate sequence features of M-transferons. However, the amplitude and the location of maximal hydrophobic moments at both 95 \u00b0 and 75 \u00b0 were not selected as effective variables in the stepwise discriminant analysis. Gavel and von Heijne (1990b) proposed a method for recognizing the cleavage site motif (rule 'exgavel'). However, we could not raise the prediction accuracy by incorporating the information of predicted cleavage sites (data not shown).",
+            "cite_spans": [
+                {
+                    "start": 318,
+                    "end": 343,
+                    "text": "(Hartl and Neupert, 1990;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 344,
+                    "end": 367,
+                    "text": "Baker and Schatz, 1991)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 588,
+                    "end": 608,
+                    "text": "Heijne et al. (1989)",
+                    "ref_id": "BIBREF60"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 99,
+                    "end": 106,
+                    "text": "Table 4",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 162,
+                    "end": 169,
+                    "text": "Table 2",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Mitochondrial Presequences"
+        },
+        {
+            "text": "The best discriminant function for our training data was obtained from the amino acid composition of the 20-residue segment at the N-terminus (rule 'mtdisc'). The variables selected and their corresponding coefficients are shown in Table 3a . Variables are listed in the order of stepwise selection, which roughly corresponds to the order of relative importance. In Table 3a we can see that R tends to strongly favored (positive coefficient) but other charged or polar residues are disfavored (nega-tive coefficients) in the N-terminal region of M-transferons. In all, 90% of the training data could be correctly discriminated.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 232,
+                    "end": 240,
+                    "text": "Table 3a",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 366,
+                    "end": 374,
+                    "text": "Table 3a",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Mitochondrial Presequences"
+        },
+        {
+            "text": "Since an M-transferon is the signal that brings a newly synthesized protein to the mitochondrial matrix, further sorting signals must exist (Hartl and Neupert, 1990) . Indeed, some intermembrane space proteins have a presequence of bipartite structure. The N-terminal half of the presequence is cleaved off at the matrix space and then the C-terminal half (M/IMS-transferon) is used for the translocation signal into the intermembrane space (rule 'mt2nd'). In our data for intermembrane space proteins, however, those that use this conservative pathway seem to be in the minority (two of five). There were two more examples of the bipartite signal in our inner membrane protein data. All but one of the four proteins with the bipartite signal had high discriminant scores of M-transferons at the N-terminus. In addition, using the 'apolar' algorithm, we found typical apolar stretches in the region from the N-terminus to the 70th residue (rule 'mtit'). However, these stretches were not always located near the second cleavage site. Interestingly, one of the two outer membrane proteins, the 45K protein of yeast, showed features characteristic of intermembrane space proteins (rule 'mtom'). In this case, the apolar region turned out to be near the N-terminus, i.e., starting at the fifth residue.",
+            "cite_spans": [
+                {
+                    "start": 140,
+                    "end": 165,
+                    "text": "(Hartl and Neupert, 1990)",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Intramitochondrial Sorting"
+        },
+        {
+            "text": "Other proteins that were predicted to have M-transferons were further classified into inner membrane or matrix proteins based on the existence or absence of transmembrane stretches detected by the 'alom' program (rules 'mtim' and 'mtmx'). However, many inner membrane proteins did not have apparent hydrophobic segments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Intramitochondrial Sorting"
+        },
+        {
+            "text": "The sorting mechanism of nuclear proteins differs from that of other proteins (Silver, 1991) . The main dif- ference is that proteins do not actually transverse the nuclear membrane at the time of entrance. It seems possible that a protein without its own nuclear localization signal (Nu-transferon) enters the nucleus via cotransport with another protein (Zhao and Padmanabhan, 1988) . In addition, the Nu-transferons identified so far are not cleaved off after translocation and their exact positions in the primary sequence are not essential. This situation makes the task of finding Nu-transferons difficult.",
+            "cite_spans": [
+                {
+                    "start": 78,
+                    "end": 92,
+                    "text": "(Silver, 1991)",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 356,
+                    "end": 384,
+                    "text": "(Zhao and Padmanabhan, 1988)",
+                    "ref_id": "BIBREF64"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nuclear Proteins"
+        },
+        {
+            "text": "The most common Nu-transferon is the SV40 type, which is composed of short stretches rich in basic amino acids and, often, proline residues. We attempted to find sequence patterns that can cover most known SV40type Nu-tranferons: four-residue patterns composed of basic amino acids (K or R) or of three basic amino acids (K or R) and H or P (rule 'nucr); and a pattern starting with P and followed within three residues by a basic four-residue segment containing three K or R residues (rule 'nuc2'). Although these patterns match most known SV40-type signals, 8 of 33 cytoplasmic proteins in the training data also had such patterns. However, if we count overlapping patterns separately, most proteins of this type seem to have more than one pattern, giving higher predictability.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nuclear Proteins"
+        },
+        {
+            "text": "Recently, another type of Nu-transferon, consisting of two interdependent basic domains, was discovered (Robbins et al., 1991) . The authors proposed a simple scheme for the recognition of this bipartite signal--2 basic residues, a 10-residue spacer, and another basic 5-residue region consisting of at least 3 basic residues (rules 'nuc3' and 'nuc7')--which was rather apparent in our training data; 14 nuclear proteins and only 1 cytoplasmic protein had the pattern.",
+            "cite_spans": [
+                {
+                    "start": 104,
+                    "end": 126,
+                    "text": "(Robbins et al., 1991)",
+                    "ref_id": "BIBREF46"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nuclear Proteins"
+        },
+        {
+            "text": "Since nuclear proteins are generally rich in basic residues, we used this heuristic in addition to the knowledge of Nu-transferons. If the sum of K and R compositions is higher than 20%, then the protein is considered to have a higher possibility of being nuclear than of being cytoplasmic (rule 'nuc4'). In addition, it might be essential to predict RNA-binding ability because it is possible for some RNPs to use targeting signals in the bound RNAs (Hamm et al., 1990) . However, simple examination of the RNP consensus motif (Query et al., 1989) was not useful for discriminating nuclear proteins because many cytoplasmic proteins seem to have this motif as well (rules 'nuc5' and 'nuc6').",
+            "cite_spans": [
+                {
+                    "start": 451,
+                    "end": 470,
+                    "text": "(Hamm et al., 1990)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 528,
+                    "end": 548,
+                    "text": "(Query et al., 1989)",
+                    "ref_id": "BIBREF44"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nuclear Proteins"
+        },
+        {
+            "text": "Some peroxisomal proteins are known to have an uncleavable sorting signal at the C-terminus: the SKL motif (reviewed in Osumi and Fujiki, 1990) . Because their sorting pathway seems to be conserved widely throughout eukaryotes (Gould et al., 1990) , we included microbody proteins of various organisms except trypanosomes into our data ofperoxisomal proteins. It has been further shown that the SKL motif can be tolerated in a more loose form: (S/A)(K/R/H)L (Gould et al., 1989) . We searched our training data for this motif (rules 'pox1' and 'pox4'); 7 of 13 peroxisomal proteins had the motif at their C-terminus, whereas only one extracellular prorein, a-amylase A2, had it at that position. In addition, all but one peroxisomal protein, in contrast to 45% of cytoplasmic and nuclear proteins, in our training data had the motif in at least one position in the entire sequence, suggesting the possibility that internal motifs may also play some role in the sorting mechanism.",
+            "cite_spans": [
+                {
+                    "start": 120,
+                    "end": 143,
+                    "text": "Osumi and Fujiki, 1990)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 227,
+                    "end": 247,
+                    "text": "(Gould et al., 1990)",
+                    "ref_id": null
+                },
+                {
+                    "start": 458,
+                    "end": 478,
+                    "text": "(Gould et al., 1989)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Peroxisomal Proteins"
+        },
+        {
+            "text": "To supplement the knowledge for prediction, we examined amino acid compositions of different regions of peroxisomal proteins. Although some of them have a cleavable N-terminal portion, it is not known whether it contains any information as a sorting signal (Osumi and Fujiki, 1990) . We tested whether the amino acid components of the 20-residue N-terminal segment, the 20-residue C-terminal segment, or the entire sequence could be used effectively as variables of discriminant function. The discrimination accuracy was 78, 79, and 84%, respectively. Because the third case was the best, we used this as a rule for prediction (rules 'pox2', 'pox3', and 'pox5'). It can be seen from the derived discriminant function in Table 3b that the compositions F and W seem especially important. The overall net positive charge, suggested to be characteristic of peroxisomal proteins (Borst, 1986) , was a more prominent feature of some nuclear proteins in our data.",
+            "cite_spans": [
+                {
+                    "start": 257,
+                    "end": 281,
+                    "text": "(Osumi and Fujiki, 1990)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 874,
+                    "end": 887,
+                    "text": "(Borst, 1986)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 720,
+                    "end": 728,
+                    "text": "Table 3b",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Peroxisomal Proteins"
+        },
+        {
+            "text": "Our training data of peroxisomal proteins contained a 70K membrane protein. It was unclear whether our rule could also be applied to this protein, but it had three internal SKL motifs and was positive with the discriminant score even though this protein was not included in the derivation of the function.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Peroxisomal Proteins"
+        },
+        {
+            "text": "In our prediction scheme, proteins sorted along the nonselective bulk flow (Pfeffer and Rothman, 1987) are recognized as follows: First, a protein having an N-terminal signal sequence (ER-transferon) is transported to the endoplasmic reticulum (rule 'rghl'). Second, if it has any stop-transfer signal, it is integrated into the membrane; if not and if the ER-transferon is cleaved off, it is translocated into a lumen. Third, unless it has any other signals for specific retention or commitment (compartons), it will be transported to the cell surface by default; a luminal protein will be secreted constitutively to the extracellular space (rule 'outr) and a membrane protein will reside at the plasma membrane. It is not necessary, however, for membrane proteins to have N-terminal ER-transferons (see below).",
+            "cite_spans": [
+                {
+                    "start": 75,
+                    "end": 102,
+                    "text": "(Pfeffer and Rothman, 1987)",
+                    "ref_id": "BIBREF43"
+                }
+            ],
+            "ref_spans": [],
+            "section": "ER-Transferons and ER-Compartons"
+        },
+        {
+            "text": "As in the case of Gram-negative bacterial proteins (Nakai and Kanehisa, 1991) , the methods of McGeoch (1985) and von Heijne (1986) were used for the recognition of N-terminal ER-transferons (rules 'mcgl', 'mcg2', and 'gvhl'). The former, modified by us to be represented as a discriminant function, uses the information from a short N-terminal charged region and a subsequent uncharged region, whereas the latter uses the in-",
+            "cite_spans": [
+                {
+                    "start": 51,
+                    "end": 77,
+                    "text": "(Nakai and Kanehisa, 1991)",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 95,
+                    "end": 109,
+                    "text": "McGeoch (1985)",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "ER-Transferons and ER-Compartons"
+        },
+        {
+            "text": "Topology of membrane proteins. The classification is based on the definition by Singer (1990) . Here, the cytoplasm (cyt) is below the membrane and the extracytoplasmic space (exo) is above the membrane. Types Ia, II, Ib are membrane proteins with a single transmembrane segment. Type Ia proteins have a cleavable ER-transferon and are in NexoCcyt orientation. Type II proteins do not have a cleavable signal and are in NcytCexo orientation. Type Ib proteins also do not have a cleavable signal but the orientation is NexoCcyt. Here, all membrane proteins with more than one transmembrane segment are classified as type III. The most N-terminal segment is shadowed because the charge difference between both of its sides is thought to be important in topogenesis (types IIIa and IIIb).",
+            "cite_spans": [
+                {
+                    "start": 80,
+                    "end": 93,
+                    "text": "Singer (1990)",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [],
+            "section": "ER-Transferons and ER-Compartons"
+        },
+        {
+            "text": "formation from the region around the cleavage site. The combined use of these two methods was rather effective for detecting ER-transferons as well as bacterial signal sequences. On the one hand, most of the proteins that do not use the secretory pathway are predicted to have no ER-transferons; 94% (145 of 155) were correctly predicted. On the other hand, the evaluation of false negatives is not easy because many membrane proteins have internal start-transfer sequences that are not detected by the above method, and there are some soluble proteins sorted through pathways not requiring an ERtransferon. In fact, most extracellular proteins predicted to have no ER-transferons turned out to belong to such an exceptional class. The cleavage sites of ER-transferons predicted by von Heijne's method were rather accurate; of the 62 training proteins whose cleavage sites are recorded in the NBRF-PIR database, 45 (73%) are correctly predicted (data not shown).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ER-Transferons and ER-Compartons"
+        },
+        {
+            "text": "As a retention signal of ER luminal proteins (ERcomparton), the sequence motif KDEL (HDEL in yeast and some plants) at the C-terminus (rules 'erl' and 'er2') seems essential (Pelham, 1990) . Although some variations of this motif are allowed in some organisms and cell types, they were not required for the discrimination of our current data. We could select all ER luminal proteins by the C-terminal KDEL motif with no false positives.",
+            "cite_spans": [
+                {
+                    "start": 174,
+                    "end": 188,
+                    "text": "(Pelham, 1990)",
+                    "ref_id": "BIBREF42"
+                }
+            ],
+            "ref_spans": [],
+            "section": "ER-Transferons and ER-Compartons"
+        },
+        {
+            "text": "Because sequence features of compartons, except ERcompartons, seem to be weak, the reliability of detecting such weak signals would be greatly enhanced if there were additional contextual features. Thus, the topology of membrane proteins was examined with our expert system. We have adopted the latest definition of the membrane topology by Singer (1990) as shown in Fig. 1 , although we do not distinguish type IV (channel) proteins from type III (polytopic) proteins.",
+            "cite_spans": [
+                {
+                    "start": 341,
+                    "end": 354,
+                    "text": "Singer (1990)",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 367,
+                    "end": 373,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Membrane Topology"
+        },
+        {
+            "text": "Before the prediction of the membrane topology, we located transmembrane segments by the 'alom' program (Klein et al., 1985) . Because it was difficult to set a single appropriate cutoff value between transmembrane and peripheral segments, we adopted a two-way approach. First, the sequence is examined with a high cutoff value of -2.0 (rule 'alom3'); then, if more than two transmembrane segments excluding a cleavable ER-transferon are detected, the calculation is repeated with a low cutoff value of 0.5 (rule 'alom2'). Despite this treatment, it was difficult to locate precisely all transmembrane segments in polytopic proteins, such as the seven transmembrane segments in the rhodopsin family. However, the number of predicted segments was close to that of most models of available polytopic proteins.",
+            "cite_spans": [
+                {
+                    "start": 104,
+                    "end": 124,
+                    "text": "(Klein et al., 1985)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Membrane Topology"
+        },
+        {
+            "text": "The sequence determinants for membrane topology have been studied extensively (von Heijne and Gavel, 1988; Hartmann et al., 1989; Parks and Lamb, 1991) . Here we used the Hartmann et al. (1989) method for prediction. It is characterized by both the 'first helix' rule and the 'charge difference' rule; the overall topology is determined by the charge difference of both sides of 15 residues flanking the most N-terminal transmembrane segment (rule 'mtopl'). This method could also be applied to usual ER-transferons and gave good results when we changed the critical value from 0 to +1.0. Moreover, it was useful for the detection of internal ERtransferons as shown below.",
+            "cite_spans": [
+                {
+                    "start": 94,
+                    "end": 106,
+                    "text": "Gavel, 1988;",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 107,
+                    "end": 129,
+                    "text": "Hartmann et al., 1989;",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 130,
+                    "end": 151,
+                    "text": "Parks and Lamb, 1991)",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 171,
+                    "end": 193,
+                    "text": "Hartmann et al. (1989)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Membrane Topology"
+        },
+        {
+            "text": "When our prediction scheme was applied, it showed some sequences with their predicted transmembrane segments located near the N-terminal. Although it was possible to detect uncleavable signal sequences by the combined use of the McGeoch and the von Heijne methods for Gram-negative bacterial proteins (Nakai and Kanehisa, 1991) , these ER-transferons were often falsely predicted to be cleaved. To overcome this difficulty, we have added the new rule that if a type Ib protein is predicted to have an NcytCexo configuration, its most N-terminal-sided transmembrane segment is assigned as uncleavable regardless of the von Heijne score (rules 'sig2' and 'sig3').",
+            "cite_spans": [
+                {
+                    "start": 301,
+                    "end": 327,
+                    "text": "(Nakai and Kanehisa, 1991)",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Membrane Topology"
+        },
+        {
+            "text": "The predicted membrane topology was not only useful for limiting the search area for compartons but also suggestive for specific prediction. For example, we have noticed a tendency for type Ib proteins to be favored at the endoplasmic reticulum, whereas type II proteins are favored at the Golgi complex and the plasma membrane (rules 'er4', 'glgl', and 'pm3'). The topology of L-gulonolactone oxidase (OXRTGU) is not well studied. If it has a type II topology, as predicted from the charge difference, then it is an unusual protein whose transmembrahe segment resides near the center of the sequence. A similar feature can be observed in the type Ib topology of a plasma membrane protein, glycophorin C (GFHUC). We represented these observations as hypothetical rules (rules 'er5' and 'pm4'). In addition, cytochrome b5 (S03373) is an exceptional protein whose hydrophobic segment may not transverse the membrane (Holloway and Buchheit, 1990) . As for type III proteins, we could not find any prominent sequence features that could be used to predict their localization sites, partly because of the difficulty of precisely allocating transmembrane segments; type III proteins with more than three predicted segments were tentatively predicted to be plasma membrane proteins (rule 'pm5'). ",
+            "cite_spans": [
+                {
+                    "start": 914,
+                    "end": 943,
+                    "text": "(Holloway and Buchheit, 1990)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Membrane Topology"
+        },
+        {
+            "text": "Many studies so far have indicated that compartons of membrane proteins are often found at a cytoplasmic tail, a short terminal region exposed to the cytoplasmic space in type Ia, Ib, and II proteins (Fig. 1) . First, two lysines positioned three and four or three and five residues from the C-terminus (rule 'er6') are proposed to constitute the retention signal of ER membrane proteins (Jackson et al., 1990) . With the constraint of predicted membrane topology, this simple motif was specific enough to detect one ER membrane protein with no false positives. In addition, the existence of the same motif in a type III protein, HMG CoA reductase, has been noted. Since we could not determine the detailed membrane topology of polytopic proteins, we searched for the motif at the Cterminus of all polytopic proteins with more than three predicted segments. With this additional rule, the reductase was selected with one false positive, sodium channel protein I of plasma membrane.",
+            "cite_spans": [
+                {
+                    "start": 388,
+                    "end": 410,
+                    "text": "(Jackson et al., 1990)",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 200,
+                    "end": 208,
+                    "text": "(Fig. 1)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Signals in Cytoplasmic Tails"
+        },
+        {
+            "text": "Second, two sequence motifs, NPXY and YXRF, have been identified as signals for rapid internalization into endosomes (Chen et al., 1990; Collawn et al., 1990) . The exact position of these signals seems unimportant, provided that there is a spacer from the transmembrane region. We did not distinguish internalized receptors. They are simply treated as plasma membrane proteins and these signals are used as clues for selecting plasma membrane proteins (rules 'pro6' and 'pm7'). In our training data, all proteins that have a single transmembrane segment and either the NPXY or the YXRF motif at the cytoplasmic tail turned out to be plasma membrane proteins. There were two false negatives owing to the failure of predicting correct topology.",
+            "cite_spans": [
+                {
+                    "start": 117,
+                    "end": 136,
+                    "text": "(Chen et al., 1990;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 137,
+                    "end": 158,
+                    "text": "Collawn et al., 1990)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Signals in Cytoplasmic Tails"
+        },
+        {
+            "text": "Although the nature of Golgi localization signals has not been clarified fully, recent studies suggest that it may reside in the transmembrane domain (Hurtley, 1992) . In addition, the membrane-flanking sequences also seem to affect the efficiency of Golgi retention. Apart from these studies, the existence of a consensus motif, (S/T)X(E/Q)(R/K), near the hydrophobic domain (possibly the Golgi lumen) of all Golgi-localized glycosyltransferases has been pointed out, although there is no experimental proof that it is a sorting signal (Bendiak, 1990) . To select Golgi proteins, we searched for this motif in the regions flanking the type II transmembrane segment (rule 'glgl'). Although two Golgi proteins were selected with no false positives, two other Golgi proteins satisfying this condition failed because their N-terminal transmembrane segment was predicted to be cleaved. In the E1 glycoprotein of coronavirus, the first transmembrane domain is required for its retention (Machamer and Rose, 1987) . However, since it is the only example of such a signal, we did not incorporate this knowledge. As stated later, a tyrosine residue in the cytoplasmic tail is also important for sorting lysosomal membrane proteins.",
+            "cite_spans": [
+                {
+                    "start": 150,
+                    "end": 165,
+                    "text": "(Hurtley, 1992)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 537,
+                    "end": 552,
+                    "text": "(Bendiak, 1990)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 982,
+                    "end": 1007,
+                    "text": "(Machamer and Rose, 1987)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Signals in Cytoplasmic Tails"
+        },
+        {
+            "text": "We considered two distinct cases in which chemical modifications have primary importance in protein sorting. One is the case in which proteins are anchored at a membrane with covalently bound lipid moieties and the other is the case of lysosomal proteins.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lipid Anchors"
+        },
+        {
+            "text": "There are several ways of lipid anchoring, as illustrated in Fig. 2 (Schultz et al., 1988) . Among them, all proteins linked to glycosyl-phosphatidylinositol (GPI) seem to be localized at the extracellular surface of the plasma membrane (Ferguson and Williams, 1988; Cross, 1990) . Thus, if we can predict this modification, we can simultaneously predict the localization. Although the signal that leads to the GPI attachment (GPI-modon) is not fully understood, all precursors seem to be type Ia proteins and have cleavable C-terminal sequences. Moreover, their cytoplasmic tails, if present at all, are predicted to be very short. These features were sufficient for the discrimination of our training data (rule 'pm9'); 12 of 16 members were correctly predicted to have GPI anchors by the criterion of a type Ia protein that has a short cytoplasmic tail (within 10 residues). The false predictions were caused by the failure of predicting topology. There were no type Ia proteins with short cytoplasmic tails in other localization sites.",
+            "cite_spans": [
+                {
+                    "start": 68,
+                    "end": 90,
+                    "text": "(Schultz et al., 1988)",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 237,
+                    "end": 266,
+                    "text": "(Ferguson and Williams, 1988;",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 267,
+                    "end": 279,
+                    "text": "Cross, 1990)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 61,
+                    "end": 67,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Lipid Anchors"
+        },
+        {
+            "text": "In eukaryotic cells, palmitic and myristic acids are observed to be bound directly to proteins. However, recent studies suggest that many of them may not take part in lipid anchoring (McIlhinney, 1990; Resh, 1990) . Thus, although we could make an efficient discriminant function for potential N-myristoylated sequences based on the substrate specificity of yeast N-myristoyltransferase (Towler et al., 1988) , it did not work well for the prediction of localization sites (rule 'pm8').",
+            "cite_spans": [
+                {
+                    "start": 183,
+                    "end": 201,
+                    "text": "(McIlhinney, 1990;",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 202,
+                    "end": 213,
+                    "text": "Resh, 1990)",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 387,
+                    "end": 408,
+                    "text": "(Towler et al., 1988)",
+                    "ref_id": "BIBREF54"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Lipid Anchors"
+        },
+        {
+            "text": "There is another type of lipid linking known as isoprenylation or farnesylation (Maltese, 1990) . This modification requires a CaaX motif at the C-terminus; \"a\" denotes an aliphatic amino acid. Since isoprenylated proteins have been found in the plasma membrane and in the nuclear envelope, another signal is needed for correct sorting (Hancock et al., 1990) . In the case of nuclear lamin A, it seems to be an usual Nu-transferon (Holtz, 1989) . Scanning our training data with the Cterminal CaaX motif revealed two false proteins. With an additional rule that isoprenylated proteins do not have any transmembrane segments or ER-transferons, only one of them, lipocortin I, remained (rules 'caax0', 'caaxl', and 'caax2').",
+            "cite_spans": [
+                {
+                    "start": 80,
+                    "end": 95,
+                    "text": "(Maltese, 1990)",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 336,
+                    "end": 358,
+                    "text": "(Hancock et al., 1990)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 431,
+                    "end": 444,
+                    "text": "(Holtz, 1989)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Lipid Anchors"
+        },
+        {
+            "text": "Vacuoles, found in plant and yeast cells, have diverse functions, one of which is analogous to that of mammalian lysosomes. Based on our current understanding of the sorting mechanisms, we separated the prediction category into three sites: the lumen of lysosomes in animal cells, the membrane of lysosomes in animal cells, and the vacuoles in yeast and plant cells.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lysosomal and Vacuolar Proteins"
+        },
+        {
+            "text": "There are at least two distinct mechanisms for sorting lysosomal proteins (Kornfeld and Mellman, 1989) . One is dependent on the posttranslational modification of mannose 6-phosphate, used in soluble enzymes. The other is dependent on a tyrosine residue at a particular position in the cytoplasmic tail (Williams and Fukuda, 1990) . The formation of mannose 6-phosphate seems conformation-dependent and some sequence segments could contribute to form a recognition domain (Baranski et al., 1990) . Thus, we postulated that a soluble lysosomal protein should have a cleavable ER-transferon, have no transmembrane segments, but have at least two potential N-glycosylation sites, i.e., NX(S/T) motifs, in the mature portion (rule 'lys3'). Since many extracellular proteins (23 of 50) share these features, we examined the differences in amino acid composition by stepwise discriminant analysis (rule 'lysl'). The predicted region of the ER-transferon was excluded from the calculation of amino acid composition. As shown in Table 3c , up to five variables were chosen because of the small size of the training data. With the derived discriminant function and the criterion of the potential glycosylation site, only 3 of 50 proteins were falsely discriminated.",
+            "cite_spans": [
+                {
+                    "start": 74,
+                    "end": 102,
+                    "text": "(Kornfeld and Mellman, 1989)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 303,
+                    "end": 330,
+                    "text": "(Williams and Fukuda, 1990)",
+                    "ref_id": "BIBREF62"
+                },
+                {
+                    "start": 472,
+                    "end": 495,
+                    "text": "(Baranski et al., 1990)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1021,
+                    "end": 1029,
+                    "text": "Table 3c",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Lysosomal and Vacuolar Proteins"
+        },
+        {
+            "text": "The discrimination of lysosomal membrane proteins was accomplished as follows. First, we predicted the membrane topology of a protein; then, if it was a type Ia protein and if it contained a GY motif in the cytoplasmic tail within 17 residues of the boundary with the membrane, it was predicted to be a lysosomal membrane protein (rule 'lys2'). This procedure was sufficient for discriminating the three proteins from all the training data. Interestingly, they were also positive in the discriminant score for lysosomal soluble proteins. It may be that most parts of the sequence are exposed to the lumen and they are similar in amino acid composition.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lysosomal and Vacuolar Proteins"
+        },
+        {
+            "text": "The vacuolar sorting signals have been studied in yeast (Rothman et al., 1989) and in plants (Chrispeels and Raikhel, 1992) . It is likely that most plant and yeast cells have a common sorting pathway for vacuolar proteins, though they may have other diverse pathways. Some vacuolar proteins have their signals in the preregion, which essentially looks like an ER-transferon, and the proregion, which is needed for specific recognition at the Golgi complex. However, no common sequence leatures have been discovered in the latter. In addition, there is a protein that does not use even the secretory pathway (Yoshihisa and Anraku, 1990) , as well as a membrane protein that uses a distinct pathway (Klionsky and Emr, 1990) . We performed a discriminant analysis between vacuolar and extracellular proteins from the amino acid composition of the sequence excluding the preregion (rule 'vacl' and 'vac2'), as shown in Table 3d . The vacuolar sequences that do not have an ER-transferon at the N-terminus were excluded from the analysis because they seemed to have distinct characteristics. Indeed, they could not be correctly discriminated by the derived function. The selected variables were totally different from the ones selected in the analysis of lysosomal proteins. With only a single amino acid content (K), 12 of 13 lysosomal and vacuolar proteins could be correctly distinguished (data not shown), although in our expert system the distinction is made by the organism name.",
+            "cite_spans": [
+                {
+                    "start": 56,
+                    "end": 78,
+                    "text": "(Rothman et al., 1989)",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 93,
+                    "end": 123,
+                    "text": "(Chrispeels and Raikhel, 1992)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 608,
+                    "end": 636,
+                    "text": "(Yoshihisa and Anraku, 1990)",
+                    "ref_id": "BIBREF63"
+                },
+                {
+                    "start": 698,
+                    "end": 722,
+                    "text": "(Klionsky and Emr, 1990)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 916,
+                    "end": 924,
+                    "text": "Table 3d",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Lysosomal and Vacuolar Proteins"
+        },
+        {
+            "text": "For plant proteins, the chloroplast is also a possible localization site. We postulated that all stromal proteins and thylakoid membrane proteins have the same kind of stroma-targeting signal (S-transferon; Hand et al., 1989; Keegstra et al., 1989) and searched for an efficient method of detecting it. Based on the observation that S-transferons have three distinct regions (von Heijne et al., 1989) , we performed a stepwise discriminant analysis using as variables the amino acid compositions of the two N-terminal segments, residues 3 to 10 and residues 1 to 30, and the position and the amplitude of maximum hydrophobic moment of 165 \u00b0 for residues 25 to 70 (rule 'chts0'). As shown in Table 3e , the result of self-discrimination was rather good. In contrast, the loosely conserved motif (V/I)X(A/C)A of S-degrons (Gavel and von Heijne, 1990a) was not as effective. We have also used the knowledge that in most (90.5%) chloroplast targeting peptides the residue at position 2 is alanine (rule 'chmod2').",
+            "cite_spans": [
+                {
+                    "start": 207,
+                    "end": 225,
+                    "text": "Hand et al., 1989;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 226,
+                    "end": 248,
+                    "text": "Keegstra et al., 1989)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 375,
+                    "end": 400,
+                    "text": "(von Heijne et al., 1989)",
+                    "ref_id": "BIBREF60"
+                },
+                {
+                    "start": 820,
+                    "end": 849,
+                    "text": "(Gavel and von Heijne, 1990a)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 691,
+                    "end": 699,
+                    "text": "Table 3e",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Chloroplast Proteins"
+        },
+        {
+            "text": "Like some mitochondrial proteins, thylakoid luminal proteins are known to have a targeting sequence of bipartite structure; the N-terminal half is functionally equivalent to an S-transferon and the C-terminal half is required for translocation from the stroma into the thylakoid lumen (S/T-transferon). These proteins showed positive scores with the discriminant function for Stransferons. To detect the latter half of the bipartite signal, we employed two methods. One was the weight ma-trix of Howe and Wallace (1990) (rule 'ch2nd2'), which was derived from the data of thylakoid luminal proteins by the same method as von Heijne's (1986) . The weight matrix could locate all the cleavage sites of our data, but it was not sufficient for discriminating thylakoid luminal proteins from others. It is probable that the weight matrix could only detect the signal recognized by a specific protease and could not detect the S/T-transferon itself. The second method we used was the 'apolar' algorithm applied to the limited region of residues 40 to 90 (rule 'ch2ndl'). From the 'apolar' score and the length of the apolar region, most thylakoid luminal proteins could be discriminated from other chloroplast proteins.",
+            "cite_spans": [
+                {
+                    "start": 625,
+                    "end": 640,
+                    "text": "Heijne's (1986)",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Chloroplast Proteins"
+        },
+        {
+            "text": "Thylakoid membrane proteins were discriminated by the 'alom' program. The remainder of chloroplast proteins were regarded as stromal proteins (rules 'chtm' and 'chst').",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Chloroplast Proteins"
+        },
+        {
+            "text": "The results described above were integrated into a set of rules in our expert system. The list of core rules for reasoning steps 2 and 3 are summarized in Table 4 . The number of rules is currently 80, excluding those for bacterial sequences. A simplified reasoning tree is given in Fig. 3 . For each possible site, the reasoning procedure is performed roughly following the tree. Each node is a checkpoint for a certain sequence feature and certainty factors are modified according to its result. In principle, the path of reasoning should follow the real pathway of sorting in vivo. It is most probable that the first recognition process for a nascent polypeptide is mediated by an ER-transferon. If the polypeptide has an ER-transferon, it will be committed to a vesicle-mediated pathway and its final localization site will be determined by its comparton signals. Otherwise, it will be sorted according to other transferon signals. If it has no signals at all, it will become a cytoplasmic protein.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 155,
+                    "end": 162,
+                    "text": "Table 4",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 283,
+                    "end": 289,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Organization of Knowledge"
+        },
+        {
+            "text": "Apart from biological reality, we had to modify this simple scheme in some minor points. One was the treatment of internal ER-transferons, which cannot be effectively detected at present. For example, since most plasma membrane proteins do not have N-terminal ERtransferons, they must be examined in the context of the cytoplasmic pathway. Another was the independence of evaluations. As described, the possibility of being sorted to each localization site is evaluated one by one. In general, different evaluations are independent except for those for cytoplasmic proteins. Finding that one protein is unlikely to be sorted to one site does not usually raise the possibility that it may be sorted to any other specific site. The calculated possibilities are stored as certainty factors and the site that has the highest certainty is selected as the most probable site. However, we had to break this principle for some localization sites with poorly characterized sorting signals (e.g., nuclei and lysosomes), making the evaluation order-dependent, i.e., well-characterized sites first.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Organization of Knowledge"
+        },
+        {
+            "text": "The assignment of certainty factors was one of the more difficult aspects. For some rules, the distribution of score values over the training data was examined. The score values were usually divided into three classes, positive, not clear, and negative, and the certainty factor was assigned for each class. By trial and error, certainty factors were further adjusted considering the whole prediction accuracy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Organization of Knowledge"
+        },
+        {
+            "text": "As summarized in Table 5 , 66% of the training data and 59% of the testing data were correctly predicted. Since the testing data were selected from the localization sites that involved more than 10 members, the composition of the testing data was not proportional to that of the training data. It is difficult to compare this prediction accuracy to other standards, but since each protein has a possibility of 14 to 17 localization sites depending on the organism, a random guess would result in less than 10% accuracy. If we simply assume that all proteins in the testing data belong to the largest site, the extracellular space, the value is 21%. It should be noted that the upper limit of the value is apparently lower than 100% because of the presence of exceptional sorting pathways. There was not a marked difference in the prediction accuracy between animal proteins and plant/ yeast proteins.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 17,
+                    "end": 24,
+                    "text": "Table 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "In the training data, proteins at the lumen of ER and at the lysosomal membrane were perfectly discriminated. However, they are very small in size. The next well-predicted classes were the stroma of chloroplasts, the matrix of mitochondria, and the plasma membrane (integral). GPI-anchored proteins had the highest predictability in the testing data, which was actually higher than that in the training data. A significant decrease in the predictability was observed for the stroma of chloroplasts, the matrix of mitochondria, and the peroxisomes, all of which were largely dependent on the results of discriminant analysis, which apparently had the danger of overfitting to the training data. The fine structure of organelles, such as the mitochondrial inner membrane, was relatively difficult to predict. If we simply consider all proteins in each organelle as one group, the discrimination accuracy in the training data is 66% for the mitochondrion and 86% for the chloroplast. The prediction accuracy for the combined mitochondrial proteins becomes 64% in the testing data. Table 5 also contains the number of false positives for each site. We noticed that many exceptional proteins are falsely predicted to be cytoplasmic proteins because they do not have usual targeting signals or other features. Many testing proteins were falsely predicted to be peroxisomal proteins, which implies that current knowledge of peroxisomal targeting signals is not specific enough.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1078,
+                    "end": 1085,
+                    "text": "Table 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "For practical use, alternative localization sites with lower certainty factors are also suggestive. When we took two sites with the two best certainty factors, the probability of one of them being correct was 71.9% for the training data and 69.8% for the testing data. Nota- If not yet, check the ER-transferon by GvH and store the result. mcgl",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If not yet, check the ER-transferon by McG and store the er2 result.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "mcg2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If the result of 'mcgl' is obtained, calculate and store the er4 discriminant value.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "alom2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If not yet, find the TMS by ALOM (threshold 0.5) and store the result, er5 mtopl If there is at least one TMS, calculate the charge difference around the most N-terminal TMS by MTOP. er6 sig2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If the charge difference predicts the NcytCexo orientation, determine whether there is an ER-transferon and whether it is cleavable from previous results er7 sig3",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If the charge difference predicts the NexoCcyt orientation, determine whether there is an uncleavable ERtransferon from previous results, er8",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "alom3",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If the number of TMS is less than 3 in the mature sequence, change the threshold of ALOM to -2.0. outl alom4 If possible, output the final result of ALOM considering the possibility of cleavage and the variable threshold value, pml mtop2 If it has a cleavable ER-transferon and one more TMS, it is pm2 type Ia. pm3",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "mtop3 If it has one TMS, does not have a cleavable ER-transferon, and the charge balance predicts NcytCexo, it is type II.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "mtop4 If it has one TMS and does not have a cleavable ER-pm4 transferon and the charge balance predicts NexoCcyt, it is type Ib.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "mtop5 If it has a cleavable ER-transferon and more than one pm5 TMSs, it is type IIIa.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "mtop6 If it does not have a cleavable ER-transferon and has more than one TMSs, it is type IIIa or IIIb according to the pm6 charge balance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "aacl",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If the examination of ER-transferon is finished, calculate pm7 and store the amino acid composition of the mature portion, pm8",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "rghl If it has an ER-transferon, the sites on the vesicular pathway have some possibility of being selected, pm9",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "exgavel If it might be a mitochondrial protein, examine the possible cleavage site of M-transferon by GAVEL.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "mtdisc If it might be a mitochondrial protein, examine the caax0 existence of M-transferon from the AAC of 20 Nterminal residues. mtmod If it has a positive possibility of having an M-transferon caaxl and does not have an ER-transferon, it may be targeted to a mitochondrion, caax2 chpm",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If it might be a chloroplast protein, calculate the maximum hydrophobic moment in the segment from res. 26 to 70. glgl chlaal If it might be a chloroplast protein, calculate the AAC of res. 3 to 10. glg2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "chlaa2 If it might be a chloroplast protein, calculate the AAC of lysl res. 1 to 30. chldisc If it might be a chloroplast protein, examine the existence of S-transferon from the results of chpm, chlaal, and lys2 chlaa2. chlmod If it has a positive possibility of having an S-transferon and does not have an ER-transferon, it may be targeted to lys3 a chloroplast.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "chlmod2 If it does not have an ER-transferon and the second res. is Ala, it may be targeted to a chloroplast.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prediction Accuracy"
+        },
+        {
+            "text": "If it might be an ER luminal protein, the existence of the KDEL (HDEL in yeast) motif around the C-terminus must be examined.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an ER luminal protein, it is likely to have the motif, an ER-transferon, and no TMSs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an ER membrane protein, it may be a type Ib protein whose TMS locates within the 30% region from the Nterminus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an ER membrane protein, it may be a type II protein whose TMS locates within the 70% region from the Cterminus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an ER membrane protein, it may be a type Ia protein with a cytoplasmic tail of appropriate length containing a retention signal.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an ER membrane protein, it may be a type IIIa or IIIb protein but the probability is relatively low.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an ER membrane protein, it may have an uncleavable ER-transferon.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If an extracellular protein, it has a cleavable ER-transferon and does not have TMSs at all.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type Ia.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type II.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type II, its TMS locates within the 40% region from the Nterminus, and there is no M-transferon.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type Ib, and its TMS locates within the 40% region from the Cterminus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type IIIa or IIIb and if the number of TMSs exceed 10, the possibility raises.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type Ia, II, or Ib with a NPXY motif in the cytoplasmic tail.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type Ia, II, or Ib with a YXRF motif in the cytoplasmic tail.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its N-terminus may be myristylated.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, its topology may be type Ia and the length of the tail is less than 10; that is, it may be GPI-anchored.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a plasma membrane or nuclear protein and if it has no TMSs, the existence of the CaaX motif should be searched for at the C-terminus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a plasma membrane protein, it might have the C-terminal CaaX motif but does not have TMSs or Nu-transferons.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a nuclear protein, it might have the C-terminal CaaX motif and Nu-transferons but does not have TMSs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a Golgi protein, it is likely a type II protein with the (S/ T)X(E/Q)(R/K) motif near the TMS.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a Golgi protein, its topology might be type IIIa or IIIb.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a lysosomal protein, the discriminant score must be calculated from the amino acid composition of the mature portion. If a lysosomal membrane protein, its topology should be type Ia with the GY motif in the tail near the TMS and have characteristic AAC.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a lysosomal luminal protein, it should have a cleavable ER-transferon, no TMSs, at least two N-glycosylation motifs, and deviated AAC. nucl If it might be a nuclear protein, the NLS motif of length 4 must be searched for. nuc2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a nuclear protein, the NLS motif of length 7 must be searched for. nuc3",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a nuclear protein, the NLS motif of the Robbins et al. (1991) type must be searched for. nuc4",
+            "cite_spans": [
+                {
+                    "start": 55,
+                    "end": 76,
+                    "text": "Robbins et al. (1991)",
+                    "ref_id": "BIBREF46"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a nuclear protein and has no ER-transferon, its basic residue content must be calculated. nuc5",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a nuclear or cytoplasmic protein, the RNAbinding protein motif must be searched for. nuc6",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it is a nuclear or cytoplasmic protein, it may have the RNA-binding protein motif. nuc7",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "Discriminate the nuclear proteins with the Robbins et al.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "(1991) type signal. nuc9",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "Judge the existence of the various types of Nu-transferons. pox1",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a peroxisomal protein, the SKL motif must be searched for. pox2",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If it might be a peroxisomal protein, its AAC must be examined. pox3",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If a peroxisomal protein, it may have the SKL motif and featured AAC. pox4",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "If the SKL motif exists in its C-terminus, it is very likely a peroxisomal protein. Note. TMS, transmembrane segment; AAC, amino acid composition. Programs names: GvH (von Heijne, 1986) , McG (McGeoch, 1985) , ALOM (Klein et al., 1985) , MTOP (Hartmann et al., 1989) , and GAVEL (Gavel and von Heijne, 1990) .",
+            "cite_spans": [
+                {
+                    "start": 163,
+                    "end": 185,
+                    "text": "GvH (von Heijne, 1986)",
+                    "ref_id": null
+                },
+                {
+                    "start": 188,
+                    "end": 207,
+                    "text": "McG (McGeoch, 1985)",
+                    "ref_id": null
+                },
+                {
+                    "start": 215,
+                    "end": 235,
+                    "text": "(Klein et al., 1985)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 243,
+                    "end": 266,
+                    "text": "(Hartmann et al., 1989)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 279,
+                    "end": 307,
+                    "text": "(Gavel and von Heijne, 1990)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "bly, the value for the testing data increased significantly and was close to the value for the training data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Reasoning step 3"
+        },
+        {
+            "text": "In this work, various experimental and computational observations on protein-sorting signals were organized into a consistent knowledge base that can be used to interpret unknown sequences. The knowledge base was realized as a collection of if-then rules (production rules), and utilized for machine inference based on standard techniques in artificial intelligence. Our system turned out to be flexible enough to incorporate diverse types of sorting signals and could contain ambiguous observations and working hypotheses. Furthermore, its performance could be evaluated by the predictability applied to unknown sequences. There are, however, still problems to be overcome, especially in knowledge acquisition and maintenance. Although rule-based representation is simple enough to update each piece of knowledge, it is time-consuming to revise certainty factors, which requires a global optimization. It is desirable that they be automatically optimized, say, by the neural network method.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "One of the difficulties in constructing our knowledge base was the assignment of a single appropriate localization site for each protein. There are many proteins whose localization sites are not confined to a single space. For example, some proteins like NF-KB change their localization sites in a regulated manner (Hunt, 1989) . Ribosomal proteins are first sorted from the cytoplasm to the nucleus according to their Nu-transferons, but after their assembly they are transported back to the cytoplasm possibly by a specific mechanism (Underwood and Fried, 1990) . We defined ribosomal proteins as nuclear proteins. Future progress in understanding these mechanisms may enable us to make a more detailed prediction of multiple localization sites. Another difficulty was the presence of nonconservative and specific sorting pathways. Some extracellular proteins such A simplified reasoning tree that illustrates the basic strategy for reasoning and the overall organization of rules. Reasoning processes are performed approximately following this tree downward. At each node, a decision is made according to the result of a certain calculation. \"O\" and \"X\" are \"yes\" and \"no\", respectively, although results are more precisely evaluated by way of modifying certainty factors. Thus, negative branches can be continued to be followed. Finally, every sorting site has some certainty factor at the end of reasoning and the site with highest certainty will be selected as the probable target site.",
+            "cite_spans": [
+                {
+                    "start": 315,
+                    "end": 327,
+                    "text": "(Hunt, 1989)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 536,
+                    "end": 563,
+                    "text": "(Underwood and Fried, 1990)",
+                    "ref_id": "BIBREF55"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "as interleukins la and lfl do not have N-terminal ERtransferons and are sorted through distinct pathways (Rubartelli et al., 1990) . There is also a nuclear transport by specific interaction with a protein with an Nu-transferon (Zhao and Padmanabhan, 1988) . Although it may be possible to introduce exception rules dealing with such specific sorting pathways, it is very likely that the ratio of specific sorting mechanisms involved in the total system determines the upper limit of our prediction accuracy.",
+            "cite_spans": [
+                {
+                    "start": 105,
+                    "end": 130,
+                    "text": "(Rubartelli et al., 1990)",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 228,
+                    "end": 256,
+                    "text": "(Zhao and Padmanabhan, 1988)",
+                    "ref_id": "BIBREF64"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "To evaluate the performance of our expert system, it was applied to the testing data not used for its construction. The prediction accuracy was about 60% when more than 10 sites were distinguished. This result should be considered much better than the accuracy of widely used protein secondary structure prediction, which is also about 60% but which distinguishes only three states (helix, sheet, and coil). Apparently, most sorting signals are confined to limited regions of sequences; if there were many signals that depend on peptide conformation, like M6P-modons, the prediction accuracy would have been much worse. In addition, our combinational approach has advantages over individual prediction of each localization site. For example, the control data used in the von Heijne et al. analysis of M-transferons (1989) were adopted from the mature portion of mitochondrial proteins. It is more natural to use the N-terminal regions of proteins that compete with mitochondrial ones in real cellular recognition processes. In this respect, it may be an important observation that proteins with internal ER-transferons seem to be similar to mitochondrial proteins in N-terminal amino acid composition.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Since experimental knowledge on sorting signals was not always complete, we had to rely on computational results characterizing proteins of given localization sites, which sometimes may not be directly related to sorting signals. The stepwise discriminant analysis could be effectively used for extracting characteristic amino acid components (Table 3 ). The derived discriminant function for M-transferons shows that the 20-residue segment at the N-terminus is rich in R, but poor in P and acidic residues. The function for S-transferons shows that the segment of residues 1 to 30 is rich in S and A, and the segment of residues 3 to 10 is rich in C. The first variables in both cases were in agreement with the von Heijne et al. observation (1989) , which had been based on different control data. The discriminant function for peroxisomal proteins shows the abundance in aromatic F and W, as well as in Y and H, although its biological significance is unclear. It was also found that lysosomal proteins were poor in K, whereas vacuolar proteins were poor in Q, when compared with extracellular proteins. The content of K was almost sufficient for discriminating lysosomal proteins from vacuolar proteins. It is interesting because lysosomes are acidic organelles.",
+            "cite_spans": [
+                {
+                    "start": 743,
+                    "end": 749,
+                    "text": "(1989)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 343,
+                    "end": 351,
+                    "text": "(Table 3",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Several hypotheses were also included in the knowledge base to supplement the experimentally proven knowledge. One hypothesis was that the charge difference between both sides of the most N-terminal transmembrane segment would inhibit its cleavage. It is a natural hypothesis because a reversed orientation along the membrane may be difficult for the signal peptidase to approach. However, some ER-transferons of extracellular proteins had an unusual charge balance, which should be further studied. Another hypothesis was that there would be a preference of type Ib or II proteins depending on the localization site. Usually type Ib proteins have larger cytoplasmic domains and type II proteins have larger extracytoplasmic domains. It is possible that ER membrane proteins, which favor type Ib, possess large cytoplasmic domains for their function, whereas for plasma membrane proteins extracellular domains are important. In fact, a majority of plasma membrane proteins have type Ia topology with short cytoplasmic tails. More samples should be collected for further consideration.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Although we attempted to incorporate the most up-todate knowledge, there are certain areas for improvement. In the current system, knowledge of polarized sorting in the plasma membrane (Simons and Wandinger-Ness, 1990) has not been included. Knowledge of cell type will also be required for precise prediction. The distinction between constitutive and regulated secretions will also become possible. The prediction of intraorganelle sorting is still insufficient. One reason is that their member proteins may not have been allocated exactly by experiments. Another reason is that in both mitochondria and chloroplasts, membrane proteins have relatively low hydrophobicity, reflecting the different natures of organelle membranes. Proteins with higher hydrophobicity may have a higher possibility of being falsely recognized by signal recognition particles. In practice, it may be effective to change the threshold of discrimination of their transmembrane segments. Many comparton signals are still open to future study. Above all, the integration of various kinds of degron (degradation) and modon (modification) signals is a challenging subject, enabling the prediction of the overall metabolic fate of proteins.",
+            "cite_spans": [
+                {
+                    "start": 185,
+                    "end": 218,
+                    "text": "(Simons and Wandinger-Ness, 1990)",
+                    "ref_id": "BIBREF51"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "It seems evident that any functional implication that can be derived from determining sequence data will become even more necessary with the development of large-scale sequencing projects. One such example has been reported recently (Adams et al., 1992) . Of the 2375 partial cDNA sequences that were newly determined, 83% were not related to known sequences in the databases. Our goal is to provide additional clues to the characterization of such unknown sequence data for further investigations. However, there is one difficulty in applying our work to the results of partial cDNA data; our method requires full-length sequences for input because missing parts can involve important targeting signals. Nevertheless, it may be used to find some signals. Sequencing N-terminal halves seems more preferable to C-terminal halves for our analyses since many transferons are found in N-terminal parts.",
+            "cite_spans": [
+                {
+                    "start": 233,
+                    "end": 253,
+                    "text": "(Adams et al., 1992)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Sequence identification of 2,375 human brain genes",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Adams",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Dubnick",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Kerlavage",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Moreno",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kelley",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Utterback",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Nagle",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fields",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Venter",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Nature",
+            "volume": "355",
+            "issn": "",
+            "pages": "632--634",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Mitochondrial proteins essential for viability mediate protein import into yeast mitochondria",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Baker",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Schatz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Nature",
+            "volume": "349",
+            "issn": "",
+            "pages": "205--208",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Generation of a lysosomal enzyme targeting signal in the secretory protein pepsinogen",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Baranski",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Faust",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kornfeld",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Cell",
+            "volume": "63",
+            "issn": "",
+            "pages": "281--291",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Protein sequence database",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Barker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "George",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Hunt",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Methods Enzymol",
+            "volume": "183",
+            "issn": "",
+            "pages": "31--49",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "A common peptide stretch among enzymes localized to the Golgi apparatus: Structural similarity of Golgi-associated glycosyltransferases",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Bendiak",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Biochem. Biophys. Res. Commun",
+            "volume": "170",
+            "issn": "",
+            "pages": "879--882",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "How proteins get into microbodies (peroxisomes, glyoxysomes, glycosomes)",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Borst",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Biochim. Biophys. Acta",
+            "volume": "866",
+            "issn": "",
+            "pages": "179--203",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "NPXY, a sequence often found in cytoplasmic tails, is required for coated pit-mediated internalization of the low density lipoprotein receptor",
+            "authors": [
+                {
+                    "first": "W.-J",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Goldstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Brown",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Biol. Chem",
+            "volume": "265",
+            "issn": "",
+            "pages": "3116--3123",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Short peptide domains target proteins to plant vacuoles",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Chrispeels",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Raikhel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Cell",
+            "volume": "68",
+            "issn": "",
+            "pages": "613--616",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Transferrin receptor internalization sequence YXRF implicates a tight turn as the structural recognition motif for endocytosis",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Collawn",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Stangel",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kuhn",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Esekogwu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jing",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Trowbridge",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Tainer",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Cell",
+            "volume": "63",
+            "issn": "",
+            "pages": "1061--1072",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Glycolipid anchoring of plasma membrane proteins",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "A M"
+                    ],
+                    "last": "Cross",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Annu. Rev. Cell Biol",
+            "volume": "6",
+            "issn": "",
+            "pages": "1--39",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "The endop!asmic reticulum retention signal of the E3/19K protein of adenovirus-2 is microtubule binding",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Dahllbf",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wallin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kvist",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "J. Biol. Chem",
+            "volume": "266",
+            "issn": "",
+            "pages": "1804--1808",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Three-dimensional structure of membrane and surface proteins",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Eisenberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 1984,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "53",
+            "issn": "",
+            "pages": "595--623",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Cell-surface anchoring of proteins via glycosyl-phosphatidylinositol structures",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Williams",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "57",
+            "issn": "",
+            "pages": "285--320",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "The 0PS83 User's Manual System Version 3.0",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Forgy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "A conserved cleavage-site motif in chloroplast transit peptides",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Gavel",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Heijne",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "FEBS Lett",
+            "volume": "261",
+            "issn": "",
+            "pages": "455--458",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Cleavage-site motifs in mitochondrial targeting peptides",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Gavel",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Heijne",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Protein Eng",
+            "volume": "4",
+            "issn": "",
+            "pages": "33--37",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "A conserved tripeptide sorts proteins to peroxisomes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gould",
+                    "suffix": ""
+                },
+                {
+                    "first": "G.-A",
+                    "middle": [],
+                    "last": "Keller",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Hosken",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Subramani",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "J. Cell Biol",
+            "volume": "108",
+            "issn": "",
+            "pages": "1657--1664",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Peroxisomal protein import is conserved between yeast, plants, insects and mammals",
+            "authors": [],
+            "year": null,
+            "venue": "EMBO J",
+            "volume": "9",
+            "issn": "",
+            "pages": "85--90",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "The trimethylguanosine cap structure of U1 snRNA is a component of a bipartite nuclear targeting signal",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hamm",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Darzynkiewicz",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Tahara",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Mattaj",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Cell",
+            "volume": "62",
+            "issn": "",
+            "pages": "569--577",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "A polybasic domain or palmitoylation is required in addition to the CAAX motif to localize p21 ras to the plasma membrane",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Hancock",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Paterson",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Marshall",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Cell",
+            "volume": "63",
+            "issn": "",
+            "pages": "133--139",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "The transit peptide of a chloroplast thylakoid membrane protein is functionally equivalent to a stromal-targeting sequence",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hand",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Szabo",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Vasconcelos",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Cashmore",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "EMBO J",
+            "volume": "8",
+            "issn": "",
+            "pages": "3195--3206",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Protein sorting to mitochondria: Evolutionary conservations of folding and assembly",
+            "authors": [
+                {
+                    "first": "F.-U",
+                    "middle": [],
+                    "last": "Hartl",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Neupert",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Science",
+            "volume": "247",
+            "issn": "",
+            "pages": "930--938",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Predicting the orientation of eukaryotic membrane spanning proteins",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Hartmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rapoport",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Lodish",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Proc. Natl. Acad. Sci. USA",
+            "volume": "86",
+            "issn": "",
+            "pages": "5786--5790",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Topography of the membrane-binding domain of cytochrome b 5 in lipids by fourier-transform infrared spectroscopy",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Holloway",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Buchheit",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Biochemistry",
+            "volume": "29",
+            "issn": "",
+            "pages": "2623--2634",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "The CaaX motif of lamin A functions in conjunction with the nuclear localization signal to target assembly to the nuclear envelope",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Holtz",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Tanaka",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hartwig",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Mckeon",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Cell",
+            "volume": "59",
+            "issn": "",
+            "pages": "969--977",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Prediction of leader peptide cleavage sites for polypeptides of the thylakoid lumen",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Howe",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Wallace",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Nucleic Acids Res",
+            "volume": "18",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Cytoplasmic anchoring proteins and the control of nuclear localization",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Hunt",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Cell",
+            "volume": "59",
+            "issn": "",
+            "pages": "949--951",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Golgi localization signals",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hurtley",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Trends Biochem. Sci",
+            "volume": "17",
+            "issn": "",
+            "pages": "2--3",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Identification of a consensus motif for retention of transmembrane proteins in the endoplasmic reticulum",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Jackson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Nilsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Peterson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "EMBO J",
+            "volume": "9",
+            "issn": "",
+            "pages": "3153--3162",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Chloroplastic precursors and their transport across the envelope membranes",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Keegstra",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Olsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Theg",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Annu. Rev. Plant Physiol. Plant Mol. Biol",
+            "volume": "40",
+            "issn": "",
+            "pages": "471--501",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "The detection and classification of membrane-spanning proteins",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Klein",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kanehisa",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Delisi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Biochim. Biophys. Acta",
+            "volume": "815",
+            "issn": "",
+            "pages": "468--476",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "A new class of lysosomal/vacuolar protein sorting signals",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Klionsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Emr",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Biol. Chem",
+            "volume": "265",
+            "issn": "",
+            "pages": "5349--5352",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "The biogenesis of lysosomes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kornfeld",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Mellman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Annu. Rev. Cell Biol",
+            "volume": "5",
+            "issn": "",
+            "pages": "483--525",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "A specific transmembrane domain of a coronavirus E1 glycoprotein is required for its retention in the Golgi region",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Machamer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Rose",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "J. Cell Biol",
+            "volume": "105",
+            "issn": "",
+            "pages": "1205--1214",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Posttranslational modification of proteins by isoprenoids in mammalian cells",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Maltese",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "FASEB J",
+            "volume": "4",
+            "issn": "",
+            "pages": "3319--3328",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "On the predictive recognition of signal peptide sequences",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Mcgeoch",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Virus Res",
+            "volume": "3",
+            "issn": "",
+            "pages": "271--286",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "The fats of life: The importance and function of protein acylation",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A J"
+                    ],
+                    "last": "Mcilhinney",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Trends Biochem. Sci",
+            "volume": "15",
+            "issn": "",
+            "pages": "387--391",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Prediction of in-vivo modification sites of proteins from their primary structures",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Nakai",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kanehisa",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "J. Biochem. (Tokyo)",
+            "volume": "104",
+            "issn": "",
+            "pages": "693--699",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Expert system for predicting protein localization sites in Gram-negative bacteria",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Nakai",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kanehisa",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Proteins",
+            "volume": "11",
+            "issn": "",
+            "pages": "95--110",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Topogenesis of peroxisomal proteins",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Osumi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Fujiki",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "BioEssays",
+            "volume": "12",
+            "issn": "",
+            "pages": "217--222",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Topology of Eukaryotic type II membrane proteins: Importance of N-terminal positively charged residues flanking the hydrophobic domain",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Parks",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Lamb",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Cell",
+            "volume": "64",
+            "issn": "",
+            "pages": "777--787",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "The retention signal for soluble proteins of the enndoplasmic reticulum",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "R B"
+                    ],
+                    "last": "Pelham",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Trends Biochem. Sci",
+            "volume": "15",
+            "issn": "",
+            "pages": "483--486",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Biosynthetic protein transport and sorting by the endoplasmic reticulum and Golgi",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Pfeffer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Rothman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "56",
+            "issn": "",
+            "pages": "829--852",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "A Common RNA Recognition motif identified within a defined U1 RNA binding domain of the 70K U1 snRNP protein",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Query",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Bentley",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Keene",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Cell",
+            "volume": "57",
+            "issn": "",
+            "pages": "89--101",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Membrane interactions of pp60V-s~c: A model for myristylated tyrosine protein kinases",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Resh",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Oncogene",
+            "volume": "5",
+            "issn": "",
+            "pages": "1437--1444",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Two interdependent basic domains in nucleoplasmin nuclear targeting sequence: Identification of a class of bipartite nuclear targeting sequence",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Robbins",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Dilworth",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Laskey",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Dingwall",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Cell",
+            "volume": "64",
+            "issn": "",
+            "pages": "615--623",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Protein targeting to the yeast vacuole",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Rothman",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Yamashiro",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kane",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Stevens",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Trends Biochem. Sci",
+            "volume": "14",
+            "issn": "",
+            "pages": "347--350",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "A novel secretory pathway for interleukin-lf~, a protein lacking a signal sequence",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rubartelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Cozzolino",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Talio",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sitia",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "EMBO J",
+            "volume": "9",
+            "issn": "",
+            "pages": "1503--1510",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Fatty acylation of proteins",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Schultz",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Henderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Oroszlan",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Annu. Rev. Cell. Biol",
+            "volume": "4",
+            "issn": "",
+            "pages": "611--647",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "How proteins enter the nucleus",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Silver",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Cell",
+            "volume": "64",
+            "issn": "",
+            "pages": "489--497",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Polarized sorting in epithelia",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Simons",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Wandinger-Ness",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Cell",
+            "volume": "62",
+            "issn": "",
+            "pages": "207--210",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "The structure and insertion of integral proteins in membranes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Singer",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Annu. Rev. Cell Biol",
+            "volume": "6",
+            "issn": "",
+            "pages": "247--296",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Expert System Kochiku-no-hShS",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Tanaka",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Shimoi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "The biology and enzymology of eukaryotic protein acylation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Towler",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Gordon",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Adams",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Glaser",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "57",
+            "issn": "",
+            "pages": "69--99",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Characterization of nuclear localizing sequences derived from yeast ribosomal protein L29",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Underwood",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Fried",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "EMBO J",
+            "volume": "9",
+            "issn": "",
+            "pages": "91--99",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Naming a targeting signal",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Varshavsky",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Cell",
+            "volume": "64",
+            "issn": "",
+            "pages": "13--15",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Protein translocation across membranes",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Verner",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Schatz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Science",
+            "volume": "241",
+            "issn": "",
+            "pages": "1307--1313",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "A new method for predicting signal sequence cleavage sites",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Von Heijne",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Nucleic Acids Res",
+            "volume": "14",
+            "issn": "",
+            "pages": "4683--4690",
+            "other_ids": {}
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "Topogenic signals in integral membrane proteins",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Von Heijne",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Gavel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Eur. J. Biochem",
+            "volume": "174",
+            "issn": "",
+            "pages": "671--678",
+            "other_ids": {}
+        },
+        "BIBREF60": {
+            "ref_id": "b60",
+            "title": "Domain structure of mitochondrial and chloroplast targeting peptides",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Von Heijne",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Steppuhn",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Herrmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Eur. J. Biochem",
+            "volume": "180",
+            "issn": "",
+            "pages": "535--545",
+            "other_ids": {}
+        },
+        "BIBREF61": {
+            "ref_id": "b61",
+            "title": "A Guide to Expert Systems",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Waterman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF62": {
+            "ref_id": "b62",
+            "title": "Accumulation of membrane glycoproteins in lysosomes requires a tyrosine residue at a particular position in the cytoplasmic tail",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Williams",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fukuda",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Cell Biol",
+            "volume": "111",
+            "issn": "",
+            "pages": "955--966",
+            "other_ids": {}
+        },
+        "BIBREF63": {
+            "ref_id": "b63",
+            "title": "A novel pathway of import of a-mannosidase, a marker enzyme of vacuolar membrane, in Saccharomyces cerevisiae",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Yoshihisa",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Anraku",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Biol. Chem",
+            "volume": "265",
+            "issn": "",
+            "pages": "22418--22425",
+            "other_ids": {}
+        },
+        "BIBREF64": {
+            "ref_id": "b64",
+            "title": "Nuclear transport of adenovirus DNA polymerase is facilitated by interaction with preterminal protein",
+            "authors": [
+                {
+                    "first": "L.-J",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Padmanabhan",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Cell",
+            "volume": "64",
+            "issn": "",
+            "pages": "13--15",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "1.0 for A, I, L, F, V; 0.5 for C, G, M; -0.5 for S, T, Y; -1.0 for P, W; -3.0 for N, Q, H; and -5.0 for R, D, E, K. For each of the positions in the search area, if the apolar value is positive, then the following positions are considered together until the sum of the apolar values becomes equal to or less",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Various suggested forms of lipid anchors. The space under the membrane represents the cytoplasm. (a) Palmitoylation. (b) N-Myristoylation. (c) Glycosyl phosphatidylinositol (GPI) anchor. (d) Isoprenylation. See text for more details.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "FIG. 3. A simplified reasoning tree that illustrates the basic strategy for reasoning and the overall organization of rules. Reasoning processes are performed approximately following this tree downward. At each node, a decision is made according to the result of a certain calculation. \"O\" and \"X\" are \"yes\" and \"no\", respectively, although results are more precisely evaluated by way of modifying certainty factors. Thus, negative branches can be continued to be followed. Finally, every sorting site has some certainty factor at the end of reasoning and the site with highest certainty will be selected as the probable target site.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "The Numbers of Proteins in the Repertoire of Localization Sites",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Terminology for Various Sorting Signals a",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Discriminant Functions",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "List of Core Rules in the Knowledge Base",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "pox5 If a peroxisomal protein, it may have characteristic AAC with no ER-transferon. cpel If a cytoplasmic protein, there are no features of sorting signals. cpe2 If a cytoplasmic protein, there are no features of sorting signals (plant version).",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank Dr. Koreaki Ito for critically reading the manuscript. This work was supported by a grant from the Human Frontier Science Program.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGMENTS"
+        }
+    ]
+}

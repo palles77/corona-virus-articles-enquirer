@@ -1,0 +1,3283 @@
+{
+    "paper_id": "36fd2f3dfeec8932ec6e4553bce33222c4380756",
+    "metadata": {
+        "title": "Multiplex primer prediction software for divergent targets",
+        "authors": [
+            {
+                "first": "Shea",
+                "middle": [
+                    "N"
+                ],
+                "last": "Gardner",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Amy",
+                "middle": [
+                    "L"
+                ],
+                "last": "Hiddessen",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Lawrence Livermore National Laboratory",
+                    "location": {}
+                },
+                "email": ""
+            },
+            {
+                "first": "Peter",
+                "middle": [
+                    "L"
+                ],
+                "last": "Williams",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Christine",
+                "middle": [],
+                "last": "Hara",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Lawrence Livermore National Laboratory",
+                    "location": {}
+                },
+                "email": ""
+            },
+            {
+                "first": "Mark",
+                "middle": [
+                    "C"
+                ],
+                "last": "Wagner",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Bill",
+                "middle": [
+                    "W"
+                ],
+                "last": "Colston",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "QuantaLife, Inc",
+                    "location": {
+                        "settlement": "Livermore",
+                        "region": "CA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "We describe a Multiplex Primer Prediction (MPP) algorithm to build multiplex compatible primer sets to amplify all members of large, diverse and unalignable sets of target sequences. The MPP algorithm is scalable to larger target sets than other available software, and it does not require a multiple sequence alignment. We applied it to questions in viral detection, and demonstrated that there are no universally conserved priming sequences among viruses and that it could require an unfeasibly large number of primers ($3700 18-mers or $2000 10-mers) to generate amplicons from all sequenced viruses. We then designed primer sets separately for each viral family, and for several diverse species such as foot-and-mouth disease virus (FMDV), hemagglutinin (HA) and neuraminidase (NA) segments of influenza A virus, Norwalk virus, and HIV-1. We empirically demonstrated the application of the software with a multiplex set of 16 short (10 nt) primers designed to amplify the Poxviridae family to produce a specific amplicon from vaccinia virus.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Researchers employ numerous approaches for viral detection and discovery, including metagenomic sequencing (1) (2) (3) , microarrays (4) (5) (6) (7) (8) (9) or multiplex PCR followed by other methods of characterization such as mass spectrometry (10) (11) (12) (13) (14) , suspension arrays (15, 16) or amplicon sequencing (17) . Multiplex PCR followed by analysis of amplified products fills a niche for viral identification when singleplex PCR has failed or there are a few dozen likely candidates but the expense of metagenomic sequencing or high-density microarrays is unwarranted (18) . However, multiplex primer design for many highly divergent targets is challenging since no universally conserved primers may exist, and finding sets of primers likely to function well in multiplex (e.g. isothermal T m 's, no primer dimers) adds to the complexity of finding conserved primer candidates. Primer design software that requires a multiple sequence alignment (MSA) as input can be problematic for diverse target sets, as MSAs can be difficult to construct, exhausting memory or available time before an alignment is completed. Even if an alignment does complete for divergent target sets such as all members of a family of RNA viruses or gene homologues across species, alignments may show little nucleotide sequence conservation, and multiple primers are required to amplify all targets. Considering the challenges of primer design for targets showing sequence variation, it is not surprising that many of the PCR-based assays in the literature are predicted to fail to detect desired targets when compared against available sequence data, and this problem is worst at higher taxonomic levels like family (19) .",
+            "cite_spans": [
+                {
+                    "start": 107,
+                    "end": 110,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 111,
+                    "end": 114,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 115,
+                    "end": 118,
+                    "text": "(3)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 133,
+                    "end": 136,
+                    "text": "(4)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 137,
+                    "end": 140,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 141,
+                    "end": 144,
+                    "text": "(6)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 145,
+                    "end": 148,
+                    "text": "(7)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 149,
+                    "end": 152,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 153,
+                    "end": 156,
+                    "text": "(9)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 246,
+                    "end": 250,
+                    "text": "(10)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 251,
+                    "end": 255,
+                    "text": "(11)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 256,
+                    "end": 260,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 261,
+                    "end": 265,
+                    "text": "(13)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 266,
+                    "end": 270,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 291,
+                    "end": 295,
+                    "text": "(15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 296,
+                    "end": 299,
+                    "text": "16)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 323,
+                    "end": 327,
+                    "text": "(17)",
+                    "ref_id": null
+                },
+                {
+                    "start": 585,
+                    "end": 589,
+                    "text": "(18)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 1709,
+                    "end": 1713,
+                    "text": "(19)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Most currently available multiplex primer prediction tools require an MSA (20) (21) (22) (23) (24) . None of those tools build multiplex sets in which no primers in the set are predicted to form primer-dimers, although some avoid homodimers. We attempted to run a number of alternative software tools for multiplex or degenerate primer prediction for several species level target sets ranging in size from 41 to $6000 sequences: Primaclade (24) , FastPCR (www .biocenter.helsinki.fi/bi/programs/fastpcr.htm), GeneUp (25) , PDA-MS/UniQ software (26) , Greene SCPrimer (20) and HYDEN (22) . Only Greene SCPrimer and HYDEN could handle the two smallest, species-level target sets (Norwalk virus and FMDV), and none of the tools completed for the larger target sets that we attempted to run. Therefore, we designed the MPP software to avoid the requirement of an MSA and to scale better for large and diverse target sets. MPP builds a multiplex-compatible set of primers capable of amplifying all target sequences, attempting to minimize the number primers in the set.",
+            "cite_spans": [
+                {
+                    "start": 74,
+                    "end": 78,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 79,
+                    "end": 83,
+                    "text": "(21)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 84,
+                    "end": 88,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 89,
+                    "end": 93,
+                    "text": "(23)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 94,
+                    "end": 98,
+                    "text": "(24)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 440,
+                    "end": 444,
+                    "text": "(24)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 516,
+                    "end": 520,
+                    "text": "(25)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 544,
+                    "end": 548,
+                    "text": "(26)",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 567,
+                    "end": 571,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 582,
+                    "end": 586,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "We set out to determine a set of highly conserved 'universal' primers for viruses, akin to the highly conserved 16S rRNA universal primers for bacteria. Throughout, we use the term 'detected' to mean that there should be at least one PCR product. This is a loose definition of 'detected' adopted for convenience in the following discussions, and we recognize that a PCR product may prove insufficient for viral characterization. We predicted a set of 'universal viral primers' for all available complete genomes of all viruses, and found that the number of universal viral primers would be impractical to implement, even if short, highly conserved priming sequences were used. Then we predicted family-level primer sets for every viral family, as well as for several highly diverse species of RNA viruses, for primers of a traditional length as well as nontraditional, shorter, more highly conserved primers, which are more likely to amplify novel, unsequenced viruses and which could be an alternative to degenerate primers. While the software uses a greedy algorithm that may settle at a local minimum which is above the true minimal set, it generated primer sets for each viral family with fewer than half the number of primers that would be expected without optimization. Although family-level primer sets for some families are too large to be practical, 64% of the families had primer sets of no more than 20 primer pairs, quite feasible for multiplex PCR.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Finally, we empirically multiplexed a set of 16 short (10-mer) primers designed for the Poxviridae family. This demonstrated specific amplification of the expected viral fragment from vaccinia Lister strain. This preliminary demonstration suggests that specific amplification with family-level multiplexed sets of short primers might be feasible for viral detection and discovery, particularly as a means for selective enrichment of viral target for downstream amplicon characterization (e.g. sequencing or probe hybridization).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Here, we outline a greedy algorithm used to calculate conserved sets of multiplexed primers to amplify fragments from each member of a target set of sequences, and provide a more detailed description in the Supplementary Methods. First, we enumerate all candidate oligos fitting user-specified requirements for length, T m , and lack of hairpin formation. We rank pairs of these by the number of targets in which that pair occurs within a distance range d 1 bases to d 2 bases of one another, where these might be specified so as to bound a reasonable range for a downstream characterization method such electrophoretic discrimination of bands, probe hybridization or sequencing. The most frequent pair is selected as primers. The process is repeated for the remaining targets that would not have an amplicon from the first pair, with the added consideration that new primers selected be predicted not to form dimers with other primers already selected, as well as can be predicted based on nearest neighbor thermodynamic predictions (27) , although free energy calculations cannot predict with certainty that primer dimers will be excluded in practice. There is an option to bin primers into reaction subsets, if desired. With binning, primers are added to a bin until that bin contains b primers, at which point a new bin is begun, following the same process. Binning primers in smaller groups avoids exclusion of the most highly conserved oligos because of primer dimer free energy constraints. The universal set of primers is the set of selected primers to amplify all genomes in the target set. The primers within a bin should be multiplexed into a single PCR reaction, but each bin should be run separately. This is a simple binning strategy, and alternative strategies could be employed such as starting a new bin with any primer pair that dimerizes with other previously selected primers regardless of the number of primers in the bin, but this could have the possible disadvantage of bin explosion to numerous singleplex or small multiplex reactions. The graph-based algorithm of MuPlex (28, 29) is another binning strategy that could be incorporated. Output on the number of primers rejected due to the various filters (T m , hairpin free energy, etc.) is printed to standard output after each round of primer pairs are selected and also cumulatively, so a user can monitor if/which parameters might be too stringent. If an alternative set of primers is desired that does not overlap with the set selected, one can replace with N's the subsequences matching the selected primers and their reverse complements in the target sequences and rerun the software with the modified input sequences.",
+            "cite_spans": [
+                {
+                    "start": 1034,
+                    "end": 1038,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 2096,
+                    "end": 2100,
+                    "text": "(28,",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 2101,
+                    "end": 2104,
+                    "text": "29)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "MPP algorithm for calculating multiplexed primer sets"
+        },
+        {
+            "text": "The script find_amplicons.pl predicts all the amplicons that should be generated by a list of (multiplexed) primers mixed with a set of sequences. This PCR-simulating script lists amplicon sequences, their length and position, and the forward+reverse primer combination to yield each product, as well as a summary file of the fragment length distributions enabling a quick assessment of how well each target sequence can be discriminated based purely on amplicon length patterns. We used this script to check whether some viral primer sets are predicted to generate amplicons from the human genome.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "MPP algorithm for calculating multiplexed primer sets"
+        },
+        {
+            "text": "For all T m and free energy predictions, we used the following Unafold settings: [Na+] = 0.2 M, [Mg+] = 0.0015, annealing temperature = 30 C, and strand concentration of each strand = 10 -7 M, making the total strand concentration of both strands = 2 \u00c2 10 -7 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "MPP algorithm for calculating multiplexed primer sets"
+        },
+        {
+            "text": "The MPP algorithm described here focuses on finding conserved primers, and does not require that the primers be family-or species-specific. For the runs predicting family-specific primers, we designed viral family primers that were unique relative to nontarget viral families by replacing any substring of 17 nt or longer that occurs in any non-target family with a substring of 'N''s, using the suffix array software vmatch (http://www.vmatch.de/). MPP eliminates oligos with N's from consideration as primers. This approach is simple, although it risks being overly strict by eliminating some potentially successful candidate primers, since it disallows those cases where a single nonunique primer pairs with a unique primer, a pair of nonunique primers are too far apart to actually generate an amplicon in a nontarget sequence, or candidate oligos partially overlap a nonunique stretch of N's.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Imposing uniqueness requirements for target-specific priming"
+        },
+        {
+            "text": "In general, searching for primers from sequence that is specific to one set of targets and excluding candidate substrings present in nontarget sequence is a useful strategy to design signatures for pathogen detection. This can be done by replacing nonunique or nonspecific substrings with N's in the sequences input to MPP using software such as vmatch.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Imposing uniqueness requirements for target-specific priming"
+        },
+        {
+            "text": "For runs predicting universal viral primers including all viruses at once in the target set, all viral complete genomes and segments downloaded from publicly available sequence databases (Genbank, Baylor, TIGR) as of 25 April 2007 were used. Draft sequences with multiple contigs were merged into a single sequence entry, with contigs separated by 1000 N's, a stretch sufficiently long (>d 2 ) so that primer pairs would not be designed to fall on different contigs, although there were very few draft sequences in contigs where this was necessary. Because of the large numbers of sequences in two families, only the MP segment sequences from Orthomyxoviridae and the L segment from Bunyaviridae were included, as these are the more conserved segments, reducing the number of targets by 23 017 sequences. The total number of target sequences for these all virus runs were 11 477. We predicted a multiplex set of universal 10-mers without binning the primers into separate reactions, but it was necessary to use a very low x dimer and x homodimer of \u00c011 kcal/mol to be possible to predict multiplexed primers to amplify every target. For the next calculations, we subdivided the primers into sub-reactions with 20 primers per reaction bin, to avoid excluding primers that were predicted to form primer dimers, and raised x dimer and x homodimer to -7 kcal/mol. Primer sets of length 5-18 were predicted ( Figure 1 ). To assess the effect of removing T m constraints, we generated universal primer sets with length but no T m requirements, and compared the primer counts to those with T m constraints ( Figure 2 ). Primer sets are available by contacting the authors.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1404,
+                    "end": 1412,
+                    "text": "Figure 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1601,
+                    "end": 1609,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Runs predicting universal viral primers"
+        },
+        {
+            "text": "We evaluated how the growth of sequence availability could affect the size of the universal set of viral primers, as well as our ability to detect unknown/unsequenced viruses. We predicted a universal viral primer set for all viral genomes and segments available as of 1 January 2004, totaling 9965 sequences, for primers of length 7-15 nt ( Figure 2 ). It was not necessary to exclude any Orthomyxoviridae or Bunyaviridae segments, because these segments were not so deeply sequenced at that time. We then determined how much of the 2007 sequence data would have been detectable using the 2004 primer sets (Figure 3 ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 342,
+                    "end": 350,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 607,
+                    "end": 616,
+                    "text": "(Figure 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Runs predicting universal viral primers"
+        },
+        {
+            "text": "To predict how contamination with human DNA might affect the ability to detect specific amplification of viruses, the average number of amplicons for the human genome was also predicted based on these primer sets with 20 primers per bin ( Figure 4 ). The effect of reducing the multiplex size to 10 primers per reaction on human genome amplification was calculated by dividing priming sets in half, with 10 primers per reaction.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 239,
+                    "end": 247,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Runs predicting universal viral primers"
+        },
+        {
+            "text": "Subdividing viral targets into families, we used an updated set of sequences, downloaded 5 February 2009. For familylevel primers, we computed primer sets using three alternative parameter settings (Table 1) : (i) 17-21-mer primers with T m = 55-60 C, primers not checked for uniqueness; (ii) same length and T m specifications as in (i) but eliminating from consideration as primers any oligos of at least 17 nt that occur in nontarget viral families, as described earlier; and (iii) 10-15-mer primers with T m = 40-45 C. These primers are available as Supplementary Data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 198,
+                    "end": 207,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Viral family primers"
+        },
+        {
+            "text": "We also generated primer sets for several species with high sequence diversity: HIV-1, FMDV, Norwalk virus and influenza A segments HA and NA (summary in Tables 2 and 3, primer sequences available as Supplementary Data). MPP parameters were the same as in Table S1 , with T m = 35-50 C for 10-mer primers and T m = 55-70 C for 17-18-mer primers, and sequences were downloaded in 2007 or 2008 (influenza only). To illustrate the challenges of designing primers from an alignment, we aligned these organisms using MUSCLE (30) when possible. For the HIV-1 and influenza A segments HA and NA, MUSCLE ran out of memory before completing. An alternative alignment tool, ClustalW (31), had completed only a small fraction of the alignment after running for days. Therefore, for these large data sets, a random selection of $35 sequences for each target was aligned with MUSCLE, and this alignment was used to build a profile Hidden Markov Model (HMM) (hmmbuild) using HMMer (http://hmmer.wustl.edu/). (32) The full sequence set was then aligned to the HMM using hmmalign. For Norwalk virus and FMDV, we designed multiplex-degenerate primer sets using GreeneSCPrimer (20) and HYDEN (22) , but the other three targets sets were too large for those programs. None of the other primer prediction programs we tried (as indicated in the 'Results' section) would scale to handle even these two smallest target sets.",
+            "cite_spans": [
+                {
+                    "start": 994,
+                    "end": 998,
+                    "text": "(32)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 1159,
+                    "end": 1163,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1174,
+                    "end": 1178,
+                    "text": "(22)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 256,
+                    "end": 264,
+                    "text": "Table S1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Species level primers for several divergent species"
+        },
+        {
+            "text": "For an empirical demonstration of our algorithm, we tested a multiplex set of 16 short, 10-nt primers designed for the Poxviridae viral family against commercially purified vaccinia virus extracts. The primer sequences are provided in Table 4 along with the predicted single amplicon for vaccinia Lister strain. We chose the Poxviridae family multiplex for these first empirical demonstrations because extracted viral nucleic acid was readily available for experiments. All primers were purchased from Integrated DNA Technologies (Coralville, IA, USA) and resuspended to 100 mM stock solutions in TE buffer (pH 8.0, Teknova, Hollister, CA, USA). Working solutions containing equimolar concentrations of each of the 16 primers were used in all experiments. Purified, quantitated vaccinia Lister strain DNA was purchased at a concentration of 1.3 \u00c2 10 4 copies/ml in nuclease-free water from Advanced Biotechnologies, Inc. (Columbia, MD, USA). All PCR experiments were prepared using the Superscript III RT-PCR kit from Invitrogen (Carlsbad, CA, USA). We selected the RT-PCR kit in order to establish a protocol that could later be readily applied to additional multiplex viral family reactions with viral DNA and/or RNA. Each 25 ml reaction contained 1 \u00c2 SSIII buffer, 1 U of SSIII RT/ Taq enzyme, 4.8 mM MgSO 4 , 0.1 mM each primer, and a viral template mass of 2.7 pg ($10 4 copies). Tests were performed in triplicate and corresponding negative controls were run under identical conditions except that viral template was replaced with nuclease-free water (Ambion, Austin, TX, USA). All reactions were thermocycled on the Bio-Rad DNA Engine (Hercules, CA, USA) as follows: one cycle of 2 min at 94 C; 40 cycles of 15 s at 94 C, 30 s at 43.9 C, 1 min at 68 C; one cycle of 5 min at 68 C. In line with our goal to create a protocol applicable to both DNA and/or RNA templates, we verified that inclusion of an RT step (one cycle of 30 min at 45 C) does not alter the outcome of the subsequent PCR when working with DNA template (data not shown). As such, for all Poxviridae 16-plex results reported here, an RT step was not used. Another goal was to establish reaction conditions that can be applied to any multiplex viral primer set without the need for re-optimization, assuming the primer set is designed with the same general parameter contraints (T m s, etc.) used to compute the 16-plex presented here. As such, we first optimized master mix conditions, where it was determined that a 4.8 mM MgSO 4 concentration resulted in most optimal amplification. Similarly, we determined the optimal annealing temperature based on results from annealing temperature gradient experiments. A more detailed discussion on the optimization of reaction conditions for amplification with our short primer viral multiplexes is the subject of a separate paper in preparation (Hiddessen and co-workers).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 235,
+                    "end": 242,
+                    "text": "Table 4",
+                    "ref_id": "TABREF5"
+                }
+            ],
+            "section": "Empirical testing of Poxviridae multiplex primers"
+        },
+        {
+            "text": "This multiplex was compared against the human genome, predicting 233 amplicons between 50 and 1000 bp from the Poxviridae 16-plex. For empirical tests against background human nucleic acids, we followed the same reaction conditions as above. In these tests, vaccinia DNA was held at a constant concentration of 2.7 pg (1.3 \u00c2 10 4 copies), and serial dilutions of human genomic DNA (Novagen, Madison, WI, USA), were added to the vaccinia PCR reaction mix, starting at 2.7 pg and titrating down over 4 orders of magnitude to 2.7 \u00c2 10 -4 pg. These experiments were performed using mass ratios of vaccinia:human DNA at 1 : 1, 10 : 1, 100 : 1, 1000 : 1 and 10000 : 1. These correspond to copy number ratios of vaccinia:human genomes of 1. All PCR experiments were analyzed on 3% agarose TBE gels containing ethidum bromide that were purchased from Bio-Rad (Hercules, CA, USA). Blue juice TM 10\u00c2 loading dye was purchased from Invitrogen (Carlsbad, CA, USA) and diluted to 2\u00c2 before use. A 50-bp DNA ladder was purchased from Novagen (Madison, WI, USA). For analysis, 15 ml from each separate 25 ml PCR reaction were combined with 2 ml of of loading dye and 15 ml of the loading-dye/product mixture was loaded per well and electrophoresed for 1 h 40 min at 85 V.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Empirical testing of Poxviridae multiplex primers"
+        },
+        {
+            "text": "For confirmation of amplicon sequence, 9 ml of amplified PCR product was mixed with 4 ml of ExoSap-it (USB, Cleveland, OH, USA) and incubated at 37 C for 15 min followed by a denaturation step at 80 C for 15 min. Sanger sequencing was then performed with the BigDye V3.1 Terminator Kit (Applied Biosystems, Inc., Foster City, CA, USA). Single reactions contained 4 ml of Ready Reaction Mix, 0.2-mM primer, 2 ml 5\u00c2 Sequencing Buffer, 11.5 ml of nuclease free water (Applied Biosystems, Inc.) and 2 ml of post-Exosap-it PCR product. The sequencing reaction used the following thermocycling profile: 1 cycle of 94 C for 1 min; 25 cycles of 94 C for 15 s, 38 C for 30 s and 60 C for 4 min. Two microliters of sequencing reaction product was combined with 18 ml of Hi-Di Tm Formamide (Applied Biosystems, Inc.) and run on the ABI 3130 (Applied Biosystems, Inc.). The results were analyzed using Sequencing Analysis v5.2 (Applied Biosystems, Inc.).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Empirical testing of Poxviridae multiplex primers"
+        },
+        {
+            "text": "Predicting a set of universal viral primers that are all mixed in a single large reaction, we predict that 1008 primers of length 10 nt would be required to ensure amplification of at least one fragment of length 80-620 bp from every viral genome. These are predicted to generate a mean and maximum number of amplicons per viral genome of 13.2 and 948, respectively. Binning the primers into smaller sets of 20 primers/bin doubled the number of primers required, as Figure 1 shows the fraction of viral genomes amplified versus the number of primers, for primers ranging from 6 to 18 nt in length. About 2000 binned 10-mers are required to amplify 100% of sequenced viruses, generating a mean of 1 and maximum of 2.9 amplicons per genome, on average. Using traditional-length 18-mer primers nearly doubles the number to $3700 primers. The incomplete curve for 7-mers was from inappropriate settings for this oligo length, since some genomes do not contain pairs of 7-mers with the required T m , as given in the Supplementary Tables S1 and S2, within the desired amplicon length range. The concave curves showing diminishing returns reflect biased sequence availability rather than any particularly highly conserved primers: the primers that amplify the largest number of sequences are all from influenza, as far more sequences are available for this species than for any other.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 466,
+                    "end": 474,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Universal viral primers"
+        },
+        {
+            "text": "Increasing availability of sequence data on universal primer sets",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Universal viral primers"
+        },
+        {
+            "text": "The increase in sequence data requires $700 more 10-mer primers to amplify all sequenced viruses in 2007 compared to 2004 (Figure 2 ). While the increase in the number of sequences used between the two dates was only $15%, the number of primers required increased by 48%, illustrating the substantial increase in diversity represented by the additional sequence data. Figure 2 also shows that removing all T m constraints allows fewer primers to be used since no conserved primers are eliminated due to T m , as some AT rich subsequences tend to be fairly conserved. Figure 3 shows that a universal primer set predicted using the 2004 sequence data would amplify only 35% of the 2007 sequences using primers of at least 10 nt in length. Shorter primers increase this fraction to over 60%, due to the higher likelihood of occurrence and conservation of shorter oligos, but even so, a multiplex of 7-mers is not guaranteed to amplify a fragment from every virus. The minor differences in the number of genomes detected between 12, 13, 14 and 15-mers can be attributed to the facts that a greedy but not necessarily optimal algorithm is used to select one solution from among many, that the primers in a particular set depend on the T m ranges we used as well as length differences, and the unpredictable nature of novel viral sequences accumulated between 2004 and 2007, rather than any real difference in the ability to detect genomes among those primer sets.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 122,
+                    "end": 131,
+                    "text": "(Figure 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 368,
+                    "end": 376,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 567,
+                    "end": 575,
+                    "text": "Figure 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Universal viral primers"
+        },
+        {
+            "text": "If all human DNA cannot be removed from the sample, simulations indicate that on average, multiplexes of 10-mer primers are expected to produce hundreds of amplicons from the human genome, which would appear as a smear on a gel ( Figure 4 ). With primers of length 11-14, there is a large variation among bins. While most short sequences do occur in the human genome (33) , an amplicon requires that two occur in proximity, and primers !11 bases make this a sporadic event for bins with only 10 primers. Nonetheless, imperfect sample purification to eliminate eukaryotic nucleic acids could be problematic for universal viral priming using primers shorter than 15 bases, particularly for multiplexes of 10 or more primers.",
+            "cite_spans": [
+                {
+                    "start": 367,
+                    "end": 371,
+                    "text": "(33)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 230,
+                    "end": 238,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Predicting effects of contamination from human DNA"
+        },
+        {
+            "text": "Family identification by sequencing products from universal 10-mer primer set versus randomly amplified fragments",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Predicting effects of contamination from human DNA"
+        },
+        {
+            "text": "If universal viral primers amplified fragments from a newly emerged virus, would the product sequences show similarity to others in the same family? We predicted (2).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Predicting effects of contamination from human DNA"
+        },
+        {
+            "text": "The number of family-level primers for each family, and the number of genomes available for generating those primer sets, is given in Table 1 , for three alternative settings: short primers of 10-15 nt with T m 40-45 C, standard length primers of 17-21 nt and T m 55-60 C, and the same but requiring that each primer subsequence of at least 17 nt be unique to the target viral family relative to other viral families. At least one amplicon of 200-800 bp was required from every genome. Hypothetically, the worst-case scenario to amplify a target set of N sequences would require 2N primers. MPP requires on average only 37% or 45% of this number, for primers of length 10-15 nt or 17-21 nt without the requirement for family specific primers, respectively (averaged across families, omitting those families for which the computations were not run to completion). The most diverse families, in particular Bunyaviridae, Geminiviridae, Polydnaviridae, Reoviridae, Retroviridae, Siphoviridae and Orthomyxoviridae require so many primers that actually applying family-level amplification is probably infeasible. For these, more restricted target sets may be necessary, such as limiting to a single segment for the segmented families or to subclades, and possibly the incorporation of primers with degenerate or inosine bases. Some families with many genomes can be amplified with relatively few primers, such as Coronaviridae, Hepadnaviridae, Poxviridae, Togaviridae, Microviridae and Polyomaviridae. Using primers of length 10-15-mers or 17-21-mers, 66% or 63%, respectively, of the viral families have primer sets of 40 or fewer primers (20 primer pairs), which is feasible for typical multiplexes.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 134,
+                    "end": 141,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Viral family primers"
+        },
+        {
+            "text": "The sizes of the family-level primer sets show a trend for an increase with the number of available sequences in the family ( Figure 5 , P = 0.14). There is no clear relationship between the number of primers in the set and whether the genomes are single or double stranded RNA or DNA. All family primer sequences are available as Supplementary Data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 126,
+                    "end": 134,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Viral family primers"
+        },
+        {
+            "text": "Primer design with the MPP software indicates that relatively few primers are required to amplify all sequenced genomes of HIV-1, FMDV and Norwalk virus (Table 2) , and these can be calculated in minutes. Influenza A HA and NA segments demand large numbers of 10-mer or 17-18-mer primers and hours to calculate, so one could break these into subgroups, possibly by serotype, as shown for several HA serotypes in Table 3 . The percentage of genomes amplified versus the number of primers used, for primers of either 10-mers or 17-18-mers, is shown in Figure 6 . This plot shows that a large fraction of targets are amplified with only 2 primers, and the addition of subsequent primers shows diminishing returns in amplifying fewer, more divergent targets not detected by the initial, more conserved, primer pair, although the true diminishing returns depend on the extent to which available sequence data is an unbiased representation of diversity. The more traditional method of attempting to find primers from a MSA would be problematic, probably requiring manually designed primer multiplexes or highly degenerate primers. GAAGAAGCG starting at 9071. These regions are too far apart to be used as primers for most polymerases used in diagnostic PCR protocols, where amplicons must typically be less than 300 bases long for efficient amplification. A recently published study (35) selected primers from the 5 0 LTR U5 end to the Gag-Pol start (5 0 -TAGC AGTGGCGCCCGA-3 0 and 5 0 -TCTCTCTCCTTCTAGC CTCCGC-3 0 ), but a comparison against available genomic data indicates that 487 of the 1175 genomes (41%) do not contain a sequence match for this primer pair, so may fail to be amplified. For influenza A segment HA, the size of the longest conserved region from the 95% consensus is only 5 bases, and for segment NA, only 6 bases, insufficient for even a single primer. For FMDV and Norwalk virus, the longest 100% conserved regions are 9 and 6 bases, respectively. The MPP software makes it straightforward for a nonexpert to predict a multiplex-compatible set of primers to amplify all targets, even for enormous and heterogeneous target sets that cannot be aligned.",
+            "cite_spans": [
+                {
+                    "start": 1377,
+                    "end": 1381,
+                    "text": "(35)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 153,
+                    "end": 162,
+                    "text": "(Table 2)",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 412,
+                    "end": 419,
+                    "text": "Table 3",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 550,
+                    "end": 558,
+                    "text": "Figure 6",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "Species-level primers for divergent RNA viruses"
+        },
+        {
+            "text": "For comparison, we considered other software options for designing primers for these heterogeneous viruses. FastPCR (www.biocenter.helsinki.fi/bi/programs/fastpcr .htm) and GeneUp (25) were the only programs that did not require an MSA as input. The FastPCR algorithm for group-specific PCR (i.e. universal amplification) designs PCR primer pairs individually for each target sequence without regard for primer conservation among targets, and then compares each primer pair to the other targets. This is a brute force strategy that is only suitable for small target sets and short target sequences (appropriate for gene lengths, but not for viral genome-length sequences). We ran the FastPCR software on our internal servers, but it did not complete 'group-specific PCR' for the smallest data set, Norwalk virus, after running for 18 h, and for 'multiplex PCR' gave the error message 'No compatible combination of pair primers for multiplex PCR found'.",
+            "cite_spans": [
+                {
+                    "start": 180,
+                    "end": 184,
+                    "text": "(25)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparison with other software"
+        },
+        {
+            "text": "GeneUp simulates PCR with pairwise combinations of candidate primers which pass length, T m , GC%, and palindrome filters against all target sequences, and uses a greedy algorithm to build a primer set to amplify all of the targets. Since testing all possible pairwise oligonucleotide combinations against each target explodes in time and memory for large target sets, a cap on the maximum number of candidate primers to be tested must be imposed, presumably using the most common oligos, although this is not explicit in the paper. Then a Grey shaded entries indicate where calculations were not run to completion. In other cases (not shaded) where fewer than 100% of targets were predicted to be amplified, the algorithm failed to find primer pairs that met all the required specifications for the remaining targets, that is, primers in the right length, T m , and amplicon length range, with hairpin and dimer avoidance with other primers already selected to be in the set, could not be found. None of the calculations that completed required more than the 16 GB of RAM that was available. PCR simulation (performing a text search for the primer in the target sequence) of each pair versus each target is performed. Unfortunately, the most common oligos may not occur in the correct orientation or distance to serve as primer pairs, so that multiple iterations of the entire process must be performed before a set covering all targets is obtained. MPP, in contrast, uses an efficient ranking algorithm to favor pairs of primer candidates that will produce amplicons of the right size in the most targets. Because of the MPP hashing algorithm and data structures, those targets that are amplified is easily determined without simulating PCR. A copy of the GeneUp software for testing could not be obtained from the authors. The PDA-MS/UniQ approach (26) uses a hash index of 4-mers and scoring heuristic to identify common regions in the target sequences with the most shared tetramers. Simulating combinations of candidate primers selected from these common regions is then performed using a genetic algorithm. Their genetic algorithm is a more scalable approach than those above, and the quality of the solution may be improved with more compute power, although a potential disadvantage of genetic algorithms is that they can be slow, particularly if there are very many possible combinations. For computational tractability, they limited primer size to 12 nt, and avoidance of hairpins and primer dimers was not modeled. This software was not available for download or on a public web server. The other software all required MSA as input. While these tools could not be tested on larger (e.g. family level) primer prediction problems where alignments would not be possible or appropriate, we nevertheless attempted to run these tools on the alignable species-level target sets. The Primaclade (24) webserver timed out for the smallest alignments we tested, Norwalk and FMDV. CODEHOP (23) requires protein alignment as input so is not appropriate for whole-genome (nucleotide) alignments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison with other software"
+        },
+        {
+            "text": "GreeneSCPrimer (20) did generate a number of degenerate primer candidates from the MSAs for Norwalk and FMDV, requiring the user to manually select a combination of forward and reverse groups from a set of options. We ran GreeneSCPrimer using length, T m , etc. settings mirroring or more lenient than those we used for Table 3 (T m = 55-65 C, GC% = 20-80%, length 17-25 bp, 100% coverage, product size 80-620 bp, allowed T m difference 10 C, others left as defaults). HYDEN (22) also generated degenerate candidates from a MSA, although it does not check T m and the length is limited to a single value rather than a range. For our tests using HYDEN, we used a length of 18 rather than 17 because of the lack of T m control, and allowed 0 mismatches. The GreeneSCPrimer option requiring the fewest total primers for the Norwalk set required 18 primers, four of which had either 2-fold or 4-fold degeneracy so the actual number of priming sequences would be 26, compared to a total of 20 non-degenerate primers predicted by MPP (Supplementary Data). HYDEN generated four degenerate primers covering only 34 of 41 sequences, each with 3-or 4-fold degeneracy for Norwalk, which translates to 15 priming sequences in the reaction. One would need to find primers to amplify the remaining seven sequences. Small degenerate priming sets (e.g. four primers in this case) are less expensive to purchase, but because of dilution effects from the many sequence combinations actually present (15 priming sequences in the PCR), sensitivity may be reduced compared to nondegenerate priming. However, using a smaller set of degenerate signatures such as those from HYDEN may be preferable, and is a capability that could improve MPP in a future version.",
+            "cite_spans": [
+                {
+                    "start": 15,
+                    "end": 19,
+                    "text": "(20)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 320,
+                    "end": 327,
+                    "text": "Table 3",
+                    "ref_id": "TABREF4"
+                }
+            ],
+            "section": "Comparison with other software"
+        },
+        {
+            "text": "For FMDV, MPP predicted six nondegenerate multiplex compatible primers to amplify all targets. GreeneSCPrimer generated a number of candidates, and manual inspection identified that the best of those primer combinations would require 6 primers, one of which had 2-fold and another had 3-fold degeneracy, totaling 9 actual priming sequences in a reaction (Supplementary Data). This compares with two primers each with 4-fold degeneracy using HYDEN (eight priming sequences in a reaction), to amplify 98% (183 of 187) targets. Again, the small number of signatures predicted by HYDEN is desirable for some applications, although the degeneracy is high and these must be supplemented to pick up the few outlying sequences",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison with other software"
+        },
+        {
+            "text": "The aim of the MuPlex software (28, 29) is to partition primer pairs into multiplex-compatible bins for SNP genotyping, and it does not employ any algorithm during primer selection to minimize the number of primers to amplify all targets, yielding a one-to-one correspondence between number of primer pairs versus number of targets. However, the MuPlex graph-based algorithm to partition primers into bins is more sophisticated than the simple binning scheme of MPP. In future work, MPP could be used to identify a universal set of primers and the backend of MuPlex used to optimize how they are binned into separate reactions.",
+            "cite_spans": [
+                {
+                    "start": 31,
+                    "end": 35,
+                    "text": "(28,",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 36,
+                    "end": 39,
+                    "text": "29)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparison with other software"
+        },
+        {
+            "text": "In summary, no software except MPP was capable of predicting primer sets for the larger target sets we examined or generating a multiplexed primer set without a MSA for any of the target sets we examined, even the smallest ones containing only a single species. Only HYDEN and GreeneSCPrimer, both requiring MSA inputs, completed for the two smallest target sets, selecting smaller sets of degenerate primers than the nondegenerate MPP primers. If target sets are sufficiently conserved so that a reasonable MSA can be built, and degenerate primers are acceptable, these tools may be preferable over MPP. However, for larger and more diverse target sets, only MPP completed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison with other software"
+        },
+        {
+            "text": "Using the experimental conditions described in the 'Methods' section, we tested the Poxviridae 16-plex (Table 4 ) against vaccinia virus, Lister strain DNA. As assessed by agarose gel analysis, we achieved specific amplification of the predicted 617-bp amplicon for the target vaccinia genome (lane 3, Figure 7 ). The band does not appear in the no template control shown in lane 4 ( Figure 7 ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 103,
+                    "end": 111,
+                    "text": "(Table 4",
+                    "ref_id": "TABREF5"
+                },
+                {
+                    "start": 302,
+                    "end": 310,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 384,
+                    "end": 392,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Poxviridae experimental results"
+        },
+        {
+            "text": "To confirm that the amplicon observed in gel analysis was a specifically amplified product from vaccinia virus, Lister strain, we sequenced the product according to the procedures described above. An analysis of the high-quality sequence read data taken from the electropherogram yielded a 95% identity (maximum) to vaccinia virus, Lister strain (AY678276.1) with a query The forward and reverse primers (FP, RP) in bold are predicted to amplify vaccinia Lister with the indicated product length (617-bp amplicon size).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Poxviridae experimental results"
+        },
+        {
+            "text": "coverage of 99% and an e-score of 0 (no data shown).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Poxviridae experimental results"
+        },
+        {
+            "text": "These values indicate that the sequenced product was vaccinia DNA and not amplification from an exogenous nucleic acid source, e.g. host cell. Notably, our multiplex reaction did not produce a smear (lane 3, Figure 7 ) that would be indicative of nonspecific priming of either the target or exogenous host cellular nucleic acids. While the exact manufacturer's extraction protocol is proprietary, it is generally known that a standard sucrose gradient ultracentrifugation step is used to enrich for the viral capsids prior to viral nucleic acid extraction. However, to the best of our knowledge, no nuclease digestions are performed prior to viral capsid lysis. Furthermore, while the viral 'extract' contains a mixture of both viral DNA and cellular nucleic acids, the exact proportions of host cell and viral nucleic acids cannot be determined. Thus, our results indicate that a multiplex of 16 primers of 10 nt each amplifies only the specific predicted band from vaccinia.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 208,
+                    "end": 216,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Poxviridae experimental results"
+        },
+        {
+            "text": "In some applications, such as clinical or biodetection applications, the exogenous nucleic acids from other eukaryotic sources, notably human sources, may be present in varying and unknown concentrations. To test the effects of background human genomic DNA on the performance (amplification specificity) of the Poxviridae 16-plex primer set, we conducted PCR reactions across a series of mass ratios of vaccinia Lister DNA:human genomic DNA at 1 : 1, 10 : 1, 100 : 1, 1000 : 1 and 10000 : 1. These correspond to approximate copy number ratios of vaccinia : human genomes of 1.3 \u00c2 10 4 : 0.82, 1.3 \u00c2 10 4 : 0.082, 1.3 \u00c2 10 4 : 0.0082, 1.3 \u00c2 10 4 : 0.00082 and 1.3 \u00c2 10 4 : 0.000082, using genome sizes of 1.9 \u00c2 10 5 bp and 3 \u00c2 10 9 bp for vaccinia and human DNA, respectively. For context, there are 6.58 pg or two copies of the genome in one human cell. Our algorithm predicted 233 amplicons between 50 and 1000 bp from the human genome. In experiments, this would appear as a 'smear' on the agarose gel, which indeed was observed for the mass ratios of 1 : 1 and 10 : 1 (Figure 7 , lanes 6 and 7, respectively). However, even at a ratio of 10 : 1 vaccinia:human DNA (lane 7), the 617-bp vaccinia amplicon is clearly visible on the gel, despite the numerous nonspecific amplicons. At ratios of 100 : 1, 1000 : 1 and 10000 : 1 (lanes 8, 9 and 10, respectively, Figure 7) , the smear is drastically reduced to nonexistent (at the resolution of the agarose gel), and the vaccinia amplicon is readily visible. For comparison, we tested the 16-plex primers against the same mass of human DNA in the absence of vaccinia DNA at 2.7 pg (the 1 : 1 ratio mass), 0.027 pg (100 : 1 mass) and 2.7 \u00c2 10 \u00c04 pg (10000 : 1 mass) (lanes 12, 13, and 14, respectively, Figure 7) . The data show a similar smear at 2.7 pg as was observed when vaccinia DNA was present (lane 6). However, the low-intensity 617-bp amplicon from vaccinia is visible in lane 6 (with vaccinia) while a similar amplicon is not present in lane 12 (without vaccina). These results provide evidence that amplification with these family level primer sets will depend on viral titers in the actual sample, and that there are cases where amplification will either not be possible or require additional sample purification steps. However, as discussed further in the next section, specific amplification with a short-primer multiplex could be used for selective enrichment of viral targets by generating amplicons with known sequence, which may be feasible for viral detection if combined with a probebased amplicon detection method such as TaqMan \u00d5 or Luminex bead based suspension arrays (http://www .luminexcorp.com/). We compared recently published conserved Orthopoxvirus primers (36) to the 148 Poxviridae genomes, and computational predictions suggest that 67 of the available genomes might not be amplified by the two primers they designed for the Orthopox genus. These included a number of monkeypox, ectromelia, several vaccinia and a couple of variola strains. However, in permissive hybridization conditions it is possible that primers would anneal despite mismatches to target, allowing more of the targets to be amplified. Four conserved Orthopoxvirus primers from an earlier publication (37) , before many of the Poxviridae genomes were available, do not match 53 genomes, including a number of monkeypox, ectromelia, camelpox and one variola minor genome. The primers in (37) included inosine bases, which we replaced with each possible A, T, G and C base in all possible combinations for our primer-target comparison. Thus, published Orthopoxvirus primers may fail to amplify many desired targets.",
+            "cite_spans": [
+                {
+                    "start": 2734,
+                    "end": 2738,
+                    "text": "(36)",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 3251,
+                    "end": 3255,
+                    "text": "(37)",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1071,
+                    "end": 1080,
+                    "text": "(Figure 7",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 1360,
+                    "end": 1369,
+                    "text": "Figure 7)",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 1749,
+                    "end": 1758,
+                    "text": "Figure 7)",
+                    "ref_id": "FIGREF8"
+                }
+            ],
+            "section": "Poxviridae experimental results"
+        },
+        {
+            "text": "Primer design for amplification and detection of divergent target sequences can be challenging, and this problem will only grow as sequencing technologies improve. Some methods are limited in scalability, particularly those requiring a MSA as input. Developing a PCR multiplex is often a tedious mix-and-match process from among primers originally designed to work in singleplex. We describe the MPP algorithm based on hashing of conserved k-mer subsequences that requires no MSA and where multiplex-compatible primer sets are built de novo to avoid primer dimer and hairpin formation to the extent that can be predicted based on free energy calculations.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "The algorithm seeks to minimize the number of primers to amplify all targets, although because the algorithm is heuristic and not an exhaustive search of all combinations of primers, the smallest primer sets may not always be selected. This is an NP complete problem (38) , so an exhaustive search for the global optimum is only practical for very small target sets. It is also beyond the scope of the current software to predict priming with mismatches between target and primer, which may occur under nonstringent hybridization conditions or for mismatches at the 5 0 end of a primer. While allowing for such priming would reduce the number of primers needed to amplify all targets, it would substantially slow the algorithm and increase memory requirements. Nor do we claim to have taken all steps to optimize (e.g. through parallelization, see Supplementary Methods) for speed or memory, but instead present this software as a simple embodiment of one alternative to MSA for multiplex primer design.",
+            "cite_spans": [
+                {
+                    "start": 267,
+                    "end": 271,
+                    "text": "(38)",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "The software handles a large number of input sequences, although for very diverse targets the predicted primer multiplex may be too large to be empirically feasible. For many target sets, such as those including all the genomes of a species, predicting a universal primer set requires only minutes up to a few hours, although for inputs with thousands of sequences a run may take days. We used MPP to design a universal primer set for a target set of all virus genomes, and showed that even if short primers are used, thousands of priming sequences would be required to amplify all sequenced viruses. We then applied MPP to design multiplex family level primers for every viral family, as well as for some diverse species target sets too large for other available primer prediction software.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "In addition to finding primers for viral detection, another application of MPP could be to design multiplex primers for homologs in a gene family. The user can specify an appropriate product length range to ensure amplification of an adequate span across the gene. MPP could also be used to design multiplex primer sets for unrelated target sequences, for example, multiple bacterial and viral species or gene families, in a single reaction. Since no sequence alignment is required, there is no need for any sequence conservation among targets. Recent work showed that a large-scale multiplex of 800 primer pairs specifically designed to detect a diverse set of genes from nine pathogens improved sensitivity on a microarray by up to 1000-fold (39) . The MPP software could be used to design multiplex primer sets for similar work.",
+            "cite_spans": [
+                {
+                    "start": 744,
+                    "end": 748,
+                    "text": "(39)",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "We demonstrated the application of the algorithm experimentally using purified vaccinia DNA, amplifying the expected band with a Poxviridae short primer multiplex PCR, and confirmed the band's expected sequence. We provided an example of the effect of background nucleic acids by spiking human DNA into the PCR reaction over a series of mass ratios. While a band for vaccinia was visualized by slab gel electrophoresis for all mass ratios, background DNA smears were also clear at the higher ratios. At a mass ratio of 1 : 1 vaccinia:human DNA, there are 2.7 pg or 0.82 copies of the human genome present in the reaction. To place this into context, there are $6.58 pg or two copies of genomic DNA in one human cell. Thus, the results from the 1 : 1 mass ratio reaction represents the impact that $41% of the total DNA content from one human cell could have on the results, when analyzed by slab gel electrophoresis. In a clinical sample, there could be a much greater number of human cells and DNA. Amplification with these family level primer sets will depend on viral titers in the actual sample, and these experiments show that there are cases where amplification will either not be possible or require additional sample purification steps. While short primer PCR multiplexes may enable amplification of diverse target sets, they will not match the specificity of longer primers. Combination of these short primer multiplexes with digitized, microfluidic-based picoliter reactions (40) and/or next-generation microfluidic-based sample purification technologies that have the ability to isolate target from contaminating nucleic acids may help to overcome this limitation. However, even in the absence of such technologies, a highly conserved short primer multiplex could enrich amplification products for members of a particular viral family compared to randomly amplified or unamplified sample. Then it would need to be followed by product sequencing or array hybridization, such as TaqMan \u00d5 or Luminex bead-based suspension arrays (http://www.luminexcorp.com/), to provide more specific information about the organism(s) present, since electrophoretic banding patterns may contain unexpected bands, particularly if the sample contains a significant amount of nonviral nucleic acids.",
+            "cite_spans": [
+                {
+                    "start": 1485,
+                    "end": 1489,
+                    "text": "(40)",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "Previous studies have shown the utility of short primer singleplex PCR using 9-mers or 10-mers followed by gel electrophoresis for genetic fingerprinting of eukaryotes and bacteria (41, 42) . For viruses, with much smaller and more diverse genomes, the large numbers of 9-mer or 10-mer primers required to generate at least one band from every virus as predicted by our analyses implies that primer size would need to be as short as 5-mers to rely on a gel banding pattern using only one priming sequence for fingerprinting viruses (unpublished data). However, the analyses here predict that imperfect sample purification to eliminate eukaryotic nucleic acids could be problematic for universal viral priming using primers shorter than 15 bases, particularly for multiplexes of 10 or more primers. Nanda et al. (43, 44) were able to achieve sufficient viral isolation from cell culture samples to allow viral identification using viral PCR with priming sequences as short as pentamers, so the problem of contaminating host nucleic acids for specific, short primer PCR of viruses is not insurmountable. They found specific pentamer PCR to be several logs more sensitive than nonspecific amplification, provided that they purified encapsidated viral nucleic acids prior to PCR. Another method that has been used for virus discovery is VIDISCA (Virus discovery cDNA-AFLP) using restriction enzyme digestion, adaptor ligation, and PCR by priming with the adaptor sequence (45, 46) . This method, like the pentamer priming used by (43, 44) , requires prior separation of encapsidated viral nucleic acids, as it generates fragments from any DNA present, viral, host or otherwise. Multiplex PCR with primers 10-15 nt in length may be yet another alternative strategy lying between these nonspecific methods and PCR with standard primers of at least 18 nt, as we have shown that it can add some measure of specificity for a viral family.",
+            "cite_spans": [
+                {
+                    "start": 181,
+                    "end": 185,
+                    "text": "(41,",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 186,
+                    "end": 189,
+                    "text": "42)",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 811,
+                    "end": 815,
+                    "text": "(43,",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 816,
+                    "end": 819,
+                    "text": "44)",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 1468,
+                    "end": 1472,
+                    "text": "(45,",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 1473,
+                    "end": 1476,
+                    "text": "46)",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 1526,
+                    "end": 1530,
+                    "text": "(43,",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 1531,
+                    "end": 1534,
+                    "text": "44)",
+                    "ref_id": "BIBREF43"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "In summary, we applied the MPP software to generate multiplex-compatible primer sets for every viral family and several divergent viral species and experimentally demonstrated application of one multiplex set to show nonrandom amplification with a set of short primers.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION AND CONCLUSIONS"
+        },
+        {
+            "text": "Primer sets are available as supplemental material or by request from the authors. The MPP software is freely available for academic and nonprofit use at http://mpp .llnl.gov.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Code and Primer Availability"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Metagenomic analyses of viruses in the stool of children with acute flaccid paralysis",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Victoria",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kapoor",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Blinkova",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Slikas",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Naeem",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Zaidi",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Delwart",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Virol",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1128/JVI.02301-08"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Viral metagenomics",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Rohwer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nat. Rev. Micro",
+            "volume": "3",
+            "issn": "",
+            "pages": "504--510",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Direct metagenomic detection of viral pathogens in nasal and fecal specimens using an unbiased high-throughput sequencing approach",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Nakamura",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-S",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Sakon",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ueda",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Tougan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Yamashita",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Goto",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Takahashi",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Yasunaga",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Ikuta",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "PLoS ONE",
+            "volume": "4",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Pan-viral screening of respiratory tract infections in adults with and without asthma reveals unexpected human coronavirus and human rhinovirus diversity",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kistler",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Avila",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Rouskin",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ward",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Yagi",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Schnurr",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ganem",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Derisi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Boushey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Infect. Dis",
+            "volume": "196",
+            "issn": "",
+            "pages": "817--825",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Using a resequencing microarray as a multiple respiratory pathogen detection assay",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Blaney",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Malanoski",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Ligler",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Schnur",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Metzgar",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Russell",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Stenger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Clin. Microbiol",
+            "volume": "45",
+            "issn": "",
+            "pages": "443--452",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Broad-spectrum respiratory tract pathogen identification using resequencing DNA microarrays",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Vora",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Thornton",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Schnur",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Thach",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Blaney",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Ligler",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Malanoski",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Santiago",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Genome Res",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Microarray-based detection and genotyping of viral pathogens",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Coscoy",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zylberberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Avila",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Boushey",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ganem",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Derisi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Detection of respiratory viruses and subtype identification of influenza A viruses by GreeneChipResp oligonucleotide microarray",
+            "authors": [
+                {
+                    "first": "P.-L",
+                    "middle": [],
+                    "last": "Quan",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Jabado",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Conlan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hirschberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Pozo",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J M"
+                    ],
+                    "last": "Jack",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cisterna",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Renwick",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Clin. Microbiol",
+            "volume": "45",
+            "issn": "",
+            "pages": "2359--2364",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Panmicrobial oligonucleotide array for diagnosis of infectious diseases",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Quan",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Jabado",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Conlan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Hirschberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Renwick",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Hegyi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Emerg. Infect. Dis",
+            "volume": "13",
+            "issn": "",
+            "pages": "73--81",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "The Ibis T5000 universal biosensor: an automated platform for pathogen identification and strain typing",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ecker",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Drader",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gutierrez",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gutierrez",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hannis",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Schink",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sampath",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Blyn",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Eschoo",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Hall",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "JALA",
+            "volume": "11",
+            "issn": "",
+            "pages": "341--351",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Rapid identification of emerging infectious agents using PCR and electrospray ionization mass spectrometry",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sampath",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Hall",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Massire",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Blyn",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Eshoo",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Hofstadler",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ecker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Ann. NY Acad. Sci",
+            "volume": "1102",
+            "issn": "",
+            "pages": "109--120",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Mass tag polymerase chain reaction detection of respiratory pathogens, including a new rhinovirus genotype, that caused influenza-like illness",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Lamson",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Renwick",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kapoor",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ju",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dean",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "St",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "George",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Briese",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Lipkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Infect. Dis",
+            "volume": "194",
+            "issn": "",
+            "pages": "1398--1402",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Diagnostic system for rapid and sensitive differential detection of pathogens",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Briese",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kokoris",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Jabado",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zhiqiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Renwick",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kapoor",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Casas",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Pozo",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Limberger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Emerg. Infect. Dis",
+            "volume": "11",
+            "issn": "",
+            "pages": "310--313",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Multiplex MassTag-PCR for respiratory pathogens in pediatric nasopharyngeal washes negative by conventional diagnostic testing shows a high prevalence of viruses belonging to a newly recognized rhinovirus clade",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Dominguez",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Briese",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Villari",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kapoor",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Tokarz",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Glode\u00b4",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Robinson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Clin. Virol",
+            "volume": "43",
+            "issn": "",
+            "pages": "219--222",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Nucleic acid amplification tests for detection of respiratory viruses",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Fox",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Clin. Virol",
+            "volume": "40",
+            "issn": "",
+            "pages": "15--23",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Multiplexed molecular assay for rapid exclusion of foot-and-mouth disease",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lenhoff",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Naraghi-Arani",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Thissen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Olivas",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Carillo",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chinn",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Rasmussen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Messenger",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Suer",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Virol. Methods",
+            "volume": "153",
+            "issn": "",
+            "pages": "61--69",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Rapid sequence-based diagnosis of viral infection",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Quan",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Briese",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Lipkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Antivir. Res",
+            "volume": "79",
+            "issn": "",
+            "pages": "1--5",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Predicting the sensitivity and specificity of published real-time PCR assays",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lemmon",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Gardner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Ann. Clin. Microbiol. Antimicrob",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1186/1476-0711-1187-1118"
+                ]
+            }
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Greene SCPrimer: a rapid comprehensive tool for designing degenerate primers from multiple sequence alignments",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Jabado",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Palacios",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kapoor",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Renwick",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Briese",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Lipkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Nucleic Acids Res",
+            "volume": "34",
+            "issn": "",
+            "pages": "6605--6611",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Amplicon: software for designing PCR primers on aligned DNA sequences",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Jarman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Bioinformatics",
+            "volume": "20",
+            "issn": "",
+            "pages": "1644--1645",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "The degenerate primer design problem",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Linhart",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Shamir",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Bioinformatics",
+            "volume": "18",
+            "issn": "",
+            "pages": "172--181",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "CODEHOP (COnsensus-DEgenerate Hybrid Oligonucleotide Primer) PCR primer design",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Rose",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Henikoff",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Henikoff",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nuclei Acids Res",
+            "volume": "31",
+            "issn": "",
+            "pages": "3763--3766",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Primaclade-a flexible tool to find conserved PCR primers across multiple species",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Gadberry",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Malcomber",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Doust",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kellogg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "1263--1264",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "GeneUp: a program to select short PCR primer pairs that occur in multiple members of sequence lists",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Pesole",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liuni",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Grillo",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Belichard",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Trenkle",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Welsh",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Mcclelland",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "BioTechniques",
+            "volume": "25",
+            "issn": "",
+            "pages": "112--123",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Integrated minimum-set primers and unique probe design algorithms for differential detection on symptom-related pathogens",
+            "authors": [
+                {
+                    "first": "Y.-C",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-F",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-H",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "T.-J",
+                    "middle": [],
+                    "last": "Yeh",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-C",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-Y",
+                    "middle": [],
+                    "last": "Kao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "4330--4337",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "DINAMelt web server for nucleic acid melting prediction",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Markham",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Res",
+            "volume": "33",
+            "issn": "",
+            "pages": "577--581",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "MuPlex: multi-objective multiplex PCR assay design",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Rachlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Ding",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cantor",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kasif",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nucleic Acids Res",
+            "volume": "33",
+            "issn": "",
+            "pages": "544--547",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Computational tradeoffs in multiplex PCR assay design for SNP genotyping",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Rachlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Ding",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cantor",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kasif",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "BMC Genomics",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "MUSCLE: multiple sequence alignment with high accuracy and high throughput",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Edgar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nucleic Acids Res",
+            "volume": "32",
+            "issn": "",
+            "pages": "1792--1797",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Multiple sequence alignment with the Clustal series of programs",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chenna",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Sugawara",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Koike",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lopez",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gibson",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Higgins",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nucleic Acids Res",
+            "volume": "31",
+            "issn": "",
+            "pages": "3497--3500",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Profile hidden Markov models",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Bioinformatics",
+            "volume": "14",
+            "issn": "",
+            "pages": "755--763",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Efficient computation of absent words in genomic sequences",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Herold",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kurtz",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "BMC Bioinformatics",
+            "volume": "9",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Gapped BLAST and PSI-BLAST: a new generation of protein database search programs",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Altschul",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Madden",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Schaffer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Miller",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Lipman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Nucleic Acids Res",
+            "volume": "25",
+            "issn": "",
+            "pages": "3389--3402",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Fast and sensitive quantitative detection of HIV DNA in whole blood leucocytes by SYBR green I real-time PCR assay",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Casabianca",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Gori",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Orlandi",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Forbici",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Federico Perno",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Magnani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Mol. Cell Probes",
+            "volume": "21",
+            "issn": "",
+            "pages": "368--378",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Detection of human Orthopoxvirus infections and differentiation of smallpox virus with real-time PCR",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Putkuri",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Piiparinen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vaheri",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Vapalahti",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Med. Virol",
+            "volume": "81",
+            "issn": "",
+            "pages": "146--152",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Real-time PCR system for detection of Orthopoxviruses and simultaneous identification of smallpox virus",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Olson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Laue",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Laker",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Babkin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Drosten",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Shchelkunov",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Niedrig",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Damon",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Meyer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Clin. Microbiol",
+            "volume": "42",
+            "issn": "",
+            "pages": "1940--1946",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "A new approach to primer selection in polymerase chain reaction experiments",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Pearson",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Robbins",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Wrege",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Proc. Int. Conf. Intell. Syst. Mol. Biol",
+            "volume": "3",
+            "issn": "",
+            "pages": "285--291",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Large scale multiplex PCR improves pathogen detection by DNA microarrays",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Palka-Santini",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Cleven",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Eichinger",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kronke",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Krut",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "BMC Microbiol",
+            "volume": "9",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "On-chip, real-time, singlecopy polymerase chain reaction in picoliter droplets",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Beer",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Hindson",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Wheeler",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Hall",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rose",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kennedy",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Colston",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Anal. Chem",
+            "volume": "79",
+            "issn": "",
+            "pages": "8471--8475",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "DNA amplification fingerprinting using very short arbitrary oligonucleotide primers",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Caetano-Anolles",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Brant",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Peter",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Nat. Biotech",
+            "volume": "9",
+            "issn": "",
+            "pages": "553--557",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "DNA polymorphisms amplified by arbitrary primers are useful as genetic markers",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "G K"
+                    ],
+                    "last": "Williams",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Kubelik",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Livak",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rafalski",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Tingey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Nucleic Acids Res",
+            "volume": "18",
+            "issn": "",
+            "pages": "6531--6535",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "ASM Biodefense and Emerging Diseases Research Meeting",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Nanda",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Universal virus detection by degenerate-oligonucleotide primed polymerase chain reaction of purified viral nucleic acids",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Nanda",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Jayan",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Voulgaropoulou",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Sierra-Honigmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Uhlenhaut",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "J P"
+                    ],
+                    "last": "Mcwatters",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Patel",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Krause",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Virol. Methods",
+            "volume": "152",
+            "issn": "",
+            "pages": "18--24",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "SARSand Other Coronaviruses",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Pyrc",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Jebbink",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Berkhout",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hoek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "1--17",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Human Parechovirus Type 1, 3, 4, 5, and 6 Detection in Picornavirus Cultures",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "De Vries",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Pyrc",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Berkhout",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Vermeulen-Oost",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Dijkman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Jebbink",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bruisten",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Berkhout",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Van Der Hoek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Clin. Microbiol",
+            "volume": "46",
+            "issn": "",
+            "pages": "759--762",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "3 \u00c2 10 4 : 0.82, 1.3 \u00c2 10 4 : 0.082, 1.3 \u00c2 10 4 : 0.0082, 1.3 \u00c2 10 4 : 0.00082 and 1.3 \u00c2 10 4 : 0.000082, respectively.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Effect of T m constraints and sequence database size on size of universal primer set. The number of primers in the universal set for all viruses is shown, as a function of primer size. Calculations were based either on sequence data available April 2007 and imposing T m constraints in primer selection, or without T m or GC% constraints, or based on January 2004 sequence data with T m constraints. For primer size of 5 with T m constraints, a constraint of T m > 0 was used, delivering primers with GC% of 80-100%.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Hundreds to thousands of primer sequences are required to amplify all viruses. Percent of viral genomes detected versus number of primers required. Calculated for primers of different sizes, and based on sequence data as of 25 April 2007. Parameters used are given in Supplementary Tables S1 and S2. Primers from old sequence data miss many newly sequenced viruses. Fraction of viral genomes available as of 25 April 2007 that would have been detected using primer sets developed based on the sequence data available as of 1 January 2004.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "For HIV-1, for example, there is not a single position with 100% conservation across all sequenced isolates. Dropping the required conservation down to 95% (58 of the 1175 genomes could disagree with a consensus base at any position), there are three conserved regions of at least 18 bases, with positions relative to the consensus: ACAGGAGCAGAT GATACAGTA starting at position 3665; TATGGAAAA CAGATGGCAGG starting at 7347;",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Average number of bands predicted from PCR against the human genome using the universal viral primers for the runs as described inFigure 2, average \u00b1 SD of the top 10 bins for each primer length. For bin size of 10, we divided the universal primer bins of 20 primers/bin into two bins each.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "For 10-15-mers, T m = 40-45 C and for 17-21-mers, T m = 55-60 C. For both, the amplicon length range was 200-800 bp.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Number of primers required to amplify fragments from each complete genome or segment in the family versus the number of available sequences in that family. Primer parameters were length 17-21mers, T m between 55 C and 60 C.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "The percentage of genomes amplified versus the number of primers used, for primers of either 10-mers or 17-18-mers, for several highly diverse virus species, (A) HIV-1, FMDV and Norwalk; and (B) Influenza A HA and NA segments. The two most highly conserved primers amplify a large fraction of genomes, and additional primers show diminishing returns in detecting the remaining, more divergent sequences.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "PCR amplification of vaccinia DNA, Lister strain with the 16-plex Poxviridae primer set, with (lanes 6-10) or without (lanes 3 and 4) human DNA present in the reaction, for a reaction containing 4.8 mM MgSO 4 , 0.1 mM each primer and 2.7 pg ($10 4 copies) of vaccinia Lister DNA, and using an annealing temperature of 43.9 C. Lane 3 shows specific amplification of vaccinia Lister DNA followed by the no template control in lane 4. Lanes 6-10 represent the experiments with mass ratios of vaccinia:human DNA of 1 : 1, 10 : 1, 100 : 1, 1000 : 1 and 10000 : 1, respectively. Lanes 12-14 represent amplification of human DNA only (no vaccinia present in reaction) for the same masses used at the 1 : 1, 100 : 1 and 10 000 : 1 ratios (or 2.7 pg, 0.027 pg and 2.7 \u00c2 10 -4 pg human DNA, respectively). Lanes 5, 11 and 15 did not contain any sample. The arrow on the left points to the expected band (617 bp). The arrows on the right correspond to the 50-bp DNA ladder (lanes 1 and 16 contain the same ladder).",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "amplicon sequences from 10 newly emerged viruses (Australian bat lyssavirus, Crimean Congo hemorrhagic fever, Nipah, Hendra, Venezuelan equine encephalitis, West Nile, Ebola, Hanta, hepatitis C and Marburg viruses) using the universal 10-mer primer set and BLASTed (blastn) (34) those amplicon sequences against either other species in the same target family or viruses in other families.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Primer counts for viral family primer sets, as described in the methods",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Continued",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Summary of results of primer set prediction for several diverse RNA virus species for primers of length 10 or 17-18 nt, the longest stretch of bases conserved among the targets in a multiple sequence alignment, illustrating the difficulty of selecting conserved primers, and the time required to perform the primer set selections",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "SummaryPrimer sequences are provided as Supplementary Data.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "Sequence and size (nt) information for the 16 primers in the predicted family-level multiplex for Poxviridae viruses used in these experiments",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors wish to thank anonymous reviewers for helpful comments. Conflict of interest statement. None declared.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        },
+        {
+            "text": "Supplementary Data are available at NAR Online.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUPPLEMENTARY DATA"
+        }
+    ]
+}

@@ -1,0 +1,1638 @@
+{
+    "paper_id": "2e2b5f57b8dad06f44a672757c71fdc37802420f",
+    "metadata": {
+        "title": "Adaptive multiresolution method for MAP reconstruction in electron tomography",
+        "authors": [
+            {
+                "first": "Erman",
+                "middle": [],
+                "last": "Acar",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Tampere University of Technology",
+                    "location": {
+                        "postBox": "P.O. Box 553",
+                        "postCode": "FI-33101",
+                        "settlement": "Tampere",
+                        "country": "Finland"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Sari",
+                "middle": [],
+                "last": "Peltonen",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Tampere University of Technology",
+                    "location": {
+                        "postBox": "P.O. Box 553",
+                        "postCode": "FI-33101",
+                        "settlement": "Tampere",
+                        "country": "Finland"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Ulla",
+                "middle": [],
+                "last": "Ruotsalainen",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Tampere University of Technology",
+                    "location": {
+                        "postBox": "P.O. Box 553",
+                        "postCode": "FI-33101",
+                        "settlement": "Tampere",
+                        "country": "Finland"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "a b s t r a c t 3D image reconstruction with electron tomography holds problems due to the severely limited range of projection angles and low signal to noise ratio of the acquired projection images. The maximum a posteriori (MAP) reconstruction methods have been successful in compensating for the missing information and suppressing noise with their intrinsic regularization techniques. There are two major problems in MAP reconstruction methods: (1) selection of the regularization parameter that controls the balance between the data fidelity and the prior information, and (2) long computation time. One aim of this study is to provide an adaptive solution to the regularization parameter selection problem without having additional knowledge about the imaging environment and the sample. The other aim is to realize the reconstruction using sequences of resolution levels to shorten the computation time. The reconstructions were analyzed in terms of accuracy and computational efficiency using a simulated biological phantom and publically available experimental datasets of electron tomography. The numerical and visual evaluations of the experiments show that the adaptive multiresolution method can provide more accurate results than the weighted back projection (WBP), simultaneous iterative reconstruction technique (SIRT), and sequential MAP expectation maximization (sMAPEM) method. The method is superior to sMAPEM also in terms of computation time and usability since it can reconstruct 3D images significantly faster without requiring any parameter to be set by the user.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Electron tomography (ET) is a widely used powerful technique in the field of biology revealing the interior structure of the biological samples in 3D at nanometer scale. This is achieved by collecting 2D projections of the specimen from different viewing angles. In its common application, the sample is rotated around a single axis with fixed intervals while its projections are acquired by transmission electron microscope. Then, these projections are used to reconstruct the biological sample in 3D. The accuracy and the resolution of the reconstruction are limited by two major factors: (1) due to the mechanical and physical limitations, the projections typically collected only from 7 60\u00b0to 70\u00b0tilt angle range are used in the reconstruction (missing wedge problem).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "(2) The signal to noise ratio (SNR) of the projection data is low since the total amount of applied electrons is limited in order to prevent radiation damage to the biological sample imaged.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The maximum a posteriori (MAP) reconstruction methods are well suited for reconstruction from such incomplete and noisy projection data. They are able to use a priori information to compensate for the imperfection and incompleteness of the measurements. Any structural or statistical information about the sample or the imaging conditions can be utilized to improve the reconstruction process. These methods try to satisfy the fidelity of the reconstruction to the measurements and utilize the prior information at the same time. The balance between the data fidelity and the prior information is controlled by the regularization parameter. The value of this parameter highly affects the visual quality of the reconstructed image. Its optimum value depends on several factors, such as the noise level, sample variation, resolution, and validity of the prior information.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The computation of the regularization parameter in MAP estimation is usually based on the SNR analysis of the data, structural information about the objects reconstructed, or predefined set of parameters aiming to provide a solution as general as possible. One of these methods, the L-curve method, analyzes the images reconstructed for different values of regularization parameter [1] . For each reconstruction, the relationship between the squared norm of the solution and the squared norm of the residual error is analyzed to find the optimum regularization parameter. A similar approach, S-curve method, was implemented for wavelet-based reconstruction [2] and total variation regularization [3] making the assumption that the reconstructed data is sparse in wavelet domain and gradient domain, respectively. Both L-curve and S-curve methods require multiple reconstructions of the data with different regularization parameters, which heavily increases the computational cost of the overall image reconstruction. In another method, Wen and Chan used discrepancy principle for total variation regularization in the image restoration context [4] . Their method requires prior information about the SNR of the data, which is not always straightforward to obtain in tomographic imaging. In this study, one of our aims was to develop an adaptive regularization method, which does not require additional analysis, structural a priori information about the data nor the imaging system, or the user manipulation according to the application purpose.",
+            "cite_spans": [
+                {
+                    "start": 382,
+                    "end": 385,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 657,
+                    "end": 660,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 696,
+                    "end": 699,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1144,
+                    "end": 1147,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The other aim of this paper was to reduce the computation time, which is realized by employing multiresolution reconstruction in a sequential scheme. Multiresolution reconstruction grids [5] and multiresolution detector space [6] was used previously to improve the convergence rate of maximum likelihood expectation maximization (ML-EM) method in positron emission tomography (PET). It was also utilized in scanning transmission electron microscopy (STEM) [7] and discrete tomography that reconstructs images composed of small number of intensity levels representing only a few different materials [8] . In this paper, we use the multiresolution method in electron microscopy for the reconstruction of biological specimens with maximum a posteriori probability expectation maximization (MAPEM) method. Multiresolution approach introduced in MAPEM reconstruction enables the weight of the regularization to vary from strong to weak throughout the reconstruction. One reason is that the image size is increased during the reconstruction while the regularization filter size is fixed. The other reason is the number of binned projection data and so its averaging effect decreases throughout different resolution stages. By decreasing noise with these two mechanisms, the reconstruction converges smoothly to a coarse estimate of the reconstructed image at the first resolution stages. Then the number of binned pixels is decreased step by step to improve the resolution of the estimates. Since each step is initialized with a spatially coarse estimate of the image, they give better results in fewer iterations compared to initialization with an image of random or constant value. The computations take shorter time also because the calculations are faster in the smaller reconstruction grids used in the lower resolution stages. We developed the adaptive regularization method first as a parameter-free reconstruction process and then introduced the multiresolution approach to obtain the final adaptive multiresolution reconstruction method.",
+            "cite_spans": [
+                {
+                    "start": 187,
+                    "end": 190,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 226,
+                    "end": 229,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 456,
+                    "end": 459,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 598,
+                    "end": 601,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "An accurate model for the formation of TEM images would be based on quantum and relativistic aspects of the illumination of the specimen, electron-specimen interaction, microscopy optics, and the detection of the electrons. However, this would be a computationally unfeasible model. Therefore, we apply some simplifications and statistical modeling to obtain a feasible image formation model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "A transmission electron microscope can be operated in different imaging modes depending on the illumination of the specimen, the contrast mechanism based on the interaction of the electrons with the specimen, and the detector type. In the dark field imaging mode, the detection of scattered electrons plays the major role in image formation, whereas it is the detection of transmitted electrons in bright-field imaging mode. We consider the bright field mode, used conventionally for ET in life sciences, in this study. In this imaging mode, a parallel beam of electrons illuminates the specimen, and the image is formed in the back focal plane of the objective lens by the electrons that pass through the aperture. For the image contrast mechanism, we only consider the amplitude contrast generated due to the electrons that are blocked from reaching the detector and we ignore the phase shift created by the electron-specimen interaction. This model is sufficient for medium-resolution contrast (beyond 2-3 nm) imaging however phase contrast should also be considered at higher resolutions where the features to be detected are smaller than the coherence length of the electron [9] . We also assume that successive electrons do not interact with each other so that they can be treated independently. This assumption holds for TEM imaging of biological specimens since the specimen is thinner than the mean distance between two successive electrons [10] . Under these assumptions the formation of the image can be expressed as:",
+            "cite_spans": [
+                {
+                    "start": 1180,
+                    "end": 1183,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1450,
+                    "end": 1454,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "is the data acquired for the tilt angle \u03b8, C is the data that would be acquired if there was no specimen, PSF represents the point spread function of the imaging system, * is the convolution operation, and ( ) Here, v b is proportional to the probability that an incident electron traveling along \u03b8 is scattered inside the bth voxel of the discretized specimen volume. The contribution of the bth voxel to the dth projection data, p d , is represented by a db . C and PSF in (1) can be determined by separate calibration experiments and they can be excluded from the equation by subtraction and deconvolution. After this basic preprocessing of the raw data, the problem reduces to estimate the parameters of distribution describing v b 's in (2) . In parallel beam projection geometry, the reconstruction space can be divided into slices orthogonal to the tilt axis and the slices can be reconstructed independently. Then the slices can be concatenated to reconstruct the final 3D volume. Therefore, the method will be described here for single slice of the volume to be reconstructed. The image formation geometry is presented in Fig. 1 . The parameter estimation can be realized for each slice independently by MAPEM method which maximizes a posteriori probability distribution using the Baye's rule as:",
+            "cite_spans": [
+                {
+                    "start": 742,
+                    "end": 745,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1131,
+                    "end": 1137,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Method"
+        },
+        {
+            "text": ") P Data Img is the likelihood of the measured data to be observed given the image to be reconstructed. ( ) P Img and ( ) P Data are the a priori probability distributions. ( ) P Data can be assumed to be constant and excluded from the expression. In ET, very low dose of electrons is applied to a very thin sample in order to prevent radiation damage to the biological sample. Considering the characteristics of the signal and the noise, Poisson distribution can be assumed to represent the measurements. This assumption can be extended to model the number of electrons blocked by each pixel of the image. The statistical chain from generation of the electrons, via the scattering events inside the specimen, to the measurement detector, is assumed to be a cascaded Poisson process. This assumption is useful to satisfy the positivity constraint throughout the iterations. It was also utilized in the development of the adaptive regularization method described below (in Section 2.2). Using Poisson distribution and (2), the likelihood of observing the projection data, p, conditioned on the mean values \u03bb ( | ( ) P Data Img ) can be expressed as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "where \u03bb b is the parameter of the Poisson distribution describing v b . By taking the logarithm and derivative of this expression with respect to \u03bb b and equating it to zero, the maximum likelihood can be obtained as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "Since v a b db is unavailable, it will be replaced by its conditional expected value at each iteration of the expectation maximization algorithm. The expected value can be calculated as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "where \u2032 b is the pixel index of the image to be reconstructed. Using the expected value of v a b db in (4), the maximum likelihood estimate of \u03bb can be expressed iteratively as follows.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "In addition to the likelihood term, C b L k , MAPEM reconstruction involves a regularization term, C b P k , that represents ( ) P Img . The overall update equation of the MAPEM is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "For ( ) P Img , local similarity in the small neighborhood of each pixel of the reconstructed image is a common choice. With Median Root Prior (MRP) [11] , the regularization term is expressed as:",
+            "cite_spans": [
+                {
+                    "start": 149,
+                    "end": 153,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "where () med operator represents the median filtering and \u03b2 is the regularization parameter which controls the strength of this penalization filter.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Method"
+        },
+        {
+            "text": "Sequential maximum a posteriori expectation maximization (sMAPEM), was introduced to ET recently to compensate for the missing wedge effects [12, 13] . The method assumes Poisson distribution to model the image to be reconstructed and median filter (median root prior, [11] ) to regularize the iterations. Instead of using one constant regularization parameter value, the method used a sequence of these in the decreasing order. At each regularization stage, predefined number of iterations was performed with constant regularization parameter value. The initial stages with high values of regularization parameters provided a rough but robust estimate of the image for the following stages by highly suppressing the noise. The regularization parameter value was decreased to enhance the resolution and contrast of the final reconstructed image. This sequential method was consistently superior to the conventional reconstruction methods, weighted back-projection (WBP) and a simultaneous iterative reconstruction technique (SIRT), in terms of accuracy and noise suppression due to its capability of filling the missing wedge [12] . However, sMA-PEM has some parameters, which affect the final resolution, the final contrast, and the visual impression of the reconstruction result. The number of regularization stages, the number of iterations 0\u00ba Fig. 1 . The projection geometry. The volume is divided into x-z slices which are reconstructed independently. v b is proportional to the probability that an incident electron is scattered inside the bth pixel of the x-z slice image. It is modeled by a Poisson distribution with mean \u03bb b . p d is the dth projection data.",
+            "cite_spans": [
+                {
+                    "start": 141,
+                    "end": 145,
+                    "text": "[12,",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 146,
+                    "end": 149,
+                    "text": "13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 269,
+                    "end": 273,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 1126,
+                    "end": 1130,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1347,
+                    "end": 1353,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Sequential MAPEM reconstruction method"
+        },
+        {
+            "text": "per each stage, and the regularization parameters need to be set properly by the user according to the data and the application. Moreover, the method requires a long computation time.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sequential MAPEM reconstruction method"
+        },
+        {
+            "text": "MAPEM methods maximize the likelihood of observing the measured projections subject to the prior knowledge. During this maximization, noise in the projection data makes the pixels with high variance of intensity values vary around their expected values more than the ones with low variance. It would be wise to adjust the regularization parameter pixel-wise considering the amount of local variance. This way, the prior information can be used more strongly for the pixels with high variance of intensity values than the ones with low variance of intensity values.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adaptive regularization"
+        },
+        {
+            "text": "The intensity values of the pixels at each iteration correspond to the mean values of the Poisson distributions. For Poisson distribution, the variance of the distribution is equal to its mean value. Therefore, the intensity values at each iteration, \u03bb b k , can be used as a measure of variance and so for the regularization strength. For the positivity constraint of the pixels, the regularization parameter, \u03b2, needs to be in the range [0,1]. Therefore, the intensity values were normalized considering this range at each iteration and used as the pixel-wise regularization parameter in this study. Hence, the adaptive regularization term can be expressed as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adaptive regularization"
+        },
+        {
+            "text": "The likelihood term, C b L k , and the overall update equation are the same as in (6) and (7), respectively. Note that, we assign a different regularization parameter to each pixel at each iteration instead of using a constant regularization parameter for the whole image.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adaptive regularization"
+        },
+        {
+            "text": "The strength of the penalization depends on the regularization parameter value and the filter size relative to the reconstructed image size. sMAPEM method used a sequence of regularization parameter values in the decreasing order to weaken the penalization filter sequentially [12] . In this way, noise was highly suppressed in the reconstruction in the first regularization stages to have coarse but robust estimate of the structure. In the following stages, the regularization parameter value was decreased to enhance the resolution and contrast of the estimate. In addition to changing the regularization parameter value adaptively to control the noise penalization, adaptive multiresolution MAPEM (amMA-PEM) reconstruction method changes the reconstruction image size while keeping the filter size constant. In our experiments, we fixed the window size of the filter to its smallest value (3 \u00c2 3) in order to minimize the loss of resolution due to filtering (The reader may refer to [11] for the effect of different filter sizes on MRP regularization). The same size of filter affects the small size image more strongly than the large one. With amMAPEM method, the strength of the penalization filter is weakened by increasing the image size stage by stage sequentially. The advantage of this approach is its computational efficiency.",
+            "cite_spans": [
+                {
+                    "start": 277,
+                    "end": 281,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 987,
+                    "end": 991,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Adaptive multiresolution MAPEM reconstruction method"
+        },
+        {
+            "text": "The flow diagram of the amMAPEM method is given in Fig. 2 for single x-z slice of the reconstructed volume. The method is initialized with a uniform image of size 4 \u00c2 4 so that 3 \u00c2 3 median filter can fit in properly. At each resolution stage, adaptive regularization is applied using the binned projection data and rescaled reconstruction grid. The result of each regularization stage is scaled up by a factor of 2 using bilinear interpolation. The scaled image initializes the following regularization stage. The binning factor of the projection data is also decreased throughout the stages. With this method, the averaging effect of binning operation decreases the noise contamination together with the median filter employed inside the iterations of adaptive regularization. Decreasing the number of binned pixels step by step improves the resolution of the reconstruction. The final image is obtained at the last stage using the result of previous stages and the original projection data P.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 51,
+                    "end": 57,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Adaptive multiresolution MAPEM reconstruction method"
+        },
+        {
+            "text": "The method is implemented in MATLAB (MathWorks Inc., MA, USA) and the code is available together with the data related to this study at http://www.cs.tut.fi/sgn/m2obsi/m2obsiWWW/de mos/amMAPEM/amMAPEM.html.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adaptive multiresolution MAPEM reconstruction method"
+        },
+        {
+            "text": "The iterations for each resolution stage of amMAPEM were stopped when the difference between two consecutive images throughout the iterations was insignificant. The difference was measured by normalized mean squared error (NMSE) and the level of significance was determined to be \u2212 10 7 experimentally. The NMSE values are calculated as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stopping rule"
+        },
+        {
+            "text": "A 256 \u00c2 256 \u00c2 64 nm 3 simulated numerical phantom was generated in MATLAB for the evaluation of the methods. It is composed of about 25 spherical objects located additively in the volume. 25 hollow spheres were also added to the phantom to simulate vesicles. The intensity levels and diameters of the objects were determined randomly following a uniform distribution in the range [0 1] and [19, 42] nm, respectively. The projection images were calculated with 1\u00b0angular step in the range 760\u00b0. The images were generated at a pixel size of 1 nm \u00c2 1 nm. Two types of noise were added to the projection data (1) Poisson noise to simulate the randomness in the counting process of transmitted electrons and (2) Gaussian noise to simulate the variations at the detector level. Three noise levels were simulated to have SNRs (ratio of the signal and the noise variances) of 50, 10, and 1. The zero tilt images of the dataset are presented in Fig. 3 .",
+            "cite_spans": [
+                {
+                    "start": 390,
+                    "end": 394,
+                    "text": "[19,",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 395,
+                    "end": 398,
+                    "text": "42]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 936,
+                    "end": 942,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Numerical phantom dataset"
+        },
+        {
+            "text": "The experimental dataset consists of a freeze-substituted Ver-oE6 cultured cell infected with the SARS-CoV (The Cell Centered Database, project P2005, microscopy product 6021, [14, 15] ). It includes 131 TEM images acquired with a 1\u00b0angular step at the range [ \u00c0 65\u00b0, \u00fe65\u00b0] using single tilt projection geometry. The images were collected at 80 kV with a Philips CM-10 transmission electron microscope (Philips, The Netherlands). Spherical gold particles with diameter 10 nm were applied to the surface of the specimen to serve as fiducial markers to align the tilt series. The original images with size 2048 \u00c2 2048 were cropped to 1024 \u00c2 1024 pixels for computational simplicity. The pixel size was 1.2 nm. The zero tilt image of the dataset is presented in Fig. 3d .",
+            "cite_spans": [
+                {
+                    "start": 176,
+                    "end": 180,
+                    "text": "[14,",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 181,
+                    "end": 184,
+                    "text": "15]",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 759,
+                    "end": 766,
+                    "text": "Fig. 3d",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "CCDB-P2005 dataset"
+        },
+        {
+            "text": "The experimental dataset is comprised of a single axis tilt series of chlamydia trachomatis type III secretion systems in contact with a HeLa cell [16, 17] . It contains 36 cryoEM images collected in 3\u00b0i ncrements at the range [ \u00c0 60\u00b0, \u00fe45\u00b0]. The dataset also includes spherical gold particles with diameter 10 nm. The alignment and CTF correction of the projection images were realized in IMOD [18] . The raw projection image size was 3708 \u00c2 3838 pixels. 2 \u00c2 2 binning and cropping were applied to the images after the alignment and CTF correction process. The resulting image size was 1369 \u00c2 1448 and the pixel size was 1.08 nm. The zero tilt image of the dataset is presented in Fig. 3e .",
+            "cite_spans": [
+                {
+                    "start": 147,
+                    "end": 151,
+                    "text": "[16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 152,
+                    "end": 155,
+                    "text": "17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 395,
+                    "end": 399,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 682,
+                    "end": 689,
+                    "text": "Fig. 3e",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "EMPIAR-10048 dataset"
+        },
+        {
+            "text": "In order to have a general assessment of the overall image quality, the mean squared error (MSE) between the reconstruction result and the ground truth was calculated as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mean squared error"
+        },
+        {
+            "text": "N is the number of voxels, I gt is the ground truth and I is the reconstructed volume.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mean squared error"
+        },
+        {
+            "text": "Fourier shell correlation (FSC) is the normalized cross-correlation coefficient between two 3D volumes calculated over shells in Fourier space [19] . It can be calculated using the ground truth and the reconstructed volume as: where F gt and F are the Fourier transforms of the ground truth and the reconstructed volume, respectively. r i is the ith voxel at radius r. FSC expresses the correlation between two volumes with respect to spatial frequency. The cutoff frequency providing correlation higher than a certain threshold value is used as a measure of resolution in the field of electron microscopy.",
+            "cite_spans": [
+                {
+                    "start": 143,
+                    "end": 147,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fourier shell correlation"
+        },
+        {
+            "text": "In order to evaluate the contribution of adaptive multiresolution method to the reconstruction process, the evaluation results were compared with sMAPEM, and the conventional methods, WBP and SIRT [20] . sMAPEM reconstructions were performed using the recommended parameters. In WBP reconstructions, a ramp filter and a Hamming filter with cutoff frequency 0.5 cycles/pixel were used. 50 iterations were used for the SIRT reconstructions. Positivity constraint was applied for WBP and SIRT reconstructions. All the methods were implemented in MATLAB.",
+            "cite_spans": [
+                {
+                    "start": 197,
+                    "end": 201,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "The MSE values calculated between the reconstruction results and the ground truth are presented in Table 1 for different noise levels. The MSE value of amMAPEM was lower than the WBP, SIRT and sMAPEM values on average. The values for different noise levels show that amMAPEM is more robust against noise than sMAPEM. The increasing noise results in bigger increase in MSE for sMAPEM than for amMAPEM.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 99,
+                    "end": 106,
+                    "text": "Table 1",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Numerical phantom reconstructions"
+        },
+        {
+            "text": "We also calculated Fourier shell correlation (FSC) between the reconstructed images and the ground truth to evaluate the images for their capability of resolving the details. The FSC curves are shown in Fig. 4 . The correlation values get close to 1 as the reconstruction result gets close to the ground truth. It is seen in the figure that the correlation values with respect to spatial frequencies are clearly higher for sMAPEM and amMAPEM than for WBP, SIRT. The correlation with the ground truth decreases with the increasing noise. The decrease is bigger for sMAPEM compared to amMAPEM. This shows amMAPEM can handle noise variations better than sMAPEM.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 203,
+                    "end": 209,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Numerical phantom reconstructions"
+        },
+        {
+            "text": "The visual assessment of the reconstruction results is in line with the numerical evaluations. The resulting images of the reconstructions for the highest (SNR 1) and lowest (SNR 50) noise levels are given in Fig. 5 . The missing wedge artifacts are clearly visible in WBP and SIRT reconstruction results. The spherical objects are elongated in z direction and the elongated objects create artificial objects in the x-y slices. It is also seen that hollow spheres are deformed and look open in the in the WBP and SIRT reconstruction results because of the missing wedge. However, these missing wedge effects are compensated better in sMAPEM and amMAPEM reconstructions. Fig. 5 also shows that the noise suppression capability of the amMAPEM method with the adaptively selected parameters is better than that of the sMAPEM method. The effect of noise is visible inside the smooth regions of the spherical objects. The results also show that the amMAPEM method can preserve the edges while suppressing the noise. It is clear in the images that the smooth regions are smoother with amMAPEM than with sMAPEM while the boundaries are still sharp. Fig. 6 shows the line profiles of a circular object in z direction. WBP and SIRT profiles are wider than the ground truth profile while the sMAPEM and amMAPEM profiles show edges as sharp as the ground truth. Both sMAPEM and amMAPEM can keep the object boundaries quite close to the ground truth. The major difference between the profiles of these two methods is seen in the plateau with the high intensity values. amMAPEM profile is flatter than sMAPEM profile in this region for all noise levels due to the adaptive regularization.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 209,
+                    "end": 215,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 670,
+                    "end": 676,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 1142,
+                    "end": 1148,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Numerical phantom reconstructions"
+        },
+        {
+            "text": "The slice images taken from the reconstruction results for different methods are analyzed in Fig. 7 . The zoomed-up views of the gold particle show the elongation effect in z direction due to the missing wedge. The spherical shape of the gold particle is highly distorted in WBP and SIRT reconstruction results. However, it is still close to its original spherical shape in the sMAPEM and am-MAPEM reconstructions. In Fig. 8 , the gold particle images are analyzed in more detail using line profiles taken through the center of the particle shown in Fig. 7 . The profiles taken in the x and z directions show that the edges of the sMAPEM and am-MAPEM profiles are sharper than the WBP and SIRT profiles. The plateau with the high intensity values is supposed to be flat because of the homogeneity of the gold particle. This region is flatter for amMAPEM compared with sMAPEM. The gold particles in the reconstructed volumes were also analyzed quantitatively. For that purpose, randomly selected 5 gold particles were isolated and compared in terms of FSC with the ground truth generated using the known size of the gold particles. The x-z and x-y projection images for three of these gold particles are presented in Fig. 9 . The average of 5 FSC curves is presented in the figure. The images and the FSC curve show that sMAPEM and amMAPEM methods provide more accurate results with less elongation artifacts compared to WBP and SIRT.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 93,
+                    "end": 99,
+                    "text": "Fig. 7",
+                    "ref_id": null
+                },
+                {
+                    "start": 418,
+                    "end": 424,
+                    "text": "Fig. 8",
+                    "ref_id": null
+                },
+                {
+                    "start": 550,
+                    "end": 556,
+                    "text": "Fig. 7",
+                    "ref_id": null
+                },
+                {
+                    "start": 1216,
+                    "end": 1222,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "CCDB-P2005 dataset reconstructions"
+        },
+        {
+            "text": "The slice images taken from the reconstruction results are presented in Fig. 10 . The WBP images are noisier than the other images. The boundary of the circular object is preserved better in amMAPEM image compared to the other results. The quantitative analysis of the reconstructed volumes was performed using the gold particles as it was done for the CCDB-P2005 dataset. The x-z and x-y projection images for three of the isolated gold particles are presented in Fig. 11 . The average of FSC curves calculated using Ground Truth",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 72,
+                    "end": 79,
+                    "text": "Fig. 10",
+                    "ref_id": null
+                },
+                {
+                    "start": 465,
+                    "end": 472,
+                    "text": "Fig. 11",
+                    "ref_id": null
+                }
+            ],
+            "section": "EMPIAR-10048 dataset reconstructions"
+        },
+        {
+            "text": "xz slices",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "EMPIAR-10048 dataset reconstructions"
+        },
+        {
+            "text": "xy slices",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "EMPIAR-10048 dataset reconstructions"
+        },
+        {
+            "text": "xz",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "EMPIAR-10048 dataset reconstructions"
+        },
+        {
+            "text": "xy ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "EMPIAR-10048 dataset reconstructions"
+        },
+        {
+            "text": "The datasets were divided into x-z slices and the slices were reconstructed independently. WBP and SIRT slices were reconstructed one by one using a desktop PC. For amMAPEM and sMAPEM, a grid of computers with various configurations was utilized to reconstruct the slices in parallel. In order to compare the computational efficiencies of the reconstruction methods, we measured single slice computation times for each method. The computations were performed using MATLAB on an Intel(R) Core (TM) i5@3.20 GHz desktop computer with Windows 64 bit operating system. The computation times are presented in Table 2 . The computation time for amMAPEM increases with the increasing noise. The computation times of the other methods are same for all noise levels since they use fixed parameter settings. amMAPEM was significantly faster than the sMAPEM method. Although the WBP and SIRT computation times were shorter than those of sMAPEM and amMAPEM, the visual quality and accuracy of these reconstructions were much worse than sMAPEM and amMAPEM.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 603,
+                    "end": 610,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Computational analysis"
+        },
+        {
+            "text": "The present research demonstrates that the proposed amMA-PEM method can reconstruct 3D ET images more accurately than the conventional reconstruction methods, WBP and SIRT, significantly suppressing the missing wedge artifacts. It also provides images with better quality than with sMAPEM in shorter time without requiring special effort for parameter setting. The proposed adaptive regularization method extracts all necessary information simultaneously from the reconstructed image throughout the iterations. Instead of using a single regularization parameter for the whole image, it updates the regularization parameter pixel-wise according to the local noise contamination. This way, we calculate the regularization strength adaptively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The major advantage of sMAP-EM and amMAPEM methods is their gap filling ability. The methods provide a compensation for the missing angular gap in the frequency domain by using the prior information of local smoothness. The gap filling ability arises from the MRP regularization. The median filter used throughout the iterations acts as an interpolator in the frequency domain. The information source for the interpolation is the relation of the pixel values in the local neighborhood. The filter preserves the edges in the spatial domain while using this information. The reader may refer to the previous studies for the detailed analysis of gap filling capability of sMAPEM in comparison with the conventional reconstruction methods [12, 13] . One of the major drawbacks of sMAPEM is that it requires a large number of iterations for gap filling. We overcome this computation time problem with am-MAPEM method by employing multiresolution reconstruction.",
+            "cite_spans": [
+                {
+                    "start": 735,
+                    "end": 739,
+                    "text": "[12,",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 740,
+                    "end": 743,
+                    "text": "13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The amMAPEM method uses the intensity values, which represent the mean of the Poisson model used for each pixel, as a measure of noise contamination since the variance of a Poisson distribution equals its mean. With Poisson model, it was possible to characterize the distribution by a single positive parameter. This provided positivity constraint to be satisfied implicitly for the reconstruction in addition to simplicity of the solution.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The usability of the iterative reconstruction methods in electron tomography highly depend on their computation time. The opportunities provided by the modern computing technology (e.g. GPU [21] , SIMD extensions of the modern processors [22] ) can be utilized to improve the performance of the methods. We used the computer grid Techila (Techila Technologies Ltd., Tampere, Finland) for the reconstruction of the experimental data in this study. However, methodological improvements still play an important role in accelerating the image reconstruction besides these improvements in the software implementation level.",
+            "cite_spans": [
+                {
+                    "start": 190,
+                    "end": 194,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 238,
+                    "end": 242,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Ordered subsets (OS) is one method to decrease the computation time in tomographic image reconstruction [23] . The method divides the projection data into predefined number of subsets and updates the reconstructed image for each subset during the iterations. Since there is a large block of information gap and SNR is low in ET, updating the image using even sparser subsets of projection data can exaggerate noise throughout the iterations. Therefore, we utilized the multiresolution approach instead of OS to reduce the computation time. It was shown with the phantom and experimental datasets that the computation time is much shorter for amMAPEM than for sMAPEM. The multiresolution reconstruction also contributed to the visual quality of the reconstruction results in addition to computation time acceleration. Its averaging effect and usage together with the median filter suppressed noise throughout the iterations. Each regularization 11 . The gold particle based analysis of the experimental data EMPIAR-10048 reconstruction results. The x-z and x-y projection images of three isolated gold particles are presented on the left. The average FSC curves calculated between the reconstruction results and the gold particle ground truth is presented on the right. sMAPEM and amMAPEM methods provide more accurate reconstruction results with less elongation artifacts compared to WBP and SIRT. sMAPEM images look noisier than amMAPEM images. stage (except the first one) is initialized with a coarser estimate of the image. Starting with this coarser estimate of the image to be reconstructed instead of a random or uniform one improved the reconstruction result.",
+            "cite_spans": [
+                {
+                    "start": 104,
+                    "end": 108,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 944,
+                    "end": 946,
+                    "text": "11",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "The MAP reconstruction method presented in this paper provides a successful solution to compensate for the missing wedge artifacts and noise in electron tomography. Since the method does not require any parameter setting and it has improved computational efficiency, it can be widely used in the field of electron microscopy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Rank-deficient and discrete ill-posed problems: numerical aspects of linear inversion",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Hansen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Soc. Ind. Appl. Math",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Sparse tomography",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "H\u00e4m\u00e4l\u00e4inen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kallonen",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kolehmainen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lassas",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Niinim\u00e4ki",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Siltanen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "",
+            "volume": "35",
+            "issn": "",
+            "pages": "644--665",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Multi-resolution parameter choice method for total variation regularized tomography",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Niinim\u00e4ki",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lassas",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "H\u00e4m\u00e4l\u00e4inen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kallonen",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kolehmainen",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Niemi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Siltanen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Parameter selection for total-variation-based image restoration using discrepancy principle",
+            "authors": [
+                {
+                    "first": "Y.-W",
+                    "middle": [],
+                    "last": "Wen",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Chan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "IEEE Trans. Image Process",
+            "volume": "21",
+            "issn": "4",
+            "pages": "1770--1781",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "A multigrid expectation maximization reconstruction algorithm for positron emission tomography",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Ranganath",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Dhawan",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Mullani",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "IEEE Trans. Med. Imaging",
+            "volume": "7",
+            "issn": "4",
+            "pages": "273--278",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Multiresolution expectation maximization reconstruction algorithm for positron emission tomography using wavelet processing",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Raheja",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Dhawan",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Proceedings of the 20th Annual International Conference of the IEEE Engineering in Medicine and Biology Society",
+            "volume": "2",
+            "issn": "",
+            "pages": "759--762",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "A model based iterative reconstruction algorithm for high angle annular dark field-scanning transmission electron microscope (HAADF-STEM) tomography",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Venkatakrishnan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Drummy",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Jackson",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "De Graef",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Simmons",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Bouman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "IEEE Trans. Image Process",
+            "volume": "22",
+            "issn": "11",
+            "pages": "4532--4544",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "A multiresolution approach to discrete tomography using DART",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dabravolski",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Batenburg",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sijbers",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PLoS One",
+            "volume": "9",
+            "issn": "9",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Handbook of Mathematical Methods in Imaging",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "\u00d6ktem",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "937--1031",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Transmission Electron Microscopy and Diffractometry of Materials",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fultz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Howe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Generalization of median root prior reconstruction",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Alenius",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Ruotsalainen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Trans. Med. Imaging",
+            "volume": "21",
+            "issn": "11",
+            "pages": "1413--1420",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Compensation of missing wedge effects with sequential statistical reconstruction in electron tomography",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Paavolainen",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Acar",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Tuna",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Peltonen",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Moriya",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Soonsawad",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Marjom\u00e4ki",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Ruotsalainen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PLoS One",
+            "volume": "9",
+            "issn": "10",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "A Bayesian approach for suppression of limited angular sampling artifacts in single particle 3D reconstruction",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Moriya",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Acar",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Ruotsalainen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "J. Struct. Biol",
+            "volume": "191",
+            "issn": "3",
+            "pages": "318--331",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "A cell-centered database for electron tomographic data",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Martone",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Qian",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sosinsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Lud\u00e4scher",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Ellisman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Struct. Biol",
+            "volume": "138",
+            "issn": "1-2",
+            "pages": "145--155",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "SARS-coronavirus replication is supported by a reticulovesicular network of modified endoplasmic reticulum",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Knoops",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kikkert",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "H E"
+                    ],
+                    "last": "Van Den Worm",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Zevenhoven-Dobbe",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Van Der Meer",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Koster",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Mommaas",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Snijder",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "PLoS Biol",
+            "volume": "6",
+            "issn": "9",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "EMPIAR: a public archive for raw electron microscopy image data",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Iudin",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Korir",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Salavert-Torres",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Kleywegt",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Patwardhan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Nat. Methods",
+            "volume": "13",
+            "issn": "5",
+            "pages": "387--388",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Structure of a bacterial type III secretion system in contact with a host membrane in situ",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Nans",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kudryashev",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Saibil",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Hayward",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nat. Commun",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Computer visualization of threedimensional image data using IMOD",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Kremer",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Mastronarde",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Mcintosh",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "J. Struct. Biol",
+            "volume": "116",
+            "issn": "1",
+            "pages": "71--76",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Fourier shell correlation threshold criteria",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Van Heel",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Schatz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Struct. Biol",
+            "volume": "151",
+            "issn": "3",
+            "pages": "250--262",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Fundamentals of three-dimensional reconstruction from projections",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Penczek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Methods Enzymol",
+            "volume": "482",
+            "issn": "C",
+            "pages": "1--33",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "High-performance iterative electron tomography reconstruction with long-object compensation using graphics processing units (GPUs)",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Keszthelyi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sedat",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Agard",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Mueller",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Struct. Biol",
+            "volume": "171",
+            "issn": "2",
+            "pages": "142--153",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Vectorization with SIMD extensions speeds up reconstruction in electron tomography",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Agulleiro",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Garz\u00f3n",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Garc\u00eda",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Fern\u00e1ndez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Struct. Biol",
+            "volume": "170",
+            "issn": "3",
+            "pages": "570--575",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Accelerated image reconstruction using ordered subsets of projection data",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hudson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Larkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "IEEE Trans. Med. Imaging",
+            "volume": "13",
+            "issn": "4",
+            "pages": "601--609",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "\u03b8 p v, is the ray transform of v in the \u03b8 direction. The result of this transform can be expressed as a vector of elements p d",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "The flow diagram of the amMAPEM reconstruction method. \u03bb k is the image at kth iteration. The method is initialized with a uniform image of positive values. The number of binned pixels is quartered and the number of binned radial projection samples is halved at the end of each resolution stage. The resulting image of each stage initialized the next one after rescaling the image size and the intensity range. The final image is reconstructed at the last stage using the original projection data.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Zero tilt projection images of the datasets used in the experiments. (a), (b) and (c) show the phantom dataset images at SNR 50, 10 and 1, respectively. (d) and (e) are images from the experimental datasets CCDB-P2005 and EMPIAR-10048, respectively.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "FSC analysis of the reconstruction results for different noise levels. The correlation values are clearly higher for sMAPEM and amMAPEM than for WBP, SIRT. The correlation values decrease with the increasing noise. The decrease is bigger for sMAPEM compared to amMAPEM. This shows amMAPEM can handle noise variations better than sMAPEM.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Resulting x-y and x-z slice images of the numerical phantom reconstructions for SNR 50 and SNR 1. The ground truth image is given at the top. The hollow spheres look deformed in the in the WBP and SIRT reconstruction results (red rectangles). However, their circular shape and connectedness are preserved better in sMAPEM and amMAPEM images. The objects elongated in z direction create artificial objects in x-y planes (green rectangles). These artifacts do not appear on the sMAPEM and amMAPEM images. The sMAPEM images have noisier impression than amMAPEM images. (For interpretation of the references to color in this figure legend, the reader is referred to the web version of this article.) 5 randomly selected gold particles is presented in the figure. The images and the FSC curve show that sMAPEM and amMAPEM results are closer to the ground truth compared with the WBP and SIRT results. It is also seen that sMAPEM images are noisier than amMAPEM images.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Line profiles for different reconstruction results with respect to the ground truth (GT). The location of the profiles is shown with red line on the downright ground truth image. The edges of the sMAPEM and amMAPEM profiles are as sharp as the ground truth however edges of the WBP and SIRT profiles are wider. The plateau with the high intensity values is flatter for amMAPEM compared with sMAPEM showing amMAPEM's superiority on handling noise level variations. The slice images taken from the x-y and x-z planes of the experimental datasets CCDB-P2005 reconstruction results. The zoomed-up views of a gold particle are given on the right of each slice image. The gold particle images are elongated in z direction due to the missing wedge. This missing wedge artifact is less visible in sMAPEM and amMAPEM reconstructions compared with WBP and SIRT reconstruction results. Line profiles taken through the center of the gold particle shown inFig. 7for different reconstruction results. The profiles taken in the x and z directions are shown on the left and right, respectively. The edges of the sMAPEM and amMAPEM profiles are sharper than the WBP and SIRT profiles. The plateau with the high intensity values is flatter for amMAPEM compared with sMAPEM due to adaptive regularization.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "The gold particle based analysis of the experimental data CCDB-P2005 reconstruction results. The x-z and x-y projection images of three isolated gold particles are presented on the left. The average FSC curves calculated between the reconstruction results and the gold particle ground truth is presented on the right. sMAPEM and amMAPEM methods provide more accurate reconstruction results with less elongation artifacts compared to WBP and SIRT. The slice images taken from the x-y and x-z planes of the experimental data EMPIAR-10048 reconstruction results. 2 \u00c2 2 binning were applied to the images for better visual impression. The WBP images look noisier than the other images. The boundary of the circular object shown by red rectangle is more clear in amMAPEM image compared to the other results.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "Fig. 11. The gold particle based analysis of the experimental data EMPIAR-10048 reconstruction results. The x-z and x-y projection images of three isolated gold particles are presented on the left. The average FSC curves calculated between the reconstruction results and the gold particle ground truth is presented on the right. sMAPEM and amMAPEM methods provide more accurate reconstruction results with less elongation artifacts compared to WBP and SIRT. sMAPEM images look noisier than amMAPEM images.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Contents lists available at ScienceDirect journal homepage: www.elsevier.com/locate/ultramic Ultramicroscopy http://dx.doi.org/10.1016/j.ultramic.2016.08.002 0304-3991/& 2016 Elsevier B.V. All rights reserved.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "MSE analysis of the resulting numerical phantom images for different reconstruction methods and noise levels. The MSE values are scaled by 10 \u00c0 3 .",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "The computation times for different reconstruction methods.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work was supported by Tekes FiDiPro (1913/31/2012). The experimental dataset was provided by The Cell Centered Database which is supported by NIH Grants from NCRR RR04050, RR RR08605 and the Human Brain Project DA016602 from the National Institute on Drug Abuse, the National Institute of Biomedical Imaging and Bioengineering and the National Institute of Mental Health.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

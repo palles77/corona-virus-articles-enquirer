@@ -1,0 +1,2378 @@
+{
+    "paper_id": "6b881730788724e674806854f0c20fec32ee9d96",
+    "metadata": {
+        "title": "Challenges in the analysis of viral metagenomes",
+        "authors": [
+            {
+                "first": "Rebecca",
+                "middle": [],
+                "last": "Rose",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "BioInfoExperts",
+                    "location": {
+                        "settlement": "Norfolk",
+                        "region": "VA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Bede",
+                "middle": [],
+                "last": "Constantinides",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Manchester",
+                    "location": {
+                        "settlement": "Manchester",
+                        "country": "UK"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Avraam",
+                "middle": [],
+                "last": "Tapinos",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Manchester",
+                    "location": {
+                        "settlement": "Manchester",
+                        "country": "UK"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "David",
+                "middle": [
+                    "L"
+                ],
+                "last": "Robertson",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Manchester",
+                    "location": {
+                        "settlement": "Manchester",
+                        "country": "UK"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Mattia",
+                "middle": [],
+                "last": "Prosperi",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Florida",
+                    "location": {
+                        "settlement": "Gainesville",
+                        "region": "FL",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "These authors contributed equally to this work.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "Genome sequencing technologies continue to develop with remarkable pace, yet analytical approaches for reconstructing and classifying viral genomes from mixed samples remain limited in their performance and usability. Existing solutions generally target expert users and often have unclear scope, making it challenging to critically evaluate their performance. There is a growing need for intuitive analytical tooling for researchers lacking specialist computing expertise and that is applicable in diverse experimental circumstances. Notable technical challenges have impeded progress; for example, fragments of viral genomes are typically orders of magnitude less abundant than those of host, bacteria, and/or other organisms in clinical and environmental metagenomes; observed viral genomes often deviate considerably from reference genomes demanding use of exhaustive alignment approaches; high intrapopulation viral diversity can lead to ambiguous sequence reconstruction; and finally, the relatively few documented viral reference genomes compared to the estimated number of distinct viral taxa renders classification problematic. Various software tools have been developed to accommodate the unique challenges and use cases associated with characterizing viral sequences; however, the quality of these tools varies, and their use often necessitates computing expertise or access to powerful computers, thus limiting their usefulness to many researchers. In this review, we consider the general and application-specific challenges posed by viral sequencing and analysis, outline the landscape of available tools and methodologies, and propose ways of overcoming the current barriers to effective analysis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "In the last decade, at least seven separate viral outbreaks have caused tens of thousands of human deaths (Woolhouse, Rambaut, and Kellam, 2015) , and the ever-increasing density of livestock, rate of habitat destruction, and extent of human global travel provides a fertile environment for new pandemics to emerge from host switching events (Delwart 2007; Fancello, Raoult, and Desnues 2012) , as was the case for SARS, Ebola, Middle East Respiratory Syndrome (MERS), and influenza-A (H1N1) (Castillo-Chavez et al. 2015) . At present we have a limited grasp of the extent of viral diversity present in the environment: the 2014 database release from the International Committee for the Taxonomy of Viruses classified just 7 orders, 104 families, 505 genera, and 3286 species (http://www.ictvon line.org/virustaxonomy.asp); yet, one study estimated that there are at least 320,000 virus species infecting mammals alone (Anthony et al. 2013 ).",
+            "cite_spans": [
+                {
+                    "start": 106,
+                    "end": 144,
+                    "text": "(Woolhouse, Rambaut, and Kellam, 2015)",
+                    "ref_id": "BIBREF70"
+                },
+                {
+                    "start": 342,
+                    "end": 356,
+                    "text": "(Delwart 2007;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 357,
+                    "end": 392,
+                    "text": "Fancello, Raoult, and Desnues 2012)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 492,
+                    "end": 521,
+                    "text": "(Castillo-Chavez et al. 2015)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 919,
+                    "end": 939,
+                    "text": "(Anthony et al. 2013",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "V C The Author 2016. Published by Oxford University Press. This is an Open Access article distributed under the terms of the Creative Commons Attribution Non-Commercial License (http://creativecommons.org/ licenses/by-nc/4.0/), which permits non-commercial re-use, distribution, and reproduction in any medium, provided the original work is properly cited. For commercial re-use, please contact journals.permissions@oup.com High throughput (or so-called 'next generation') sequencing of viruses during the most recent outbreaks of MERS in South Arabia (Gire et al. 2014; Carroll et al. 2015; Park et al. 2015) and Ebola in West Africa (Quick, J et al. 2016 ) has facilitated rapid identification of transmission chains, rates of viral evolution, and evidence of the zoonotic origin of these outbreaks. Access to such information during initial stages of an outbreak would offer invaluable insight into when, where, and how an epidemic might emerge, informing intervention and mitigation measures or even stopping it altogether. A major step towards this goal is therefore to identify existing zoonotic and environmental pathogens with pandemic potential. This is a significant undertaking, demanding considerable investment and close collaboration between government, NGOs and academia, for example, the USAID program PREDICT http://www.vetmed.ucdavis.edu/ohi/predict/index.cfm, as well as on the ground surveillance by local authorities and scientists in areas of the world most at risk.",
+            "cite_spans": [
+                {
+                    "start": 552,
+                    "end": 570,
+                    "text": "(Gire et al. 2014;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 571,
+                    "end": 591,
+                    "text": "Carroll et al. 2015;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 592,
+                    "end": 609,
+                    "text": "Park et al. 2015)",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 635,
+                    "end": 656,
+                    "text": "(Quick, J et al. 2016",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The characterization of unknown viral entities in the environment is now possible with modern sequencing; however, current tooling for exploiting these data represents a practical and methodological bottleneck for effective data analysis. Practically, most available software tools are inaccessible to the majority of potential users, demanding expertise and computing resources often lacked by the researchers from diverse backgrounds involved in sample collection, sequencing, and analysis. There is a need for robust and intuitive analytical tools without requirements for fast internet connectivity, which may be unavailable in remote or developing regions. More fundamentally, the intended scope of published analytical tools and workflows is often less than clear, and given the diverse applications of viral sequencing, it can be difficult to gauge the relevance of newly published tools without first testing them. For example, a fast sequence classifier might fail entirely to detect a novel strain of a well-characterized virus, and equally might perform well with Illumina sequences yet deliver poor results for data generated with the Ion Torrent platform. Furthermore, results arising from these analyses should be replicable, intelligible, and useful to the end user, with provision for quality control and error management. Software tools that target expert users should be tested, documented and robustly distributed as packages or containers so as to streamline the processes of installation and generating results.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Methodologically, most genomic sequence analysis software is not well suited for viral genomes. Generic tools that are able to address the challenges posed by viral sequences are often applicable only in limited circumstances. Choosing between approaches is made difficult due to an abundance of disparate yet functionally equivalent methodologies and in general a lack of rigorous benchmarks for viral datasets. While there is much ongoing research in this area, both the sensitive detection of previously characterized viruses and viral discovery remain key challenges open for innovation. Here we survey the landscape of available approaches for analyzing both known and unknown viruses within genomic and metagenomic samples, with focus on their practical and methodological suitability for use by a broad spectrum of researchers seeking to characterize viral metagenomes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Within metagenomes the proportion of viral nucleic acids is typically far lower than that of host or other microbes, limiting the amount of signal available for analysis after sequencing. To (Ruby, Bellare, and Derisi 2013) . Alternatively, PCR amplification may be used to generate an abundance of specific viral sequences present in a sample, a widely used strategy, which was employed in the identification and analysis of MERS coronavirus (Zaki et al. 2012; Cotten et al. 2013 Cotten et al. , 2014 , although effective primer design can be challenging in the presence of high genomic diversity in the target viral species. Conversely, an excess of sequencing coverage can lead to the construction of overly complex and unwieldy de novo assembly graphs in the presence of high genomic diversity, reducing assembly quality. Using in silico normalisation (Crusoe et al. 2015) , excess coverage may be reduced by discarding sequences containing redundant information. This approach increases analytical efficiency when dealing with high coverage sequence data, and we have shown that it can benefit de novo assembly of viral consensus sequences. Another in silico strategy for increasing analytical efficiency by discarding unneeded data is to filter sequences from known abundant organisms through alignment with one or more reference genomes using an aligner or specialist tool (approaches reviewed in Daly et al. 2015) .",
+            "cite_spans": [
+                {
+                    "start": 191,
+                    "end": 223,
+                    "text": "(Ruby, Bellare, and Derisi 2013)",
+                    "ref_id": "BIBREF61"
+                },
+                {
+                    "start": 443,
+                    "end": 461,
+                    "text": "(Zaki et al. 2012;",
+                    "ref_id": "BIBREF73"
+                },
+                {
+                    "start": 462,
+                    "end": 480,
+                    "text": "Cotten et al. 2013",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 481,
+                    "end": 501,
+                    "text": "Cotten et al. , 2014",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 856,
+                    "end": 876,
+                    "text": "(Crusoe et al. 2015)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1404,
+                    "end": 1421,
+                    "text": "Daly et al. 2015)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Viral sequence enrichment: physical and in silico approaches"
+        },
+        {
+            "text": "There are several sequencing technologies in widespread use that are capable of reading hundreds of thousands to billions of DNA sequences per run (Reuter, Spacek, and Snyder 2015) . The current market leader, Illumina, manufactures instruments capable of generating billions of 150 base pair (bp) paired end reads (see 'Glossary') per run, with read lengths of up to 300 bp. The Illumina short read platform is widely used for analyses of viral genomes and metagenomes, and, given sufficient sequencing coverage, enables sensitive characterization of lowfrequency variation within viral populations (e.g. HIV resistance mutations as low as 0.1% (Li et al. 2014) ). Ion Torrent (ThermoFisher) is capable of generating longer reads than Illumina at the expense of reduced throughput and a higher rate of insertion and deletion (indel) error (Eid et al. 2009 ). Single molecule real-time sequencing commercialized by Pacific Biosciences (PacBio) produces much longer (>10 kbp) reads from a single molecule without clonal amplification, which eliminates the errors introduced in this step. However, this platform has a high (10%) intrinsic error rate, and remains much more expensive than Illumina sequencing for equivalent throughput. The Nanopore platform from Oxford Nanopore Technologies, which includes the pocket sized MinION sequencer, also implements long read single molecule sequencing, and permits truly real-time analysis of individual sequences as they are generated. Although more affordable than PacBio single molecule sequencing, the Nanopore platform also suffers from high error rates in comparison with Illumina (Reuter, Spacek, and Snyder 2015) . However, the technology is maturing rapidly and has already demonstrated potential to revolutionize pathogen surveillance and discovery in the field, as well as enabling contiguous assembly of entire bacterial genomes at relatively low cost (Feng et al. 2015; Quick et al. 2015; Hoenen et al. 2016 ). Hybrid sequencing strategies using both long and short reads leverage the ability of long reads to resolve repetitive DNA regions while benefitting from the high accuracy of short reads, at the expense of additional sequencing, library preparation and data analysis (Madoui et al. 2015) .",
+            "cite_spans": [
+                {
+                    "start": 147,
+                    "end": 180,
+                    "text": "(Reuter, Spacek, and Snyder 2015)",
+                    "ref_id": null
+                },
+                {
+                    "start": 646,
+                    "end": 662,
+                    "text": "(Li et al. 2014)",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 840,
+                    "end": 856,
+                    "text": "(Eid et al. 2009",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 1628,
+                    "end": 1661,
+                    "text": "(Reuter, Spacek, and Snyder 2015)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1905,
+                    "end": 1923,
+                    "text": "(Feng et al. 2015;",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1924,
+                    "end": 1942,
+                    "text": "Quick et al. 2015;",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 1943,
+                    "end": 1961,
+                    "text": "Hoenen et al. 2016",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 2231,
+                    "end": 2251,
+                    "text": "(Madoui et al. 2015)",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Choosing a sequencing platform"
+        },
+        {
+            "text": "The reconstruction of sequencing reads into full length genes and genomes can be performed by means of either referencebased alignment or de novo assembly, a decision dependent on experimental objectives, read length, quality and data complexity. In reference-based approaches, reads are mapped to similar regions of a supplied template genome, a well-studied and computationally efficient process implemented with a suffix array index of the reference genome. In contrast, de novo assembly is computationally exhaustive but important in cases where either a target genome is poorly characterized or reconstruction of genomes of a priori unknown entities in metagenomes is sought, such as in surveillance studies. For short read data, the increased sequence length afforded by assembly can be necessary to distinguish members of highly conserved gene families from one another. Assembly is also widely used for generating whole genome consensus sequences to facilitate analyses of viral variation, and is a typical starting point for analyses of diverse populations of well-characterized viruses. Even where Glossary Contigs: Contiguous nucleotide sequences assembled from multiple overlapping reads.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Assembling genomes: de novo and reference-based assembly"
+        },
+        {
+            "text": "Coverage: The number of times a genome (or part thereof) has been sequenced. de Bruijn graph: A network of nodes and edges, where each edge represents a k-mer found in the collection of reads, and each node represents either the prefix or suffix of the k-mer. De novo assembly: Reconstruction of short sequences into longer sequences (or contigs), without use of a reference sequence Digital signal processing data transformation: Analytical techniques for transforming sequential data into a domain representative of data features. Discrete Fourier transform: A spectral analysis technique for identifying sine and cosine frequency components in numerical signal data. Discrete wavelet transform: A spectral analysis technique for decomposing data to its frequency and spatial components. k-mer: A subsequence of length k. Many genomic analyses involve decomposition of sequences into all possible subsequences of a specified length k. Numerical sequence representation: Numerical mapping of nucleotide sequences, permitting the application of signal processing transformation approaches.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Assembling genomes: de novo and reference-based assembly"
+        },
+        {
+            "text": "Paired-end reads: Reads generated from both 5 and 3 ends of the same DNA molecule. Depending on the length of the molecule and that of the reads, these pairs may or may not overlap in the middle. Read overlap graphs: A network of nodes and edges, where each edge represents a read and each vertex represents an overlap between two nodes. Reference-based alignment: Orientation/alignment of reads with respect to a specified reference sequence. Scaffolds: DNA sequences comprising contigs with gaps between them, often generated using read pairing information. Suffix array: A sorted array of all suffixes of a string, such as a DNA sequence, enabling efficient sequence comparison.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Assembling genomes: de novo and reference-based assembly"
+        },
+        {
+            "text": "long reads are available, assembly plays an important role in mitigating the high error rates associated with single molecule sequencing technologies, yielding accurate consensus sequences from inaccurate individual reads.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Assembling genomes: de novo and reference-based assembly"
+        },
+        {
+            "text": "Modern de novo assemblers generally leverage either de Bruijn graphs or read overlap graphs as part of the approach known as overlap layout consensus (OLC). Figure 1 illustrates the differences between the two methods. OLC assemblers use the similarity of whole reads in order to construct a graph wherein each read is represented by a node, and subsequently merge overlapping reads into consensus contigs (Deng et al. 2015) . OLC is relatively time and memory intensive, scaling poorly to millions of reads and beyond. However, the fewer, longer reads generated by emerging single molecule sequencing technologies tend to be well suited to OLC assembly, which can be easily implemented to tolerate long and noisy sequences (Compeau, Pevzner, and Tesler 2011) . Older, notable, de novo assemblers implementing OLC include CAP3 (Huang and Madan 1999) and Celera (http://www.jcvi.org/cms/research/projects/cabog/over view/), while MHAP (Berlin et al. 2015) , Canu (Berlin et al. 2015) , and Miniasm (Li 2016) represent the current state of the art. There also exist a number of OLC assemblers intended for use with viral sequences: VICUNA was designed for short, nonrepetitive and highly variable reads from a single population (Yang et al. 2012) , and PRICE (Ruby, Bellare, and Derisi, 2013) iteratively assembles low to moderate complexity metagenomes (e.g. Runckel et al. 2011; Grard et al. 2012 ;) using a similar algorithm to the actively developed consensus assembler IVA (Hunt et al. 2015) , which like VICUNA is designed for single virus populations rather than metagenomes (see Table 1 for additional details on programs). A de Bruijn or k-mer graph represents a set of reads in terms of its k-mer composition, where k-mers are subsequences of a length k, specified by the user. Each k-mer is assigned to an edge in a graph, where the nodes are k-1 prefixes and suffixes of the k-mer. The assembler identifies the path through the graph in which each edge is visited only once (reviewed in Compeau, Pevzner, and Tesler 2011) . De Bruijn graphs are much more efficient to construct than overlap graphs and are suited to large numbers of short reads, and where coverage is high, since redundant k-mers occupy negligible random access memory (RAM). However, with this efficiency comes a lack of error tolerance in identifying overlaps, less tolerance of repeated sequences in comparison to overlap graphs, and a loss of read coherence, meaning that k-mers originating from different reads may be co-assembled. Examples of assemblers using de Bruijn graphs include SOAPdenovo (Luo et al. 2012 ), ALLPATHS Figure 1 . Two widely used methodologies in de novo assembly of short reads. Reads are not represented explicitly within a de Bruijn graph; they are instead decomposed into distinct subsequence 'words' of length k, or k-mers, which can be linked together via overlapping k-mers to create an assembly graph. In OLC, a pairwise comparison of all reads is performed, identifying reads with overlapping regions. These overlaps are used to construct a read graph. Next, overlapping reads are bundled into aligned contigs in what is referred to as the layout step, before finally the most likely nucleotide at position is determined through consensus. This figure is simplified to demonstrate the theory for the assembly of single genomes; note that the process has additional complexities for the reconstruction of metagenomes. (Butler et al. 2008) , SPAdes (Bankevich et al. 2012) , and ABySS (Simpson et al. 2009 ).",
+            "cite_spans": [
+                {
+                    "start": 406,
+                    "end": 424,
+                    "text": "(Deng et al. 2015)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 724,
+                    "end": 759,
+                    "text": "(Compeau, Pevzner, and Tesler 2011)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 827,
+                    "end": 849,
+                    "text": "(Huang and Madan 1999)",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 934,
+                    "end": 954,
+                    "text": "(Berlin et al. 2015)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 962,
+                    "end": 982,
+                    "text": "(Berlin et al. 2015)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 997,
+                    "end": 1006,
+                    "text": "(Li 2016)",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1226,
+                    "end": 1244,
+                    "text": "(Yang et al. 2012)",
+                    "ref_id": "BIBREF71"
+                },
+                {
+                    "start": 1257,
+                    "end": 1290,
+                    "text": "(Ruby, Bellare, and Derisi, 2013)",
+                    "ref_id": "BIBREF61"
+                },
+                {
+                    "start": 1358,
+                    "end": 1378,
+                    "text": "Runckel et al. 2011;",
+                    "ref_id": "BIBREF62"
+                },
+                {
+                    "start": 1379,
+                    "end": 1396,
+                    "text": "Grard et al. 2012",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 1476,
+                    "end": 1494,
+                    "text": "(Hunt et al. 2015)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 1997,
+                    "end": 2031,
+                    "text": "Compeau, Pevzner, and Tesler 2011)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 2579,
+                    "end": 2595,
+                    "text": "(Luo et al. 2012",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 3431,
+                    "end": 3451,
+                    "text": "(Butler et al. 2008)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 3461,
+                    "end": 3484,
+                    "text": "(Bankevich et al. 2012)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 3497,
+                    "end": 3517,
+                    "text": "(Simpson et al. 2009",
+                    "ref_id": "BIBREF64"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 157,
+                    "end": 165,
+                    "text": "Figure 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1585,
+                    "end": 1592,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                },
+                {
+                    "start": 2608,
+                    "end": 2616,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "De novo assembly methodologies"
+        },
+        {
+            "text": "Typical de novo assemblers are designed to reconstruct genomes with uniform sequencing coverage across their length. This is problematic for metagenomes (including viromes) where coverage typically varies considerably both among different genomes and within individual genomes. To address this problem, dedicated metagenome assemblers have been developed. Omega (Haider et al. 2014 ) is an OLC-based method that uses a minimum cost flow analysis of the OLC graph to generate initial contigs, merging these to create longer contigs and scaffolds using mate-pair information. Genovo (Laserson, Jojic, and Koller 2011) is another OLCbased method that generates a probabilistic model for the dataset and subsequently uses an iterative approach to reconstruct the most likely genome contigs. MEGAHIT (Li et al. 2015) prioritizes speed, leveraging a succinct de Bruijn graph to rapidly reconstruct high complexity metagenomes, such as those of soil or seawater, on a single computer. Noteworthy is the iterative de Bruijn graph assembler SPAdes, which although not initially intended for metagenome assembly, has been widely adopted for its effectiveness in assembling variable coverage metagenomes of limited complexity. MetaSPAdes (Nurk et al. 2016 ) is a metagenome-specific release of the SPAdes pipeline with refinements to its graph simplification and repeat resolution algorithms, counterintuitively capable of leveraging rare strain information so as to improve its consensus reconstruction capabilities. Other de Bruijn graph metagenome assemblers based on their genomic counterparts include Ray-Meta (Boisvert et al. 2012) , MetAMOS (Treangen et al. 2013) , MetaVelvet (Namiki et al. 2012; Afiahayati, Sato, and Sakakibara 2015) , and IDBA-UD (Peng et al. 2012) .",
+            "cite_spans": [
+                {
+                    "start": 362,
+                    "end": 381,
+                    "text": "(Haider et al. 2014",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 581,
+                    "end": 615,
+                    "text": "(Laserson, Jojic, and Koller 2011)",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 795,
+                    "end": 811,
+                    "text": "(Li et al. 2015)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 1227,
+                    "end": 1244,
+                    "text": "(Nurk et al. 2016",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 1604,
+                    "end": 1626,
+                    "text": "(Boisvert et al. 2012)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1637,
+                    "end": 1659,
+                    "text": "(Treangen et al. 2013)",
+                    "ref_id": "BIBREF66"
+                },
+                {
+                    "start": 1673,
+                    "end": 1693,
+                    "text": "(Namiki et al. 2012;",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 1694,
+                    "end": 1732,
+                    "text": "Afiahayati, Sato, and Sakakibara 2015)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1747,
+                    "end": 1765,
+                    "text": "(Peng et al. 2012)",
+                    "ref_id": "BIBREF54"
+                }
+            ],
+            "ref_spans": [],
+            "section": "De novo assembly for metagenomes"
+        },
+        {
+            "text": "For example, unlike the genome assembler Velvet, MetaVelvet's de Bruijn graph is decomposed into many subgraphs (using coverage difference and graph connectivity), and scaffolds are built independently for each subgraph. MetaVelvet-SL addresses limitations with MetaVelvet, using supervised learning to detect and classify chimeric nodes within the de Bruijn graph. IDBA-UD partitions a de Bruijn graph into isolated components, constructs a multiple alignment, and subsequently identifies variation within these partitions using multiple depth relative thresholds to remove erroneous k-mers. Ray Meta (Boisvert et al. 2012 ) extends the massively distributed assembly model of Ray to variable coverage metagenomes, while MetAMOS (Treangen et al. 2013 ) is both a metagenomic extension and successor to the AMOS genome assembler.",
+            "cite_spans": [
+                {
+                    "start": 602,
+                    "end": 623,
+                    "text": "(Boisvert et al. 2012",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 730,
+                    "end": 751,
+                    "text": "(Treangen et al. 2013",
+                    "ref_id": "BIBREF66"
+                }
+            ],
+            "ref_spans": [],
+            "section": "De novo assembly for metagenomes"
+        },
+        {
+            "text": "We recently proposed a method based on numerical sequence representations and digital signal processing data transformation (SPDT) approaches to reduce the size of working datasets, permitting fast and sensitive read alignment and de novo assembly of diverse viral populations (Tapinos et al. 2015) . SPDT methods, such as the discrete Fourier transform (DFT) (Agrawal, Faloutsos, and Swami 1993) , and discrete wavelet transform (DWT) (Percival and Walden 2006) (Fig. 2) , are used to reduce sequences into lower dimensional space, preserving only prominent data characteristics. Analysis is subsequently performed with these lower dimensionality transformations, enabling faster data comparison. Since SPDT methodologies such as the Fourier and wavelet transforms are applicable only to numerical sequences, nucleotide sequences must first be numerically transformed with one of several techniques including real number representations (Chakravarthy et al. 2004 ), complex number representations (Anastassiou 2001) , the DNA walk (Lobry 1996) , and the Voss method (Voss 1992) .",
+            "cite_spans": [
+                {
+                    "start": 277,
+                    "end": 298,
+                    "text": "(Tapinos et al. 2015)",
+                    "ref_id": "BIBREF65"
+                },
+                {
+                    "start": 360,
+                    "end": 396,
+                    "text": "(Agrawal, Faloutsos, and Swami 1993)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 436,
+                    "end": 462,
+                    "text": "(Percival and Walden 2006)",
+                    "ref_id": null
+                },
+                {
+                    "start": 938,
+                    "end": 963,
+                    "text": "(Chakravarthy et al. 2004",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 998,
+                    "end": 1016,
+                    "text": "(Anastassiou 2001)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1032,
+                    "end": 1044,
+                    "text": "(Lobry 1996)",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 1067,
+                    "end": 1078,
+                    "text": "(Voss 1992)",
+                    "ref_id": "BIBREF67"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 463,
+                    "end": 471,
+                    "text": "(Fig. 2)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "De novo assembly for metagenomes"
+        },
+        {
+            "text": "Although metagenome assemblers generally outperform single genome assemblers in reconstructing different genomes simultaneously, the complexity of this task stipulates their tendency to collapse variation at or beneath strain level into consensus sequences. Even to this end, their effectiveness may be limited as a consequence of extreme variation within specific RNA virus populations due to mutation and recombination, and low and/or uneven sequencing coverage across a particular genome. Furthermore, it should be noted that de novo assembly is particularly sensitive to the quality of input sequences, meaning that problems during sample extraction, enrichment and library preparation can be highly detrimental to downstream analyses. Of key importance therefore are quality control methods for detecting, and where appropriate correcting, problems associated with contamination (Darling et al. 2014; Orton et al. 2015) , primer read-through and low quality reads (reviewed in Leggett et al. 2013 ).",
+            "cite_spans": [
+                {
+                    "start": 884,
+                    "end": 905,
+                    "text": "(Darling et al. 2014;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 906,
+                    "end": 924,
+                    "text": "Orton et al. 2015)",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 982,
+                    "end": 1001,
+                    "text": "Leggett et al. 2013",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "De novo assembly for metagenomes"
+        },
+        {
+            "text": "Viral genomes and metagenomes comprising high intraspecific variation can be challenging targets for assembly, giving rise to complex assembly graphs and fragmented assemblies. This is often the case for clinical samples from HIV and Hepatitis C patients, in which high rates of mutation and long durations of infection can contribute to extreme population divergence, but can also be observed in environmental samples. Where such diversity exists, alignment based probabilistic population reconstruction approaches can be effective, permitting the reconstruction of individual viral variants into 'haplotypes' exceeding read length. This problem has been well studied, and tools such as ShoRAH, QuRE, and PredictHaplo (Giallonardo et al. 2014 ) are designed for haplotyping viral populations. ShoRAH (Zagordi et al. 2011 ) extracts local alignments of a specified window length, reconstructs haplotypes for each 'cluster' in that window, and removes mutations from sequences in the cluster not matching the reconstructed haplotype using a model-based probabilistic clustering algorithm. QuRe (Prosperi and Salemi 2012; Prosperi et al. 2013 ) removes nucleotide substitutions and indels with a Poisson model and reconstructs haplotypes using a heuristic algorithm based on a multinomial distribution. Both approaches have the advantage of reporting probabilities for the reconstructed haplotypes. PredictHaplo is notable for taking into account the read pairing information in Illumina data. A limitation of all of these approaches; however, is their reliance upon a single reference sequence with which to perform the initial alignment, a process which assumes a degree of sequence similarity which may not always be observed in diverse regions, such as regions encoding envelope proteins, of RNA virus genomes. This can be mitigated through construction of a data-specific template through iterative reference mapping and consensus refinement strategies (Archer et al. 2010; B rinda, Boeva, and Kucherov 2016) . Other possibilities for broader utility of these approaches include the use of multiple viral reference sequences, either through consideration of multiple linear sequences or by direct alignment of sequences to a variation graph [https://github.com/vgteam/ vg], an emerging approach for modeling genomic variation.",
+            "cite_spans": [
+                {
+                    "start": 719,
+                    "end": 743,
+                    "text": "(Giallonardo et al. 2014",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 801,
+                    "end": 821,
+                    "text": "(Zagordi et al. 2011",
+                    "ref_id": "BIBREF72"
+                },
+                {
+                    "start": 1093,
+                    "end": 1119,
+                    "text": "(Prosperi and Salemi 2012;",
+                    "ref_id": null
+                },
+                {
+                    "start": 1120,
+                    "end": 1140,
+                    "text": "Prosperi et al. 2013",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 1956,
+                    "end": 1976,
+                    "text": "(Archer et al. 2010;",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1977,
+                    "end": 2011,
+                    "text": "B rinda, Boeva, and Kucherov 2016)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Haplotype reconstruction in specific viral populations"
+        },
+        {
+            "text": "Sequence classification is one of the most studied problems in computational biology, and taxonomic assignment is a key objective of metagenome analysis. All classification methods, to some extent, depend upon detecting similarity between a query sequence and a collection of annotated sequences. Classification may be undertaken using either unassembled reads or the reconstructed contigs arising from the assembly process. The computational requirements of available approaches vary dramatically according to their ability to detect homology in divergent sequences; for example, exact k-mer matching approaches permit rapid sequence classification, yet typically struggle to identify divergent sequences of viral origin, while high-sensitivity protein alignment searches may be prohibitively slow, especially in application to entire sequencing datasets. Some of the more contemporary and speed-optimized taxonomic assignment approaches also have high RAM requirements, limiting scope for their use with readily available computer hardware. The output of sequence homology search tools is not itself easily interpreted, requiring post-processing in order to yield meaningful classifications. Retroactive taxonomic assignment using these results is non-trivial, requiring additional database lookups, for example, for determination of a conservative 'lowest common ancestor' (LCA) taxon shared by all matches for each query sequence. This kind of complexity necessitates the need for the integration of different tools within application-specific 'pipelines'.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sequence classification"
+        },
+        {
+            "text": "Viral identification approaches typically depend on similarity searches against a database using an aligner such as BLAST (Altschul et al. 1990 ). Comprehensive databases (e.g. GenBank) or smaller custom databases containing for example, only viral sequences of interest may be used, although the latter can generate misleading results. ProViDE (Ghosh et al. 2011 ) uses virusspecific alignment parameters and thresholds to assign viruses at different taxonomic levels from BLAST matches to a protein database. VIROME (Wommack et al. 2012 ) is a multifaceted tool integrating results from searches of several sequence and function databases. MEGAN (Huson et al. 2011 ) is a generally applicable metagenomic classifier, which uses BLAST results to infer the LCA for a given sequence and provides functional analyses through a graphical interface. Automatic pipelines which combine various homology search strategies to identify a final set of viral reads include VirusHunter (Zhao et al. 2013) , a Perl script that automates viral identification using BLAST prior to assembly; MetaVir (Roux et al. 2011) , a web application that compares users' datasets to published viral sequences; and VirSorter (Roux et al. 2015) , which identifies prophages and viruses by comparison with custom datasets. With the exception of web applications, however, these are not intuitive tools for the majority of users, requiring manual configuration and installation of software dependencies. Furthermore, similarity search approaches are in general extremely resource-intensive, and performing sensitive BLAST-like database searches with millions of reads is intractable without use of specialist computational resources. To address this problem, tools have emerged leveraging optimized search algorithms and prebuilt databases so as to increase the tractability of classifying millions of reads. For example, Kraken (Wood and Salzberg 2014) and Clark (Ounit et al. 2015) are fast exact k-mer matching approaches that use prebuilt databases of viruses, bacteria, human, and fungi, although custom databases may also be built. One Codex is a proprietary web-based metagenome analysis platform with an integrated fast k-mer matching engine (similar to that of Kraken) which is both fast, very easy to use, and free for academic use (Minot, Krumm, and Greenfield) . Lambda (Hauswedell, Singer, and Reinert 2014) and Diamond (Buchfink, Xie, and Huson 2015) are sensitive and heavily optimized BLAST-like aligners which leverage alphabet reduction to permit protein searches three to five orders of magnitude faster than BLAST, offering prebuilt database indexes for common applications.",
+            "cite_spans": [
+                {
+                    "start": 122,
+                    "end": 143,
+                    "text": "(Altschul et al. 1990",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 345,
+                    "end": 363,
+                    "text": "(Ghosh et al. 2011",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 518,
+                    "end": 538,
+                    "text": "(Wommack et al. 2012",
+                    "ref_id": "BIBREF68"
+                },
+                {
+                    "start": 648,
+                    "end": 666,
+                    "text": "(Huson et al. 2011",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 974,
+                    "end": 992,
+                    "text": "(Zhao et al. 2013)",
+                    "ref_id": "BIBREF74"
+                },
+                {
+                    "start": 1084,
+                    "end": 1102,
+                    "text": "(Roux et al. 2011)",
+                    "ref_id": "BIBREF60"
+                },
+                {
+                    "start": 1197,
+                    "end": 1215,
+                    "text": "(Roux et al. 2015)",
+                    "ref_id": "BIBREF60"
+                },
+                {
+                    "start": 1898,
+                    "end": 1922,
+                    "text": "(Wood and Salzberg 2014)",
+                    "ref_id": "BIBREF69"
+                },
+                {
+                    "start": 1933,
+                    "end": 1952,
+                    "text": "(Ounit et al. 2015)",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 2311,
+                    "end": 2341,
+                    "text": "(Minot, Krumm, and Greenfield)",
+                    "ref_id": null
+                },
+                {
+                    "start": 2351,
+                    "end": 2389,
+                    "text": "(Hauswedell, Singer, and Reinert 2014)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 2402,
+                    "end": 2433,
+                    "text": "(Buchfink, Xie, and Huson 2015)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Sequence similarity searches"
+        },
+        {
+            "text": "Although exhaustive BLAST-like methods can detect homology in divergent sequences, these methods are in general limited by the relatively few validated viral sequences deposited in public databases, the high diversity within viral families which can obscure relatedness, and the lack of a defined set of core genes common to all viruses that can be used to distinguish species (e.g. the 16S gene for bacteria) (Fancello, Raoult, and Desnues 2012) . These features make it difficult to assign similarity thresholds for classification that are applicable to all potential viruses in a sample (Simmonds 2015) . Comparison methods that do not rely on sequence similarity include PhyloPythia (McHardy et al. 2007 ), which uses nucleotide frequencies to classify reads, and PHYMM (Brady and Salzberg 2009) , which uses interpolated Markov models to find variable length oligonucleotides that characterize species in the NCBI RefSeq database.",
+            "cite_spans": [
+                {
+                    "start": 410,
+                    "end": 446,
+                    "text": "(Fancello, Raoult, and Desnues 2012)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 590,
+                    "end": 605,
+                    "text": "(Simmonds 2015)",
+                    "ref_id": "BIBREF63"
+                },
+                {
+                    "start": 687,
+                    "end": 707,
+                    "text": "(McHardy et al. 2007",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 774,
+                    "end": 799,
+                    "text": "(Brady and Salzberg 2009)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Alternatives to similarity searches"
+        },
+        {
+            "text": "Although these approaches are less accurate than BLAST searches, PHYMMBL (Brady and Salzberg 2011) combines PHYMM and BLAST and outperforms either one on its own. Alignment-free comparison approaches, for example, based on dinucleotide frequencies, codon usage patterns, or small but conserved regions of family wide ubiquitous genes, may be more robust to the limitations of the database than sequence similarity searches. These features may also reduce the computation required and highlight evolutionary relationships otherwise obscured by high sequence variability.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Alternatives to similarity searches"
+        },
+        {
+            "text": "A fundamental challenge in the classification of viral sequences with any of these methods remains their limited representation within curated sequence databases. While the rate at which new viruses are being added to NCBI's RefSeq collection has increased considerably, from a year average 0.34 species/ day in 2010 to 2.5 species/day in 2015 (Fig. 3) , our documented understanding of the extent of viral diversity remains superficial (Anthony et al. 2013) . Reads of true viral origin are therefore liable to be missed in many cases. The rate of database growth also highlights the need to maintain frequently updated search indexes for sequence classification, construction of which often demands specialist servers equipped with hundreds of gigabytes of RAM. Even if up-to-date indexes are maintained inside a public repository, their file sizes are substantial, demanding users have access to a fast internet connection. Consequently, complete outsourcing of sequence classification to remote web services is a compelling prospect for those with adequate internet connections but without powerful computing hardware, increasing scope for conducting analyses with portable computers.",
+            "cite_spans": [
+                {
+                    "start": 437,
+                    "end": 458,
+                    "text": "(Anthony et al. 2013)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 344,
+                    "end": 352,
+                    "text": "(Fig. 3)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Alternatives to similarity searches"
+        },
+        {
+            "text": "We see several barriers to realizing the goal of active, on-theground surveillance and early detection of viruses with epidemic potential.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "1. The emergence of virus-specific assembly and metagenomic tools is a relatively recent phenomenon, with many of the methodologies in use today repurposing one or more existing algorithms. These tools mostly target a small audience of expert users and, as with most research software, decay after initial release due to a lack of ongoing funding, poor software development practices and/or authors' change of circumstances (Duck et al. 2016 ). There is a need for a better balance between research software presenting novel methodologies and for sustainably developed, documented and tested software distributed through robust and user friendly channels such as package managers so as to increase the useful life of viral informatics software. Researchers and granting agencies should consider the importance of this step and allocate resources accordingly. 2. Democratisation of routine analyses through development of user friendly, locally installable software and remote web services is critical. Preconfigured cloud virtual machines offer a convenient, low cost way to run analyses, yet must permit straightforward sequence database and software version updates so as to remain relevant after their initial release. 3. Maintaining up to date indexes of large sequence databases is a problem all classification tools must address, stipulating access either to powerful computers for index construction or the ability to download the prebuilt indexes over a fast connection. Furthermore, classification of viral sequences is critically dependent upon the quality of curated viral databases such as RefSeq, to which submitting newly discovered sequences can be prohibitively time consuming. A solution might involve the creation of a central database containing for any given sequencing project both raw reads as well as filtered, assembled and/or annotated reads, and analysed using a single central pipeline. On a regular basis, the database could report sequences and corresponding metadata for unclassified 'dark matter', which is often discarded and yet is likely to contain sequences belonging to novel pathogens. By combining the dark matter from multiple studies, trends within these unclassified reads may be identified that could lead to greater power to identify new biological entities. 4. Benchmarking of software also remains an open problem within the field, which lacks standardized test datasets that are used across multiple studies. Often benchmarking datasets are chosen to highlight the advantages of the method under study, and therefore may be quite specific for a given application. Thus the field needs to agree upon a set of standard, well-characterized reference datasets for virusfocused studies.",
+            "cite_spans": [
+                {
+                    "start": 424,
+                    "end": 441,
+                    "text": "(Duck et al. 2016",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "The future of the field is promising, with emerging technologies showing potential to eliminate certain challenges. Single molecule sequencing, for example, permits the sequencing of whole viral genomes as single reads, with forthcoming portable and smartphone operated sequencers promising potentially revolutionary analyses in the field. Innovative analytical approaches are constantly being published, and it is evident that the motivation, creativity and expertise needed to meet these challenges exists within the community. Broader communication among developers and end users is essential, and in conjunction with well-funded international initiatives directed at this goal, intelligent viral surveillance could soon be realized.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "MetaVelvet-SL: An Extension of the Velvet Assembler to a De Novo Metagenomic Assembler Utilizing Supervised Learning",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Afiahayati",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Sato",
+                    "suffix": ""
+                },
+                {
+                    "first": "Sakakibara",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "DNA Research",
+            "volume": "22",
+            "issn": "1",
+            "pages": "69--77",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Efficient Similarity Search in Sequence Databases",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Agrawal",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Faloutsos",
+                    "suffix": ""
+                },
+                {
+                    "first": "Swami",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Basic Local Alignment Search Tool",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Altschul",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Journal of Molecular Biology",
+            "volume": "215",
+            "issn": "",
+            "pages": "403--413",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Genomic Signal Processing",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Anastassiou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Signal Processing Magazine",
+            "volume": "18",
+            "issn": "",
+            "pages": "8--20",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "A Strategy to Estimate Unknown Viral Diversity in Mammals",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Anthony",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "598--611",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "The Evolutionary Analysis of Emerging Low Frequency HIV-1 CXCR4 Using Variants Through Time-An Ultra-Deep Approach",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Archer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "PLoS Computational Biology",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "SPAdes: A New Genome Assembly Algorithm and Its Applications to Single-Cell Sequencing",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bankevich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Journal of Computational Biology",
+            "volume": "19",
+            "issn": "",
+            "pages": "455--77",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Assembling Large Genomes with Single-Molecule Sequencing and Locality-Sensitive Hashing",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Berlin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nat Biotechnol",
+            "volume": "33",
+            "issn": "",
+            "pages": "623--653",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Ray Meta: Scalable De Novo Metagenome Assembly and Profiling",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Boisvert",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Genome Biology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Phymm and PhymmBL: Metagenomic Phylogenetic Classification with Interpolated Markov Models",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Brady",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Salzberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Nature Methods",
+            "volume": "6",
+            "issn": "",
+            "pages": "673--679",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Dynamic read mapping and online consensus calling for better variant detection",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "B Rinda",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Boeva",
+                    "suffix": ""
+                },
+                {
+                    "first": "Kucherov",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "arXiv": [
+                    "arXiv:1605.09070v1"
+                ]
+            }
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Fast and Sensitive Protein Alignment Using DIAMOND'",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Buchfink",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Xie",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Huson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nature Methods",
+            "volume": "12",
+            "issn": "",
+            "pages": "59--60",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "ALLPATHS: De Novo Assembly of Whole-Genome Shotgun Microreads",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Butler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Genome Research",
+            "volume": "18",
+            "issn": "",
+            "pages": "810--830",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Temporal and Spatial Analysis of the 2014-2015 Ebola Virus Outbreak in West Africa",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Carroll",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nature",
+            "volume": "524",
+            "issn": "",
+            "pages": "97--101",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Beyond Ebola: Lessons to Mitigate Future Pandemics",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Castillo-Chavez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Lancet Global Health",
+            "volume": "3",
+            "issn": "",
+            "pages": "354--359",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Autoregressive Modeling and Feature Analysis of DNA Sequences",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Chakravarthy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "EURASIP Journal on Applied Signal Processing",
+            "volume": "",
+            "issn": "",
+            "pages": "13--28",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "How to Apply de Bruijn Graphs to Genome Assembly",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Compeau",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Pevzner",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Tesler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Nature Biotechnology",
+            "volume": "29",
+            "issn": "",
+            "pages": "987--91",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Full-Genome Deep Sequencing and Phylogenetic Analysis of Novel Human Betacoronavirus', Emerging Infectious Diseases",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Cotten",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "",
+            "volume": "19",
+            "issn": "",
+            "pages": "1062--1075",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "The khmer Software Package: Enabling Efficient Nucleotide Sequence Analysis', F1000Res",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Crusoe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "4",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Host Subtraction, Filtering and Assembly Validations for Novel Viral Discovery Using Next Generation Sequencing Data",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Daly",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PLoS One",
+            "volume": "10",
+            "issn": "6",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "PhyloSift: Phylogenetic Analysis of Genomes and Metagenomes",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Darling",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Viral Metagenomics', Reviews in Medical Virology",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Delwart",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "17",
+            "issn": "",
+            "pages": "115--146",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "An Ensemble Strategy that Significantly Improves de novo Assembly of Microbial Genomes from Metagenomic Next-Generation Sequencing Data",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Deng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nucleic Acids Research",
+            "volume": "43",
+            "issn": "7",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "A Survey of Bioinformatics Database and Software Usage through Mining the Literature",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Duck",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "PLoS One",
+            "volume": "11",
+            "issn": "6",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Real-Time DNA Sequencing from Single Polymerase Molecules",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Eid",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Science",
+            "volume": "323",
+            "issn": "",
+            "pages": "133--141",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Computational Tools for Viral Metagenomics and Their Application in Clinical Research",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Fancello",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Raoult",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Desnues",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Virology",
+            "volume": "434",
+            "issn": "2",
+            "pages": "162--74",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Nanopore-based Fourth-generation DNA Sequencing Technology",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Genomics Proteomics Bioinformatics",
+            "volume": "13",
+            "issn": "",
+            "pages": "4--16",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "ProViDE: A Software Tool for Accurate Estimation of Viral Diversity In Metagenomic Samples",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Ghosh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Bioinformation",
+            "volume": "6",
+            "issn": "2",
+            "pages": "91--95",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Full-Length Haplotype Reconstruction to Infer the Structure of Heterogeneous Virus Populations",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Giallonardo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nucleic Acids Research",
+            "volume": "42",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Genomic Surveillance Elucidates Ebola Virus Origin and Transmission During the 2014 Outbreak",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Gire",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Science",
+            "volume": "345",
+            "issn": "",
+            "pages": "1369--72",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "A Novel Rhabdovirus Associated with Acute Hemorrhagic Fever in Central Africa",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Grard",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "PLoS Pathogens",
+            "volume": "8",
+            "issn": "9",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Omega: An Overlap-Graph De Novo Assembler for Metagenomics",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Haider",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Bioinformatics",
+            "volume": "30",
+            "issn": "",
+            "pages": "2717--2739",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Lambda: The Local Aligner for Massive Biological Data",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Hauswedell",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Singer",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Reinert",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Bioinformatics",
+            "volume": "30",
+            "issn": "",
+            "pages": "349--55",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Nanopore Sequencing as a Rapidly Deployable Ebola Outbreak Tool', Emerging Infectious Disease",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Hoenen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "",
+            "volume": "22",
+            "issn": "",
+            "pages": "331--335",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "CAP3: A DNA Sequence Assembly Program",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Madan",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Genome Research",
+            "volume": "9",
+            "issn": "9",
+            "pages": "868--77",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "IVA: Accurate De Novo Assembly of RNA Virus Genomes",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hunt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Bioinformatics",
+            "volume": "14",
+            "issn": "",
+            "pages": "2374--2380",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Integrative Analysis of Environmental Sequences Using MEGAN4",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Huson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Genome Research",
+            "volume": "21",
+            "issn": "",
+            "pages": "1552--60",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Genovo: De Novo Assembly for Metagenomes",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Laserson",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Jojic",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Koller",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Journal of Computational Biology",
+            "volume": "18",
+            "issn": "",
+            "pages": "429--472",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Sequencing Quality Assessment Tools to Enable Data-Driven Informatics for High Throughput Genomics",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Leggett",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Frontiers in Genetics",
+            "volume": "4",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "MEGAHIT: An Ultra-Fast Single-Node Solution for Large and Complex Metagenomics Assembly via Succinct de Bruijn Graph",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Bioinformatics",
+            "volume": "10",
+            "issn": "",
+            "pages": "1674--1680",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Minimap and Miniasm: Fast Mapping and De Novo Assembly for Noisy Long Sequences",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Bioinformatics",
+            "volume": "32",
+            "issn": "",
+            "pages": "2103--2113",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Comparison of Illumina and 454 Deep Sequencing in Participants Failing Raltegravir-Based Antiretroviral Therapy",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PLoS One",
+            "volume": "9",
+            "issn": "3",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "A Simple Vectorial Representation of DNA Sequences for the Detection of Replication Origins in Bacteria",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lobry",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Biochimie",
+            "volume": "78",
+            "issn": "",
+            "pages": "323--329",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "SOAPdenovo2: An Empirically Improved Memory-Efficient Short-Read De Novo Assembler",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Luo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Genome Assembly using Nanopore-Guided Long and Error-Free DNA Reads",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Madoui",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "BMC Genomics",
+            "volume": "16",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Accurate Phylogenetic Classification of Variable-Length DNA Fragments",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Mchardy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "63--72",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Fast and sensitive taxonomic classification for metagenomics with Kaiju",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Menzel",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Ng",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krogh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Nature Communications",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "One Codex: A Sensitive and Accurate Data Platform for Genomic Microbial Identification",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "S N"
+                    ],
+                    "last": "Minot",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Krumm",
+                    "suffix": ""
+                },
+                {
+                    "first": "Greenfield",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1101/027607"
+                ]
+            }
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "MetaVelvet: An Extension of Velvet Assembler to De Novo Metagenome Assembly from Short Sequence Reads",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Namiki",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Nucleic Acids Research",
+            "volume": "40",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "metaSPAdes: A New Versatile De Novo Metagenomics Assembler",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Nurk",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "arXiv": [
+                    "arXiv:1604.03071v1"
+                ]
+            }
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Distinguishing Low Frequency Mutations from RT-PCR and Sequence Errors in Viral Deep Sequencing Data",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Orton",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "BMC Genomics",
+            "volume": "16",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "CLARK: Fast and Accurate Classification of Metagenomic and Genomic Sequences Using Discriminative k-mers",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ounit",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "BMC Genomics",
+            "volume": "16",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Ebola Virus Epidemiology, Transmission, and Evolution during Seven Months in Sierra Leone",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Park",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Cell",
+            "volume": "",
+            "issn": "",
+            "pages": "161--168",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "IDBA-UD: A De Novo Assembler for Single-Cell and Metagenomic Sequencing Data with Highly Uneven Depth",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Peng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Bioinformatics",
+            "volume": "28",
+            "issn": "",
+            "pages": "1420--1428",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "HIV Haplotype Inference Using a Propagating Dirichlet Process Mixture Model",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Prabhakaran",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "IEEE/ACM Transactions on Computational Biology and Bioinformatics",
+            "volume": "11",
+            "issn": "1",
+            "pages": "182--91",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Empirical Validation of Viral Quasispecies Assembly Algorithms: State-of-the-Art and Challenges",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Prosperi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Science Reports",
+            "volume": "3",
+            "issn": "",
+            "pages": "132--135",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "Rapid Draft Sequencing and Real-Time Nanopore Sequencing in a Hospital Outbreak of Salmonella",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Quick",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Genome Biology",
+            "volume": "16",
+            "issn": "",
+            "pages": "228--260",
+            "other_ids": {}
+        },
+        "BIBREF60": {
+            "ref_id": "b60",
+            "title": "VirSorter: Mining Viral Signal from Microbial Genomic Data",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Roux",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Bioinformatics",
+            "volume": "27",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF61": {
+            "ref_id": "b61",
+            "title": "PRICE: Software for the Targeted Assembly of Components of (Meta) Genomic Sequence Data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Ruby",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bellare",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Derisi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "",
+            "volume": "3",
+            "issn": "",
+            "pages": "865--80",
+            "other_ids": {}
+        },
+        "BIBREF62": {
+            "ref_id": "b62",
+            "title": "Temporal Analysis of the Honey Bee Microbiome Reveals Four Novel Viruses and Seasonal Prevalence of Known Viruses, Nosema, and Crithidia",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Runckel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "PLoS One",
+            "volume": "6",
+            "issn": "6",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF63": {
+            "ref_id": "b63",
+            "title": "Methods for Virus Classification and The Challenge of Incorporating Metagenomic Sequence Data",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Simmonds",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Journal of General Virology",
+            "volume": "6",
+            "issn": "",
+            "pages": "1193--206",
+            "other_ids": {}
+        },
+        "BIBREF64": {
+            "ref_id": "b64",
+            "title": "ABySS: A Parallel Assembler for Short Read Sequence Data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Simpson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Genome Research",
+            "volume": "19",
+            "issn": "",
+            "pages": "1117--1140",
+            "other_ids": {}
+        },
+        "BIBREF65": {
+            "ref_id": "b65",
+            "title": "Alignment by numbers: sequence assembly using compressed numerical representation",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Tapinos",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF66": {
+            "ref_id": "b66",
+            "title": "MetAMOS: A Modular and Open Source Metagenomic Assembly and Analysis Pipeline",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Treangen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Genome Biology",
+            "volume": "14",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF67": {
+            "ref_id": "b67",
+            "title": "Evolution of Long-Range Fractal Correlations and 1/f Noise in DNA Base Sequences",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Voss",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Physical Review Letters",
+            "volume": "68",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF68": {
+            "ref_id": "b68",
+            "title": "VIROME: A Standard Operating Procedure for Analysis of Viral Metagenome Sequences",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Wommack",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Standards in Genomic Sciences",
+            "volume": "6",
+            "issn": "",
+            "pages": "427--466",
+            "other_ids": {}
+        },
+        "BIBREF69": {
+            "ref_id": "b69",
+            "title": "Kraken: Ultrafast Metagenomic Sequence Classification Using Exact Alignments",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Wood",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Salzberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Genome Biology",
+            "volume": "15",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF70": {
+            "ref_id": "b70",
+            "title": "Lessons from Ebola: Improving Infectious Disease Surveillance to Inform Outbreak Management",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Woolhouse",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rambaut",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Kellam",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Science Translational Medicine",
+            "volume": "",
+            "issn": "",
+            "pages": "307--312",
+            "other_ids": {}
+        },
+        "BIBREF71": {
+            "ref_id": "b71",
+            "title": "De novo Assembly of Highly Diverse Viral Populations",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "BMC Genomics",
+            "volume": "13",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF72": {
+            "ref_id": "b72",
+            "title": "ShoRAH: Estimating the Genetic Diversity of a Mixed Sample from Next-Generation Sequencing Data",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Zagordi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "BMC Bioinformatics",
+            "volume": "12",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF73": {
+            "ref_id": "b73",
+            "title": "Isolation of a Novel Coronavirus from a Man with Pneumonia in Saudi Arabia",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Zaki",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "New England Journal of Medicine",
+            "volume": "367",
+            "issn": "",
+            "pages": "1814--1834",
+            "other_ids": {}
+        },
+        "BIBREF74": {
+            "ref_id": "b74",
+            "title": "Identification of Novel Viruses Using VirusHunter-An Automated Data Analysis Pipeline",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "PLoS One",
+            "volume": "8",
+            "issn": "10",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Proposed DWT signal processing approach for nucleotide sequence analysis. Sequences 1 and 2 are subsequences of the HIV-1 HXB2 genome (the reference genome for HIV), and sequence 3 is a subsequence of the Mycoplasma genitalium genome (all three sequences appear at the bottom of the figure). (A) illustrates the integer number representations of the three sequences-sequence 1 is depicted as a black line, sequence 2 is depicted as a red line and sequence 3 is depicted as a blue line. The sequences are mapped into numerical space with the integer representation method enabling the application of transformation approaches. (B) illustrates the DWT transformations of the three sequences' numerical representations at varying resolutions. The three sequences are each shown consecutively transformed into six reduced resolution representations. The minor sequence mismatches between sequences 1 and 2 (indicated with green circles) can be easily detected at different transformation resolutions despite reduction in information content from the transformation process. Similar nucleotide sequences give rise to similar DWT transformations and thus can be intuitively identified even at low resolution (level 6), where sequences are represented by a single numerical value. Depicted in (C) are the coefficient matrices obtained from each sequence's DWT transformation. Coefficient matrices can be used to approximately identify the sites of the mismatch positions between the two sequences. Sequences 1 and 2 differ only at sites 16-17 and 48-49. The exact location of minor differences can be detected at transformation level 4 where each sequence is compressed to four wavelets. Darker colored positions in between the matrices of sequence 1 and 2 indicate matching coefficients, and lighter colored positions indicate dissimilar coefficients.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Distinct viral species in the NCBI RefSeq releases from June 2003 -May 2015 (data from ftp://ncbi.nlm.nih.gov/refseq/release/release-statistics/viral.acc_taxid_ growth.txt).",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Discussed software for the analysis of viral (meta)genomes.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Continued Name",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The Virogenesis project receives funding from the European Union's Horizon 2020 research and innovation program under grant agreement No 634650. Bede Constantinides receives funding through a Biotechnology and Biological Sciences Research Council (BBSRC) Doctoral Training Program and Avraam Tapinos receives funding from a BBSRC project grant, BB/M001121/1. We thank Katrina Lithgoe and two anonymous reviewers for their helpful edits and suggestions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        },
+        {
+            "text": "Conflict of interest: None declared.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "annex"
+        }
+    ]
+}

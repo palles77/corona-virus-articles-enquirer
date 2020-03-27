@@ -1,0 +1,1947 @@
+{
+    "paper_id": "73bdfac22db4adeb5eb9fefef1eee2d5f24da0bc",
+    "metadata": {
+        "title": "WSE, a new sequence distance measure based on word frequencies",
+        "authors": [
+            {
+                "first": "Jun",
+                "middle": [],
+                "last": "Wang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Dalian University of Technology",
+                    "location": {
+                        "postCode": "116024",
+                        "settlement": "Dalian",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Xiaoqi",
+                "middle": [],
+                "last": "Zheng",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Dalian University of Technology",
+                    "location": {
+                        "postCode": "116024",
+                        "settlement": "Dalian",
+                        "country": "PR China"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "In this article, we present a new distance metric, the Weighted Sequence Entropy (WSE), based on the short word composition of biological sequences. As a revision of the classical relative entropy (RE), our metric (1) works equivalently with RE in the case of small k, (2) avoids the degeneracy when some word types are absent in one sequence but not in the other. Experiments on 25 viruses including SARS-CoVs show that our method and RE give exactly the same phylogenetic tree when word length k 6 3. When k > 3, our method still works and gets convergent phylogenetic topology but the RE gives degenerate results.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "The elucidation of the evolutionary history of different species is a major concern to biological science. Early approaches to deal with it were mainly based on the alignment of a gene or protein sequence. But on one hand, ''different genes may tell different stories\"-unequal mutational rates of different genes or different pieces of genes and lateral gene transfer are widely detected, so a single gene or protein sequence usually does not have enough information to determine its phylogenetic position. On the other hand, traditional alignment methods are computationally intensive and meaningless to whole genome comparison because each genome has its own genes and gene order. In a word, there is an urgent need to develop new phylogenetic methods utilizing the ever-increasing genome data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In recent years, several alignment-free phylogenetic methods have been proposed [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] . Among the earliest attempts is the gene content method [1, 2] , which utilizes the ratio between the number of genes two species share and the total number of genes. This method is very simple and can be applied to long genomes. But it fails when species are closely related to each other, e.g., mt genome sequences of some placental mammals used by Cao et al. [3] . Because these genomes share exactly the same genes and gene order. Similar work along this line is the gene order method [4] , which also fails in the above case. Besides, some methods based on graphical representations of DNA sequences are outlined [5] [6] [7] [8] [9] [10] , which usually translate a DNA sequence to a set of plots in 2D/3D space, and use some graphical invariants to characterize this sequence. These methods provide a simple way of viewing, sorting and comparing various gene structures.",
+            "cite_spans": [
+                {
+                    "start": 80,
+                    "end": 83,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 84,
+                    "end": 87,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 88,
+                    "end": 91,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 92,
+                    "end": 95,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 96,
+                    "end": 99,
+                    "text": "[5]",
+                    "ref_id": null
+                },
+                {
+                    "start": 100,
+                    "end": 103,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 104,
+                    "end": 107,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 108,
+                    "end": 111,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 112,
+                    "end": 115,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 116,
+                    "end": 120,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 121,
+                    "end": 125,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 126,
+                    "end": 130,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 131,
+                    "end": 135,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 136,
+                    "end": 140,
+                    "text": "[14]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 141,
+                    "end": 145,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 203,
+                    "end": 206,
+                    "text": "[1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 207,
+                    "end": 209,
+                    "text": "2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 509,
+                    "end": 512,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 636,
+                    "end": 639,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 765,
+                    "end": 768,
+                    "text": "[5]",
+                    "ref_id": null
+                },
+                {
+                    "start": 769,
+                    "end": 772,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 773,
+                    "end": 776,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 777,
+                    "end": 780,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 781,
+                    "end": 784,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 785,
+                    "end": 789,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Another widely studied method is based on the short word composition of biological sequences. Observing that relative abundances of all dinucleotide are remarkably constant across the genome, Karlin et al. [11] [12] [13] proposed the genome signature to characterize this genome. The genome signature consists of the array of dinucleotide relative abundances q xy \u00bc f xy =f x f y extended over all dinucleotides, where f x is the frequency of nucleotide x and f xy is the frequency of dinucleotide xy. Alternatively, relative abundance of tri-, tetra-or even k-nucleotides can also be calculated. Besides phylogenetic inference, these signatures have been used in several applications, e.g., assessment of general relatedness of genomes [12] , genetic sequence classification [16] , clustering of genes from different genomes [17] , and recognition of species-specific sequence blocks [18] .",
+            "cite_spans": [
+                {
+                    "start": 206,
+                    "end": 210,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 211,
+                    "end": 215,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 216,
+                    "end": 220,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 737,
+                    "end": 741,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 776,
+                    "end": 780,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 826,
+                    "end": 830,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 885,
+                    "end": 889,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "After counting frequencies of all k-nucleotides (or k-mer, kword, etc.) in a DNA or protein sequence, we can represent this sequence as a vector in the 4 k or 20 k -dimensional Euclidean space. Since the frequency of a k-nucleotide measures the probability of its occurrence in the given sequence, it is intuitive to use the relative entropy between two frequency vectors as a measure of distance. Let p i A and p i B be the observed frequencies of the i-th knucleotide in sequences A and B, respectively. The relative entropy (or Kullback-Leibler distance) [19] is defined as The relative entropy is the inefficiency of assuming that the distribution is p B when the true distribution is p A . It does not satisfy the symmetry condition and the triangle inequality, so it is not strictly a distance measure. The relative entropy, however, satisfies many important and useful mathematical properties. For example, it is a convex function of p i A , always nonnegative, and vanishes if and only if p i A \u00bc p i B for all possible i. Apparently, vector representations of biological sequences will lose some information in the case of small k, e.g., only nucleotide composition is known when k \u00bc 1. More information (especially the sequence-order information) will be captured if we consider higher-order words. But unfortunately, as the word order increases, some word types in one sequence may be absent in the other sequence. This leads to the degenerate result when Formula (1) is used. Meanwhile, it is widely detected that some ''word spaces\" are not saturated for an individual genome, especially for protein sequences. A research of the 101,602 protein sequences in SWISS-PROT database Rel. 40 (2000) showed that all these proteins have taken only less than 26% of the 6-aminoacids strings. In particular, EcoliK has taken less than 2% and Mycge less than 0.3% of the 6-aminoacids strings [20] .",
+            "cite_spans": [
+                {
+                    "start": 558,
+                    "end": 562,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1691,
+                    "end": 1705,
+                    "text": "Rel. 40 (2000)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1894,
+                    "end": 1898,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Traditionally, in order to avoid the degeneracy, one can unite some k-words (i.e., words with frequencies up to a particular threshold) into one event. However, this will also be accompanied by a loss of sequence information. In this paper, we give a new distance metric to overcome the degeneracy. As a revision of the classical relative entropy, this metric works equivalently to the relative entropy in phylogenetic inference when k is small, and avoids the degeneration in the case of large k. In the main text, we give the mathematical description and a simple implementation of this metric. As to its application, we construct phylogenetic trees of 25 viruses including SARS-CoVs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Given a DNA or protein sequence of length L, we count the occurrences of words of length k. Partial overlap of words is allowed. There are in total 4 k possible words for DNA sequences and 20 k words for protein sequences. The frequency of a word a 1 a 2 . . . a k is obtained from its occurrence c\u00f0a 1 a 2 . . . a k \u00de by dividing the total number of words \u00f0L \u00c0 k \u00fe 1\u00de in the given sequence",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Frequencies of k-words"
+        },
+        {
+            "text": "The above frequency reflects both the results of natural selection and random mutations [20] . In order to highlight the selective diversification of sequence composition, one should subtract the background from the simple frequency results by dividing the corresponding expected value:",
+            "cite_spans": [
+                {
+                    "start": 88,
+                    "end": 92,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Subtraction of random background"
+        },
+        {
+            "text": "where f exp \u00f0a 1 a 2 . . . a k \u00de is the background frequency of word a 1 a 2 . . . a k . There are many approaches to estimate background frequency of a word in a sequence. In the present paper, we use the simplest one which is based on the Markov model of order 0 [11] [12] [13] 21] . For example, the trinucleotide ACT has the expected frequency f exp \u00f0ACT\u00de \u00bc f \u00f0A\u00def \u00f0C\u00def \u00f0T\u00de. More elaborate estimations, e.g., models of higher-order Markov process, can be defined accordingly.",
+            "cite_spans": [
+                {
+                    "start": 265,
+                    "end": 269,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 270,
+                    "end": 274,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 275,
+                    "end": 279,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 280,
+                    "end": 283,
+                    "text": "21]",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Subtraction of random background"
+        },
+        {
+            "text": "Note that p \u00c3 is actually not a probability distribution since the sum of its components is not 1. We normalize it here by dividing the sum:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Subtraction of random background"
+        },
+        {
+            "text": "In order to overcome the degeneracy, we replace p i",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "Our remedy is meaningful since",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "is also a distribution. Actually, Formula (2) can be treated as the relative entropy between p A and the arithmetical average value of distributions p A and p B . Here RE 1 \u00f0A; B\u00de 6 \u00bc RE 1 \u00f0B; A\u00de. In order to ensure the symmetry condition, we take the sum",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "Recall that Shannon's information entropy",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "as the entropy of arithmetical average value of distributions p A and p B . Then D 1 \u00f0A; B\u00de can be rewritten as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "Alternatively, we can give more elaborate weights to p i A and p i B , e.g., the sequence lengths L A and L B , or their square roots ffiffiffiffiffi L A p and ffiffiffiffi ffi L B p (the accuracy in estimation of probability in multinomial distribution is proportional to square root of the corresponding sequence length). This gives another two relative entropy functions",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "Their corresponding distance measures can be defined and calculated similarly,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "Since D 1 , D 2 and D 3 are all linear combinations of Shannon entropies, we call them the Weighted Sequence Entropy (WSE). According to their definitions, these distances can avoid the degeneracy as their upper bounds are 2,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "To illustrate the virtues of WSE, we give an example as follows. The first exon of b-globin gene of Lemur is S = ATGACTTTGCTG AGTGCTGAGGAGAATGCTCATGTCACCTCTCTGTGGGGCAAGGTGGAT GTAGAGAAAGTTGGTGGCGAGGCCTTGGGCAG. There is only one dinucleotide TA in this sequence. If a point mutation which changes T in the only dinucleotide TA to C occurs (denotes the new sequence by S 0 ), then the relative entropy between S and S 0 is 1, which contradicts the biological meaning. While our methods give the values 0.0245821, 2.26155 and 0.23578 instead.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Weighted sequence entropy and distance matrix"
+        },
+        {
+            "text": "The outbreak of severe acute respiratory syndrome coronavirus (SARS-CoV) in 2003 has had a tremendous impact on worldwide health care systems [22, 23] . Coronaviruses are members of a family of enveloped viruses that replicate in the cytoplasm of animal host cell. According to the type of the host, coronaviruses isolated previously can be classified into three groups. Groups I and II contain mammalian viruses, whereas group III contains only avian viruses. After genome sequencing of some SARS-CoVs, many efforts have been made to identify the phylogenetic position of SARS-CoVs in coronavirus tree using molecular data. However, this is still a controversial topic-alignment-based methods showed that SARS-CoVs are not closely related to any previously isolated groups and form a new group [24, 25] ; maximum likelihood tree built from a fragment of the spike protein preferred SARS-CoVs clustering with group II coronaviruses (murine hepatitis virus and rat coronavirus) [26] ; while an information-based method, which makes use of the whole genome sequences, indicated that SARS-CoVs are close to the group I coronaviruses rather than form a new group [27] .",
+            "cite_spans": [
+                {
+                    "start": 142,
+                    "end": 146,
+                    "text": "[22,",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 147,
+                    "end": 150,
+                    "text": "23]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 795,
+                    "end": 799,
+                    "text": "[24,",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 800,
+                    "end": 803,
+                    "text": "25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 977,
+                    "end": 981,
+                    "text": "[26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 1159,
+                    "end": 1163,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Phylogenetic trees of 25 viruses"
+        },
+        {
+            "text": "In the present work, we select 25 complete virus genomes: 12 coronaviruses from the three isolated typical groups, 12 SARS-CoV strains, and a torovirus, which serves as the outgroup for coronaviruses [28] (Table 1) . Pairwise distance matrices for these 25 sequences are calculated using our distances (D 1 , D 2 and D 3 ) and the classical relative entropy. Notice that RE does not satisfy the symmetry condition. We use the sum of RE\u00f0A; B\u00de and RE\u00f0B; A\u00de instead. Then, phylogenetic trees are built from these matrices using the UPGMA program in the PHYLIP package [29] . Finally, rooted phylogenetic trees are drawn by TREEVIEW program [30] , and some of them are shown in Figs. 1 and 2.",
+            "cite_spans": [
+                {
+                    "start": 200,
+                    "end": 204,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 565,
+                    "end": 569,
+                    "text": "[29]",
+                    "ref_id": null
+                },
+                {
+                    "start": 637,
+                    "end": 641,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 205,
+                    "end": 214,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Phylogenetic trees of 25 viruses"
+        },
+        {
+            "text": "Our three WSE distances (D 1 , D 2 and D 3 ) perform similarly for all values of k (from 2 to 7). They get nearly the same phylogeny except for the length of some branches. This is under our expectation since these genomes have no significant difference in length (except for torovirus).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Phylogenetic trees of 25 viruses"
+        },
+        {
+            "text": "Trees constructed by RE and our distances are of the same topology at the word lengths k \u00bc 2 and 3 (these common topologies are shown in Fig. 1 ). But when k P 4, the relative entropy fails as some words are absent in these genomes (Table 2) . Explicitly, (1) Phylogenetic result got for k \u00bc 2 deviates significantly from the commonly accepted one. This phylogeny prefers murine hepatitis viruses as the outgroup (Fig. 1a) ; (2) The word order k \u00bc 3 seems to make a remarkable improvement ( Fig. 1b) : three typical groups of coronaviruses, and 12 SARS-CoVs, all cluster accordingly. Two big branches are formed: one is the group I coronaviruses and all SARS genomes, the other is the torovirus and group II and III coronaviruses. But this topology also does not support the outgroup status of torovirus.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 137,
+                    "end": 143,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 232,
+                    "end": 241,
+                    "text": "(Table 2)",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 413,
+                    "end": 422,
+                    "text": "(Fig. 1a)",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 491,
+                    "end": 499,
+                    "text": "Fig. 1b)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Phylogenetic trees of 25 viruses"
+        },
+        {
+            "text": "With the definition of WSE, we can study higher-order words and check whether they are suitable to estimate phylogenies. WSE trees at word lengths k \u00bc 4; 5; 6; 7 are shown in Fig. 2 . As can be seen from Figs. 1 and 2, topologies of evolutionary trees converge with the increase of k, and become stable at k \u00bc 4, 5 and 6. These stable trees maintain the main topologies of Fig. 1b , and also successfully support the outgroup status of torovirus relative to all coronaviruses. When k P 6, the average frequency of words is too small for the present statistical analysis. In conclusion, we prefer k \u00bc 6 giving the best phylogeny, that is, all 12 SARS-CoV strains are grouped together and form a new fourth group, which is distinctly related to the group I coronaviruses (TGEV, explicitly).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 175,
+                    "end": 181,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 373,
+                    "end": 380,
+                    "text": "Fig. 1b",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Phylogenetic trees of 25 viruses"
+        },
+        {
+            "text": "Besides the relative entropy, there are a great many of alignment-free comparisons on the basis of short word composition. In this part, we will list some of them and compare them with our method through phylogenetic experiments on the same data set.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "(1) Euclidean distance [31, 32] :",
+            "cite_spans": [
+                {
+                    "start": 23,
+                    "end": 27,
+                    "text": "[31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 28,
+                    "end": 31,
+                    "text": "32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "where f i A and f i B are the frequencies of the ith word in sequences A and B, respectively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "(2) Linear correlation coefficient [33] :",
+            "cite_spans": [
+                {
+                    "start": 35,
+                    "end": 39,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "(3) Cosine function [20, 34] : where",
+            "cite_spans": [
+                {
+                    "start": 20,
+                    "end": 24,
+                    "text": "[20,",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 25,
+                    "end": 28,
+                    "text": "34]",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "A , and f i A is the expect frequency of word i in sequence A estimated from the frequencies of appropriate shorter subwords under a Markov model of order k \u00c0 2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "(4) Information-based similarity index [35] :",
+            "cite_spans": [
+                {
+                    "start": 39,
+                    "end": 43,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "where H i A \u00bc \u00c0f i A log f i A is the Shannon entropy for word i in sequences A. R i A and R i B represent the ranks of word i in sequences A and B.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "We repeated our experiment using the above classical distances for different values of k, and some phylogenetic trees (at word length k \u00bc 6) are shown in Figs. 3-5. Phylogenetic tree obtained using Euclidean distance d Eucli as the dissimilarity metric is shown in Fig. 3 . This tree is mainly identical to our tree, i.e., torovirus stays outside of all coronaviruses, and SARS-CoVs are closer to the transmissible gastroenteritis virus (TGEV). But an obvious default in this tree is that it fails to cluster the three group I coronaviruses: HCoV-229E, PEDV and TGEV. Fig. 4 lists the phylogenetic tree constructed by d COS . This topology supports SARS-CoVs and group II as a closer pair, which is in accordance with the result of Li\u00f2 and Goldman using a fragment of the spike protein [26] . However, this tree also fails to cluster the group I coronaviruses. In Fig. 5 , we list the tree built by linear correlation coefficient between pairwise frequency vectors. This tree perfectly clusters species within each typical group, and supports the outgroup status of SARS-CoVs relative to other coronaviruses. But it fails to identify the outgroup status of torovirus relative to coronaviruses.",
+            "cite_spans": [
+                {
+                    "start": 160,
+                    "end": 164,
+                    "text": "3-5.",
+                    "ref_id": null
+                },
+                {
+                    "start": 786,
+                    "end": 790,
+                    "text": "[26]",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 265,
+                    "end": 271,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 568,
+                    "end": 574,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 864,
+                    "end": 870,
+                    "text": "Fig. 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Comparisons with some classical methods"
+        },
+        {
+            "text": "Phylogenetic analysis from k-word composition is a good alternative approach to the traditional alignment methods. It has relatively low computational complexity, and does not suffer from genetic rearrangements and transposon activity, which serve as common ways of genome evolution. In most cases, biological sequences are represented as occurrence or composition vectors in a high dimensional Euclidean space, and phylogenetic results are high reliable on the quality of this vector representation. In order to capture more sequence information and obtain a better vector representation, the suitable word length is of critical importance. According to the information theory, this length reflects the balance between noise and information-some information may be lost if one uses overshort words, while noise will dominate when long words are considered. Moreover, suitable length of word is often species-specific. In a word, a well-defined distance measure which can be applied to any word length is of great importance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Relative entropy is one of the classical approaches to measure the dissimilarity between two composition vectors. However, as word order increases, this approach will get degenerate results due to the absent of some word types. In the present paper, we propose three revisions of the classical relative entropy (RE). These modifications perform equally with RE in phylogenetic inferences in the case of short words. But when long words are considered, our method still works and gets convergent phylogenetic topologies (in such case, RE gets degenerate results as some word types are absent). Through constructing phylogenetic trees using WSE and some classical distance measures, we find that, as far as the set of 25 virus sequences is concerned, our distances are not inferior to those classical methods. According to our tree, all SARS-CoVs form a group, which is more related to the group I coronavirus: TGEV. This result is mainly in accordance with the phylogeny given by Yang et al. [27] , and is also supported by the experimental evidence, which showed that group I coronaviruses (transmissible gastroenteritis virus, TGEV) specific antibodies are able to recog- nize antigens in SARS-CoV infected cultured cells [37] . We hope our modification can be served as an alternative approach to avoid the degeneracy, and has potential to study information expressed by different orders of words (when RE-based approaches are used). However, as sequences in our data set have no significant difference in length, our three weight methods give nearly the same phylogeny. According to the Central Limit Theorem, the accuracy in estimation of probability in multinomial distribution is proportional to sqrt(length). So when using relatively larger data sets, especially in the case that sequences have significant differences in length, we prefer the revision D 3 giving relatively competitive phylogenetic results.",
+            "cite_spans": [
+                {
+                    "start": 991,
+                    "end": 995,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 1223,
+                    "end": 1227,
+                    "text": "[37]",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "In order to further assure our approach, and evaluate the performances of different WSE, we will do the following experimental and theoretical discussions. Experimentally, we will ''generate\" phylogenetic trees under different evolutionary models, and reconstruct the phylogenetic topologies from their corresponding external nodes (OTU) using our distances and RE. Then performance of different WSE can be evaluated by checking the consistency of these phylogenetic topologies. Theoretically, we hypothesize that order relations between pairwise sequence distances calculated by RE and WSE are in accordance, i.e., WSE\u00f0A; B\u00de <WSE\u00f0C; D\u00de if and only if RE\u00f0A; B\u00de < RE\u00f0C; D\u00de, for any sequences A, B, C and D (proof will be presented in our future paper). This phenomenon, on one hand, can partially explain the equivalence of WSE and RE in phylogenetic inferences in the case of short words, and on the other hand, can help to analyze the performances of different weight methods.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Whole genome-based phylogenetic analysis of free-living microorganisms",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Fitz-Gibbon",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "House",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Nucleic Acids Res",
+            "volume": "27",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Genome phylogeny based on gene content",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Snel",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bork",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Huynen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Nat. Genet",
+            "volume": "21",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Phylogenetic relationships among eutherian orders estimated from inferred sequences of mitochondrial proteins: instability of a tree based on a single gene",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Adachi",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Janke",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "P\u00e4\u00e4bo",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hasegawa",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "J. Mol. Evol",
+            "volume": "39",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Big trees from little genomes: mitochondrial gene order as a phylogenetic tool",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Boore",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Brown",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Curr. Opin. Genet. Dev",
+            "volume": "8",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Big trees from little genomes: mitochondrial gene order as a phylogenetic tool",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Randic",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Vracko",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Lers",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Plavsic",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Chem. Phys. Lett",
+            "volume": "371",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "H. curves, a novel method of representation of nucleotide series especially suited for long DNA sequences",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Hamori",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ruskin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "J. Biol. Chem",
+            "volume": "258",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Novel DNA sequence representations",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Hamori",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Nature",
+            "volume": "314",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Simpler DNA sequence representations",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Gates",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Nature",
+            "volume": "316",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Graphical representation of long DNA sequences",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Nandy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Curr. Sci",
+            "volume": "66",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Compositional differences within and between eukaryotic genomes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Karlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mr\u00e1zek",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Proc. Natl. Acad. Sci. USA",
+            "volume": "94",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Comparisons of eukaryotic genomic sequences",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Karlin",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Ladunga",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Proc. Natl. Acad. Sci. USA",
+            "volume": "91",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Genome signature comparisons among prokaryote, plasmid, and mitochondrial DNA",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Campbell",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mrazek",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Karlin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Proc. Natl. Acad. Sci. USA",
+            "volume": "96",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Integrated gene and species phylogenies from unaligned whole genome protein sequences",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Stuart",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Moffett",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Baker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Bioinformatics",
+            "volume": "18",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "SWORDS: a statistical tool for analysing large DNA sequences",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Chaudhuri",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Das",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Biosci",
+            "volume": "27",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Feature selection for genetic sequence classification",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Chuzhanova",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Margetts",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Bioinformatics",
+            "volume": "14",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Genes from nine genomes are separated into their organisms in the dinucleotide composition space",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Nakashima",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ota",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Nishikawa",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ooi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "DNA Res",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "A novel bioinformatic strategy for unveiling hidden genome signatures of Eukaryotes: self-organizing map of oligonucleotide frequency",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Abe",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kanaya",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kinouchi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Ichiba",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kozuki",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ikemura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Genome Inf. Series",
+            "volume": "13",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Elements of Information Theory",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Cover",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Thomas",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Whole proteome prokaryote phylogeny without sequence alignment: a k-string composition approach",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Qi",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Hao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Mol. Evol",
+            "volume": "58",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Measuring the coding potential of genomic sequences through a combination of triplet occurrence patterns and RNY preference",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Nikolaou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Almirantis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Mol. Evol",
+            "volume": "59",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "A major outbreak of severe acute respiratory syndrome in Hong Kong",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Cameron",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Joynt",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ahuja",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Yung",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "To",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Lui",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Szeto",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Chung",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J Y"
+                    ],
+                    "last": "Sung",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "N. Engl. J. Med",
+            "volume": "348",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Identification of severe acute respiratory syndrome in Canada",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Poutanen",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Low",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Henry",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Finkelstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Rose",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Green",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Tellier",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Draker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Adachi",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ayers",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Skowronski",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Salit",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Simor",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Slutsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Doyle",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Krajden",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Petric",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Brunham",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Mcgeer",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "N. Engl. J. Med",
+            "volume": "348",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "The genome sequence of the SARSassociated coronavirus",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Marra",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Astell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "300",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Characterization of a novel coronavirus associated with severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rota",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Oberste",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Monroe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "300",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Phylogenomics and bioinformatics of SARS-CoV",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Li\u00f2",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Goldman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "",
+            "volume": "12",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Genomic classification using an information-based similarity index: application to the SARS coronavirus",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Goldberger",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Peng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Comput. Biol",
+            "volume": "12",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Toroviruses: replication, evolution and comparison with other members of the coronavirus-like superfamily",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Snijder",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Horzinek",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "J. Gen. Virol",
+            "volume": "74",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "TreeView: an application to display phylogenetic trees on personal computers",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Page",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Comput. Appl. Biosci",
+            "volume": "12",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Alignment-free sequence comparison -a review",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Vinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Almeida",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "19",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "A measure of the similarity of sets of sequences not requiring sequence alignment",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Blaisdell",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Proc. Natl. Acad. Sci. USA",
+            "volume": "83",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Classification of protein sequences by their dipeptide composition",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Petrilli",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Comput. Appl. Biosci",
+            "volume": "9",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "CVTree: a phylogenetic tree reconstruction tool based on whole genomes",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Qi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Luo",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Hao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nucleic Acids Res",
+            "volume": "32",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Linguistic analysis of the human heartbeat using frequency and rank order statistics",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hseu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Yien",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Goldberger",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Peng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Phys. Rev. Lett",
+            "volume": "90",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A novel coronavirus associated with severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Ksiazek",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Erdman",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Goldsmith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "N. Engl. J. Med",
+            "volume": "348",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Phylogenetic tree of 25 viruses constructed using dLCC as the dissimilarity metric",
+            "authors": [],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "The common phylogenetic trees of 25 viruses constructed by the relative entropy and our distances (D1). For word orders k \u00bc 2 and 3, the corresponding trees are listed as (a) and (b). When k P 4, the relative entropy method fails as some words are absent in these genomes.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Phylogenetic trees of 25 viruses for different values of k with pairwise distances evaluated by our distance (for k increasing from 4 to 7, the respective trees are shown as (a), (b),(c) and (d)). In this case, the classical relative entropy method gets degenerate result.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Phylogenetic tree of 25 viruses constructed using dCOS as the dissimilarity metric.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "Coronaviruses and a torovirus used to construct phylogenetic tree",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Numbers of words that are absent in some species for different values of kFig. 3. Phylogenetic tree of 25 viruses constructed using Euclidean distance as the dissimilarity metric.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work was partially supported by the National Natural Science Foundation of China. The authors also thank the editor and the anonymous reviewers for their comments and suggestions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Supplementary data associated with this article can be found, in the online version, at doi:10.1016/j.mbs.2008.06.001.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix A. Supplementary data"
+        }
+    ]
+}

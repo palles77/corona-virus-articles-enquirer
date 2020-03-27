@@ -1,0 +1,213 @@
+{
+    "paper_id": "8711aed56f3656289b66b987d669c3228977a60f",
+    "metadata": {
+        "title": "Supplementary Note 1",
+        "authors": []
+    },
+    "abstract": [
+        {
+            "text": "CATCH's framework for designing probes offers considerable flexibility. This note describes extensions to probe design and methods behind them.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Probe-target hybridization CATCH reduces much of the design to a problem of determining probe-target hybridization. The function f map , which determines whether a probe hybridizes to a range in a target sequence (and, if it does, precisely the range), can be customized by a user in CATCH's source code or can be provided in a command-line argument to be dynamically loaded. For example, although by default CATCH does not use a thermodynamic model of hybridization, a user could choose to incorporate a calculation of free energy to evaluate the likelihood of hybridization. Here, when computing s(d, \u03b8 d ) (defined in Online Methods), CATCH's default f map is based on three parameters in \u03b8 d : a number m of mismatches to tolerate, a length lcf of a longest common substring, and a length i of an island of an exact match. f map computes the longest common substring with at most m mismatches between the probe sequence and target subsequence, and returns that the probe covers the target range if and only if the length of this is at least lcf. Optionally (if i > 0), f map additionally requires that the probe and target subsequence share an exact (0-mismatch) match of length at least i to return that the probe covers the range. (See Supplementary Fig. 1b for a visual representation and 'Exploring the parameter space across taxa' in Online Methods for example values.) Differential identification, blacklisting sequence, and partial coverage",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1242,
+                    "end": 1263,
+                    "text": "Supplementary Fig. 1b",
+                    "ref_id": null
+                }
+            ],
+            "section": ""
+        },
+        {
+            "text": "There are many problems related to probe design that map well to generalizations of the set cover problem. Relevant generalizations are the weighted and partial cover problems 1-3 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "Using the weighted cover problem, CATCH allows a user to perform differential identification of taxa and also to blacklist sequences from the probe design. For these purposes, we introduce the concept of a \"rank\" to our implementation of the set cover solution. A rank of a set is analogous to a weight and makes it straightforward to assign levels of penalties on sets. For two sets S and T , if rank(S) < rank(T ) then S is always considered before T -i.e., if coverage is needed and S provides that coverage, then the greedy algorithm always chooses S before T even if T provides more. These can be emulated using weights (i.e., costs), by assigning sufficiently high weights to each set. To perform differential identification, CATCH accepts groupings of sequences as input (for example, each grouping might encompass the available genomes of a species). Then, CATCH finds the number of groupings that each candidate probe p \"hits\". (p hits a grouping if it covers a part of at least one sequence in that grouping.) A probe that hits only one grouping is suitable for differential identification, whereas ones that hit more are poor choices. Thus, CATCH assigns a rank to each p equal to the number of groupings hit by p. CATCH can also accept a collection of sequences to blacklist from the probe design. It determines the number of nucleotides in blacklisted sequence that each p covers and assigns to p a rank equal to this value; therefore, candidate probes that cover blacklisted sequence are highly penalized in the design. (When a user opts to perform differential identification while also blacklisting sequences, the ranks are assigned such that a candidate probe that covers a part of a blacklisted sequence always receives a higher rank than one that does not.) For the purposes of determining whether p hits an identification grouping or blacklisted sequence, CATCH accepts three additional parameters, holding more tolerant values for m, lcf, and i as defined above, that f map uses to evaluate probe-target hybridization. We note as well that weights can have other applications in probe design, e.g., if there is a reason to prefer some candidate probes over others due to base composition. Finally, CATCH solves an instance of the weighted cover problem by assigning the rank of each set to be the rank of the candidate probe it represents.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "Based on the partial cover problem, CATCH offers the ability to design probes such that they only cover a portion of each target sequence. The user specifies this portion as either a fraction of the length of each sequence or as a fixed number of nucleotides. Reducing the problem directly to an instance of the set cover problem with a single universe would not allow partially covering each target sequence. Thus, as a heuristic, we introduce \"multiple universes\" to the instance, in which each universe corresponds to a target sequence and consists of all the bases in that sequence. Each set (representing candidate probes) specifies which elements in which universes it covers. The greedy algorithm continues selecting among the candidate probes until it obtains the desired partial coverage of each universe (target sequence). We do not make claims about the approximation factor this achieves. As one application, note that when performing differential identification the required partial coverage should be set to be relatively low.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": ""
+        },
+        {
+            "text": "If desired, CATCH adds adapters to probe sequences in s(d, \u03b8 d ) for PCR amplification. Because probe sequences may overlap, it is possible that, during PCR, they could chain together to form concatemers. Thus, we would like to use k unique adapters and divide the probes in s(d, \u03b8 d ) into k groups such that the probes in each group are unlikely to chain together; then, we can perform PCR separately on each group. CATCH uses a heuristic to solve this problem for k = 2, i.e., two adapters A and B. Consider one target sequence t. It maps each of the probes in s(d, \u03b8 d ) to t using f map , as described above. It treats the ranges that each probe covers as an \"interval,\" and finds the largest set of non-overlapping intervals (probes) T no by solving an instance of the interval scheduling problem. Then, we could assign adapter A to each probe in T no , and adapter B to each of the others. CATCH performs this for each target sequence t, and each t \"votes\" once (either A or B) for each probe. We seek to maximize the sum, across all probes, of the majority vote for the probe (to ensure a clear decision on the adapter for each probe). Let V p A be the number of A votes for a probe, and likewise for V p B . Then, we wish to maximize the quantity",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adapters for amplification"
+        },
+        {
+            "text": "Since the distinction between A and B is arbitrary, at each t CATCH chooses whether to assign A or B votes to the probes in T no depending on which assignment yields a higher sum. This process yields the maximum sum, and CATCH then assigns adapter A or B to each probe based on which has more votes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adapters for amplification"
+        },
+        {
+            "text": "In all evaluations of how probe counts grow with respect to an independent variable (Supplementary Fig. 1c, Fig. 1b , and Supplementary Fig. 2) , we used genome neighbors from NCBI's accession list of viral genomes 4 (downloaded in September, 2017) as input. We trimmed long terminal repeats from HIV-1 sequences. The specific sequences are available at https://github.com/broadinstitute/catch/tree/323b639/hybseldesign/datasets/data. In all of these evaluations, we designed 75 nt probes.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 99,
+                    "end": 115,
+                    "text": "Fig. 1c, Fig. 1b",
+                    "ref_id": null
+                },
+                {
+                    "start": 122,
+                    "end": 143,
+                    "text": "Supplementary Fig. 2)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Supplementary Note 2"
+        },
+        {
+            "text": "In the plots showing probe counts as a function of parameter values ( Supplementary Fig.  1c ), we varied only the mismatches (m) and cover extension (e) parameters using the values shown. We set parameters on the longest common substring (lcf ) and island of exact match (i) to their default values: lcf equal to the probe length (75) and i = 0. For each pair of parameter values shown, we calculated probe counts across 5 replicates, with the input to each replicate being 300 genomes that were randomly selected with replacement. Shaded regions are 95% pointwise confidence bands.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 70,
+                    "end": 92,
+                    "text": "Supplementary Fig.  1c",
+                    "ref_id": null
+                }
+            ],
+            "section": "Supplementary Note 2"
+        },
+        {
+            "text": "In the plots showing how probe counts scale with the number of input genomes ( Fig. 1b and Supplementary Fig. 2) , the \"Baseline\" approach generates probes by tiling each input genome with a stride of 25 nt and removing exact duplicates. The \"Clustering-based\" approach generates candidate probes using a stride of 25 nt and deems two probes to be redundant if their longest common substring up to m mismatches (shown at m = 0 and m = 4) is at least 65 nt. It then constructs a graph in which vertices represent candidate probes and edges represent redundancy, and finds a probe set by approximating the smallest dominating set of this graph. For running this clustering-based approach, see the design naively.py executable in our implementation of CATCH. The CATCH approach generates candidate probes For each n, we calculated probe counts across 5 replicates, with the input to each replicate being n genomes that were randomly selected with replacement. Again, shaded regions are 95% pointwise confidence bands.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 79,
+                    "end": 86,
+                    "text": "Fig. 1b",
+                    "ref_id": null
+                },
+                {
+                    "start": 91,
+                    "end": 112,
+                    "text": "Supplementary Fig. 2)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Supplementary Note 2"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "A greedy heuristic for the Set-Covering problem",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Chvatal",
+                    "suffix": ""
+                }
+            ],
+            "year": 1979,
+            "venue": "Math. Oper. Res",
+            "volume": "4",
+            "issn": "",
+            "pages": "233--235",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Improved performance of the greedy algorithm for partial cover",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Slav\u00edk",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Inf. Process. Lett",
+            "volume": "64",
+            "issn": "",
+            "pages": "251--254",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Improved performance of the greedy algorithm for the minimum set cover and minimum partial cover problems",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Slav\u00edk",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Elec. Col. on Comp. Complexity",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "NCBI viral genomes resource",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Brister",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ako-Adjei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Bao",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Blinkova",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Nucleic Acids Res",
+            "volume": "43",
+            "issn": "",
+            "pages": "571--578",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "using a stride of 25 nt and is shown with parameter values (m = 0, e = 0), (m = 4, e = 0), and (m = 4, e = 50), and all other parameters set to default values. Probe counts for Hepatitis C virus and HIV-1 were calculated and plotted with n = {1, 50, 100, 200, 300, . . . , 1000} input genomes; for Zaire ebolavirus, n = {1, 50, 100, 150, . . . , 850} input genomes; and for Zika virus, n = {1, 25, 50, 75, . . . , 375} input genomes.",
+            "latex": null,
+            "type": "figure"
+        }
+    },
+    "back_matter": []
+}

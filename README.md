@@ -23,7 +23,7 @@ The program supports:
 
 # Plans for extension include:
 1. Incorporating Lucene.Net engine to allow for better more accurate search with hits score.
-2. Option for translating articles to other language.
+2. Option for translating articles to other languages.
 3. Option to ask more human like questions.
 
 # Bugs
@@ -32,11 +32,29 @@ https://github.com/palles77/corona-virus-articles-enquirer/issues
 
 # How to use
 
+Please note that the program uses quite a lot of memory (around 1.5 GB) to store all the articles.
+
 1. Just install it from 
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/v1.0/CovidEnquirer-1.0.exe
-2. After installation run 'Covid Enquirer 1.0.0.0' from Desktop icon or by typing 'Covid Enquirer' from Search panel in your Windows.
-3. Wait after startup for the database of 9000 articles to load up.
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/v1.0/CovidEnquirer-1.0.0.1.exe
+2. After installation run 'Covid Enquirer 1.0.0.1' from Desktop icon or by typing 'Covid Enquirer' from Search panel in your Windows.
+You should see the following image:
+![Loading database](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerStartup.png)
+3. After a couple of minutes waiting the database will finihs loading (the database is pretty big as it contains details of over 29000 articles from all around the world - all in English).
+The image you will see will be something like this:
+![Database loaded](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerLoaded.png)
 4. Specify your search criteria and press 'Search' button. When specifying more than 1 word the program will search for articles containing all the words.
+An example image of searching criteria 'covid virus vaccine'
+![Specifying searching criteria](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerSearching.png)
+5. After searching is finished you will see the list of articles in a list box on the left hand side. It contains sorted list of titles alphabetically. To see the content of an article simple click on the title and you will see the simple preview of the articles in RTF format.
+The sample article can be seen below:
+![Previewing selected aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerSearchingResult.png)
+
+# Other functionaliy
+The program also offers you a context menu for each of the articles which allows:
+a) searching for the article in Google by starting up a browser with searching focues on the current article's title.
+b) saving an article as Word document.
+c) opening an article in a Word Pad.
+Other functions that the program provides is ability to move the splitter bar to make the list box bigger. You can also freely resize the window, so that the area for reading can get bigger or smaller depending on the user's wishes.
 
 # Thank you notes
 I would like to thank to the following projects:

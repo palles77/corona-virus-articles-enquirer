@@ -1,0 +1,2761 @@
+{
+    "paper_id": "0bccc69fb138e2f1ffc9a510195be229486ef8ce",
+    "metadata": {
+        "title": "Alignment using genetic programming with causal trees for identification of protein functions",
+        "authors": [
+            {
+                "first": "Chun-Min",
+                "middle": [],
+                "last": "Hung",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Cheng Kung University",
+                    "location": {
+                        "addrLine": "No.1, Ta-Hsueh Road",
+                        "postCode": "701",
+                        "settlement": "Tainan",
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Yueh-Min",
+                "middle": [],
+                "last": "Huang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Cheng Kung University",
+                    "location": {
+                        "addrLine": "No.1, Ta-Hsueh Road",
+                        "postCode": "701",
+                        "settlement": "Tainan",
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": "huang@mail.ncku.edu.twy.-m.huang"
+            },
+            {
+                "first": "Ming-Shi",
+                "middle": [],
+                "last": "Chang",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "National Cheng Kung University",
+                    "location": {
+                        "addrLine": "No.1, Ta-Hsueh Road",
+                        "postCode": "701",
+                        "settlement": "Tainan",
+                        "country": "Taiwan, ROC"
+                    }
+                },
+                "email": "mschang@mail.ncku.edu.twm.-s.chang."
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "A hybrid evolutionary model is used to propose a hierarchical homology of protein sequences to identify protein functions systematically. The proposed model offers considerable potentials, considering the inconsistency of existing methods for predicting novel proteins. Because some novel proteins might align without meaningful conserved domains, maximizing the score of sequence alignment is not the best criterion for predicting protein functions. This work presents a decision model that can minimize the cost of making a decision for predicting protein functions using the hierarchical homologies. Particularly, the model has three characteristics: (i) it is a hybrid evolutionary model with multiple fitness functions that uses genetic programming to predict protein functions on a distantly related protein family, (ii) it incorporates modified robust point matching to accurately compare all feature points using the moment invariant and thin-plate spline theorems, and (iii) the hierarchical homologies holding up a novel protein sequence in the form of a causal tree can effectively demonstrate the relationship between proteins. This work describes the comparisons of nucleocapsid proteins from the putative polyprotein SARS virus and other coronaviruses in other hosts using the model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Identification of protein function is the main theme of the post-genome era. Recently, biomedical scientists have been striving to study proteomics and explore the therapeutic potential of genes for curing disease. Thus, a powerful and integrated methodology is required for predicting novel protein function. During the past decade, many algorithms applied to computational biology have been used to solve several of the above problems, with the most frequently used methods including dynamic programming [1] , the hidden Markov model [2, 3] , the Bayesian theorem, and probabilistic modeling [4] [5] [6] . The Journal of Molecular Biology contains an introduction to hidden Markov models for biological sequences written by Krogh [7] . As a statistical model, the hidden Markov model (HMM) is appropriate for many tasks in molecular biology. A profile-like HMM architecture can be used for searching against sequence databases for new family members and also can make multiple alignments of protein families. Moreover, the latest review by Tsakonas and Dounias [8] indicates that artificial intelligence computational methodologies have been widely applied in bioinformatics, for example genetic algorithms [9] , genetic programming [10] , neural networks [11, 12] , fuzzy logic [13, 14] , and some classification and clustering techniques used in data mining [15] . Design of automatic models for comparing protein sequences that are homologous to a known family or super-family has become increasingly important. One standard approach to solving this problem uses 'profiles' of position-specific scoring measure estimated using multiple sequence alignment (MSA) [16] . In fact, a potential member of a distantly related protein family cannot be identified with the other members in the same family using only the primary protein structures. Consequently, a new protein, such as the case of the SARS virus, with numerous unknown functions cannot be accurately predicted by modeling a learning model. This study applies a hybrid methodology based on genetic programming with a causal tree [4, 28, 31] model to predicting protein function. The causal tree [28, 31] with a cause-effect form is proposed for locally comparing protein sequences across each pairwise alignment of MSA. The clues to this proposal are that comparisons of distantly related sequences may carry more sensitive and accurate messages regarding protein function if given a segmented alignment using the more comprehensive depiction of the protein family. Additionally, the probabilistic scoring measures, similar to profile-to-profile comparisons [17] , can be used to achieve one objective of genetic programming, namely aligning the hierarchical homologies based on profile comparisons. The resulting output is capable of function-related representation for further linkages of protein function. Furthermore, the proposed model can generate a tree structure output with a special aligned format rather than a traditional local or global alignment format such as CLUSTALW [23] . Traditionally, a local alignment based on the Smith-Waterman algorithm [7] has been used to compare sequences with gaps using various scoring systems. Using scoring systems, many methods are used to evaluate the similarity of two profile columns, for example the FFAS method [18] , and prof sim [19] . The FFAS method can calculate the correlation coefficients and thus score the 'dot-product' scores of the amino acid frequencies in the two columns. Meanwhile, the prof sim method utilizes a single similarity score combined with the divergence score and the significance score of the probability distributions in two columns. Recently, the method COMPASS [17, 20] generated the occurrence probability of target residue in one profile column based on the other column of given the target residue frequencies to construct the local profile-to-profile alignment. However, the proposed model was designed to detect the potential functions of a novel protein with a hierarchical homology structure. The hybrid model, namely Alignment using Genetic programming with Causal Tree (AGCT), is a heuristic evolutionary method that contains three basic components: (i) genetic programming with innerexchanged individual strategy, (ii) causal trees [4, 28, 31] with probabilistic reasoning, and (iii) construction of hierarchical homologies with local block-to-block alignment using the methods of moment invariant and robust points matching (RPM) [24] . Locally, a standard construction of an alignment requires at least a two-step design: the first step is a scoring evaluation for similarity between two given positions, while the second step is an alignment extension that considers the gap penalties and an extension algorithm. The AGCT model applies two modified steps to an alignment with a standard construction. The first step is to change the compared objects from positions to blocks that initialize extents based on a particular signal wave, while the second step is to iteratively adjust the boundaries using trimming local fragments rather than the extension algorithm. Actually, in BLAST [21] and its successors [22] , the effective local extension is displayed for the cases of sequence-to-sequence and sequence-to-profile comparison. Similarly, in AGCT, the approach to a local block-to-block comparison modified from profile-to-profile alignment described in [17] shifts the leftmost and rightmost boundaries in relation to the parent segments when high local alignment scores are achieved. Notably, a detailed and refined procedure of alignment such as the Smith-Waterman algorithm [7] is also used in a part of the proposed model for confirming a meaningful fragment detected, because a fragment with a short length reduces the computation time and only some individuals in the population have to be compared making the combination of heuristic and exhaustive search models feasible.",
+            "cite_spans": [
+                {
+                    "start": 506,
+                    "end": 509,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 536,
+                    "end": 539,
+                    "text": "[2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 540,
+                    "end": 542,
+                    "text": "3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 594,
+                    "end": 597,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 598,
+                    "end": 601,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 602,
+                    "end": 605,
+                    "text": "[6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 732,
+                    "end": 735,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1063,
+                    "end": 1066,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1209,
+                    "end": 1212,
+                    "text": "[9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1235,
+                    "end": 1239,
+                    "text": "[10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 1258,
+                    "end": 1262,
+                    "text": "[11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 1263,
+                    "end": 1266,
+                    "text": "12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 1281,
+                    "end": 1285,
+                    "text": "[13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1286,
+                    "end": 1289,
+                    "text": "14]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1362,
+                    "end": 1366,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1666,
+                    "end": 1670,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 2091,
+                    "end": 2094,
+                    "text": "[4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 2095,
+                    "end": 2098,
+                    "text": "28,",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 2099,
+                    "end": 2102,
+                    "text": "31]",
+                    "ref_id": null
+                },
+                {
+                    "start": 2157,
+                    "end": 2161,
+                    "text": "[28,",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 2162,
+                    "end": 2165,
+                    "text": "31]",
+                    "ref_id": null
+                },
+                {
+                    "start": 2620,
+                    "end": 2624,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 3046,
+                    "end": 3050,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 3124,
+                    "end": 3127,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 3328,
+                    "end": 3332,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 3348,
+                    "end": 3352,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 3710,
+                    "end": 3714,
+                    "text": "[17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 3715,
+                    "end": 3718,
+                    "text": "20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 4291,
+                    "end": 4294,
+                    "text": "[4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 4295,
+                    "end": 4298,
+                    "text": "28,",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 4299,
+                    "end": 4302,
+                    "text": "31]",
+                    "ref_id": null
+                },
+                {
+                    "start": 4490,
+                    "end": 4494,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 5145,
+                    "end": 5149,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 5169,
+                    "end": 5173,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 5419,
+                    "end": 5423,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 5643,
+                    "end": 5646,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The proposed AGCT model is an evolutionary method based on a probabilistic inference model. The proposed model also incorporates a modified RPM [24] method and a local sequence alignment into the probabilistic model. Meanwhile, the model uses a moment invariant theorem [32] for pattern recognitions to extract the feature-nodes from some fragmented signal curves. The RPM compares feature points to precisely construct a soft match for two sets of points. Moreover, the modification of RPM changes the original transformation between matrices to the current transformation between a matrix and a tree. For achieving this matrix-to-tree transformation, the proposed constraints, namely rooted one-way winner-take-all (RO-WTA), resembling the two-way winner-take-all (WTA) constraints [27] , are also used. The proposed RO-WTA method is a WTA method that initially takes a unique root node by applying WTA to the slacked matrix column that is involved for the null point correspondences. Then WTA is applied to all rows to ensure each row only produces a corresponding feature-node in a causal tree, and finally at most three nodes are taken and used as the branches of the parent node using the first three high values in the same column. Moreover, the tree-to-matrix transformation simply visits a tree in preorder to derive a set of pairwise points. Finally, an equation, Eq. (28), is applied to yield a correspondence matrix for optimizing the RPM.",
+            "cite_spans": [
+                {
+                    "start": 144,
+                    "end": 148,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 270,
+                    "end": 274,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 784,
+                    "end": 788,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "System modeling"
+        },
+        {
+            "text": "A traditional MSA method for protein classification compares more than two sequences to provide the aligned sequences for the observation of conserved domains. However, in a distantly related protein family, the data provides neither meaningful knowledge of biochemical function nor a consistent outcome when using different MSA algorithms. Clearly, the MSA comparisons would be worst if it is applied with the distantly related protein family members. In this model, a small protein fragment transformed into a feature-node would be a compared target point with spatially localized features. Individual feature-nodes simplified by six moment invariants [32] are matched with each other for the signal registration of 2-D curves [25, 30] . The 2-D curve is depicted using a block-to-block method that can transform a fragmenting sequence of protein residues into a signal curve by iteratively accumulating a block of amino acid properties. The signal curves are plotted by accumulating hydrophobicity against protein sequence here. Because the problem has been transformed into the problem of comparing feature-nodes (points), the comparison of spatially localized features for protein function can be considered an optimization problem of point match for the 2-D shape. In fact, the optimization problem is a difficult problem. Especially, the mapping problem must also consider the rigid and non-rigid deformations. A hybrid technique, combining genetic programming and the causal tree, is ideal for solving such difficult problems. Genetic programming has emerged from the evolutionary based systems [26, [40] [41] [42] , and the causal tree is derived from probabilistic reasoning in intelligent systems [4] . Since the genetic programming can avoid local minima of an energy function, the model is appropriate for recognizing a potential pattern which is never found via direct comparisons.",
+            "cite_spans": [
+                {
+                    "start": 654,
+                    "end": 658,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 729,
+                    "end": 733,
+                    "text": "[25,",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 734,
+                    "end": 737,
+                    "text": "30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1603,
+                    "end": 1607,
+                    "text": "[26,",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 1608,
+                    "end": 1612,
+                    "text": "[40]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 1613,
+                    "end": 1617,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 1618,
+                    "end": 1622,
+                    "text": "[42]",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1708,
+                    "end": 1711,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Transformation of problem"
+        },
+        {
+            "text": "This model uses a popular technique for synthesizing a special signal indicating specific protein functions by accumulating the properties of a group of protein residues. Comparing these special signals with each other can provide a wider window for viewing the world of the protein.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Feature matching"
+        },
+        {
+            "text": "Essentially, the signals must be decomposed for comparison using a method that can prevent a suitable waveform from destroying the protein signals. In the implementation, a technique of wavelet reconstruction for signals [29] is used to depict a noiseless signal curve skeleton. Next, the reconstructed curve is differentiated with respect to the positions of each protein residue, and let its results equal zero. The technique thus can easily identify some positions with local minimum accumulating properties. Subsequently, to preventing the generation of less than 40 residues, the method would discard some of the neighbor positions around the minima. Next, all of the fragmented signals are used to provide an initial dataset for the input of evolutionary computation. Although the local minimum values can not determine the true boundaries of the signals at the beginning step, the local alignment afterwards for fragmented proteins using the Smith-Waterman algorithm [7] would iteratively regularize the boundaries until the suboptimal boundaries are found. Next, the model must further extract signal features from the fragmented input signals after decomposing the original signals. Technically, the vector features can be associated with the signal features. However, the vector value representing a signal must be invariant when the physical linear-transforms deform the signal curve (shape), such as move, rescale, stretching, and rotation. Once the problem is transformed into the image and signal processing domains, the RPM method is easily applied to protein function identification. Conceptually, this proposed model includes two stages for feature matching. The first stage is designed to obtain the initial signal features for the signal registration [25, 30] . During the second stage, an inner-exchanged genetic programming is used to repeatedly refine the RPM parameters.",
+            "cite_spans": [
+                {
+                    "start": 221,
+                    "end": 225,
+                    "text": "[29]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 974,
+                    "end": 977,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1770,
+                    "end": 1774,
+                    "text": "[25,",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 1775,
+                    "end": 1778,
+                    "text": "30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Feature matching"
+        },
+        {
+            "text": "This work utilizes the theorem of two-dimensional moment invariants [32] for planar geometric figures from the theorem of moment spaces [33] to extract features of the protein fragments. Accumulating hydrophobicity of surrounding residues for each position of protein enables the protein fragments to generate signal curves. Next, the signal curve further reduces to a fixed length vector, denoting a feature node, using moment invariants for matching the nodes. Next, one of the energy functions in the model introduces the energy function of a correspondence algorithm of non-rigid mapping [24] derived from the TPS theorem [34] . Finally, genetic programming with the inner-exchanged subpopulation strategy is used to refine the comparison results.",
+            "cite_spans": [
+                {
+                    "start": 68,
+                    "end": 72,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 136,
+                    "end": 140,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 592,
+                    "end": 596,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 626,
+                    "end": 630,
+                    "text": "[34]",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Theorem"
+        },
+        {
+            "text": "The theorem of moment invariants, which is extensively used in computer science, was first proposed in [32] for recognizing visual patterns. In the visual field, an essential step must extract patterns for recognizing visual objects from the original objects. The extracted patterns must also be independent of position, size and orientation. Likewise, the model uses the moment invariants of the signal curves to substantially reduce the computational complexity. Because the flexibility of the moment invariants used for recognizing protein function was such that the model could find more domains of conservation, the domains should be able to attain more biological meaning by this moment invariant based comparison. The following subsections detail how the model obtains a feature vector denoting a feature-node in a causal tree by using the moment invariant theorem for signal recognition.",
+            "cite_spans": [
+                {
+                    "start": 103,
+                    "end": 107,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Moment invariant"
+        },
+        {
+            "text": "Riemann integrals [32] define two-dimensional (k + l)th order moments for a density distribution f (x, y) as follows:",
+            "cite_spans": [
+                {
+                    "start": 18,
+                    "end": 22,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "A. Uniqueness theorem regarding moments"
+        },
+        {
+            "text": "where f (x, y) denotes a piecewise continuous bounded function, and has nonzero values if and only if it is on the finite part of the x y plane. Vice versa, the f (x, y) may derive the unique double moment sequence {\u1e41 k,l } in the moment of any order.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "A. Uniqueness theorem regarding moments"
+        },
+        {
+            "text": "By directly integrating the double moment sequence, Eq. (2) can express a central moment \u00b5 k,l derived from the ordinary moments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "B. Central moments"
+        },
+        {
+            "text": "where x =\u1e41 1,0 /\u1e41 0,0 and y =\u1e41 0,1 /\u1e41 0,0 is an expected value of x and y, respectively. The point (x, y) is termed a center of gravity or center of centroid for x and y. For example, the first four orders have \u00b5 0,0 =\u1e41 0,0 \u2261 \u00b5, \u00b5 1,0 = \u00b5 0,1 = 0, \u00b5 2,0 =\u1e41 2,0 \u2212 \u00b5x 2 , \u00b5 1,1 =\u1e41 1,1 \u2212 \u00b5x y, \u00b5 0,2 =\u1e41 0,2 \u2212 \u00b5y 2 , \u00b5 3,0 =\u1e41 3,0 \u2212 3\u1e41 2,0 x + 2\u00b5x 3 , \u00b5 2,1 =\u1e41 2,1 \u2212\u1e41 2,0 y \u2212 2\u1e41 1,1 x + 2\u00b5x 2 y, \u00b5 1,2 =\u1e41 1,2 \u2212\u1e41 0,2 x \u2212 2\u1e41 1,1 y + 2\u00b5x y 2 , \u00b5 0,3 =\u1e41 0,3 \u2212 3\u1e41 0,2 y + 2\u00b5y 3 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "B. Central moments"
+        },
+        {
+            "text": "In a similar mathematical sense, a measure of area for a two-value image b(m, n) with (k+l)th order moment can approximately obtain Eq. (4) from Eq. (1) .",
+            "cite_spans": [
+                {
+                    "start": 149,
+                    "end": 152,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "B. Central moments"
+        },
+        {
+            "text": "Moreover, the corresponding central moment is expressed as Eq. (5):",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "B. Central moments"
+        },
+        {
+            "text": "M 0,0 ,M andN are the values for the area length and width, respectively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "B. Central moments"
+        },
+        {
+            "text": "A pattern of the two-value image which must be independent of position, size, and rotation is derived from similitude moment invariants. Likewise, the function b(m, n) with respect to a pair of fixed axes can display the signal curve of protein sequences. Moreover, the two-dimensional central moments \u00b5 k,l expresses image patterns. Additionally, numerous properties of the second central moment are equivalent to a covariance matrix in probability fields. Therefore, the covariance matrix for the second central moment is expressed as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "C. Pattern identification"
+        },
+        {
+            "text": "By the diagonalization, Eq. (7) is obtained as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "C. Pattern identification"
+        },
+        {
+            "text": "where E = e 1,1 e 1,2 e 2,1 e 2,2 , a column vector of matrix E is an eigenvector of matrix U , and the eigenvalues of U determine \u039b = \u03bb 1 0 0 \u03bb 2 . The values of \u03bb max and \u03bb min corresponding to (\u03bb 1 , \u03bb 2 ) and (\u03bb 2 , \u03bb 1 ) are shown in Eqs. (8) and (9), respectively.",
+            "cite_spans": [
+                {
+                    "start": 244,
+                    "end": 247,
+                    "text": "(8)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "C. Pattern identification"
+        },
+        {
+            "text": "Moreover, Eq. (10) denotes a direction angle of the area of the image. From the above theoretical deviations, Eqs. (1)-(10) can easily formularize some basic properties of the pattern.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "C. Pattern identification"
+        },
+        {
+            "text": "Notably, an added restriction such as \u00b5 2,0 > \u00b5 0,2 can determine the unique angle of \u03b8 . Clearly, a discrimination property of the patterns increases when the higher order moments are used as the pattern. The higher order moments with respect to the principal axes can also be easily determined using the method of the principal axes described in [32] . Because \u00b5 0,0 = M 0,0 can be used to measure the area, a factor \u221a \u03b1 of proportionality, a divisor, should be used to further normalize the central moment in Eq. (5) by dividing the variables of the function of Eq. (2) by the factor. Eq. (2) then can adopt the form f x/ \u221a \u03b1, y/ \u221a \u03b1 . As a result the normalized central moment \u03bd k,l equals the original central moment of f (x, y) divided by \u221a \u03b1 k+l+2 . Because of \u00b5 0,0 being able to measure area, \u03b1 = \u00b5 0,0 . Eq. (11) then can be used to define the normalized central moment, as follows:",
+            "cite_spans": [
+                {
+                    "start": 348,
+                    "end": 352,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "C. Pattern identification"
+        },
+        {
+            "text": "An identification of the pattern independent of position, size and orientation then can be suitably employed to formularize the moment invariants for any signal curve using Eq. (11).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "C. Pattern identification"
+        },
+        {
+            "text": "To improve pattern recognition capability, an absolute moment invariant should further be achieved by using multiple moment invariants. The normalized central \u03bd k,l in the second and third orders can generate the following six absolute and orthogonal moment invariants listed in Eq. (12) .",
+            "cite_spans": [
+                {
+                    "start": 283,
+                    "end": 287,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "D. Absolute moment invariants"
+        },
+        {
+            "text": "While the skewed invariant listed in the original study [32] is useful for distinguishing mirror images, the model discards this invariant since one skewed orthogonal invariant is not necessary for signal recognition here. The six moment invariants in Eq. (12) are not only independent of position, size and orientation, but also can be used to present a feature-node for a fragmented protein sequence. Finally, a six-valued vector \u03c9 = \u03c9 1 \u03c9 2 \u03c9 3 \u03c9 4 \u03c9 5 \u03c9 6 T can denote a feature-node to enable further convenient processing.",
+            "cite_spans": [
+                {
+                    "start": 56,
+                    "end": 60,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 256,
+                    "end": 260,
+                    "text": "(12)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "D. Absolute moment invariants"
+        },
+        {
+            "text": "Suppose that a feature-node \u03c9 a = (\u03c9 a1 , \u03c9 a2 , \u03c9 a3 , \u03c9 a4 , \u03c9 a5 , \u03c9 a6 ) can represent a signal curve from the fragmented protein corresponding to one point in the 2-D space. Assume a set of vectors \u03a8 = { \u03c9 a | a = 1, 2, . . . , K } and the other set of X = { x a | a = 1, 2, . . . , N}. Since vector \u03c9 a with six variables would increase the problem complexity, a simple linear-transform is used to obtain a scalar for solving the point-matching problem using the TPS of two variables. One problem of the fragmented sequence-mapping then can simply be transformed into the other new problem. The new problem involving the two feature-node sets of X and \u03a8 fits a mapping function f ( \u03c9 a ) using TPS, and simultaneously minimizes the TPS energy function defined as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "Typically, two types of deformations of a compared object exist, rigid (affine) and non-rigid (non-affine). The rigid deformation includes parallel translation and rotation. Meanwhile, the non-rigid deformation includes shrink, dilation, and distortion. By minimizing the first error measurement term of (13), the feature-node set X maps as closely as possible to the other featurenode set \u03a8 . Generally, an infinite number of mappings f can minimize the first term since the mapping is non-rigid. The energy function of Eq. (13) can uniquely determine a minimizing function f specified by two parameter matrices\u00c3 andW in Eq. (14) if and only if it has a fixed value \u03bb.",
+            "cite_spans": [
+                {
+                    "start": 626,
+                    "end": 630,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "where\u00c3 represents a (D + 1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "with c being a constant for any \u03c9 [34] , is related to the TPS kernel. The kernel comprises the information regarding the internal structural relationships of the feature-node set and a non-rigid warp comes into play when the warping coefficient matrixW is considered in Eq. (14) . The second term of Eq. (13), which is responsible for regularizing the mapping function between X and \u03a8 , is essentially a smoothness constraint. The Lagrange parameter \u03bb in Eq. (13) regularizes the warping of the matches of feature-nodes. The precise matches appear if \u03bb approaches zero. When a solution for f in Eq. (14) is substituted into the TPS energy function in Eq. (13) , and using Mercer-Hilbert-Schmidt theorems of Riesz and Sz-Nagy [35] to prove Eq. (15), Eq. (16) is obtained:",
+            "cite_spans": [
+                {
+                    "start": 34,
+                    "end": 38,
+                    "text": "[34]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 275,
+                    "end": 279,
+                    "text": "(14)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 656,
+                    "end": 660,
+                    "text": "(13)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 726,
+                    "end": 730,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "where\u03bb 1 \u2265\u03bb 2 \u2265 \u00b7 \u00b7 \u00b7\u03bb K \u2265 0 denote eigenvalues of the continuous eigenfunction \u03c6 1 , \u03c6 2 , . . . , \u03c6 K , andW t is the transposed matrix ofW .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "where X and \u03a8 are merely concatenated versions of the vector values of the nodes",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "vectors. Each row of the matrix derives from the original vectors. In the model, an energy function with the affine\u00c3 and warpingW parameters, which is derived from Eqs. (13)- (16), is used as a fitness function with genetic programming. Furthermore, the local border between two regions of protein fragments should be considered an important feature for understanding protein functions. Therefore, a distinctive characteristic of the TPS can always decompose a geometrical transformation into a global affine transformation and a local non-affine warping component.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "Using this characteristic, a functional signal generally can be detected based on the same essential protein family even if it is undergoing various environment parameters. The parameters include the setting of primary forming signal of the sequences, for example the fragment length in relation to signal response. Alternatively, the rotation, translation, and global shear of the signals should slightly influence the detection of the functional signals based on the feature geometrical characteristics (pattern). Consequently, the smoothness termW in Eq. (16) is specifically applied to be the warping components, and this term should be penalized when signal deformation is ineffective to their essential properties. Visually, two compared objects with similar patterns should increase the influence of TPS to interpolate a fitting spline. Correspondingly, the similar protein fragments compared with one another can be identified by TPS matching.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Thin-plate splines"
+        },
+        {
+            "text": "The proposed model uses TPS methods to compare with two feature-node sets for multiple optimization problems. The TPS method raises three issues of optimizations. Traditionally, the main issues include optimizations of mapping and correspondence. Generally, the work of correspondence must permute a one-to-one relationship between two feature-node sets, and the work of mapping must fit the two feature-node sets to an optimal function f . However, this model defines a new issue that the problem solved must simultaneously optimize the hierarchical heaping structure by constructing a hierarchical relationship among feature-nodes. Thus, the work of correspondence in the model must achieve the hierarchical relationship of homologies rather than the one-to-one relationship. Alternatively, the model must also optimize heaping. Heaping optimization should meet the following minimum requirements: (i) only generating the node of a unique root, (ii) a parent node can compare with multiple children nodes, (iii) using the limitation of the number of branches, the model must only choose the first certain children nodes depending on homology likelihood to attach to a parent node, and (iv) the model must place the predicted feature-nodes and the predicting feature-nodes to the external and internal nods of a causal tree, respectively. These requirements describe the one-to-many query strategy in the homology search model. More precisely, heaping also accomplishes a descending order of homology probability for children nodes. Nevertheless, the computations have increased difficulty in simultaneously optimizing the hierarchical correspondence, non-rigid mapping, and heaping.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization of mapping, correspondence, and heaping"
+        },
+        {
+            "text": "The subsection formally defines a correspondence matrix for a causal tree via the strategy of a one-to-many query. Assume that a sequence {Q 1 } with unknown functions is used as a query sequence to compare with the fragmented member sequences {Q x } Z x=2 for constructing an optimal hierarchical structure. The optimal structure should comprise the maximum of homology relationships among these protein fragments of both 'query' and 'member'. Moreover, Z denotes the number of the input sequence classified to the same distantly related protein family. Furthermore, letM denote a correspondence matrix representing the correspondence between two node-sets in a tree. Assume the matrix contains (N + 1) \u00d7 (K + 1) elements:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where each m ia is an element of the matrix, with a value that is a real number between zero and one. One query sequence Q 1 is divided into S 1 fragments. The summation of m ia in Eq. (17) for the constraints of each row inM must equal one. The node of the same label thus appears in the tree a maximum of once. The WTA method and Sinkhorn balancing theorem [36] can be used to normalize m ia to satisfy the row and column constraints in Refs. [24, 27, 36] . However, this model only uses the row constraint to modify WTA as RO-WTA. Alternatively, the correspondence matrix for a causal tree must satisfy the constraint N+1 a=S 1 +1,i =a m ia = 1 in Eq. (17) to implement a one-to-many relationship. Simultaneously, a constraint N+1 a=S 1 +1 m aa = 0 is used to prevent a self-correspondence. The self-correspondence that appears when one feature-node points to itself is invalid. Furthermore, a constraint N i=S 1 +1 m i(N+1) = 1 and \u2200i \u2264 S 1 m i(N+1) can decide the node of the unique root. From the definition of the correspondence matrix in Eq. (17), let:",
+            "cite_spans": [
+                {
+                    "start": 359,
+                    "end": 363,
+                    "text": "[36]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 445,
+                    "end": 449,
+                    "text": "[24,",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 450,
+                    "end": 453,
+                    "text": "27,",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 454,
+                    "end": 457,
+                    "text": "36]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 655,
+                    "end": 659,
+                    "text": "(17)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where K represents the number of parent nodes with the starting number one and ending at number K . However, the alternative representation is beginning at number S 1 + 1 and ending at number N. In fact, the two numbering representations are identical for the convenience of representation and implementation. From Eqs. (18), (19) and (20) define the set of parent and children nodes in a tree, respectively.",
+            "cite_spans": [
+                {
+                    "start": 326,
+                    "end": 330,
+                    "text": "(19)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where j and (l x , l y ) denote different coordinates of the one and two dimensions, respectively. Moreover, the variable S p denotes the number of fragments in each protein sequence. Next, Eqs. (21)-(25) further define a causal tree denoted CT using the correspondence matrix M. A set of causal trees , similarly described in [35] , can be expressed in terms of i as follows:",
+            "cite_spans": [
+                {
+                    "start": 327,
+                    "end": 331,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where denotes the set of causal trees i . A causal tree includes the components R i , I i and E i , which denote a root node, internal node-set, and external node-set, respectively. The causal tree is a tree network that is constructed from the binary random variables labeled, and is also illustrated in Fig. 1. Fig. 2 shows an example of internal and external node assignment. Of nine fragments, five corresponding fragments of internal nodes 5, 6, 7, 8, represent a set of fragmenting members from each member sequence {Q x } Z x=2 . The external nodes numbered 1, 2, 3, and 4 in Fig. 1 are for a query sequence {Q 1 } in accordance with the query fragments of Fig. 2 in the numbering representation. In fact, the internal nodes can be used for inferring the probabilistic reasoning [4] for predicting protein function. The reasoning process infers along a cost path in the causal tree by assessing orderly conditional probabilities combined together from a root-node to an external feature-node. Each internal feature-node \u03c9 \u2208 I indicates a given protein fragment of different properties. Likewise, each external feature-node \u03c9 \u2208 E indicates an unknown protein fragment function. For heaping the causal tree, the constraintsH 0 ,H 1 andH 2 are used to allocate a correct location of feature-nodes in the causal tree. TheH 0 in Eq. (22) defines a root-node R by applying the WTA method to column (N + 1) of correspondence matrixM. Alternatively, a feature-node is a root-node if and only if no parent node points to it.",
+            "cite_spans": [
+                {
+                    "start": 786,
+                    "end": 789,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 305,
+                    "end": 319,
+                    "text": "Fig. 1. Fig. 2",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 583,
+                    "end": 589,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 664,
+                    "end": 670,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "Additionally, Eqs. (23) and (24) define the correct locations of internal and external nodes, respectively. The node-pairs \u2212\u2212\u2192 (a, i ) and \u2212 \u2212\u2212\u2192 (a, a ) represent a direction from a parent node to a child node. For clarity, Fig. 3 illustrates an example of the correspondence matrix for a causal tree. The proposed RO-WTA selects the maximum value from the real numbers within the parenthesis only for each row and the N + 1 column. Besides RO-WTA, the diagonal elements must all be zero to eliminate self-correspondence.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 224,
+                    "end": 230,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "Eventually, Eq. (25) defines a causal tree with the entities of a correspondence matrix CT as follows: Fig. 3 . Correspondence matrix for a causal tree.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 103,
+                    "end": 109,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where \u2229 and \u222a denote set intersection and union, respectively. Because the causal tree CT may heap some feature-nodes to a cause-effect form, a set of given causes can also be inferred to obtain an unknown effect. The model has transformed the TPS method of two point-sets correspondence into an optimization of the causal tree. Next, the model must control the tree growth by adding an equation in Eq. (26) into the resulting energy function. The value N in Eq. (26) denotes the total number of all input fragments as the tree size. By adding Eq. (26) to the energy function, the model can attain an approximated tree in accordance with the correspondence matrix.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where i denotes the labeled identification of a feature-node. In the presence of this feature-node added to a causal tree j , the value n i returns 1, and otherwise it returns 0. Finally, Eq. (27) combines Eqs. (16), (17) and (26) to create the final energy functions, as follows:",
+            "cite_spans": [
+                {
+                    "start": 217,
+                    "end": 221,
+                    "text": "(17)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "By minimizing Eq. (27), the model can use genetic programming to obtain a globally suboptimal solution with respect to mapping, correspondence, and heaping. The first term in Eq. (27) is an error measure term for matching the similarity between two feature-nodes. Meanwhile, the second term in Eq. (27) can guard against all matches, and a controlling parameter \u03b6 determines a degree of influence for the term. Next, the third term of Eq. (27) , which refers to a barrier function, is an entropy term with an annealing temperature T in statistical physics. By controlling the entropy barrier function, the distribution of random variables m ia in CT gradually stabilizes. Alternatively, the model can generate the minimum number of states required to push the objective minimum away from the discrete points such that some rules emerge from m ia . A gradually reduced temperature T can suitably control thermal fluctuation to yield an optimal solution. Regarding related applications, the application of this entropy term to statistical physics is also briefly described in [37] [38] [39] . Subsequently, the fourth term in Eq. (27) is used to penalize the differences of an affine mapping parameter\u00c3 and an identity matrix I . The differences stimulate some unphysical reflections that result from flipping through the whole plane. The fifth term in Eq. (27) , which is a standard TPS regularization term, penalizes the local warping coefficientsW [24] . Using an approximated least-squares approach and QR-decomposition technique, the model can solve the parameters (\u00c3,W ) given fixed CT. Additionally, two parameters \u03bb 1 and \u03bb 2 are used to control the influence of the fourth and fifth terms, respectively. Finally, keeping a matrix consistent with a tree during the evolutionary process of genetic programming is very difficult. Thus, the final term in Eq. (27) ",
+            "cite_spans": [
+                {
+                    "start": 298,
+                    "end": 302,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 439,
+                    "end": 443,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 1074,
+                    "end": 1078,
+                    "text": "[37]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 1079,
+                    "end": 1083,
+                    "text": "[38]",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 1084,
+                    "end": 1088,
+                    "text": "[39]",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1128,
+                    "end": 1132,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 1355,
+                    "end": 1359,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 1449,
+                    "end": 1453,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "where m ia must conform to RO-WTA. Currently, a parent node can only connect a maximum of three children nodes for this model. Consequently, the summation of all elements in each column must equal three. When the model attains an optimal causal tree, a probability theorem is further used to model a training model for identifying protein function.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "One-to-many query strategy"
+        },
+        {
+            "text": "Consideration of a given protein family can be requested and answers obtained to a query with an unknown protein sequence of what the interrelationship among the particular protein fragments is. Unfortunately, the calculation of a probability distribution in Bayes networks is computationally intractable (NP-complete). However, a causal tree of fixed structure may efficiently compute the result of the probabilistic distribution [31] . Using the basic probability theorem, then assuming that P(x i , x a ) denotes the joint probability distribution of two random variables x i and x a , and that P(x i | x a ) denotes the conditional probability of x i given x a ; this conditional probability is defined as follows:",
+            "cite_spans": [
+                {
+                    "start": 431,
+                    "end": 435,
+                    "text": "[31]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "Using the Bayes inference described in [4] , Eqs. (30) and (31) are easily derived by Eq. (29) .",
+            "cite_spans": [
+                {
+                    "start": 39,
+                    "end": 42,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 50,
+                    "end": 54,
+                    "text": "(30)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 59,
+                    "end": 63,
+                    "text": "(31)",
+                    "ref_id": null
+                },
+                {
+                    "start": 90,
+                    "end": 94,
+                    "text": "(29)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "where x i and x a are conditionally independent given x a . Subsequently, a well defined Bayes model can be obtained by further generalizing beyond simple Markov models and considering the probability distribution in the form of general trees. By the expansions of Eqs. (30) and (31) , a probability distribution can be applied to learning and inferring for biological models when the tree network has a specific predetermined structure. During a learning phase, the variables within internal nodes and external nodes represent a set of member states and query states, respectively. These variables are both observable during the learning phase. Instead, these variables are hidden during an inferring phase when the structure and probability distributions of a causal tree are temporally fixed. This process fully corresponds to the operation of hidden states in a hidden Markov model. Iteratively, the model eventually produces a refined prediction result based on fitness function estimation. Recalling the example of a causal tree, Fig. 1 defines nine random binary variables on the tree. The case produces a joint probability distribution of the nine variables using a product of the following terms:",
+            "cite_spans": [
+                {
+                    "start": 270,
+                    "end": 274,
+                    "text": "(30)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 279,
+                    "end": 283,
+                    "text": "(31)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1036,
+                    "end": 1042,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "where each internal node x i separates variables above and below it. For example, using Eq. (31) can show that the node x 7 gains the conditional probability P(",
+            "cite_spans": [
+                {
+                    "start": 92,
+                    "end": 96,
+                    "text": "(31)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "Initially, the root variable x 7 in Eq. (32) first generates a value using the result from Eq. (28) . Given x 7 , the probabilistic model can determine the conditional probabilities P(x 6 | x 7 ), P(x 9 | x 7 ), and P(x 5 | x 7 ). This model then can generate the values of x 6 , x 9 , and x 5 , respectively. This model thus can calculate the remaining variables recursively. Finally, this model obtains an estimated value as one of the multiple fitness functions described in the following section. By rearranging and observing the terms in Eq. (32) , an ordered product of terms is also very easily implemented by a preorder tree search. Besides the fitness function of the probabilistic and RPM models mentioned above, the model needs another fitness function to determine the boundaries of protein fragments. Eq. (33) shows the normalized measures of a local alignment score \u03b1 divided by the sequence length and obtained by the Smith-Waterman algorithm [7] .",
+            "cite_spans": [
+                {
+                    "start": 95,
+                    "end": 99,
+                    "text": "(28)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 547,
+                    "end": 551,
+                    "text": "(32)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 818,
+                    "end": 822,
+                    "text": "(33)",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 958,
+                    "end": 961,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "where \u03b4 ia denotes local alignment score and \u03c1 ia represents sequence length. Furthermore, Eqs. (34) and (35) are used to determine a value of parameters \u03b6 and \u03bb 2 for adjusting the reasonable parameters in Eq. (27) . Since temperature T in Eq. (27) is gradually decreased during the evolution, these m ia values are rapidly and accordingly decreased. From Eq. (28), it is best for m ia to be in the interval of [0.0 1.0] to protect it from an infinite drop in value that cannot be computed due to the reasonable computation capacity limitation. Thus, Eq. (34) can be easily obtained from the inequality equation and normal distribution.",
+            "cite_spans": [
+                {
+                    "start": 96,
+                    "end": 100,
+                    "text": "(34)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 105,
+                    "end": 109,
+                    "text": "(35)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 211,
+                    "end": 215,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 245,
+                    "end": 249,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "where e 1 is the natural logarithm that provides a rough scope for estimating the resolution of 256 states that sufficiently fit this computing issue. Moreover, \u00b5, \u03c3 represent the mean and standard deviation of all feature data, respectively. Furthermore, Hall and Titterington [47] proposed a solution for estimating the smoothing parameter \u03bb 2 , by Eq. (35) .",
+            "cite_spans": [
+                {
+                    "start": 278,
+                    "end": 282,
+                    "text": "[47]",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 355,
+                    "end": 359,
+                    "text": "(35)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "where F(\u03bb 2 ) denotes an influence matrix, I represents an identity matrix, and \u03c3 is a standard deviation of all feature data. A method of QR-decomposition can be used to determine the value of (I \u2212 F(",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "The method decomposes the data of featurenodes \u03a8 = (Q 1 : Q 2 )( R 0 ) into the product of orthonormal matrix and upper triangular matrix. Finally, a process of iteratively estimating Eq. (35) is used to find the optimal value \u03bb 2 with respect to minimizing the error in Eq. (35).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identification of protein function"
+        },
+        {
+            "text": "This section focuses on an implementation design of genetic programming that evolves three related subpopulations with inner-exchanged individuals.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Implementation"
+        },
+        {
+            "text": "In 1992, Koza et al. were early pioneers of the concept of genetic programming [26, [40] [41] [42] which was extended from the genetic algorithm. Genetic programming can automatically create programs for solving general problems. Genetic programming is based on a grammar-based methodology of an evolutionary theorem using the Darwinian survival principle. Therefore, genetic programming can describe highly complicated models for any domain problem without sufficient domain knowledge. First, problem solving requires randomly yielding an initial population of individuals. Subsequently, a fitness function can be used to evaluate individuals in the population and select excellent individuals for further performing specific genetic operations. The genetic operations typically include crossover, replication, and mutation operations. The operations enable the parent population at a given generation to form a new offspring population at the next generation. Iteratively, genetic programming continuously performs the above evolutionary steps until obtaining an optimal individual or satisfying certain conditions. A representation of genetic programming for a domain problem is composed of several functional programs. The programs form a rooted tree structure as a solution for solving the problem. Because genetic programming uses a tree form, the model can easily provide a flexible hierarchical presentation to estimate the relationship of homologies for predicting protein function. Characteristically, genetic programming provides a mechanism for searching for the fittest individual. The individual is the problem solution provided by using the computer program in the search space of all possible computer programs. The search space comprises terminalnodes (external nodes) and function-nodes (internal nodes) that are appropriate to represent the specific problem [26] . When a causal tree following genetic operations generates an infeasible individual, the model must regularize this infeasible individual by using a tournament pick (TP) method. The TP method using the depth-first search (DFS) strategy is proposed to accelerate the performance of regularizing this infeasible individual to a feasible one. The TP+DFS method recursively cures the infeasible nodes residing in this individual. The method replaces an infeasible node with a feasible node, in a preorder visiting for trees, randomly selected from the tournament that contains numerous feasible nodes. This advantage of the TP+DFS method results from the mutation appearing at a suitable time, and estimates the fitness function simultaneously following the crossover. When all individuals conform to all constraints of a causal tree, a fitness function can be used for individual estimation. To improve prediction speed and accuracy, this model uses a multiple fitness function strategy. This strategy implements an exchanged individual mechanism involving three subpopulations. The model next considers the following parameters for developing a co-evolution with the strategy of inner-exchanged individuals in a population. The model exchanges the individuals in the three subpopulations 0, 1, and 2. There are nN individuals in subpopulation 0, nM individuals in subpopulation 1, and nK individuals in subpopulation 2, respectively. The size of the subpopulations should have nN nM, nK for considering a trade-off between speed and accuracy. The selection method used in the model always uses the tournament selection strategy rather than the fitnessproportionate selection strategy. Additionally, the tournament selection (TS) differs from TP in the target level. The former selects the individuals in the population as its targets on the size 7 tournament. Meanwhile, the latter selects the programs (nodes) of an individual (tree) to do the same. Regarding the probabilities of genetic operations, the genetic operation of crossover and reproduction gives values of 0.9 and 0.1, respectively. To control tree shape, the tree depth must be 20 or less after performing the crossover operation. Furthermore, each internal node has between one and three children connected to it. Related applications employing genetic programming can be found in [43] [44] [45] . Fig. 4 illustrates the inner-exchange strategy of individuals in three subpopulations of a population for achieving the cooperation of the multiple fitness function. Initially, a set of initial feature nodes is fed into the subpopulation 0. Subsequently, two feature-node sets produced by random orders of all feature-nodes match each other with TPS methods to find the best correspondence between them. The subpopulation 0 is responsible for comparing the functional signals via heuristic matching. For effective heuristic match, the model assumes that the identical conserved protein domains demonstrate genetically similar functions given analogous functional signal shapes. Consequently, a physical deformation of the signal shapes should be preserved in somewhat ancestral contours. Subsequently, in Fig. 4 , the n best individuals of subpopulation 0 must emigrate into subpopulation 1 for modifying the correct boundaries of the protein fragments. In subpopulation 1, an exhausted local alignment of two fragments (nodes) is used to adjust the boundaries of two protein fragments. Meanwhile, a moment invariant method calculates a new set of feature data for updating the signal data. Moreover, the model must realign the protein fragments once the boundaries of the related fragments have been changed. Next, the m best individuals of subpopulation 1 must emigrate into subpopulation 2 to confirm the significant protein fragments by training of real cases. Moreover, the n best individuals of subpopulation 0 also must emigrate into subpopulation 2 to do the same work. Finally, the k best individuals of subpopulation 2 must emigrate into subpopulation 0 to resume the individuals having specific biological evidence. These resumed individuals can improve the quality of the individuals of subpopulation 0 using the guidelines from real cases. Simultaneously, subpopulation 2 eliminates the worst individuals from subpopulation 2 to prevent them from backing to subpopulation 0 or 2. When all of the individuals in the three subpopulations have been coevolved by genetic programming, a final solution should select the optimum individual from subpopulation 0. Specifically, the solution takes the form of a causal tree. Each path from the root node to any external node represents the functional heredity process. This path can provide an auxiliary guide to biologists for comprehensively understanding the unknown function of query sequences. The strategies used by exchanged individuals are feasible and essential for improving the final solution quality. More specifically, the model cooperatively evolves the causal trees via the cooperation of multiple fitness functions. The multiple fitness functions use Eq. (27) as the fitness function of subpopulation 0, Eq. (33) as the fitness function of subpopulation 1, and the product of Eq. (30) for all nodes as the fitness function of subpopulation 2. Fig. 5 describes the statements of the whole algorithm constructing this AGCT model.",
+            "cite_spans": [
+                {
+                    "start": 79,
+                    "end": 83,
+                    "text": "[26,",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 84,
+                    "end": 88,
+                    "text": "[40]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 89,
+                    "end": 93,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 94,
+                    "end": 98,
+                    "text": "[42]",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1877,
+                    "end": 1881,
+                    "text": "[26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 4228,
+                    "end": 4232,
+                    "text": "[43]",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 4233,
+                    "end": 4237,
+                    "text": "[44]",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 4238,
+                    "end": 4242,
+                    "text": "[45]",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 6970,
+                    "end": 6974,
+                    "text": "(27)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 4245,
+                    "end": 4251,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 5050,
+                    "end": 5056,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 7158,
+                    "end": 7164,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Genetic programming"
+        },
+        {
+            "text": "The protein nucleocapsid (nsp1) of a coronavirus family from various species was tested to clarify the protein function of nsp1 of SARS coronavirus. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiments and discussions"
+        },
+        {
+            "text": "For seven input sequences, one sequence is a query sequence and six are member sequences. The model simultaneously inputs the sequences to analyze its performance. For convenience, Table 1 lists the information on sequence number, abbreviated names, accessions, definitions, and sources obtained from the NCBI web site for the proteins, as follows:",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 181,
+                    "end": 188,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Data set"
+        },
+        {
+            "text": "These coronaviruses are members of a family of enveloped viruses that replicate in the cytoplasm of animal host cells [46] . SARS coronavirus TW1 is a severe acute respiratory syndrome associated coronavirus known as the TW1 isolate. For simplicity, the model only inputs the sequence of putative nsp1 protein of TW1 for analysis with the known protein nsp1 in other hosts. However, this analysis is useful for understanding the novel protein based on inference using other proteins with known functions. Although the traditional MSA can provide accurate knowledge regarding the conserved domains for these proteins, it cannot clearly express homology relationships over these conserved domains. In fact, the proposed model can provide a hierarchical contour of protein fragments. The contour can also help biologists to increase understanding of the functional heredity relationships only depending on the primary structure of proteins. Due to the space limitation, this matching causal tree for the problem using this model is not shown.",
+            "cite_spans": [
+                {
+                    "start": 118,
+                    "end": 122,
+                    "text": "[46]",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data set"
+        },
+        {
+            "text": "This section analyzes the performance of convergence of energy at different evolutionary generations using the AGCT model. Table 2 lists some of test parameters used for the AGCT model to obtain a suboptimal solution to the problems. The parameters which are appropriate for the present case are obtained using Eqs. (33)- (35) . Moreover, a reasonable value of \u03bb 2 = 1.8 is used for Eq. (27) through analysis using Eq. (35) . The analysis attains the reasonable value using a general cross validation. To analyze the AGCT model, cases (I) to (V) confirm these typically varied situations. First, case (I) designs for illustrating the ideal solution can be found prematurely. Next, case (II) designs a situation involving a sufficiently large subpopulation size but related small migration size for the subpopulations. Next, case (III) designs a situation involving a small population size and small migration size. Case (IV) then designs a situation involving sufficient population size and large migration size. Finally, case (V) attempts to understand the real circumstances of evolution at subpopulations 0 and 1 when the energy of subpopulation 2 demonstrates convergence. Experimentally, the key parameters are the rates of II  100  10  50  10  50  10  100  III  20  10  20  10  20  10  100  IV  100  20  50  30  50  30  200  V  1 0  2  1 0  2  8  1  200   Table 3 Test results of AGCT model Table 3 lists the results of the five cases. The sensitivity column and specificity column of Table 3 display the prediction and discrimination capacities, respectively. Since the capacity estimation is based on averaging all generations, the ratios of comparison between the heuristic signal match and exhaustive sequence alignment are quite low. In fact, the high prediction capacity can improve the final solution quality. The high discrimination capacity can increase the execution speed. Although the model obtains low sensitivity results, the model attains relatively high specificity results. Actually, the results of the later generations have higher sensitivity than previous generations (data not shown). Thus, the sensitivity results, which decrease the execution performance during the co-evolution in this model, do not influence the prediction accuracy. In fact, the rises and falls depend on a threshold (cut-off) value, because of a trade-off between sensitivity and specificity. Thus, Eq. (33) specifies a threshold value of 1.5 to determine whether or not two protein fragments are homologous. Moreover, Eq. (27) specifies a threshold of value of 0.3 to decide whether or not two signals are analogous.",
+            "cite_spans": [
+                {
+                    "start": 322,
+                    "end": 326,
+                    "text": "(35)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 419,
+                    "end": 423,
+                    "text": "(35)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 123,
+                    "end": 130,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 1229,
+                    "end": 1369,
+                    "text": "II  100  10  50  10  50  10  100  III  20  10  20  10  20  10  100  IV  100  20  50  30  50  30  200  V  1 0  2  1 0  2  8  1  200   Table 3",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 1397,
+                    "end": 1404,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1491,
+                    "end": 1498,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Analysis of the AGCT model"
+        },
+        {
+            "text": "From the observation of the data in Table 3 , case II has better sensitivity than the other cases. Furthermore, case II is also competitive with other reported results. Although fewer individuals are involved in case III than case II, the resulting reports in case III are the best except for this sensitivity result. The following discussion can further explain the above confusion. Although cases II and IV involve the same numbers of individuals, case IV involves more immigrated or emigrated individuals than case II. Consequently, case IV obtains worse results than case II. The above demonstrates that, appropriate individual migration is essential for improving solution quality. However, the amount of migration should not be too large to perform the normal evolution by genetic programming. Meanwhile, population size is not particularly important in the present cases since the RPM method and Smith-Waterman algorithm can undoubtedly obtain the local optimal result for each generation of genetic programming. Therefore, even through case III involves fewer individuals than case II, case III can still achieve the performance results approaching case II. Finally, the mechanism of premature convergence in cases I and IV attained the worst results. Clearly, case V improves the results of case V through a long-term evolution.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 36,
+                    "end": 43,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Analysis of the AGCT model"
+        },
+        {
+            "text": "Accordingly, Fig. 6 displays the performance of convergence in each subpopulation on fixed temperature. The energy of subpopulations 0 converges at 0.488 and has a different rate of convergence to the other two subpopulations. Clearly, subpopulation 2 evolves faster than the other two subpopulations. Fig. 7 illustrates the improvement of the energy convergence of subpopulation 0 by using the five temperature rates (Tr) for decreasing annealing temperature, including 1, 0.95, 0.90, 0.85, and 0.80.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 13,
+                    "end": 19,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 302,
+                    "end": 308,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Analysis of the AGCT model"
+        },
+        {
+            "text": "Eventually, the suboptimal solution to this present experiment is yielded using the genetic programming via a cooperation of the multiple fitness functions. This cooperation can continuously change the positions appropriate for splitting the protein sequence. Due to the space limitation in this paper, the starting and ending positions of each protein fragment are not shown.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Analysis of the AGCT model"
+        },
+        {
+            "text": "Subsequently, because of case II containing more individuals than the others, Fig. 8 compares the energy convergences based on case II with each other for obtaining an appropriate Tr value. More precisely, the rate of value 0.85 is the best choice for situations involving rapid and steady convergence. Additionally, Fig. 9 compares four different Tr values 0.97, 0.95, 0.9, and 0.85 for analyzing the energy of subpopulation 0. Clearly, case IV really is the worst case. Next, Fig. 10 simultaneously illustrates the energy convergence of three subpopulations based on case V by varying the rates of temperature decrease. Clearly, the model proportionally and consistently reduces the energies of each subpopulation. From the observation of generations in Fig. 10 , subpopulations 1 and 2 already begin to converge at around the fortieth generation. Finally, the model gradually performs the RPM work in subpopulation 0 between the fortieth and eightieth generations.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 78,
+                    "end": 84,
+                    "text": "Fig. 8",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 317,
+                    "end": 323,
+                    "text": "Fig. 9",
+                    "ref_id": "FIGREF7"
+                },
+                {
+                    "start": 478,
+                    "end": 485,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 756,
+                    "end": 763,
+                    "text": "Fig. 10",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Analysis of the AGCT model"
+        },
+        {
+            "text": "The AGCT model utilizes a novel representation of tree structure to illustrate the concept of applying functional homologies to predict protein function. This model differs in numerous respects from the other traditional model of MSA. Nevertheless, this model still includes various traditionally popular methods used for the high level application, predicting protein function. These methods include genetic programming, wavelet transform, profile comparison, local alignment with the Smith-Waterman algorithm, moment invariant theorem, RPM with TPS, Bayes inference, and the causal tree model. Besides the above methods, this model introduces various strategies, including the inner-exchanged individuals in subpopulations, cooperation of multiple fitness functions, guided evolution involving real cases, and TP+DFS regularization. The prediction accuracy thus can be improved. This hybrid model is developed to exploit global search capabilities in genetic programming for predicting protein functions of a distantly related protein family that have difficulties in the conserved domain identification. Moreover, the RPM involved can identify more sequence homologies through softening comparisons. Essentially, this work contributed a complex and integrated methodology that enables new advances in predicting protein function in the post-genome era. We believe that the model robustness can be increased in the future if biologists generate more experimental data in laboratories. Future works will apply this model to investigate issues related to protein interaction.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions and future work"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Sequence comparison by dynamic programming",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Delcoigne",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Hansen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1975,
+            "venue": "Biometrika",
+            "volume": "62",
+            "issn": "",
+            "pages": "661--664",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "A hidden Markov model that finds genes in e. coli DNA",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krogh",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Mian",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Haussler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "",
+            "volume": "22",
+            "issn": "",
+            "pages": "4768--4778",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Hidden Markov models in computational biology: Applications to protein modeling",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krogh",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Brown",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Mian",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Sjolander",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Haussler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "J. Mol. Biol",
+            "volume": "235",
+            "issn": "",
+            "pages": "1501--1531",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Judea",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Modeling splice sites with Bayes networks",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cai",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Delcher",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Kao",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kasif",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Bioinformatics",
+            "volume": "16",
+            "issn": "",
+            "pages": "152--159",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Prediction of the secondary structure of proteins from their amino acid sequence",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Chou",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Fasman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1978,
+            "venue": "Adv. Enzymol. Relat. Areas Mol. Biol",
+            "volume": "47",
+            "issn": "",
+            "pages": "45--148",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Identification of common molecular subsequences",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Waterman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1981,
+            "venue": "J. Mol. Biol",
+            "volume": "147",
+            "issn": "",
+            "pages": "195--197",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Hybrid computational intelligence schemes in complex domains: An extended review",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Tsakonas",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Dounias",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proc. Methods and Applications of Artificial Intelligence: Second Hellenic Conference on AI",
+            "volume": "",
+            "issn": "",
+            "pages": "494--512",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Genetic algorithms in molecular recognition and design",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Willett",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Trends Biotechnol",
+            "volume": "13",
+            "issn": "",
+            "pages": "497--537",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Searching for discrimination rules in protease proteolytic cleavage activity using genetic programming with a min-max scoring function",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Thomson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Hodgman",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Dry",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Doyle",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Narayanan",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Comput. Intell. Bioinformatics",
+            "volume": "72",
+            "issn": "",
+            "pages": "159--176",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Logistic regression and artificial neural network classification models: a methodology review",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Dreiseitl",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Ohno-Machado",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Biomed. Informatics",
+            "volume": "35",
+            "issn": "",
+            "pages": "352--360",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Statistical mechanics beyond the Hopfield model: solvable problems in neural network theory",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C C"
+                    ],
+                    "last": "Coolen",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Prete",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Rev. Neurosci",
+            "volume": "14",
+            "issn": "",
+            "pages": "181--193",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Applying fuzzy logic to medical decision making in the intensive care unit",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "T B"
+                    ],
+                    "last": "Jason",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Michael",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Am. J. Respir. Crit. Care Med",
+            "volume": "167",
+            "issn": "",
+            "pages": "948--952",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Increasing the efficiency of fuzzy logic-based gene expression data analysis",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ressom",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Reynolds",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Varghese",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Physiol. Genomics",
+            "volume": "13",
+            "issn": "",
+            "pages": "107--123",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "EPPS: mining the COG database by an extended phylogenetic patterns search",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Reichard",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kaufmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "19",
+            "issn": "",
+            "pages": "784--788",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Biological Sequence Analysis Probabilistic Models of Proteins and Nucleic Acids",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Durbin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Eddy",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krogh",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Mitchison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Probabilistic scoring measures for profile-profile comparison yield more accurate short seed alignments",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Mittelman",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sadreyev",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Grishin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Bioinformatics",
+            "volume": "",
+            "issn": "",
+            "pages": "1531--1539",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Comparison of sequence profiles. Strategies for structural predictions using sequence information",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Rychlewski",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Jaroszewski",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Godzik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Protein Sci",
+            "volume": "9",
+            "issn": "",
+            "pages": "232--241",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Within the twilight zone: a sensitive profile-profile comparison tool based on information theory",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Yona",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Levitt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Mol. Biol",
+            "volume": "315",
+            "issn": "",
+            "pages": "1257--1275",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "COMPASS: a tool for comparison of multiple protein alignments with assessment of statistical significance",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sadreyev",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Grishin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Mol. Biol",
+            "volume": "326",
+            "issn": "",
+            "pages": "317--336",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Basic local alignment search tool",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Altschul",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Gish",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Miller",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Myers",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lipman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Mol. Biol",
+            "volume": "215",
+            "issn": "",
+            "pages": "403--410",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Gapped BLAST and PSI-BLAST: a new generation of protein database search programs",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Altschul",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Madden",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Schaffer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Miller",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lipman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Nucleic Acids Res",
+            "volume": "25",
+            "issn": "",
+            "pages": "3389--3402",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "CLUSTAL W: improving the sensitivity of progressive multiple sequence alignment through sequence weighting, positions-specific gap penalties and weight matrix choice",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Thompson",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Higgins",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gibson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Nucleic Acids Res",
+            "volume": "22",
+            "issn": "",
+            "pages": "4673--4680",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "A new algorithm for non-rigid point matching",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Chui",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rangarajan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Computer Vision and Pattern Recognition",
+            "volume": "2",
+            "issn": "",
+            "pages": "44--51",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Ant colony system with extremal dynamics for point matching and pose estimation",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Meshoul",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Batouche",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proc. 16th International Conference",
+            "volume": "3",
+            "issn": "",
+            "pages": "823--826",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Genetic Programming On the Programming of Computers by Means of Natural Selection",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Koza",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "New algorithms for 2-D and 3-D point matching: pose estimation and correspondence",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Gold",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rangarajan",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Pappu",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Mjolsness",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Pattern Recognit",
+            "volume": "31",
+            "issn": "",
+            "pages": "1019--1031",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Probabilistic prediction of protein secondary structure using causal networks",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Delcher",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kasif",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Goldberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Hsu",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Proc. 11th AAAI National Conference on Artificial Intelligence",
+            "volume": "",
+            "issn": "",
+            "pages": "316--321",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Perfect sampling for wavelet reconstruction of signals",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Holmes",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Denison",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Trans. Signal Process",
+            "volume": "50",
+            "issn": "",
+            "pages": "237--244",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "A computational vision approach to image registration",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Zheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chellappa",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "IEEE Trans. Image Process",
+            "volume": "2",
+            "issn": "",
+            "pages": "313--326",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Visual pattern recognition by moment invariants",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Hu",
+                    "suffix": ""
+                }
+            ],
+            "year": 1962,
+            "venue": "IRE Trans. Inform. Theory",
+            "volume": "8",
+            "issn": "",
+            "pages": "179--187",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Moment spaces and inequalities",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Dresher",
+                    "suffix": ""
+                }
+            ],
+            "year": 1953,
+            "venue": "Duke Math. J",
+            "volume": "20",
+            "issn": "",
+            "pages": "261--271",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Spline Models for Observational Data",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Wahba",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Functional Analysis",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Riesz",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Sz-Nagy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1955,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A relationship between arbitrary positive matrices and doubly stochastic matrices",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sinkhorn",
+                    "suffix": ""
+                }
+            ],
+            "year": 1964,
+            "venue": "Ann. Math. Statist",
+            "volume": "35",
+            "issn": "",
+            "pages": "876--879",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "A new method for mapping optimization problems onto neural networks",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Peterson",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Soderberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Internat. J. Neural Systems",
+            "volume": "1",
+            "issn": "",
+            "pages": "3--22",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Statistical physics algorithms that converge",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Yuille",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Kosowsky",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Neural Comput",
+            "volume": "6",
+            "issn": "",
+            "pages": "341--356",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "A novel optimizing network architecture with applications",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rangarajan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Gold",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Mjolsness",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Neural Comput",
+            "volume": "8",
+            "issn": "",
+            "pages": "1041--1060",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Genetic and evolutionary algorithms come of age",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Goldberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Commun. ACM",
+            "volume": "37",
+            "issn": "",
+            "pages": "113--119",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Genetic programming III: Darwinian invention and problem solving: Book Review",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Koza",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Bennett",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Andre",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Keane",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "IEEE Trans., Evolutionary Comput",
+            "volume": "3",
+            "issn": "",
+            "pages": "251--253",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Genetic programming and evolutionary generalization",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Kushchu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Trans., Evolutionary Comput",
+            "volume": "6",
+            "issn": "",
+            "pages": "431--442",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Discovering knowledge from medical databases using evolutionary algorithms",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Lam",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Ngan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C Y"
+                    ],
+                    "last": "Cheng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IEEE Eng. Med. Biol. Mag",
+            "volume": "19",
+            "issn": "",
+            "pages": "45--55",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Genetic programming for knowledge discovery in chest-pain diagnosis",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Bojarczuk",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Lopes",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Freitas",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IEEE Eng. Med. Biol. Mag",
+            "volume": "19",
+            "issn": "",
+            "pages": "38--44",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Classifying proteins as extracellular using programmatic motifs and genetic programming",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Koza",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Bennett",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Andre",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Evolutionary Computation Proc",
+            "volume": "",
+            "issn": "",
+            "pages": "212--217",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Fields Virology",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Fields",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Knipe",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Howley",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Griffin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Common structure of techniques for choosing smoothing parameters in regression problems",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Hall",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Titterington",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "J. Roy. Statist. Soc. Ser. B",
+            "volume": "49",
+            "issn": "",
+            "pages": "184--198",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Causal tree of protein function.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Representation of protein fragments.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Inner-exchanged strategy of subpopulations in a population.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "AGCT algorithm.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Performance of convergence on fixed temperature in each subpopulation.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Comparison of energy convergence for fixed temperature and temperature that is decreased at various rates.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Comparison of variedly decreasing rate of temperature in case II.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Comparison of convergence case by case with varied rate of temperature decrease.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Comparison of convergence in each subpopulation for the AGCT model using multiple fitness functions.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "is used to control the reasonable size of a causal tree. Optimizing Eq. (27), then differentiating both sides of Eq. (27) yields Eq. (28), as follows:",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Test parameters of AGCT model",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "temperature decrease and emigration size for each subpopulation, which are used to analyze model performance.For clarity,",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

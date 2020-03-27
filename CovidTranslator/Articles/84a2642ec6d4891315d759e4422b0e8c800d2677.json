@@ -1,0 +1,2772 @@
+{
+    "paper_id": "84a2642ec6d4891315d759e4422b0e8c800d2677",
+    "metadata": {
+        "title": "Anomaly detection based on a dynamic Markov model",
+        "authors": [
+            {
+                "first": "Huorong",
+                "middle": [],
+                "last": "Ren",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Xidian University",
+                    "location": {
+                        "settlement": "Xi'an 710071",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Zhixing",
+                "middle": [],
+                "last": "Ye",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Xidian University",
+                    "location": {
+                        "settlement": "Xi'an 710071",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Zhiwu",
+                "middle": [],
+                "last": "Li",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Xidian University",
+                    "location": {
+                        "settlement": "Xi'an 710071",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Anomaly detection in sequence data is becoming more and more important in a wide variety of application domains such as credit card fraud detection, health care in medical field, and intrusion detection in cyber security. In the existing anomaly detection approaches, Markov chain techniques are widely accepted for their simple realization and few parameters. However, the short memory property of a classical Markov model ignores the interaction among data, and the long memory property of a higher order Markov model clouds the relationship between the previous data and current test data, and reduces the reliability of the model. Besides, both of these models cannot successfully describe the sequences changing with a tendency. In this paper, we propose an anomaly detection approach based on a dynamic Markov model. This approach segments sequence data by a sliding window. In the sliding window, we define the states of data according to the value of the data and establish a higher order Markov model with a proper order consequently, to balance the length of the memory property and keep up with the trend of sequences. In addition, an anomaly substitution strategy is proposed to prevent the detected anomalies from impacting the building of the models and keep anomaly detection continuously. The experimental results using simulated datasets and real-world datasets have demonstrated that the proposed approach improves the adaptability and stability of anomaly detection in sequence data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Anomaly detection, as an important problem in data mining, has been studied in a variety of research fields and applications such as intrusion detection in cyber security [2, 33] , fraud detection of credit cards [33] and safety systems [27] , insurance [19] , and health care [15] . As far as anomaly is concerned, there is still no uniformly acceptable definition. One commonly used definition in statistics is that the data, which do not obey sequence distributions and position far away from other objects, are regarded as abnormal [10, 14] . Sequence data can be found in extensive application domains such as networks, information biology, weather forecast, and system management [3] . Usually, most of them exhibit two important characteristics: dynamics and trends [36] , and as such are hard to detect [11] . Anomaly detection in those sequence data is a challenging task, and one has to refer to the usage of sequential properties of data in order to detect anomalies [23, 40, 41] .",
+            "cite_spans": [
+                {
+                    "start": 171,
+                    "end": 174,
+                    "text": "[2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 175,
+                    "end": 178,
+                    "text": "33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 213,
+                    "end": 217,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 237,
+                    "end": 241,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 254,
+                    "end": 258,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 277,
+                    "end": 281,
+                    "text": "[15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 536,
+                    "end": 540,
+                    "text": "[10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 541,
+                    "end": 544,
+                    "text": "14]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 686,
+                    "end": 689,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 773,
+                    "end": 777,
+                    "text": "[36]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 811,
+                    "end": 815,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 978,
+                    "end": 982,
+                    "text": "[23,",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 983,
+                    "end": 986,
+                    "text": "40,",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 987,
+                    "end": 990,
+                    "text": "41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Anomaly detection in sequence data is a focus of a deluge of studies. Quite commonly, most of the existing techniques are classified into the following three categories [6, 8, 28] : distance-based anomaly detection; clustering-based anomaly detection; and prediction-based anomaly detection.",
+            "cite_spans": [
+                {
+                    "start": 169,
+                    "end": 172,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 173,
+                    "end": 175,
+                    "text": "8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 176,
+                    "end": 179,
+                    "text": "28]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The distance-based anomaly detection techniques focus on calculating the distance among the data points in the data space by accepting a certain distance function [13] . When a data object exhibits a large distance with other objects, it is regarded as abnormal. For example, Chandola et al. [4, 20] propose a kNN-based ( k -nearest neighbor) technique in which the k -nearest neighbor distances of all objects are calculated and treated as the anomaly scores of objects. Two disadvantages of distance-based techniques are found, i.e., the choice of the distance measure directly determines their performance and the time complexity is up to O ( n 2 ) when computing the distance among n points [7, 25] .",
+            "cite_spans": [
+                {
+                    "start": 163,
+                    "end": 167,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 292,
+                    "end": 295,
+                    "text": "[4,",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 296,
+                    "end": 299,
+                    "text": "20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 695,
+                    "end": 698,
+                    "text": "[7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 699,
+                    "end": 702,
+                    "text": "25]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The clustering-based anomaly detection techniques directly or indirectly utilize a clustering approach (e.g., Density-Based Spatial Clustering of Applications with Noise (DBSCAN) and K -means) [12, 16, 21] to cluster data. The data points that cannot be easily clustered will be considered as abnormal. This methodology is simple and can make use of a large number of existing research results. However, there is a big difference between cluster analysis and anomaly detection. The purpose of the former is to seek for the category of clusters; and the latter is to find the abnormal data. Anomaly detection is just an \"ancillary products\" of clustering [17, 24] . The fact that general approaches are not particularly optimized for anomaly detection leads to low detection efficiency. Besides, in most cases, the definitions of anomaly and detection criteria are implicit and cannot be clearly reflected in the process of clustering.",
+            "cite_spans": [
+                {
+                    "start": 193,
+                    "end": 197,
+                    "text": "[12,",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 198,
+                    "end": 201,
+                    "text": "16,",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 202,
+                    "end": 205,
+                    "text": "21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 654,
+                    "end": 658,
+                    "text": "[17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 659,
+                    "end": 662,
+                    "text": "24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In the prediction-based anomaly detection techniques, many studies use mathematical models (e.g. Bayesian networks, Markov models, neural networks, and support vector machines) [18, 19, 26, 31] to formally decide the unknown quality of sequence data, and then build the prediction models. Finally the anomaly will be found according to the deviation between the predicted value and the actual value at each time. These methods have better performance on the sequence of lower dimensionality. However, Bayesian networks have an assumption that attributes are independent of each other, which is usually not true in practical applications [18] . Neural networks require a large number of parameters, such as network topology, weights and threshold values. Besides, the learning time is too long, and may even fail to achieve the purpose of learning [19] . Support vector machines are difficult to implement large scale training samples. It will consume a lot of memory and computing time [30] .",
+            "cite_spans": [
+                {
+                    "start": 177,
+                    "end": 181,
+                    "text": "[18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 182,
+                    "end": 185,
+                    "text": "19,",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 186,
+                    "end": 189,
+                    "text": "26,",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 190,
+                    "end": 193,
+                    "text": "31]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 637,
+                    "end": 641,
+                    "text": "[18]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 847,
+                    "end": 851,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 986,
+                    "end": 990,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "A Markov model is a powerful finite state machine, which is widely used in sequence modeling. The main advantage of the Markov techniques is that each event can be analyzed. Therefore, the techniques are able to detect anomalies even if they are located in a long sequence [35] . In this paper, we concentrate on the anomaly detection based on Markov models. Ozkan and Kozat [22] propose an online anomaly detection under Markov statistics with controllable false alarm rate for fast streaming temporal data. This algorithm learns the nominal attributes under possibly varying Markov statistics. Then, an anomaly is declared at a time instant, if the observations are statistically sufficiently deviant. Sha et al. [29] present a multi-order Markov chain based scheme for anomaly detection in server systems. This approach takes a higher order Markov chain and multivariate sequences into account to produce several indicators of anomalies.",
+            "cite_spans": [
+                {
+                    "start": 273,
+                    "end": 277,
+                    "text": "[35]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 375,
+                    "end": 379,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 715,
+                    "end": 719,
+                    "text": "[29]",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In Markov chain approaches, classical Markov chain techniques mostly utilize the short memory property (a single step) of classical Markov models. The short memory property essentially comes with the two basic assumptions [34] : (1) The state probability distribution of time t is only related to the state of time t \u2212 1 . (2) The transformation from the state of time t \u2212 1 to the state of time t is time independent.In practical applications, however, these two basic assumptions cannot be strictly satisfied. The state probability distribution of time t is usually not only related to the state of time t \u2212 1 , but also related to the states of a period of time before time t \u2212 1 . Therefore, the short memory property of classical Markov models is not applicable to real-world data [1] .",
+            "cite_spans": [
+                {
+                    "start": 222,
+                    "end": 226,
+                    "text": "[34]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 786,
+                    "end": 789,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "A higher order Markov model [5, 32] is presented with its long memory property by taking the interaction among states into account, such that the model can better describe the characteristics of sequence data than classical Markov models. In theory, the memory time can be infinitely long by increasing the order of the Markov model. Besides, in Markov chain approaches, once the Markov models are established in training phase, the order of Markov models is fixed to detect anomaly in testing phase. However, the fact, that the fixed Markov models ( n -order) force each state of a sequence to be conditioned on the fixed previous n states, may not be sufficient to provide a reliable estimate of the detecting state. With the decrease of the correlation between old and new data, the fixed Markov models are no longer applicable to the entire sequence. At the same time, both models mentioned above cannot completely describe the characteristics of whole sequence with a trend yet. They will be invalid, when the value of a sequence data exceeds the area covered by the training data.",
+            "cite_spans": [
+                {
+                    "start": 28,
+                    "end": 31,
+                    "text": "[5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 32,
+                    "end": 35,
+                    "text": "32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In cognitive science, as is known to all that the reliability and accuracy of memory will be lower and lower over time. Thus an appropriate length of memory time is useful to cognize current events. Besides, as time goes by, the events in cognitive memory are constantly updated to keep up with the changing of the current events. Motivated by this theory, a dynamic Markov model is proposed in this paper to balance the length of the memory property of Markov models and keep the strong correlation between the memory (or the Markov model) and current test data. This dynamic model first makes use of a sliding window to segment a sequence data. Then the correlation analysis of data in the sliding window is used to find out a proper order of a Markov model. And the order of the Markov model is continuously updated with the sliding window sliding to keep the relationship between the Markov model and current test data. Besides, when the current test data exceed the scope of the previously defined states, the states of data in the sliding window will be redefined, and the model will be retrained to follow the changes of the sequence. At the same time, in order to detect anomalies continuously and prevent anomaly points detected from infection to the building of the models, an anomaly substitution strategy is proposed. Therefore this research presents a robust anomaly detection approach based on a dynamic Markov model. In addition, this paper focuses on the sequences type on the data with dynamics and trend, such as electrocardiograms (ECGs) data in medical, seasonal data, and quarterly data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The paper is organized as follows: Section 2 reviews classical Markov models and higher order Markov models. In Section 3 , we develop an anomaly detection approach based on a dynamic Markov model. Section 4 focuses on the comparison results due to the proposed approaches. Finally, the conclusions of this paper are drawn in Section 5 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In order to better understand the proposed dynamic Markov model, we introduce classical Markov models and higher order Markov models in this section.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models and higher order Markov models"
+        },
+        {
+            "text": "x t is the data present at time t , the complete parameter set of a classical Markov model can be represented by, as shown in [18, 22, 29, 32] :",
+            "cite_spans": [
+                {
+                    "start": 126,
+                    "end": 130,
+                    "text": "[18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 131,
+                    "end": 134,
+                    "text": "22,",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 135,
+                    "end": 138,
+                    "text": "29,",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 139,
+                    "end": 142,
+                    "text": "32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "where:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "(1) \u03bb represents the classical Markov model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "(2) S , the state space of the sequence X ( T ), includes all of the possible states of each data, i.e., S can be represented by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "where N is the number of the states present in the sequence. Note that we use s t (s t \u2208 S ) to denote that the data x t is in the state s t at time t . ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "where M i is the number of the data in the state i in the sequence X(T) , and T is the number of data in the sequence X(T) . ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "where M s t\u22121 s t is the number of state transition from the states s t\u22121 to s t after a single step.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "Classical Markov models, mostly utilizing the short memory property, can record the states of data in the short term. However, it is well known that short memory time cannot effectively support the cognition of current events, since the real-world sequence data are often correlated with each other.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Classical Markov models"
+        },
+        {
+            "text": "For the sequence X (T ) = { x 1 , x 2 , x 3 , \u00b7 \u00b7 \u00b7 , x t , \u00b7 \u00b7 \u00b7 , x T } , a higher order Markov model ( n -order) can be expressed as [1, 5, 34, 38] : (1) , P (2) , \u00b7 \u00b7 \u00b7 , P (n ) } (5) where:",
+            "cite_spans": [
+                {
+                    "start": 136,
+                    "end": 139,
+                    "text": "[1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 140,
+                    "end": 142,
+                    "text": "5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 143,
+                    "end": 146,
+                    "text": "34,",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 147,
+                    "end": 150,
+                    "text": "38]",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 153,
+                    "end": 156,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 161,
+                    "end": 164,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 184,
+                    "end": 187,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Higher order Markov models"
+        },
+        {
+            "text": "(1) \u03bb( n ) represents a higher order Markov model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Higher order Markov models"
+        },
+        {
+            "text": "(2) S and Q have the same meaning as in the classical Markov model \u03bb.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Higher order Markov models"
+        },
+        {
+            "text": "(3) P ( n ) , an n -order state transition probability matrix, can be expressed as P (n ) = | p (n ) s t\u2212n s t | N\u00d7N , where N is the number of states, and p (n ) s t\u2212n s t is the state transition probability from states s t\u2212n to s t after n steps. It can be calculated as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Higher order Markov models"
+        },
+        {
+            "text": "where M (n ) s t\u2212n s t is the number of state transitions from the states s t\u2212n to s t after n step. In particular, when n = 1 , the higher order Markov model is the same as the classical Markov model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Higher order Markov models"
+        },
+        {
+            "text": "From the process of building the n -order Markov model, it can be found that a higher order Markov model can record state characteristics in arbitrarily long term by increasing the order of the Markov model in theory. This feature is described as the long memory property of higher order Markov models. However, with the increase of the order, the reliability of old data will be getting lower and lower. This paper tries to address this issue by allowing the order n to be adjusted in the dynamic Markov model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Higher order Markov models"
+        },
+        {
+            "text": "This section develops the anomaly detection approach based on a dynamic Markov model. The main phases of the proposed approach are shown as follows: (1) a sliding window W ( l ) is used to segment the sequence data, where l is the length of the sliding window. Then the states of data in the sliding window are defined by an equal width interval segmentation method; (2) an n -order Markov model is established in the sliding window, where n is determined by the Pearson correlation analysis approach [31, 37] ; (3) the current test data are evaluated whether they exceed the scope of the defined states and detected by the n -order Markov model; (4) an anomaly substitution strategy is used to keep the detection continuously and prevent the detected anomalies from infecting the building of the models.",
+            "cite_spans": [
+                {
+                    "start": 501,
+                    "end": 505,
+                    "text": "[31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 506,
+                    "end": 509,
+                    "text": "37]",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Anomaly detection approach based on a dynamic Markov model"
+        },
+        {
+            "text": "The nature of the Markov model requires that there should be a clear state definition. In this phase, for a sequence",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "State definition"
+        },
+        {
+            "text": "Then we apply an equal width interval segmentation method that segments the value range of the sliding window into N intervals with the identical size as the states of the data. The width of each state interval is calculated as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "State definition"
+        },
+        {
+            "text": "where N is the number of states, which remains unchanged. max (W t (l)) and min (W t (l)) are the maximum and minimum values of points in the sliding window W t ( l ), respectively. There are N states 1, 2, 3, , and N . Each data point in this sliding window has its state tag.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "State definition"
+        },
+        {
+            "text": "In order to balance the length of the memory property and maintain the reliability of the established model, an n -order Markov model whose order depends on the data in the sliding window W t ( l ) is built. Owing to the fact that the memory property of higher order Markov models utilizes the correlation among data, a stronger correlation means a longer effective memory time and a higher order of the Markov model. The order of the Markov model can be determined by the correlation among data in the sliding window to ensure an effective length of the memory property and a reliability model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": "In the developed approach, Pearson correlation [31, 37] is used to determine the order of higher Markov models in the sliding window. For example, for a sliding window",
+            "cite_spans": [
+                {
+                    "start": 47,
+                    "end": 51,
+                    "text": "[31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 52,
+                    "end": 55,
+                    "text": "37]",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": ". , x t\u22121 } , the Pearson correlation coefficient r ( n ) between the two sliding windows W t ( l ) and W t+ n (l) , can be calculated as follows [31, 37] :",
+            "cite_spans": [
+                {
+                    "start": 146,
+                    "end": 150,
+                    "text": "[31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 151,
+                    "end": 154,
+                    "text": "37]",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": "where 1 \u2264 n \u2264 T \u2212 t + 1 . Generally, there is a consensus that the two vectors with n dimensions have strong correlation when their Pearson correlation coefficient r ( n ) \u2265 0.8 [31] . If there is a strong correlation ( r ( n ) \u2265 0.8) between the two sliding windows data with as large n as possible, an n -order Markov model will be built with the most effective long memory property. Then an n -step transition probability matrix P (n ) of the normal sequence data will be calculated by Eq.",
+            "cite_spans": [
+                {
+                    "start": 178,
+                    "end": 182,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": ".",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": "Concretely, an n -order Markov model can be established in the sliding window as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": "(1) Segment the sequence X ( T ) using a sliding window W t ( l ), and then define the states of data in the sliding window with the number of states N . (2) Use the Pearson correlation analysis approach to determine the order of the higher order Markov model n in the sliding window.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": "(3) Establish an n -order Markov model \u03bb(n ) = { S , Q , P (1) , P (2) , \u00b7 \u00b7 \u00b7 , P (n ) } in the sliding window as done in Section 2.2 .",
+            "cite_spans": [
+                {
+                    "start": 59,
+                    "end": 62,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 67,
+                    "end": 70,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Establishment of an n -order Markov model"
+        },
+        {
+            "text": "Once an n -order Markov model \u03bb( n ) has been established in the sliding window W t ( l ), for example, in the sliding window W t (l) = { x t\u2212l , x t\u2212l+1 , . . . , x t\u22121 } , a support probability of current test data point x t can be calculated by using the following formula:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection and retraining phase"
+        },
+        {
+            "text": "where t > 1 and 1 \u2264 n \u2264 l . If (9) does not hold, there is at least one impossible case in all transition from the states of data points x t\u2212n , x t\u2212n +1 , . . . , and x t\u22121 to x t . In other words, the state of current test data point x t cannot be obtained through the transition probability matrixes P (1) , P (2) , \u00b7 \u00b7 \u00b7 , and P (n ) . Therefore, the data point x t is regarded as an anomaly. In addition, it is necessary to take into account the situation that the state of the current test data point x t cannot be found in the defined states in the sliding window W t ( l ), owing to the value of x t not belonging to the collection [ max (W t (l)) \u2212 min (W t (l))] (e.g., the tendency sequence data). Thus the states of data and the model in this sliding window should be redefined and retrained as done in Sections 3.1 and 3.2 to catch up with the changes of the sequence data. Besides, it can be seen from (9) that there is an assumption that the l data points which are used to train the n -order Markov model in the sliding window before current test data x t , should be normal at least. If there are some anomalies in the n data points, it is very likely for the data x t to be infected and detected as an anomaly.",
+            "cite_spans": [
+                {
+                    "start": 305,
+                    "end": 308,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 313,
+                    "end": 316,
+                    "text": "(2)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Detection and retraining phase"
+        },
+        {
+            "text": "In order to ensure that the detected anomalies cannot infect the detection results of the rest data points in the future, an anomaly substitution strategy is used to prevent the rest data from the infection of detected anomalies. For example, data point x t is detected as an anomaly, and then one point x t selected from the sliding window whose n -step support probability P x t | \u03bb(n ) is the largest will be adopted to substitute the point x t . The largest support probability means that data point x t has the largest probability to appear in the location of anomaly x t through the n -order Markov model \u03bb( n ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Anomaly substitution strategy"
+        },
+        {
+            "text": "The n -step support probability can be calculated as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Anomaly substitution strategy"
+        },
+        {
+            "text": "Thus, the detection can be carried out dynamically and continuously by substituting the detected anomalous points and sliding the window step by step.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Anomaly substitution strategy"
+        },
+        {
+            "text": "In this section, we conduct experiments on both synthetic and real-world data to exhibit the performance of the proposed approach. In addition, the true positive rate ( TP ) and the false alarm rate ( FA ) are used to evaluate the performance of the anomaly detection approaches. They can be calculated as follows:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiments and analysis of results"
+        },
+        {
+            "text": "where DO, AO, FDO , and ADO denote the numbers of detected real anomalies, all real anomalies, falsely detected anomalies, and all detected anomalies, respectively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Experiments and analysis of results"
+        },
+        {
+            "text": "In this part, we first use synthetic sequence data to evaluate the proposed anomaly detection approach based on higher order Markov models. The data are periodic, composed of a sine signal (cycle T = 40) with amplitude equal to one and a zero mean normal noise with the variance of 0.1. At t = 170 and t = 200 two impulses are added with the amplitude of -1 and 1 that could be regarded as two anomalies. In addition at t = 220-240, the amplitude of the sine signal is 0.2, which also can be regarded as anomaly [32] . First, the effect of the anomaly substitution strategy is discussed in this experiment. The experimental results obtained on synthetic data by using and not using the anomaly substitution strategy are shown in Fig. 1 .",
+            "cite_spans": [
+                {
+                    "start": 512,
+                    "end": 516,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 729,
+                    "end": 735,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Experiment and analysis of synthetic data"
+        },
+        {
+            "text": "It can be seen that the majority of anomalies at t = 170, 200, 220-240 can be detected in these two cases. However, in Fig. 1 (b) , since there is no a timely replacement of anomalies, the subsequent detection is infected (i.e. the points at t = 171-174, 201-202, 241-247), and a high false alarm rate ( TP = 94.6% with FA = 53.1%) is obtained. In Fig. 1 (c) , the anomaly substitution strategy reduces the false alarm rate by 48.4% ( TP = 95.2% with FA = 4.7%). This experience indicates that the anomaly substitution strategy does prevent the rest data from the infection of anomaly detection and effectively restrain the false alarm rate.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 119,
+                    "end": 129,
+                    "text": "Fig. 1 (b)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 348,
+                    "end": 358,
+                    "text": "Fig. 1 (c)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Experiment and analysis of synthetic data"
+        },
+        {
+            "text": "In Fig. 2 , the performance impact of the number of states N is discussed in this experiment. The TP and FA values of the experimental results are shown in Table 1 . From Fig. 2 (a) only the anomalous points at t = 170 and 200 can be detected. In Fig. 2 (b) it can be seen that the number of states N = 5 leads to the best detection result ( TP = 95.2% and FA = 4.7%). For the number of states N = 6 and 7, the anomalies at t = 170, 200, 220-240 are detected, but the false alarm rate ( FA = 52.1% and 86.7%) becomes too high. The choice of the number of states N has certain influence on the detection results. By running a large number of simulation experiments, it has been determined that the number of states N is generally in the range 5-11. In many cases, a sequence data has a tendency. For example, the global temperature sequence data is increased in the past few decades. For this issue, an increasing trend is added to the synthetic data. The order of the higher order Markov model n in the proposed approach is also discussed by using the synthetic data. These experimental results are shown in Fig. 3 and Table 1 . In Fig. 3 and Table 1 , we can observe that the proposed approach (i.e., constantly update n with N = 8) has the best detection result with lower false alarm rate ( TP = 95.7% and FA = 8.3%). From Fig. 3 (f) , the order n changes in 1-3 with the sliding window sliding. In Fig. 3 (b) , the anomaly points at t = 220-240 cannot be detected. The reason is that when the order n = 1, the transfer of only two adjacent points will be considered, which ignores the relationship among data. In Figs. 3 (c) and (d), a part of the anomaly points at t = 220-240 can be detected by increasing the order n . However, the fixed order n also causes a high false positive rate for a strict judgment standard by considering the transfer of three and four adjacent points, respectively. Thus this experience indicates that the method of constantly updating n in the proposed approach does improve the detection accuracy by keeping proper relationship with the previous data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 9,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 156,
+                    "end": 163,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 171,
+                    "end": 181,
+                    "text": "Fig. 2 (a)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 247,
+                    "end": 257,
+                    "text": "Fig. 2 (b)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1108,
+                    "end": 1114,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1119,
+                    "end": 1126,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 1132,
+                    "end": 1138,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1143,
+                    "end": 1150,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                },
+                {
+                    "start": 1326,
+                    "end": 1336,
+                    "text": "Fig. 3 (f)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1402,
+                    "end": 1412,
+                    "text": "Fig. 3 (b)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Experiment and analysis of synthetic data"
+        },
+        {
+            "text": "In the proposed approach, a sliding window W ( l ) is used to segment a sequence data to provide adequate data for modeling. Thus in the next experiment, the effect of the length ( l ) of the sliding window is discussed by using the synthetic data with a trend. The experimental results are shown in Fig. 4 . Fig. 4 shows the variation curves of TP and FA for the values of length ( l ). It can be seen that when l = 60, the experimental result is the best with TP = 95.7% and FA = 8.3%. The value of TP reaches 100% when l < 10 or l > 100, but that FA is too high (greater than 80%) to be acceptable. The reason is that according to Eq. (7) , in the case of a certain number of states, a too small or too large length ( l ) leads to the state definition too strict or too loose, respectively. Thus it is necessary to select a suitable value l . In the light of a large number of simulation experiments, it has been determined that a suitable value of l is generally between T \u2212 2 T ( T is the periodic or quasi periodic of sequence data).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 300,
+                    "end": 306,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 309,
+                    "end": 315,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Experiment and analysis of synthetic data"
+        },
+        {
+            "text": "Applications of the developed adaptive anomaly detection approach based on a Markov model are tested on real-world datasets. These datasets include the passenger traffic data from an airport in Shanghai from January 1995 to January 2004 ( http://robjhyndman.com/tsdldata/data/fancy.dat ) representing non-stationary sequence data, the video surveillance dataset and the Electrocardiograms (ECGs) datasets from UCR Time Series Data Mining Archive ( http://www.cs.ucr.edu/%7Eeamonn/ discords/ ) representing dynamic sequence data [5, 9] . In addition, In order to make the experiment more convincing, a classical anomaly detection method, the local outlier factor (LOF) [39] , is used to compare with the proposed method with the classical Markov chain techniques and the higher order Markov chain.",
+            "cite_spans": [
+                {
+                    "start": 528,
+                    "end": 531,
+                    "text": "[5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 532,
+                    "end": 534,
+                    "text": "9]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 668,
+                    "end": 672,
+                    "text": "[39]",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Experiment and analysis of real-world data"
+        },
+        {
+            "text": "First, the classical Markov chain techniques, the higher order Markov chain, the LOF method and the proposed approach are analyzed and compared in detail using the passenger traffic data. The anomalies in the passenger traffic data are located in January 2003 (data points 101-103 in Fig. 4 ) , due to the outbreak of SARS (Severe Acute Respiratory Syndrome) in China and then a sharp drop in airport passenger traffic. These experimental results are shown in Fig. 5 and Table 2 . Fig. 5 (a) is the passenger traffic data and the first 60 data points are used as training data. In Fig. 5 (b) , the classical Markov chain techniques cannot normally detect data points from 64 to 108 because of the amplitude of the data points after 63 beyond the value range of training data, where no corresponding states in the classical model are found. Therefore, all of these data points are regarded as anomalies. In Fig. 5 (c) the higher order Markov model ( n = 5) is used to replace the classical Markov model, where the order of the Markov model is n = 5. Similar to the result in Fig. 5 (b) , the higher order Markov model can neither normally detect the data points from 61 to 108. Besides, in Fig. 5 (d) , the LOF method only detect the data points 101 and 102 with TP = 66.7% and FA = 66.7%, where k = 6 ( k indicates the k -distance neighborhood). However, in Fig. 5 (e) , the result indicates that the approach proposed in this paper is well able to detect all the abnormal data points 100-103, where the length of sliding window is l = 24, the number of states is N = 5, and the dynamic order of Markov model n is shown in Fig. 5 (f) . According to Eq. (9) , the support probability of the data points 100-103 are 0, and then these points are determined as abnormal data points. All of these experiments results show that the proposed approach has better adaptability in anomaly detection especially for tendency sequence data. In addition, the video surveillance dataset ann_gun_CentroidA extracted from a video of an actor performing various actions with and without a replica gun is detected using the four approaches mentioned above. According to the description of the data source, the anomalies in the sequence are data points 1340-1792. The results of this experiment in which the first 10 0 0 data points are regarded as training data are depicted in Fig. 6 and Table 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 284,
+                    "end": 292,
+                    "text": "Fig. 4 )",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 460,
+                    "end": 466,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 471,
+                    "end": 478,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 481,
+                    "end": 491,
+                    "text": "Fig. 5 (a)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 581,
+                    "end": 591,
+                    "text": "Fig. 5 (b)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 906,
+                    "end": 912,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1074,
+                    "end": 1084,
+                    "text": "Fig. 5 (b)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1189,
+                    "end": 1199,
+                    "text": "Fig. 5 (d)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1358,
+                    "end": 1368,
+                    "text": "Fig. 5 (e)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1623,
+                    "end": 1633,
+                    "text": "Fig. 5 (f)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 2359,
+                    "end": 2365,
+                    "text": "Fig. 6",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 2370,
+                    "end": 2377,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Experiment and analysis of real-world data"
+        },
+        {
+            "text": "In Fig. 6 (b) , we can observe that the classical Markov chain techniques can only detect a small part of anomalies, which is impossible to accept in many cases. In Fig. 6 (c) , the higher order Markov chain techniques ( n = 5) can successfully detect all of the anomalies. However, there are too much false alarms ( FA = 32.0%). In Fig. 6 (d) , the LOF method also only detected part of anomalies with TP = 62.8% and FA = 16.3%. In comparison, the approach proposed ( N = 7, l = 220) in this paper detects almost the anomalies (data points 1378-1769) with almost no false alarms ( FA = 2.4%). It shows that the proposed approach has better detection performance.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 13,
+                    "text": "Fig. 6 (b)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 165,
+                    "end": 175,
+                    "text": "Fig. 6 (c)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 333,
+                    "end": 343,
+                    "text": "Fig. 6 (d)",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Experiment and analysis of real-world data"
+        },
+        {
+            "text": "In the next experiments, the ECG dataset chfdb_chf13_45590.3 coming from UCR Time Series Data Mining Archive is used for anomaly detection using the four approaches mentioned above. It is known that the anomalies in the sequence data are data points 676-733 and 1119-1190. Besides, the first 600 data points are regarded as training data. The results are shown in Fig. 7 and Table 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 364,
+                    "end": 370,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 375,
+                    "end": 382,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Experiment and analysis of real-world data"
+        },
+        {
+            "text": "In Fig. 7 , the classical Markov chain techniques and the higher order Markov chain techniques ( n = 4) can successfully detect parts of anomalies. However, for the classical Markov chain techniques specially, there also are some false alarms ( FA = 43.3%). In Fig. 7 (f) , the LOF method detect fewer anomalies than the above two methods with TP = 58.3%. In Fig. 7 (e) , the approach proposed in this paper ( N = 10, l = 200) detects almost the anomalies (data points 676-733 and 1119-1177) with fewer false alarms (data points 843-845 and 991-993, FA = 6.7%). Thus comparing with other two approaches, the proposed one greatly improves the detection accuracy. The results of other experiments on eight ECG datasets representing the dynamic sequence data are shown in Table 3 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 9,
+                    "text": "Fig. 7",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 261,
+                    "end": 271,
+                    "text": "Fig. 7 (f)",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 359,
+                    "end": 369,
+                    "text": "Fig. 7 (e)",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 769,
+                    "end": 776,
+                    "text": "Table 3",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Experiment and analysis of real-world data"
+        },
+        {
+            "text": "In Table 3 , the proposed approach achieves highest true positive rate and lowest false alarm rate on all of the eight ECG datasets and outperforms the other three benchmark approaches. For the classical Markov chain techniques, the average true positive rate TP is 63.7% with the average false alarm rate FA of 26.6%. For the higher order Markov chain techniques ( n = 5), the average TP is 75.3% and the average FA is 15.8%. For the LOF method, the average TP and FA are 79.3% and 13.9%. For the proposed approach, the average TP is 89.1% and the average FA is 6.5%. The best performance for the proposed approach appears on the ltstdb_20321_240_2 dataset with the true positive rate of 92.5% and the false alarm rate of 6.4%, which is better than the classical Markov chain techniques ( TP = 62.1% and FA = 23.8%), the higher order Markov chain techniques ( TP = 68.2% and FA = 10.9%), and the LOF method ( TP = 72.8% and FA = 10.9%). The worst performance of the proposed approach appears on the stdb_308_0_2 dataset ( TP = 85.4% and FA = 4.8%) and is still better than the other three approaches. The obtained results indicate that the proposed approach, constantly updating the order n of the higher order Markov model to keep the reliability of the model with the change of the sequences, has better performance than other two established approaches and the classical LOF method with higher true positive rate and lower false alarm rate. The true positive rate is increased by 13.8%, 25.4%, and 9.8% than the higher order Markov chain technique, classical Markov chain technique, and LOF method, respectively. At the same time, the false alarm rate is reduced by 9.3%, 20.1%, and 7.4% than the three techniques, respectively. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Table 3",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Experiment and analysis of real-world data"
+        },
+        {
+            "text": "This paper presents an anomaly detection approach based on a dynamic Markov model. The short memory property of a classical Markov model and the long memory property of a higher order Markov model are analyzed. The proposed approach balances the length of the memory property by repeatedly utilizing the Pearson correlation analysis approach to find a proper order of the Markov model in a sliding window. Moreover, the proposed approach maintains the established model reliable and successfully detects the tendency sequences by dynamically defining the states of data and training the models in the sliding window. For keeping detection continuously, a substitution strategy of anomalies is reported to protect the building of models from the infection of detected anomalies. The comparison of the proposed approach with other benchmark approaches shows that the proposed approach performs better in terms of the true positive rate and the false alarm rate for all of dynamic and tendency sequence data. Another interesting topic will use Petri nets [42, 43] to model the anomaly detection process.",
+            "cite_spans": [
+                {
+                    "start": 1052,
+                    "end": 1056,
+                    "text": "[42,",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1057,
+                    "end": 1060,
+                    "text": "43]",
+                    "ref_id": "BIBREF42"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Adaptive hidden markov model with anomaly states for price manipulation detection",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Coleman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Belatreche",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Mcginnity",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "IEEE Trans. Neural Netw. Learn. Syst",
+            "volume": "26",
+            "issn": "2",
+            "pages": "318--330",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TNNLS.2014.2315042"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Anomaly detection: a survey",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Chandola",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Banerjee",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "ACM Comput. Surv",
+            "volume": "41",
+            "issn": "3",
+            "pages": "1--58",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TKDE.2010.235"
+                ]
+            }
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Anomaly detection for discrete sequences: a survey",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Chandola",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Banerjee",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "IEEE Trans. Knowl. Data Eng",
+            "volume": "24",
+            "issn": "5",
+            "pages": "823--839",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TKDE.2010.235"
+                ]
+            }
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Anomaly detection boundary based on the moving averages of markov chain model",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Proc. IEEE Intl Conf. Fuzzy Systems and Knowledge Discovery",
+            "volume": "",
+            "issn": "",
+            "pages": "1532--1536",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/FSKD.2015.7382172"
+                ]
+            }
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Outlier detection with the kernelized spatial depth function",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Dang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Peng",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Bart",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "31",
+            "issn": "2",
+            "pages": "288--305",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TPAMI.2008.72"
+                ]
+            }
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "A formal framework for positive and negative detection schemes",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Esponda",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Forrest",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Helman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "IEEE Trans. Syst. Man Cybern.Part B (Cybernetics)",
+            "volume": "34",
+            "issn": "1",
+            "pages": "257--273",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TSMCB.2003.817026"
+                ]
+            }
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Lightweight monitoring of MPI programs in real time",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Florez",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bridges",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Skjellum",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Vaughn",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Concurrency Comput",
+            "volume": "17",
+            "issn": "13",
+            "pages": "1547--1578",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/cpe.889"
+                ]
+            }
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "HMMs (hidden markov models) based on anomaly intrusion detection method",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Gao",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proc. IEEE Intl Conf. Machine Learning and Cybernetics",
+            "volume": "1",
+            "issn": "",
+            "pages": "381--385",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/ICMLC.2002.1176779"
+                ]
+            }
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Optimal kullback-leibler aggregation via information bottleneck",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Geiger",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Petrov",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Kubin",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Koeppl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "IEEE Trans. Autom. Control",
+            "volume": "60",
+            "issn": "4",
+            "pages": "1010--1022",
+            "other_ids": {
+                "DOI": [
+                    "10.1023/A:1026195112518"
+                ]
+            }
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Anomaly detection using real-valued negative selection",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dasgupta",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Genet. Program. Evolvable Mach",
+            "volume": "4",
+            "issn": "4",
+            "pages": "383--403",
+            "other_ids": {
+                "DOI": [
+                    "10.1023/A:1026195112518"
+                ]
+            }
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Outlier Detection for Temporal Data",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Aggarwal",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Synthesis Lectures on Data Mining and Knowledge Discovery",
+            "volume": "5",
+            "issn": "",
+            "pages": "1--129",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10115-004-0174-5"
+                ]
+            }
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Reliable detection of episodes in event sequences",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Gwadera",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Atallah",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Szpankowski",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Knowl. Inf. Syst",
+            "volume": "7",
+            "issn": "4",
+            "pages": "415--437",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TPAMI.2014.2327984"
+                ]
+            }
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Multi-class supervised novelty detection",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Jumutc",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Suykens",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "IEEE Trans. Pattern Anal. Mach. Intell",
+            "volume": "36",
+            "issn": "12",
+            "pages": "2510--2523",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TPAMI.2014.2327984"
+                ]
+            }
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Finding unusual medical time-series subsequences: algorithms and applications",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Keogh",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Fu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Van",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "IEEE Trans. Inf. Technol.Biomed",
+            "volume": "10",
+            "issn": "3",
+            "pages": "429--439",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s007780050006"
+                ]
+            }
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Distance-based outliers: algorithms and application",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Knorr",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Ng",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Tucakov",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Int. J. Very Large Data Bases",
+            "volume": "8",
+            "issn": "3-4",
+            "pages": "237--253",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s007780050006"
+                ]
+            }
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Experiencing SAX: a novel symbolic representation of time series",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Keogh",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lonardi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Data Min. Knowl. Discov",
+            "volume": "15",
+            "issn": "2",
+            "pages": "107--144",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10618-007-0064-z"
+                ]
+            }
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Uncertain oneclass learning and concept summarization learning on uncertain data streams",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Xiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Hao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "IEEE Trans. Knowl. Data Eng",
+            "volume": "26",
+            "issn": "2",
+            "pages": "8--12",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TKDE.2012.235"
+                ]
+            }
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Detection of shape anomalies: a probabilistic approach using hidden markov models",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proc. IEEE Intl Conf. Data Engineering",
+            "volume": "49754",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.sigpro.2003.07.019"
+                ]
+            }
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Novelty detection: a review part 2: neural network based approaches, Signal Process",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Markou",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Singh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "",
+            "volume": "83",
+            "issn": "",
+            "pages": "2499--2521",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.sigpro.2003.07.019"
+                ]
+            }
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "On stability of distance measures for event sequences induced by level-crossing sampling",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Moser",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Natschlager",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "IEEE Trans. Signal Process",
+            "volume": "62",
+            "issn": "8",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TSP.2014.2305642"
+                ]
+            }
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "A novel and robust parameter training approach for HMMs under noisy and partial access to states, Signal Process",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ozkan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Akman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kozat",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "",
+            "volume": "94",
+            "issn": "",
+            "pages": "90--94",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.sigpro.2013.07.015"
+                ]
+            }
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Online anomaly detection under markov statistics with controllable type-i error",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ozkan",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Ozkan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kozat",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "IEEE Trans. Signal Process",
+            "volume": "64",
+            "issn": "6",
+            "pages": "1435--1445",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TSP.2015.2504345"
+                ]
+            }
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Data imputation through the identification of local anomalies",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ozkan",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Pelvan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kozat",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "IEEE Trans Neural Netw Learn Syst",
+            "volume": "26",
+            "issn": "10",
+            "pages": "2381--2395",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TNNLS.2014.2382606"
+                ]
+            }
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Finding outlier light curves in catalogues of periodic variable stars",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Protopapas",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Giammarco",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Faccioli",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Struble",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Dave",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Alcock",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Mon. Not. R. Astron. Soc",
+            "volume": "369",
+            "issn": "2",
+            "pages": "677--696",
+            "other_ids": {
+                "DOI": [
+                    "10.1111/j.1365-2966.2006.10327.x"
+                ]
+            }
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Anomaly intrusion detection method based on HMM",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Qiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Xin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Bin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ge",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Electron. Lett",
+            "volume": "38",
+            "issn": "13",
+            "pages": "663--664",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10994-008-5093-3"
+                ]
+            }
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Finding anomalous periodic time series",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Rebbapragada",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Protopapas",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Brodley",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Alcock",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Mach. Learn",
+            "volume": "74",
+            "issn": "3",
+            "pages": "281--313",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10994-008-5093-3"
+                ]
+            }
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Video anomaly identification",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Saligrama",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Konrad",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Jodoin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "IEEE Signal Process. Mag",
+            "volume": "27",
+            "issn": "5",
+            "pages": "18--33",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/MSP.2010.937393"
+                ]
+            }
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Statistical learning for anomaly detection in cloud server systems: a multi-order markov chain framework",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Sha",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "IEEE Trans. Cloud Comput",
+            "volume": "",
+            "issn": "99",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TCC.2015.2415813"
+                ]
+            }
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "A multi-order markov chain based scheme for anomaly detection",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Sha",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Qiu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Proc. IEEE Intl Conf. Computer Software and Applications Conference Workshops",
+            "volume": "",
+            "issn": "",
+            "pages": "83--88",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/COMPSACW.2013.12"
+                ]
+            }
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Sequence-similarity kernels for SVMs to detect anomalies in system calls",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Tian",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Mu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Yin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Neurocomputing",
+            "volume": "70",
+            "issn": "4-6",
+            "pages": "859--866",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.neucom.2006.10.017"
+                ]
+            }
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Pattem recognition using pearson correlation on neuron values",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "I N"
+                    ],
+                    "last": "Azha",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "E A"
+                    ],
+                    "last": "Khalid",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ismail",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Sakamat",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Latif",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Proc. IEEE Intl Conf. Control and System Graduate Research Colloquium",
+            "volume": "",
+            "issn": "",
+            "pages": "24--30",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/ICSGRC.2016.7813299"
+                ]
+            }
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "A comprehensive approach to universal piecewise nonlinear regression based on trees",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Vanli",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Kozat",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "IEEE Trans. Signal Process",
+            "volume": "62",
+            "issn": "20",
+            "pages": "5471--5486",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TSP.2014.2349882"
+                ]
+            }
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Hidden markov model based tool wear monitoring in turning",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Mehrabi",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Kannatey-Asibu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Manuf. Sci. Eng",
+            "volume": "124",
+            "issn": "3",
+            "pages": "651--658",
+            "other_ids": {
+                "DOI": [
+                    "10.1115/1.1475320"
+                ]
+            }
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Locality statistics for anomaly detection in time series of graphs",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Park",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Priebe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "IEEE Trans. Signal Process",
+            "volume": "62",
+            "issn": "3",
+            "pages": "703--717",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/TSP.2013.2294594"
+                ]
+            }
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Native API based windows anomaly intrusion detection method using SVM",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proc. IEEE Intl Conf. Sensor Networks, Ubiquitous, and Trustworthy Computing",
+            "volume": "1",
+            "issn": "",
+            "pages": "514--519",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/SUTC.2006.1636219"
+                ]
+            }
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Spectrum anomalies autonomous detection in cognitive radio using hidden markov models",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Wei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Jia",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Proc. IEEE Intl Conf. Advanced Information Technology, Electronic and Automation Control Conference",
+            "volume": "",
+            "issn": "",
+            "pages": "388--392",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/IAEAC.2015.7428581"
+                ]
+            }
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Probabilistic techniques for intrusion detection based on computer audit data",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ye",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Emran",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "IEEE Trans. Syst. Man Cybern. Part A Syst. Humans",
+            "volume": "31",
+            "issn": "4",
+            "pages": "266--274",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/3468.935043"
+                ]
+            }
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "An improved composite hypothesis test for markov models with applications in network anomaly detection",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Paschalidis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Proc. IEEE Intl Conf. Conference on Decision and Control",
+            "volume": "",
+            "issn": "",
+            "pages": "3810--3815",
+            "other_ids": {
+                "DOI": [
+                    "10.1109/CDC.2015.7402811"
+                ]
+            }
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "LOF: identifying density-based local outliers",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Breunig",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kriegel",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Raymond",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sander",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proc. ACM SIGMOD Intl Conf. On Management of Data",
+            "volume": "",
+            "issn": "",
+            "pages": "93--104",
+            "other_ids": {
+                "DOI": [
+                    "10.1145/342009.335388"
+                ]
+            }
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "A multi-step outlier-based anomaly detection approach to network-wide traffic",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bhuyan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Bhattacharyya",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Kalita",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Inf. Sci",
+            "volume": "348",
+            "issn": "20",
+            "pages": "243--271",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.ins.2016.02.023"
+                ]
+            }
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Self-organizing anomaly detection in data streams",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Forestiero",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Inf. Sci",
+            "volume": "373",
+            "issn": "10",
+            "pages": "321--336",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.ins.2016.09.007"
+                ]
+            }
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "A divide-and-conquer-method for the synthesis of liveness enforcing supervisors for flexible manufacturing systems",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Uzam",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gelen",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Zakariyya",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "J. Intell. Manuf",
+            "volume": "27",
+            "issn": "5",
+            "pages": "1111--1129",
+            "other_ids": {
+                "DOI": [
+                    "10.1007/s10845-014-0938-z"
+                ]
+            }
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Deadlock recovery for flexible manufacturing systems modeled with petri nets",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Al-Ahmari",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Qu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Inf. Sci",
+            "volume": "381",
+            "issn": "",
+            "pages": "290--303",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.ins.2016.11.011"
+                ]
+            }
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "P , a state transition probability matrix, can be expressed in the form P = | p s t\u22121 s t | N\u00d7N , where p s t\u22121 s t is the state transition probability from the state s t\u22121 to s t after a single step. For example, if the states at time t \u2212 1 and t are s t\u22121 = 1 and s t = 3 , the state transition probability between these two states is p 13 . For a state s t\u22121 , we have N s t =1 p s t\u22121 s t = 1 .",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Experimental results obtained for synthetic data using and not using anomaly substitution strategy.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Experimental results obtained for synthetic data with different states numbers.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Experimental results for different length ( l ) of sliding window.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Comparison of the experimental results produced by the four approaches.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Comparison of the experimental results of the four approaches.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Comparison of the experimental results of the four approaches.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "be calculated as follows:",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "The TP and FA values of the experimental results for different orders n .Fig. 3. Experimental results for different orders n .",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "TP and FA values of the experimental results on different data.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "The results of anomaly detection on eight ECG datasets using the four approaches.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work is partially supported by the Fundamental Research Funds for the Central Universities with Grant Nos. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

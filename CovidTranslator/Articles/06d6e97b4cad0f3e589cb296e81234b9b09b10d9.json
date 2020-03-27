@@ -1,0 +1,2508 @@
+{
+    "paper_id": "06d6e97b4cad0f3e589cb296e81234b9b09b10d9",
+    "metadata": {
+        "title": "Segmentation with area constraints",
+        "authors": [
+            {
+                "first": "Marc",
+                "middle": [],
+                "last": "Niethammer",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of North Carolina (UNC)",
+                    "location": {
+                        "settlement": "Chapel Hill",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Christopher",
+                "middle": [],
+                "last": "Zach",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Microsoft Research",
+                    "location": {
+                        "settlement": "Cambridge",
+                        "country": "UK"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Image segmentation approaches typically incorporate weak regularity conditions such as boundary length or curvature terms, or use shape information. High-level information such as a desired area or volume, or a particular topology are only implicitly specified. In this paper we develop a segmentation method with explicit bounds on the segmented area. Area constraints allow for the soft selection of meaningful solutions, and can counteract the shrinking bias of length-based regularization. We analyze the intrinsic problems of convex relaxations proposed in the literature for segmentation with size constraints. Hence, we formulate the area-constrained segmentation task as a mixed integer program, propose a branch and bound method for exact minimization, and use convex relaxations to obtain the required lower energy bounds on candidate solutions. We also provide a numerical scheme to solve the convex subproblems. We demonstrate the method for segmentations of vesicles from electron tomography images.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Image segmentation is a fundamental task in image analysis. Consequentially, a large number of segmentation methods have been developed ranging from local thresholding to methods using statistical models of shape variation (Pham et al., 2000; Sonka et al., 2008) . The simplest available segmentation methods rely on local pixel-by-pixel segmentation decisions such as Otsu thresholding or methods based on clustering. These fully-local decisions are often not sufficient and because they neglect spatial dependencies, they are sensitive to noise and not directly applicable if an object is defined by its boundary surface only (e.g., if only the cell membrane or a cell membrane surrogate is imaged, but an image of the entire cell is desired). To overcome these limitations, nonlocal approaches have been proposed based on intelligent local merging decisions or by formulating optimization problems incorporating spatial dependencies. The former class of methods encompasses region growing approaches such as the popular watershed segmentation (Sonka et al., 2008) . The latter class of methods includes active-contours and -surfaces (Sapiro, 2001) as well as general parametric models which may use statistical information on shape and/or appearance (Cootes et al., 2001; Pizer et al., 2003) .",
+            "cite_spans": [
+                {
+                    "start": 223,
+                    "end": 242,
+                    "text": "(Pham et al., 2000;",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 243,
+                    "end": 262,
+                    "text": "Sonka et al., 2008)",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1046,
+                    "end": 1066,
+                    "text": "(Sonka et al., 2008)",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1136,
+                    "end": 1150,
+                    "text": "(Sapiro, 2001)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 1253,
+                    "end": 1274,
+                    "text": "(Cootes et al., 2001;",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 1275,
+                    "end": 1294,
+                    "text": "Pizer et al., 2003)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "When the object segmentation task is highly structured (i.e., expected shape variations are reasonably small and the approximate number and location of the objects are known) shape-or atlasbased segmentation methods are highly successful (Rohlfing et al., 2005) . However, for less structured cases these methods are not applicable. In microscopy, for example, images often contain hundreds or thousands of cells, cell nuclei, or organelles, with possibly large variations in shape and a priori unknown locations. While local thresholding or active-contour-type models may be applied in such cases, they are often too generic, too sensitive to noise, or require the judicial placement of seed points to assure an appropriate segmentation result to avoid over-or undersegmentations.",
+            "cite_spans": [
+                {
+                    "start": 238,
+                    "end": 261,
+                    "text": "(Rohlfing et al., 2005)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "If shape-or atlas-based segmentation methods are too restrictive, and if general purpose segmentation methods such as active contours, region-growing or thresholding are not restrictive enough for a particular segmentation task, the question of how to incorporate additional domain information into a segmentation that lies between these two extremes arises. A possible option is to use information about simple geometric properties. In this paper we explore an approach for a segmentation with constraints on the segmentation area. Such a method can counteract potential leakage or shrinkage biases in a principled way. Such biases can be observed, for example, for active contour (Sapiro, 2001) or graph cut (Boykov and Funka-Lea, 2006) segmentations when boundary regularity is encouraged by penalizing a weighted length of the segmentation boundary. Area constraints may not be appropriate for all biomedical segmentation tasks; however there are a large number of problems in which reasonable area or volume intervals are known a priori. Our objective in this paper is not to perform an actual study for a particular biological problem, but rather to demonstrate the behavior of a segmentation method with areaconstraints on realistic image data. We use electron tomography datasets of synaptic vesicles and of double-membrane vesicles (DMVs) implicated in the SARS-coronavirus (severe acute respiratory syndrome coronavirus) replication (Knoops et al., 2008) .",
+            "cite_spans": [
+                {
+                    "start": 682,
+                    "end": 696,
+                    "text": "(Sapiro, 2001)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 710,
+                    "end": 738,
+                    "text": "(Boykov and Funka-Lea, 2006)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1443,
+                    "end": 1464,
+                    "text": "(Knoops et al., 2008)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Many recent segmentation approaches are formulated such that the optimization problems become convex so that globally optimal solutions can be obtained (Appleton and Talbot, 2006; Bresson et al., 2007) or so that they can be solved with discrete solution methods, such as graph-cuts (Boykov and Funka-Lea, 2006) . While area-constraints can formally easily be added to the optimization problems for segmentation, solving the problems is hard. However, if finding a globally optimal solution is not of concern and a good initial guess for a solution is available, one can resort to standard methods from constrained optimization. For example, a curve evolution approach with an area penalty can be used (Ayed et al., 2008) . Proposed numerical solution approaches to obtain a global optimum or a good approximation.",
+            "cite_spans": [
+                {
+                    "start": 152,
+                    "end": 179,
+                    "text": "(Appleton and Talbot, 2006;",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 180,
+                    "end": 201,
+                    "text": "Bresson et al., 2007)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 283,
+                    "end": 311,
+                    "text": "(Boykov and Funka-Lea, 2006)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 702,
+                    "end": 721,
+                    "text": "(Ayed et al., 2008)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "are limited to problems with small numbers of variables (Ji, 2004) , or require long computation times (Dahl and Flatberg, 2007) , use solution heuristics (Kernighan and Lin, 1970) , or use various forms of relaxations of the original problem to facilitate computations: e.g., spectral relaxations (Olsson et al., 2008) , semidefinite programming (Keuchel et al., 2003; Lisser and Rendl, 2003; Hager et al., 2009) , or variational inference approximations (Kropotov et al., 2010) .",
+            "cite_spans": [
+                {
+                    "start": 56,
+                    "end": 66,
+                    "text": "(Ji, 2004)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 103,
+                    "end": 128,
+                    "text": "(Dahl and Flatberg, 2007)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 155,
+                    "end": 180,
+                    "text": "(Kernighan and Lin, 1970)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 298,
+                    "end": 319,
+                    "text": "(Olsson et al., 2008)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 347,
+                    "end": 369,
+                    "text": "(Keuchel et al., 2003;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 370,
+                    "end": 393,
+                    "text": "Lisser and Rendl, 2003;",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 394,
+                    "end": 413,
+                    "text": "Hager et al., 2009)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 456,
+                    "end": 479,
+                    "text": "(Kropotov et al., 2010)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Approaches have generally focused on equality constraints (i.e., exact size) in formulation (Lim et al., 2010; Eriksson et al., 2011; Falkner et al., 1994; Ayed et al., 2008) or for testing (Hager et al., 2009 ). However, equality constraints have only limited applicability when the exact object size is not known beforehand or when it is a desired measurement (as is frequently the case in biomedical imaging), because it would bias the segmentation towards the chosen area. We therefore formulate the segmentation problem with inequality constraints on the segmentation area.",
+            "cite_spans": [
+                {
+                    "start": 92,
+                    "end": 110,
+                    "text": "(Lim et al., 2010;",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 111,
+                    "end": 133,
+                    "text": "Eriksson et al., 2011;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 134,
+                    "end": 155,
+                    "text": "Falkner et al., 1994;",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 156,
+                    "end": 174,
+                    "text": "Ayed et al., 2008)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 190,
+                    "end": 209,
+                    "text": "(Hager et al., 2009",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Section 2 introduces the area-constrained segmentation problem. Section 3 outlines our solution approach. Sections 4-6 discuss its numerical solution. Segmentation results on real electron tomography images demonstrate the utility of the method in Section 7. The paper concludes with a summary and a discussion of future work.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our objective is a binary segmentation of an image into foreground and background. Without loss of generality, we consider two-dimensional images here. 1 Markov random field models with Gibbs energies using first and second order cliques have been particularly popular for image segmentation (Li, 2009) and can be exactly minimized under certain conditions (Kolmogorov and Zabin, 2004) for example by using graph cuts. Solutions are typically based on the minimal cut theorem (Ford and Fulkerson, 1956 ) relating the minimum cut in a graph to the maximum flow through the graph. Hence, by forming an appropriate graph and solving the maximum flow problem the segmentation solution can be obtained. The segmentation algorithm we analyze and extend is the partial differential equation formulation of the maximum flow problem (Appleton and Talbot, 2006) , which has equally broad application for image segmentation.",
+            "cite_spans": [
+                {
+                    "start": 292,
+                    "end": 302,
+                    "text": "(Li, 2009)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 357,
+                    "end": 385,
+                    "text": "(Kolmogorov and Zabin, 2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 476,
+                    "end": 501,
+                    "text": "(Ford and Fulkerson, 1956",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 824,
+                    "end": 851,
+                    "text": "(Appleton and Talbot, 2006)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "As is customary for image segmentation methods based on energies of Gibbs-type, we allow the optional specification of seed points or areas which explicitly enforce a particular labeling (foreground or background) for the seeds. Our segmentation formulation is an extension of the convex formulation of the active contour method and related segmentation methods such as the Chan-Vese segmentation model (Bresson et al., 2007; Chan and Vese, 2001) .",
+            "cite_spans": [
+                {
+                    "start": 403,
+                    "end": 425,
+                    "text": "(Bresson et al., 2007;",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 426,
+                    "end": 446,
+                    "text": "Chan and Vese, 2001)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "To avoid the segmentation of very small structures which likely represent noise and noisy boundaries, almost all energy-based methods penalize the (weighted) length of the boundary curve separating foreground from background. Most commonly, the length of the boundary curve is added to the segmentation energy. This introduces a well-known shrinking bias towards shorter boundary curves and therefore frequently leads to undersegmentations. Our goal is to add constraints on the segmentation area, to counteract the shrinking bias and to allow ''tuning'' of the segmentation algorithm to the expected size of the objects to be segmented.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "While our area-constrained extension is developed in the context of maximum-flow-based segmentation, the solution strategy itself is generic and expected to be applicable also to other segmentation models. For example, a similar solution strategy might be useful for segmentation methods which do not penalize boundary curve length directly, but instead a ratio between boundary length and enclosed areas (Grady and Schwartz, 2006; Shi and Malik, 2000) . Such methods do not exhibit the same shrinking bias, but also lack control over the obtained segmentation area.",
+            "cite_spans": [
+                {
+                    "start": 405,
+                    "end": 431,
+                    "text": "(Grady and Schwartz, 2006;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 432,
+                    "end": 452,
+                    "text": "Shi and Malik, 2000)",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "The general optimization problem for area-constrained segmentation we consider is argmin u E\u00f0u\u00de; s:t: A\u00f0u\u00de 2 \u00bdA l ; A u ;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "where u \u00bc fu s js 2 Xg; u s 2 f0; 1g; and u s \u00bc 0; s 2 T;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "Here, u is an indicator function denoting foreground (u = 1) and background (u = 0) classes of the segmentation defined over the set of spatial locations X, where s denotes a spatial location, u s a value at location s and u is the union of these values for all s 2 X, i.e., u 2 f0; 1g jXj , where jXj denotes the number of considered spatial locations. E(u) is an energy function encoding the desired properties of a segmentation, A(u) indicates the area covered by a segmentation u, S and T denote the foreground and background seed sets respectively, 2 and A l and A u are lower and upper bounds for the segmentation area. This is an integer program (Nemhauser and Wolsey, 1988) since u s 2 {0, 1}. For image segmentation the number of variables, u s , corresponds to the number of pixels. A direct solution of problem (1) with integer-programming methods is typically computationally tractable only for very small images. For segmentations without area-constraints various relaxations of the original labeling problem have therefore been proposed. As an illustrative example, consider the continuous maximum flow approach (Appleton and Talbot, 2006) in which E mf \u00f0u\u00de \u00bc X s g s kr s uk \u00fe q s u s ; s:t: u s 2 \u00bd0; 1;",
+            "cite_spans": [
+                {
+                    "start": 653,
+                    "end": 681,
+                    "text": "(Nemhauser and Wolsey, 1988)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 1126,
+                    "end": 1153,
+                    "text": "(Appleton and Talbot, 2006)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "The overall algorithm and its analysis extends to higher dimensions. We use twodimensional terminology in the remainder of the paper only to simplify the presentation, e.g., boundary curve instead of boundary surface.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "subject to the same seedpoint constraints as in (1) is minimized.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "Here, g > 0 denotes an edge-weighting term and q a regional bias which allows for the integration of local likelihoods of an element s to belong to the foreground or the background. 3 The key difference in structure is to allow u s 2 [0, 1] which renders the optimization problem convex, because it is now defined over a convex domain, u 2 [0, 1] jSj . A globally optimal solution can then efficiently be obtained. For the continuous maximum flow problem, the optimal solution will be essentially binary regardless the convex relaxation. This means that a minimizer, u \u2044 of (2) may not necessarily be binary, but any thresholded u h\u00c3 s \u00bc 1 \u00bdh;1 u \u00c3 s \u00c0 \u00c1 is binary and globally optimal with E(u \u2044 ) = E(u h\u2044 ) for h 2 (0, 1) (Appleton and Talbot, 2006) . Here, 1 S \u00f0x\u00de is the indicator function which returns 1 if x is in S and 0 otherwise.",
+            "cite_spans": [
+                {
+                    "start": 182,
+                    "end": 183,
+                    "text": "3",
+                    "ref_id": null
+                },
+                {
+                    "start": 725,
+                    "end": 752,
+                    "text": "(Appleton and Talbot, 2006)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "Unfortunately, this relaxed solution is no longer guaranteed to be essentially binary when adding the area-constraint by inequality constraints P s u s P A l , P s u s 6 A u . The ''area'' of a segmentation is defined as A\u00f0u\u00de :\u00bc P s u s . In addition, the segmentation method can become ''blind'' to the true optimal integer solution as illustrated in Section 2.1, which precludes the possibility of finding good approximate solutions for the integer program by thresholding the relaxed solution. A different solution strategy is therefore needed for area-constrained segmentation. We resort to branch and bound (see Section 6).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Optimization problem"
+        },
+        {
+            "text": "Assume there are strong gradients along the boundary of concentric, non-intersecting shapes. For example, several circles with increasing radii or squares with increasing side lengths with small weights g. Assume that the weights are chosen such that all discontinuities of the resulting segmentation (for the original problem and its relaxation) occur only at these shape boundaries. This can always be achieved by assigning sufficiently large weights outside the desired boundaries. These concentric shapes are indexed by a scale parameter r, e.g. the radius of a circle or the diagonal of a square. The shape itself is not important, but only that the area of the shape is c A r 2 and its circumference is c L r for suitable constants c A and c L . We drop these constants without loss of generality in what follows. We would like the segmentation to snap into successively larger shapes when increasing the lower bound on the area. The following counter-example shows that this cannot be assured and therefore the convex relaxation (with u s 2 [0, 1]) is insufficient to obtain solutions to the area-constrained segmentation problem.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem with the relaxed solution"
+        },
+        {
+            "text": "Consider three concentric shapes with scales r 1 < r 2 < r 3 (see Fig. 1 ) and a sufficiently large seed region within the inner-most shape so that the unconstrained problem results in the segmentation of the smallest shape. The segmentation energy (2) is proportional to r i (for q s = 0) and the area is proportional to r 2 i . Without loss of generality, set r 1 = 1. To obtain the middle shape from the segmentation, we enforce A l 2 r 2 1 ; r 2 2 \u00c0 \u00c1 \u00bc 1; r 2 2 \u00c0 \u00c1 . The segmentation energy of the desired shape (for an integer-solution) is E int = r 2 . Under the relaxed segmentation model the optimal solution needs to occur at r 2 or r 3 . Since smaller values for u will lead to smaller overall energy values, the optimal relaxed solution will have A(u) = A l . Therefore, for a jump at r i the uniform fractional value for u which fulfills the area constraint exactly will be",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 66,
+                    "end": 72,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Problem with the relaxed solution"
+        },
+        {
+            "text": "The energy values (for a jump from 1 to u at r 1 = 1 and from u to 0 at",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem with the relaxed solution"
+        },
+        {
+            "text": "But then A l > 1 and r 3 > r 2 by assumption leads to b E 3 < b E 2 . This shows that the middle shape cannot be recovered by thresholding and the fractional solution has a lower energy than the solution for the integer program. Fig. 1 illustrates the difference between the relaxed and integer solutions for successively larger lower bounds on the area for concentric squares with foreground seeds at the center of the image and background seeds at the image boundary. As predicted, the relaxed solution is blind to the middle square and simply uniformly increases the fractional values of u with increasing A. In contrast, the integer solution is able to capture all three squares.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 229,
+                    "end": 235,
+                    "text": "Fig. 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Problem with the relaxed solution"
+        },
+        {
+            "text": "While the relaxed solution is not suitable for area-constrained segmentation by itself it can be used to obtain lower bounds for the integer program. Instead of directly enforcing u 2 {0, 1} we formulate the optimization problem as a mixed integer nonlinear program (MINLP) (Hijazi et al., 2009) min u E minlp \u00f0u\u00de;",
+            "cite_spans": [
+                {
+                    "start": 274,
+                    "end": 295,
+                    "text": "(Hijazi et al., 2009)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "s:t: A\u00f0u\u00de 2 \u00bdA l ; A u ; u s 2 \u00bd0; 1;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "which augments the maximal flow formulation (2) by selection variables b k and areas B k , which allow selection of additional image to be segmented, foreground seed set S, background seed set T and the cost g in the x and y direction (g x = 1/(1 + 50I x ) and g y = 1/(1 + 50I y )) respectively (from top left to top right). The cost is illustrated with directional dependence, because we use the 1-norm, g s kru s k 1 , to discretize the weighted total-variation term. Linear programming (LP) solution for different lower area bounds (middle); solution of integer program (bottom). The integer program is by construction binary and is able to capture all three concentric squares (with respect to the gradient magnitude). The LP solution is blind to the middle square and immediately ''bleeds out'' into the biggest square once the desired area is larger than the smallest square at the center.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "3 This is a very general energy form which can express many highly popular segmentation models, such as active contour and surface models, Chan-Vese segmentation, and segmentation models with general region-based likelihoods. For example, any energy of the form E\u00f0C\u00de \u00bc",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "can be written in the form of Eq.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "(2). Here, C is the boundary curve separating the foreground region, X 1 , from the background region, X 2 ; d(x) denotes available data at spatial location x, h i are given parameters, which typically parameterize the likelihoods p i , g(s) > 0 and s denotes arc-length. Hence, q s in Eq.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "(2) can be interpreted as the logarithm of the likelihood ratios in the foreground and the background regions at location s.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "foreground and background seeds. For practical segmentation problems full control over all pixels is in many cases not necessary. Instead, it is desirable to obtain a good approximation to the original optimization problem while controlling the computational complexity of the method. Hence, we replace the control of individual pixels by the control of coarse selection areas B k . Since we solve this problem by branch-and-bound the resulting reduction in the number of integer variables reduces the effort to compute the solution drastically (because it reduces the size of the branch and bound tree). The original integer program (1) with the non-relaxed maximum flow energy is recovered if the B k correspond to individual image pixels s R S [ T. If desired, maximal flow formulations with direction-dependent costs could be used (Zach et al., 2009b,a) . For formulations with only a lower area bound, the last condition is replaced by u s P b k (and similarly for only an upper bound).",
+            "cite_spans": [
+                {
+                    "start": 835,
+                    "end": 857,
+                    "text": "(Zach et al., 2009b,a)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "The essentially binary property is a consequence of the underlying continuous max-flow solutions and means that given an optimal (not-necessarily binary) u an equally optimal solution can be found by thresholding u for any h 2 (0, 1). I.e., we only want to accept values for the selection variables b k which result in essentially binary solutions and therefore indicate that they were selected appropriately to avoid the problems discussed in Section 2.1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "Intuitively, the maximal flow approach yields an essentially binary solution even when an area constraint is present if it is sufficiently constrained by seed points. For example, imposing a lower area constraint for a max-flow-based segmentation is trivial if the number of foreground seed points is larger or equal to the lower area bound. Then the constraint is essentially inactive and ''invisible'' to the segmentation algorithm. The difficulty lies in finding these seed points (without requiring a user to provide close to the final segmentation as input). Integer programming solves this problem by intelligent pixel-by-pixel searching. However, even though the existing search methods (Nemhauser and Wolsey, 1988) avoid the combinatorial explosion inherent to a brute-force approach, search trees will still get extremely large even for moderately small problems unless special problem structure can be exploited. We control the combinatorial explosion instead by an appropriate, coarse choice of selection areas.",
+            "cite_spans": [
+                {
+                    "start": 694,
+                    "end": 722,
+                    "text": "(Nemhauser and Wolsey, 1988)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "We would like the solution to be robust to the choice of the selection areas B k . The solution boundaries are expected to be located close to where their cost is low, i.e., where g s is small. Hence, we try to avoid placing the boundaries of selection regions there and let the remaining pixels not covered by any selection region snap into the best boundary location. We use homogeneous image regions for the B k , which can be derived from super-pixels (Vedaldi and Soatto, 2008; Comaniciu and Meer, 2002) or from an image oversegmentation using a watershed method (Vincent and Soille, 1991) . Formulation (3) is more general than a direct super-pixel segmentation (e.g., one can use seed regions covering only a subset of the image to guide the segmentation while having complete representational freedom close to putative segmentation boundaries). To define the B k , we use quick-shift (Vedaldi and Soatto, 2008) to find super-pixels and erode them so that they do not touch the potential segmentation boundaries. Quick-shift is an efficient mode-seeking algorithm based on medoid shift (conceptually similar to the popular mean-shift segmentation algorithms Comaniciu and Meer, 2002) . It provides a tuning parameter to control under-and over-fragmentation of modes and can therefore be used to indirectly control the number of selection regions to be detected. Our method is not dependent on quickshift, and other clustering methods such as mean-shift or k-means (Jain et al., 1999) could be substituted. Fig. 2 shows an illustration of the selection regions. In addition to the max-flow method addressed in this paper we expect this approach of facilitating area-constraints through selection regions also to be generally useful for other segmentation methods.",
+            "cite_spans": [
+                {
+                    "start": 456,
+                    "end": 482,
+                    "text": "(Vedaldi and Soatto, 2008;",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 483,
+                    "end": 508,
+                    "text": "Comaniciu and Meer, 2002)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 568,
+                    "end": 594,
+                    "text": "(Vincent and Soille, 1991)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 892,
+                    "end": 918,
+                    "text": "(Vedaldi and Soatto, 2008)",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 1165,
+                    "end": 1190,
+                    "text": "Comaniciu and Meer, 2002)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1471,
+                    "end": 1490,
+                    "text": "(Jain et al., 1999)",
+                    "ref_id": "BIBREF17"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1513,
+                    "end": 1519,
+                    "text": "Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "Note that when only an upper or a lower bound on the area are present, the segmentation can be robust even to selection areas crossing the integer-programming-optimal solution because we replace the equality constraint u s = b k by an inequality (u s P b k or u s 6 b k respectively) effectively resulting in ''don't-care'' selection areas. Segmentation boundaries can pass through such ''don't care'' selection areas if desired. Specifically, if only a lower-bound is imposed, then the selection regions drive the actual segmentation values u s through the inequality u s P b k . Therefore setting a selection region to 1 forces the segmentation value u s to be 1 for s 2 B k . However, setting a selection region to 0 amounts to leaving the segmentation values u s free. Hence, the solution will neither be forced to 0 or 1 in such an area and can be completely determined pixel-wise by the underlying image. The segmentation will be robust to selection regions that cross segmentation boundaries as long as there are a sufficient number of selection regions on the inside of an object that can be set to 1 so that the segmentation naturally ''snaps'' into the desired location. However, when we enforce a lower and an upper bound, we need to be able to increase and decrease the natural size of an unconstrained segmentation by setting regions to 1 or 0 respectively. In this case, selection regions crossing segmentation boundaries will matter because they have to be set to either 0 or 1. Consequentially, enforcing an upper and a lower bound may produce results which are worse than enforcing only a lower bound. This problem could easily be avoided by moving from binary to ternary selection variables (0: set to zero, 1: set to one, 2: do not care). This would leave the overall approach intact, but would result in a slightly different branch and bound implementation, which is not our focus here.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Proposed formulation"
+        },
+        {
+            "text": "Solving the MINLP (3) involves the computation of the optimal binary selection variables, b k . A brute-force approach enumerating all possible combinations {b k } 2 {0, 1} jbj (where jbj denotes the number of selection areas) is prohibitive for all but the most simple general integer programming problems. We therefore use branch and bound (Nemhauser and Wolsey, 1988) to solve (3), which determines the optimal values of the selection variables b k by building a search tree. Evaluation of the full search tree (feasible only for small problems) is avoided by guiding the search towards promising solution candidates and discarding branches which can provably not lead to an optimal solution.",
+            "cite_spans": [
+                {
+                    "start": 342,
+                    "end": 370,
+                    "text": "(Nemhauser and Wolsey, 1988)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Outline of solution approach"
+        },
+        {
+            "text": "For the MINLP energy (3) we introduce the relaxed MINLP energy as E relaxed \u00f0u\u00de \u00bc X s g s kru s k \u00fe q s u s ; s:t: A\u00f0u\u00de 2 \u00bdA l ; A u ; u s 2 \u00bd0; 1; ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Outline of solution approach"
+        },
+        {
+            "text": "where we dropped the essentially binary condition and removed some of the selection regions. Here, K is the set containing the indices of the selection regions which are used in the particular relaxed solution, with all other b k free. 4 We have E \u00c3 relaxed \u00f0p\u00de 6 E relaxed \u00f0u r \u00de 6 E minlp \u00f0u r \u00de where E \u00c3 relaxed denotes the dual energy to E relaxed , p is the dual variable to u, and u r is a feasible candidate solution to the relaxed optimization problem. The first inequality holds, because a dual energy is never larger than the corresponding primal energy. The second inequality holds, because E relaxed removes constraints from E minlp and therefore will either have a smaller energy value than E minlp (if u r violates some constraints of E minlp ) or will be equal to it. If u r is a feasible solution for E minlp the energy value will be finite, otherwise it will be infinite. Hence, if within the search tree we find a relaxed solution such that E \u00c3 relaxed \u00f0p\u00de > E u \u00c3 best \u00c0 \u00c1 where u \u00c3 best is the current best feasible solution known for E minlp we can prune the search tree for u r , i.e., we no longer need to look at any solutions for its free selection variables b k , because they could only cause higher energies. A search branch can further be terminated if it results in a feasible integer solution.",
+            "cite_spans": [
+                {
+                    "start": 236,
+                    "end": 237,
+                    "text": "4",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Outline of solution approach"
+        },
+        {
+            "text": "We use the alternating direction method of multipliers (ADMM) (Sections 4 and 5) to compute solution candidates, u r , to the relaxed problem and show how to compute a dual energy at every iteration step of the optimization algorithm. 5 Section 6 discusses how to use the relaxed dual and primal energies within the branch and bound solution framework and how to obtain finite-valued relaxed dual energies and integer-feasible solutions from the ADMM variables. See Fig. 3 for a graphical overview.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 466,
+                    "end": 472,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Outline of solution approach"
+        },
+        {
+            "text": "A possible numerical scheme is to perform a standard primal/ dual gradient descent/ascent (Reinbacher et al., 2010) . While simple, these methods tend to oscillatory behavior and require costly projections at every iteration step to fulfill the area-constraint. 6 We instead use the alternating direction method of multipliers (ADMM) (Boyd et al., 2010) for the solution of the optimization problem. The basic idea of this method is to split a problem into smaller sub-problems while making use of the method of multipliers developed to solve constrained optimization problems (the augmented Lagrangian approach). This decomposition simplifies the solution process for the area-constrained segmentation problem by breaking it into simpler sub-pieces. It also allows for the computation of a finite-valued dual energy estimate, which serves as a lower bound for the branch and bound algorithm.",
+            "cite_spans": [
+                {
+                    "start": 90,
+                    "end": 115,
+                    "text": "(Reinbacher et al., 2010)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 262,
+                    "end": 263,
+                    "text": "6",
+                    "ref_id": null
+                },
+                {
+                    "start": 334,
+                    "end": 353,
+                    "text": "(Boyd et al., 2010)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Alternating direction method of multipliers"
+        },
+        {
+            "text": "We only provide the basic setup for ADMM here for completeness, but refer to Boyd et al., 2010 for details. ADMM optimization problems are of the form min u;w f \u00f0w\u00de \u00fe g\u00f0u\u00de; s:t: Bw \u00fe Cu \u00bc c; lower or upper bounds. The energies change correspondingly. 5 The iterative solution can be terminated prior to convergence if the dual energy is larger than the best integer-feasible primal energy, E minlp u \u00c3 best \u00c0 \u00c1 . 6 In (Reinbacher et al., 2010 ) the projection step is solved iteratively. Our approach requires this projection step only for the evaluation of the energy, which is not required at every iteration. We also provide a non-iterative method to solve the problem in Section 6.1.",
+            "cite_spans": [
+                {
+                    "start": 77,
+                    "end": 94,
+                    "text": "Boyd et al., 2010",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 251,
+                    "end": 252,
+                    "text": "5",
+                    "ref_id": null
+                },
+                {
+                    "start": 413,
+                    "end": 414,
+                    "text": "6",
+                    "ref_id": null
+                },
+                {
+                    "start": 418,
+                    "end": 442,
+                    "text": "(Reinbacher et al., 2010",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background on ADMM"
+        },
+        {
+            "text": "where u 2 R n , w 2 R m , f and g are functions (f : R m # R, g : R n # R) that do not need to be differentiable, c 2 R q and B and C are appropriately sized matrices. 7 The ADMM update steps (with step size r > 0) are (Boyd et al., 2010) w k\u00fe1 argmin w f \u00f0w\u00de\u00fe",
+            "cite_spans": [
+                {
+                    "start": 219,
+                    "end": 238,
+                    "text": "(Boyd et al., 2010)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background on ADMM"
+        },
+        {
+            "text": "This amounts to first solving for w then for u and finally updating the normalized dual variables, z. The prox operator (Combettes and Pesquet, 2010) is defined as prox L f \u00f0y\u00de \u00bc argmin w f \u00f0w\u00de \u00fe 1 2 kLw \u00c0 yk 2 :",
+            "cite_spans": [
+                {
+                    "start": 120,
+                    "end": 149,
+                    "text": "(Combettes and Pesquet, 2010)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background on ADMM"
+        },
+        {
+            "text": "Note that the update scheme for ADMM can readily be derived from an augmented Lagrangian formulation (Nocedal and Wright, 2006) . The augmented Lagrangian corresponding to (4) is",
+            "cite_spans": [
+                {
+                    "start": 101,
+                    "end": 127,
+                    "text": "(Nocedal and Wright, 2006)",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background on ADMM"
+        },
+        {
+            "text": "where p is the Lagrangian multiplier. Making the identification p = rz, the ADMM Eq. (5) are simply the augmented Lagrangian update equations for (6) where the update for the primal variables is performed separately, and conveniently written using the prox operator. If f is an indicator function for a set C, i.e., f(x) = \u0131 C {x}, (which is 0 if x 2 C, 1 otherwise) the prox operator prox f (y) is simply the projection of y on C. For general functions f the prox operator prox L f \u00f0y\u00de minimizes f while not moving ''too far'' from y. See (Combettes and Pesquet, 2010) for a more detailed discussion.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background on ADMM"
+        },
+        {
+            "text": "For area-constrained segmentation, splitting the problem into more than two sub-problems subject to consistency constraints simplifies the solution because it will allow for decoupling of the spatial regularization of the total variation term, g s kr s uk, the unary potential term, q s u s , and the area constraint. The coupling is then re-introduced through a consistency constraint. Specifically, we will have an optimization problem of the form",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background on consensus optimization"
+        },
+        {
+            "text": "where the u i are all independent variable copies and the consensus variable u (our indicator function) is only present through the consistency constraints (i.e., g(u) = 0). At convergence, the constraints will be fulfilled and hence u i = u, \"i. The prox step for u then becomes an averaging step (here, B = I, C = \u00c0I, c = 0)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background on consensus optimization"
+        },
+        {
+            "text": "This global variable consensus (Boyd et al., 2010) formulation is well suited for parallel processing. Constraints on the consensus variable (u) can be encoded in g(u) and therefore allow the specification of seed points for area-constrained segmentation.",
+            "cite_spans": [
+                {
+                    "start": 31,
+                    "end": 50,
+                    "text": "(Boyd et al., 2010)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Background on consensus optimization"
+        },
+        {
+            "text": "Interestingly, this does not change the overall solution scheme much, since the optimization problem",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background on consensus optimization"
+        },
+        {
+            "text": "can be rewritten in the two-step form",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background on consensus optimization"
+        },
+        {
+            "text": "which replaces the update step for u in Eq. (5). We solve the relaxed area-constraint segmentation problem with this form of ADMM by transforming it to look like (7) as described in Section 5. The consensus variable u then corresponds to our sought-for indicator function u.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Background on consensus optimization"
+        },
+        {
+            "text": "We assume that the set of selection variables b = {b k } of (3) is split into a set of selection variables with known value (within a branch and bound tree) and a set of free selection variables. We then subsume the determined selection variables in the foreground, S, and background, T, seed sets respectively. Dropping the free selection variables from the formulation results in the relaxed area-constrained problem. For simplicity we use the 1-norm for the gradient term resulting in the energy",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ADMM for area-constrained segmentation"
+        },
+        {
+            "text": "s:t: A l 6 X s u s 6 A u ; u s 2 \u00bd0; 1 \u00f0 9\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ADMM for area-constrained segmentation"
+        },
+        {
+            "text": "where (s, t) denotes a pair of neighboring pixels (in our case using a four-connected neighborhood) and the weighted total variation term P s g s kru s k 1 \u00bc P s g s \u00f0j\u00f0u x \u00de s j \u00fe j\u00f0u y \u00de s j\u00de was discretized as P \u00f0s;t\u00de c st ju s \u00c0 u t j. This is a slightly more general formulation, but includes P s g s kru s k 1 if the spatial gradients in the x and y directions (u x and u y ) are discretized using finite differences, the sites s are given by the grid position of individual pixels and c st is set to g s for all t neighboring s. Note that this formulation is sufficiently general to support area-constrained segmentation for general graph structures. To simplify the solution of (10), we break the problem into the following four energies which need to be minimized:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ADMM for area-constrained segmentation"
+        },
+        {
+            "text": "where \u0131 C {x} denotes the indicator function and we write for notational simplicity \u0131 C={x:f(x)=0} {x} = \u0131{f(x) = 0}. The energies encode the unary potential term, the area constraint, the pairwise-potential (edge) term, and the seeds, respectively. These problems are simple to solve independently. The consensus form of ADMM then allows us to couple the four easy sub-problems so that we obtain a solution of the original optimization problem (10) at convergence. Specifically, we use variable copies u A , u s , u s , u t and the consensus variable u. The energy for the consensus ADMM is then",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ADMM for area-constrained segmentation"
+        },
+        {
+            "text": "In ADMM notation of Section 4.1: f \u00f0u A ; u s ; u s ;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ADMM for area-constrained segmentation"
+        },
+        {
+            "text": ", and g holds the constraints for the consensus variable. The prox operators are easy to compute because they decouple spatially for u s , u A , and \u00f0 u s ; u t \u00de. The edge variables u s and u t encode the presence of an edge between a source (s) and target (t) node and locally have as many copies as there exist edges (i.e., for a regular grid two copies for s and two for t at each interior pixel to account for edges in the x and y directions). The overall algorithm is given in Algorithm 1. The prox operators are given in Section 5.1. Section 5.2 shows how we can compute the dual energy to (11) using the variables of the ADMM solution scheme. ; \u00f013\u00de ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ADMM for area-constrained segmentation"
+        },
+        {
+            "text": "Here, jVj denotes the number of pixels and E the edge set. See Section S.3 in the Supplementary material for the derivations.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Prox operators"
+        },
+        {
+            "text": "Computing the dual energy for ADMM using Fenchel duality (Rockafellar, 1997) yields (10) and not of the ADMM energy for the branch and bound solution. We also need a feasible energy of the original MINLP (3) and not of the relaxed ADMM energy. 8 Section 6 therefore describes how to compute the appropriate primal and dual energies from the ADMM primal and dual energies.",
+            "cite_spans": [
+                {
+                    "start": 57,
+                    "end": 76,
+                    "text": "(Rockafellar, 1997)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dual energy of the ADMM formulation"
+        },
+        {
+            "text": "Algorithm 1. ADMM for the area-constrained segmentation. 8 The original primal and dual energies and their corresponding ADMM primal and dual energies will be equivalent at convergence. However, for an efficient branch and bound solution we want to be able to test branch and bound termination criteria with respect to the original primal and dual energies before convergence.",
+            "cite_spans": [
+                {
+                    "start": 57,
+                    "end": 58,
+                    "text": "8",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dual energy of the ADMM formulation"
+        },
+        {
+            "text": "Building the search tree for a branch and bound solution of (3) requires a method to create subproblems (we use a standard binary division strategy on the b k ), a strategy to select subproblems for evaluation, a strategy to select variables for division, and a way to generate integer-energy estimates. We use a custom implementation of branch and bound where sub-problems are selected based on the lowest current relaxed energies. Branching variables are determined using pseudo-costs (Achterberg et al., 2005) , and the lower bounds and integer-energy estimates are computed as described below. See Nemhauser and Wolsey (1988) for an indepth discussion of branch and bound.",
+            "cite_spans": [
+                {
+                    "start": 487,
+                    "end": 512,
+                    "text": "(Achterberg et al., 2005)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 602,
+                    "end": 629,
+                    "text": "Nemhauser and Wolsey (1988)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Branch and bound"
+        },
+        {
+            "text": "At convergence, the equality of the consensus variables is fulfilled, the bounds are satisfied and the area constraint holds. Therefore primal and dual energies of the relaxed ADMM problem will be finite upon convergence. To terminate solution branches that cannot lead to an optimal solution early, finite-valued dual energy estimates are needed before convergence for the dual energy to obtain a lower bound. Further, a feasible integer-valued (or essentially binary) solution is needed to obtain an upper bound. A finite-valued ADMM energy estimate is needed to evaluate the convergence of a current relaxed ADMM solution candidate based on its duality gap (i.e., the difference between primal and dual energy). Section 6.1.1 discusses how to obtain a finite-valued relaxed energy from an ADMM relaxed solution before or at convergence. Section 6.1.2 discusses how to obtain a finite-valued dual energy for the relaxed problem from the variables of the relaxed ADMM solution method. Finally, Section 6.1.3 discusses how integer-feasible solutions can be obtained from relaxed solutions by thresholding. Fig. 3 illustrates the connection between the different primal and dual energies.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1106,
+                    "end": 1112,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Obtaining lower and upper bounds"
+        },
+        {
+            "text": "A current finite-valued energy estimate, which is an upper bound of the relaxed energy at convergence, can be obtained by projecting the current consensus variable u back onto the constraint set (so that it fulfills the area and bound constraints, u s 2 [0, 1]). This requires solving the projection",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "A l 6 X s q s 6 A u ; q s 2 \u00bd0; 1; which, in order to project to area A, requires finding a Lagrangian multiplier k e s.t.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "The optimal k e can be found by computing successive relaxed solutions",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "Since 0 6 k r e 6 k e the optimization problem can be broken into subpieces and solved efficiently by first sorting the values u (if the current area is smaller than A -a similar reasoning hold in the reverse case).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "If there is no relaxed feasible solution, then no integer feasible solution can exist. A feasible relaxed solution can be computed if the area constraint projection steps are feasible, which will be the case if X s2T A s 6 \u00c0A l \u00fe X s A s ; X s2S A s 6 A u :",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "Hence, for a given set of foreground/background seedpoints in the branch and bound solver a solution of the relaxed problem only needs to be sought if these conditions hold, otherwise the dual energy is set to \u00c01 and the energy to 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "6.1.2. Estimate of the relaxed dual energy A finite lower bound for the relaxed energy can be obtained by adjusting the ADMM dual variables for the terms which would otherwise lead to a \u00c01 estimate before convergence. We therefore need to find a dual variable pair \u00f0p s ;p t \u00de that is as close as possible to the current estimate (p s , p t ) while fulfilling the edge variable constraint. Such a pair can by computed by the projection P\u00f0p s ; p t \u00de \u00bc \u00f0c; \u00c0c\u00de;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "for p s \u00c0 p t > 2c st ;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "\u00f0\u00c0c; c\u00de; for p s \u00c0 p t < \u00c02c st ; p s \u00c0p t 2 ; p t \u00c0p s 2 \u00c0 \u00c1 ; otherwise:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "See Section S.5 in the Supplementary material for the derivation.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of the relaxed energy"
+        },
+        {
+            "text": "To allow termination of suboptimal branches, a good estimate for an integer-feasible (or essentially binary) solution is desirable early during branch and bound. Assume a feasible relaxed solution is given. By thresholding the relaxed u at h 2 (0, 1), we can obtain in a finite number of thresholding steps (determined by bisection) an integer feasible solution, or show that such a thresholded solution does not exist (in which case the estimate is set to 1). In practice, we terminate the search for a solution candidate after a fixed number of thresholding steps. Terminating the search without finding an integer-feasible solution will not affect the overall branch and bound solution. We will only not be able to produce a good integer-valued energy estimate from this solution, which in turn may effect early termination of search branches and may consequentially result in larger branch and bound search trees.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of an integer-feasible solution"
+        },
+        {
+            "text": "The relaxed solution candidate may already be essentially binary and fulfill the area constraints given an appropriate selection of seed regions. In general, an optimal essentially binary u is guaranteed to exist if a sufficient number of selection areas B k exist, and only an upper or lower bound needs to be enforced. For simultaneous lower and upper bounds the branch and bound algorithm will either find the best integer (and therefore one of the essentially binary) solutions, or will prove that no such solution exists. Non-existence is a pathological case, which is unlikely in practice. We never observed such a case in our experiments, but it is possible to construct toy examples which exhibit this problem. When the area-constrained segmentation formulation requires the solution to be binary for the selection areas, only compliant thresholded solutions will be feasible and hence finite.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimate of an integer-feasible solution"
+        },
+        {
+            "text": "We tested the area-constrained segmentation method for the segmentation of synaptic vesicles and for double membrane vesicles in epithelial cells infected with SARS-coronavirus (Knoops et al., 2008) . All images are slices of electron tomography images. Images for the epithelial cells were obtained from the cell centered database (CCDB) of the National Center for Microscopy and Imaging Research (NCMIR -http://ccdb.ucsd.edu). The images for the synaptic vesicles were approximately at a resolution of (1.0 nm by 1.0 nm)/pixel and for the SARS-coronavirus at (1.2 nm by 1.2 nm)/pixel. These examples were chosen to demonstrate the properties of our developed area-constrained segmentation method, because segmentations for these electron tomography images are known to be challenging. For example, for the synaptic vesicle segmentation task the vesicle wall is not directly visible in the electron tomography image. Instead it needs to be inferred from the location of proteins (which appear dark) penetrating the vesicle wall which results in a ''noisy'' appearance of the vesicle wall. Further, a large number of vesicles can be found in one image. Vesicles are closely packed in some areas, which even experts can have difficulty outlining precisely. In our experiments a user was asked to place individual seed points at the center of the objects to be segmented. The selection areas were obtained by eroding a quick-shift segmentation of the complete image. The selection region closest to the user-placed seed point was set as a foreground seed, and the selection areas at the boundaries of a 100 \u00c2 100 pixel box centered at the seed point were set as background seeds. This box size was chosen to be sufficiently large to guarantee that the desired objects are contained within it. We used image intensities as edge terms (c st ) and set q = 0. We set c = 1 for all ADMM experiments.",
+            "cite_spans": [
+                {
+                    "start": 177,
+                    "end": 198,
+                    "text": "(Knoops et al., 2008)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "Setting the selection areas at the boundaries as background seeds is meaningful for our experiment because the object will be, by construction, at the center of the image. However, this is not essential. The boundaries could be included into the optimization, albeit at the price of higher computational cost.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "Given the selected segmentation area and the selection regions we compared the following methods for the vesicle datasets:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "(1) UC: Area-constrained segmentation with a lower bound of 0.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "This unconstrained case corresponds to a classical graph-cut segmentation with seed points.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "(2) LB/UB/LBUB: Area-constrained segmentation enforcing upper and lower bounds on the segmentation area separately and jointly. (3) BNC: Biased normalized cut (Maji et al., 2011) using foreground seeds. (4) NC: Normalized cut (Shi and Malik, 2000) . No seed regions are supported by this algorithm and hence none were used. (5) WS: Seeded watershed segmentation (Vincent and Soille, 1991) using foreground and background seeds. (6) RW: Random walker segmentation using foreground and background seeds.",
+            "cite_spans": [
+                {
+                    "start": 159,
+                    "end": 178,
+                    "text": "(Maji et al., 2011)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 226,
+                    "end": 247,
+                    "text": "(Shi and Malik, 2000)",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 362,
+                    "end": 388,
+                    "text": "(Vincent and Soille, 1991)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "To allow comparisons between the algorithms (i) we used the same seed regions for all algorithms, (ii) we used the same edge weights g for all algorithms except for the random walker algorithm, and (iii) determined the best possible thresholds for NC and BNC by searching which threshold results in the best value for the normalized cut. For the random walker segmentation algorithm, we used two sets of edge weights, g, because this is a segmentation model which will not exhibit discontinuities at the putative segmentation boundary and hence treats edge-weights differently than all the other tested models. We report randomwalker results using the same edge-weights as the other algorithms (RW) as well as using the more appropriate default settings for random walker segmentation (d-RW).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "We used a lower area bound of 800 and an upper area bound of 2000 (areas in pixels) with a low number of large selection areas and a larger number of small selection areas. Synaptic vesicles observed in our specimen are estimated to be about 40 nm in diameter. Since we are dealing with slices of a three-dimensional structure, we expect the actual observed diameters to be smaller than this. An area between 800 and 2000 pixels corresponds approximately to diameters between 30 and 50 nm if a perfect circular shape is assumed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Synaptic vesicles"
+        },
+        {
+            "text": "Comparing to an expert segmentation of 38 vesicles many of the vesicles were segmented correctly by both the area-constrained segmentations and by the unconstrained segmentations. However, in the unconstrained case, a substantial number of vesicles was under-segmented (returning only the seed point). In contrast, the area-constrained segmentations successfully segmented these cases and were able to achieve a segmentation result very close to the gold standard regardless of the selection areas. Note that using only a lower bound gives the best results in this example because it retains maximal flexibility for the registration boundary. When upper and lower bounds are enforced, the segmentation needs to conform to the selection areas. Though the areaconstrained results are not statistically significantly different with respect to each other, they are statistically significantly better than Table 1 Dice similarity coefficients for vesicle segmentation with small (;) and larger (\") number of selection areas, B k . Unconstrained (UC), lower (LB), and lower and upper bound (LBUB) constrained segmentations. Biased normalized cut (BNC), normalized cut (NC), seeded watershed (WS), random walker (RW) and random walker with default settings (d-RW all the other tested segmentation methods. Biased normalized cut, watershed segmentation, and the unconstrained segmentation method showed reasonable overall results, but suffered from severe outliers. The standard normalized cut segmentation fails entirely on these datasets because it cannot identify the object of interest since the data is noisy and no seed regions can be used. Random walker segmentation overall performed well, did not show any strong outliers, but performed overall worse than the area-constrained segmentation method. Table 1 shows summary measures for the Dice similarity coefficients for the experiments. Fig. 4 shows the segmentation results for unconstrained and area-constrained segmentation for a subset of an image. Fig. 5 illustrates the different selection areas for a specific example. An overview of corresponding seed points, the gold standard manual segmentation as well as results for the area-constrained and the unconstrained segmentations is shown in the Supplementary material in Fig. S1 . Boxplots for all the segmentation methods and a comparison of their mean performance (as measured by Dice) are shown in Fig. S2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 901,
+                    "end": 908,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1799,
+                    "end": 1806,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1888,
+                    "end": 1894,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 2004,
+                    "end": 2010,
+                    "text": "Fig. 5",
+                    "ref_id": null
+                },
+                {
+                    "start": 2279,
+                    "end": 2286,
+                    "text": "Fig. S1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 2409,
+                    "end": 2416,
+                    "text": "Fig. S2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Synaptic vesicles"
+        },
+        {
+            "text": "Adjacent vesicles may overlap because they are treated independently. In practice, overlaps were not observed for vesicle segmentation results of the area-constrained segmentation approach. This is a property of the data combined with the segmentation approach (which encourages short boundaries). In general, overlapping segmentations are possible and present ambiguities in the segmentation. Such ambiguities could be avoided by moving to a multi-label segmentation formulation.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Synaptic vesicles"
+        },
+        {
+            "text": "In cases where the unconstrained segmentations resulted in a correct segmentation, the branch and bound search terminated quickly for the area-constrained methods. Most of the computation time was spent to correct the more challenging cases. Between 28 and 90 selection regions were used. Run-times were moderate: on average less than a minute per vesicle with a large number, and four seconds with a small number of selection areas on a singlecore CPU implementation. The algorithm can easily be parallelized and implemented on a GPU (with an expected speed-up by at least an order of magnitude).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Synaptic vesicles"
+        },
+        {
+            "text": "We used a lower area bound of 2000 (area in pixels) with a low number of large selection areas and repeated a subset of the experiments for the synaptic vesicle segmentation. For a perfect circle, this area would correspond to a diameter of about 60 nm at the Fig. 6 . Segmentation results for a slice of the SARS 6021 (top) and of the SARS 6022 (bottom) electron tomography image. Seed points were placed manually with a single mouse click. Without using an area constraint (red) only few of the vesicles are accurately segmented and in the majority of cases the segmentations are too small indicating that a short boundary length was favored over a segmentation at the desired location of the cell wall. Adding a lower bound on the area (blue) greatly improves the segmentation results. Though a bias for short segmentation boundaries is still present, most of the vesicles are segmented accurately. Since the SARS 6022 image appears less noisy many of the vesicles are also segmented correctly without using a segmentation area constraint. (For interpretation of the references to color in this figure legend, the reader is referred to the web version of this article.) Fig. 5 . Example selection areas for a vesicle (a). Few selection areas (less b k ) (b) and many selection areas (more b k ) (c).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 260,
+                    "end": 266,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                },
+                {
+                    "start": 1173,
+                    "end": 1179,
+                    "text": "Fig. 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "SARS: Double membrane vesicles"
+        },
+        {
+            "text": "Dice similarity coefficients for the SARS 6021 and SARS 6022 images. Unconstrained (UC), lower (LB), and lower and upper bound (LBUB). Biased normalized cut (BNC), normalized cut (NC), seeded watershed (WS), random walker (RW) and random walker with default settings (d-RW). Bold: best results. Italicized results do not have significantly different mean in comparison to the best method. For these images with a clear vesicle boundary watershed segmentation, maxflow with a lower bound, and random walker segmentation work well. (Knoops et al., 2008) , this is a conservative lower bound on the area. Similar conclusions as for the synaptic vesicle experiment apply. However, since the images for the double membrane vesicles are significantly less noisy than the images for the synaptic vesicles watershed segmentation, random walker segmentation, as well as the area-constrained segmentation method, work well. The area-constrained segmentation method matches the performance of the best segmentation method (seeded watershed) for both SARS images. Generally, the segmentation using a lower bound on the segmentation area performed better than the unconstrained segmentation. Fig. 6 shows overviews of the resulting segmentations for SARS 6021 and 6022, respectively, for the unconstrained and the area-constrained segmentations. Table 2 gives an overview of the obtained Dice similarity coefficients. Fig. S3 in the Supplementary material shows boxplots for the segmentation results for all the tested methods and statistical significance levels between the methods with respect to mean Dice performance.",
+            "cite_spans": [
+                {
+                    "start": 530,
+                    "end": 551,
+                    "text": "(Knoops et al., 2008)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1179,
+                    "end": 1185,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                },
+                {
+                    "start": 1333,
+                    "end": 1340,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 1405,
+                    "end": 1412,
+                    "text": "Fig. S3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Table 2"
+        },
+        {
+            "text": "We developed a new method for image segmentation with area constraints. The method readily extends to higher dimensions using higher-dimensional generalizations of the selection regions. The proposed method relies on the solution of a mixed integer nonlinear program, which is solved using branch and bound. To reduce computational effort in solving the area-constrained segmentation, we proposed to use selection variables based on eroded super-pixels. This allows computation of the segmentations for practical problems. The behavior of the method was demonstrated for segmentations of vesicles from slices of electron tomography images. When area-constraints were available, statistically significant increases in segmentation quality were obtainable even in challenging cases. In particular, due to the global optimality properties of the algorithm, it performs well for noisy data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion and future work"
+        },
+        {
+            "text": "Future directions include improvements on the optimization method: e.g., should computations be performed directly on super-pixels? Further, the sensitivity of the obtained results on the type and size of the superpixels should be explored. Another interesting direction would be to vary the area constraints to define an area-based scale space, which would allow us to automatically extract coherent sub-structures at different size levels from the images. Extensions to multiple objects or the inclusion of topological constraints (e.g., to enforce one connected component) are other possible research directions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion and future work"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Branching rules revisited",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Achterberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Koch",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Martin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Operations Research Letters",
+            "volume": "33",
+            "issn": "",
+            "pages": "42--54",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Globally minimal surfaces by continuous maximal flows",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Appleton",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Talbot",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "",
+            "issn": "",
+            "pages": "106--118",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Area prior constrained level set evolution for medical image segmentation",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Ayed",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Islam",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Garvin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chhem",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Proceedings of SPIE",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Distributed optimization and statistical learning via the alternating direction method of multipliers",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Boyd",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Parikh",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Chu",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Peleato",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Eckstein",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Machine Learning",
+            "volume": "3",
+            "issn": "",
+            "pages": "1--123",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Graph cuts and efficient nd image segmentation",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Boykov",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Funka-Lea",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "International Journal of Computer Vision",
+            "volume": "70",
+            "issn": "",
+            "pages": "109--131",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Fast global minimization of the active contour/snake model",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Bresson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Esedoglu",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Vandergheynst",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Thiran",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Osher",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Journal of Mathematical Imaging and Vision",
+            "volume": "28",
+            "issn": "",
+            "pages": "151--167",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Active contours without edges",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Vese",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "IEEE Transactions on Image Processing",
+            "volume": "10",
+            "issn": "",
+            "pages": "266--277",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Mean shift: a robust approach toward feature space analysis",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Comaniciu",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Meer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "24",
+            "issn": "",
+            "pages": "603--619",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Proximal splitting methods in signal processing. Fixed-Point Algorithms for Inverse Problems in Science and Engineering",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Combettes",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pesquet",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Active appearance models",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Cootes",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Taylor",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "23",
+            "issn": "",
+            "pages": "681--685",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "An integer programming approach to image segmentation and reconstruction problems. Geometric Modelling, Numerical Simulation, and Optimization",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Dahl",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Flatberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "475--496",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Normalized cuts revisited: a reformulation for segmentation with linear grouping constraints",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Eriksson",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Olsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Kahl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Journal of Mathematical Imaging and Vision",
+            "volume": "39",
+            "issn": "",
+            "pages": "45--61",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "A computational study of graph partitioning",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Falkner",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Rendl",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wolkowicz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Mathematical Programming",
+            "volume": "66",
+            "issn": "",
+            "pages": "211--239",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Maximal flow through a network",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Ford",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Fulkerson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1956,
+            "venue": "Canadian Journal of Mathematics",
+            "volume": "8",
+            "issn": "",
+            "pages": "399--404",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Isoperimetric graph partitioning for image segmentation",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Grady",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Schwartz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "28",
+            "issn": "",
+            "pages": "469--475",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "An exact algorithm for graph partitioning",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Hager",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Phan",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "arXiv": [
+                    "arXiv:0912.1664"
+                ]
+            }
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Mixed integer nonlinear programs featuring on/off constraints: convex analysis and applications",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Hijazi",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Bonami",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Cornu\u00e9jols",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ouorou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Data clustering: a review",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Jain",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Murty",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Flynn",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "ACM Computing Surveys (CSUR)",
+            "volume": "31",
+            "issn": "",
+            "pages": "264--323",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Graph Partition Problems with Minimum Size Constraints",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Ji",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "An efficient heuristic procedure for partitioning graphs",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Kernighan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1970,
+            "venue": "Bell System Technical Journal",
+            "volume": "49",
+            "issn": "",
+            "pages": "291--307",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Binary partitioning, perceptual grouping, and restoration with semidefinite programming",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Keuchel",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Schn\u00f6rr",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Schellewald",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cremers",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "25",
+            "issn": "",
+            "pages": "1364--1379",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "SARS-coronavirus replication is supported by a reticulovesicular network of modified endoplasmic reticulum",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Knoops",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kikkert",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Worm",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zevenhoven-Dobbe",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Van Der Meer",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Koster",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Mommaas",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Snijder",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "PLoS Biology",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "What energy functions can be minimized via graph cuts?",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kolmogorov",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Zabin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "26",
+            "issn": "",
+            "pages": "147--159",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Variational segmentation algorithms with label frequency constraints",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Kropotov",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Laptev",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Osokin",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Vetrov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Pattern Recognition and Image Analysis",
+            "volume": "20",
+            "issn": "",
+            "pages": "324--334",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Markov Random Field Modeling in Image Analysis",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Energy minimization under constraints on label counts",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Jung",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Kohli",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the European Conference on Computer Vision (ECCV)",
+            "volume": "",
+            "issn": "",
+            "pages": "535--551",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Graph partitioning using linear and semidefinite programming",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Lisser",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Rendl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Mathematical Programming",
+            "volume": "95",
+            "issn": "",
+            "pages": "91--101",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Biased normalized cuts",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Maji",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Vishnoi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Malik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Computer Vision and Pattern Recognition (CVPR), 2011 IEEE Conference on, IEEE",
+            "volume": "",
+            "issn": "",
+            "pages": "2057--2064",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Integer and Combinatorial Optimization",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Nemhauser",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wolsey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Numerical Optimization",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Nocedal",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wright",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Improved spectral relaxation methods for binary quadratic optimization problems",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Olsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Eriksson",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Kahl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Computer Vision and Image Understanding",
+            "volume": "",
+            "issn": "",
+            "pages": "3--13",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Current methods in medical image segmentation",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Pham",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Prince",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Annual review of biomedical engineering",
+            "volume": "2",
+            "issn": "",
+            "pages": "315--337",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Deformable m-reps for 3d medical image segmentation",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Pizer",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Fletcher",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Joshi",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Thall",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Fridman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Fritsch",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gash",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Glotzer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jiroutek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "International Journal of Computer Vision",
+            "volume": "55",
+            "issn": "",
+            "pages": "85--106",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Variational segmentation of elongated volumetric structures",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Reinbacher",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Pock",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Bauer",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Bischof",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on",
+            "volume": "",
+            "issn": "",
+            "pages": "3177--3184",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Convex Analysis. Princeton Univ Pr",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Rockafellar",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Quo vadis, atlasbased segmentation? Handbook of Biomedical Image Analysis",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Rohlfing",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Brandt",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Menzel",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Russakoff",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Maurer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "435--486",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Geometric Partial Differential Equations and Image Analysis",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sapiro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Normalized cuts and image segmentation",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Shi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Malik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "22",
+            "issn": "",
+            "pages": "888--905",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Image Processing, Analysis, and Machine Vision",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sonka",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Hlavac",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Boyle",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Quick shift and kernel methods for mode seeking",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vedaldi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Soatto",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "705--718",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Watersheds in digital spaces: an efficient algorithm based on immersion simulations",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Vincent",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Soille",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+            "volume": "13",
+            "issn": "",
+            "pages": "583--598",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Continuous maximal flows and Wulff shapes: application to MRFs",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zach",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Niethammer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Frahm",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proceedings of the Conference on Computer Vision and Pattern Recognition (CVPR)",
+            "volume": "",
+            "issn": "",
+            "pages": "1911--1918",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Globally optimal Finsler active contours",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zach",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Shan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Frahm",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Niethammer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "DAGM-Symposium",
+            "volume": "",
+            "issn": "",
+            "pages": "552--561",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Three squares segmentation experiment (top):",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Illustration of selection regions for a concentric circle example. Left: original image. Right: automatically determined selection regions using quick-shift followed by an erosion. Different colors represent different regions. Dark-blue indicates regions not covered by the selection regions, for which pixels are not controlled by selection regions and can therefore faithfully represent segmentation boundaries. (For interpretation of the references to color in this figure legend, the reader is referred to the web version of this article.)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Relation between the different optimization problems and branch and bound. Blue color indicates path for a non-ADMM-based solution. The goal is to solve the MINLP problem. The branch and bound solver selects (and sets) a subset of selection variables b k and leaves the remaining ones free. To obtain lower energy bounds and feasible solution to MINLP (given the selected b k ) we use a relaxed formulation. The relaxed formulation is solved by ADMM. We can compute a primal and a dual energy from ADMM. From the ADMM energies we can obtain finite primal and dual relaxed energies by projections. We can obtain a feasible MINLP solution from the projected solution from which the relaxed energy was obtained by thresholding. A current candidate branch is terminated if the relaxed dual energy is larger than the best feasible MINLP solution or if ADMM converged to a feasible MINLP solution. Note that the termination criteria can be checked before ADMM convergence. The branch and bound solver builds a search tree for all possible choices for the b k , but never evaluates branches which can be discarded. Dashed lines indicate possible (but difficult paths), solid lines indicate the proposed approach. (For interpretation of the references to color in this figure legend, the reader is referred to the web version of this article.) 4 As for Eq. (3), we allow inequalities for the selection regions when only enforcing",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Subset of vesicle segmentation results; (a) unconstrained, (b) lower bound, and (c) upper and lower bound. The constrained results are better on average, because they avoid mis-segmentation due to shrinking bias. SeeFigure S2in the supplementary material for statistical results.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF3": {
+            "text": "\u00bc As ; if 9s :\u00bc p s P 0; A l max Here, \u00f0p s ; p A ; p s ; p t \u00de \u00bc r\u00f0z s ; z A ; z s ; z t \u00de, i.e., the dual variables to compute E \u2044 are the scaled dual variables of ADMM; [x] + = max{0, x} is the ramp function. See Section S.4 in the Supplementary material for the derivations. Note that we need the dual energy of the original relaxed energy",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "). Bold: best results. Italicized results do not have significantly different mean in comparison to the best method.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "given resolution. Since the double membrane vesicles have diameters of about 200-300 nm",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This publication was made possible by Grant No. 5P41EB002025-28 from NIBIB/NIH. Its contents are solely the responsibility of the authors and do not necessarily represent the official views of the NIBIB or NIH.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        },
+        {
+            "text": "Supplementary material associated with this article can be found, in the online version, at http://dx.doi.org/10.1016/j.media. 2012.09.002.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Appendix A. Supplementary material"
+        }
+    ]
+}
