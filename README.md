@@ -11,7 +11,7 @@ This project will be updated as the time goes by,so please check this website of
 # To use this project 
 Go to:
 
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/v1.0/CovidEnquirer-1.0.exe
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.1/CovidEnquirerSetup-1.0.0.1.exe
 
 Install it, wait for the database of articles to be set up and then start searching.
 
@@ -35,7 +35,7 @@ https://github.com/palles77/corona-virus-articles-enquirer/issues
 Please note that the program uses quite a lot of memory (around 1.5 GB) to store all the articles.
 
 1. Just install it from 
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/v1.0/CovidEnquirer-1.0.0.1.exe
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.1/CovidEnquirerSetup-1.0.0.1.exe
 2. After installation run 'Covid Enquirer 1.0.0.1' from Desktop icon or by typing 'Covid Enquirer' from Search panel in your Windows.
 You should see the following image:
 ![Loading database](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerStartup.png)
