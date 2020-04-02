@@ -9,5 +9,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © Silesia Research Ltd 2020")]
 [assembly: ComVisible(false)]
 [assembly: Guid("5dfb711b-95c9-42fe-b3d6-00cd81367758")]
-[assembly: AssemblyVersion("1.0.0.1")]
-[assembly: AssemblyFileVersion("1.0.0.1")]
+[assembly: AssemblyVersion("1.0.0.2")]
+[assembly: AssemblyFileVersion("1.0.0.2")]

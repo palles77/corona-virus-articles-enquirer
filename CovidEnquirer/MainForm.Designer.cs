@@ -38,8 +38,8 @@
             this.searchForArticleInGoogleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveArticleAsWordDocumentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openArticleInWordPadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.translateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.ArticleRichTextBox = new System.Windows.Forms.RichTextBox();
             this.ProgressBar = new System.Windows.Forms.ProgressBar();
             this.GoogleButton = new System.Windows.Forms.Button();
@@ -47,6 +47,8 @@
             this.OpenArticleButton = new System.Windows.Forms.Button();
             this.OptionalMessageLabel = new System.Windows.Forms.Label();
             this.ResultsSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.TranslateButton = new System.Windows.Forms.Button();
+            this.LanguagesComboBox = new System.Windows.Forms.ComboBox();
             this.SearchResultsContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ResultsSplitContainer)).BeginInit();
             this.ResultsSplitContainer.Panel1.SuspendLayout();
@@ -67,12 +69,12 @@
             // 
             this.PhraseToSearchTextBox.Location = new System.Drawing.Point(68, 9);
             this.PhraseToSearchTextBox.Name = "PhraseToSearchTextBox";
-            this.PhraseToSearchTextBox.Size = new System.Drawing.Size(631, 20);
+            this.PhraseToSearchTextBox.Size = new System.Drawing.Size(651, 20);
             this.PhraseToSearchTextBox.TabIndex = 0;
             // 
             // PhraseToSearchButton
             // 
-            this.PhraseToSearchButton.Location = new System.Drawing.Point(705, 7);
+            this.PhraseToSearchButton.Location = new System.Drawing.Point(725, 9);
             this.PhraseToSearchButton.Name = "PhraseToSearchButton";
             this.PhraseToSearchButton.Size = new System.Drawing.Size(75, 23);
             this.PhraseToSearchButton.TabIndex = 1;
@@ -87,7 +89,7 @@
             this.SearchResultsListBox.FormattingEnabled = true;
             this.SearchResultsListBox.Location = new System.Drawing.Point(0, 0);
             this.SearchResultsListBox.Name = "SearchResultsListBox";
-            this.SearchResultsListBox.Size = new System.Drawing.Size(257, 424);
+            this.SearchResultsListBox.Size = new System.Drawing.Size(263, 397);
             this.SearchResultsListBox.TabIndex = 0;
             this.SearchResultsListBox.SelectedIndexChanged += new System.EventHandler(this.SearchResultsListBox_SelectedIndexChanged);
             // 
@@ -96,72 +98,71 @@
             this.SearchResultsContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.searchForArticleInGoogleToolStripMenuItem,
             this.saveArticleAsWordDocumentToolStripMenuItem,
-            this.openArticleInWordPadToolStripMenuItem});
+            this.openArticleInWordPadToolStripMenuItem,
+            this.translateToolStripMenuItem});
             this.SearchResultsContextMenu.Name = "SearchResultsContextMenu";
-            this.SearchResultsContextMenu.Size = new System.Drawing.Size(243, 70);
+            this.SearchResultsContextMenu.Size = new System.Drawing.Size(290, 92);
             // 
             // searchForArticleInGoogleToolStripMenuItem
             // 
             this.searchForArticleInGoogleToolStripMenuItem.Name = "searchForArticleInGoogleToolStripMenuItem";
-            this.searchForArticleInGoogleToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.searchForArticleInGoogleToolStripMenuItem.Text = "Search For Article In Google";
+            this.searchForArticleInGoogleToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.searchForArticleInGoogleToolStripMenuItem.Text = "Search  For Selected Title In Google";
             this.searchForArticleInGoogleToolStripMenuItem.Click += new System.EventHandler(this.searchForArticleInGoogleToolStripMenuItem_Click);
             // 
             // saveArticleAsWordDocumentToolStripMenuItem
             // 
             this.saveArticleAsWordDocumentToolStripMenuItem.Name = "saveArticleAsWordDocumentToolStripMenuItem";
-            this.saveArticleAsWordDocumentToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.saveArticleAsWordDocumentToolStripMenuItem.Text = "Save Article As Word Document";
+            this.saveArticleAsWordDocumentToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.saveArticleAsWordDocumentToolStripMenuItem.Text = "Save Selected Article As Word Document";
             this.saveArticleAsWordDocumentToolStripMenuItem.Click += new System.EventHandler(this.saveArticleAsWordDocumentToolStripMenuItem_Click);
             // 
             // openArticleInWordPadToolStripMenuItem
             // 
             this.openArticleInWordPadToolStripMenuItem.Name = "openArticleInWordPadToolStripMenuItem";
-            this.openArticleInWordPadToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.openArticleInWordPadToolStripMenuItem.Text = "Open Article In Word Pad";
+            this.openArticleInWordPadToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.openArticleInWordPadToolStripMenuItem.Text = "Open Selected Article In Word Pad";
             this.openArticleInWordPadToolStripMenuItem.Click += new System.EventHandler(this.openArticleInWordPadToolStripMenuItem_Click);
+            // 
+            // translateToolStripMenuItem
+            // 
+            this.translateToolStripMenuItem.Name = "translateToolStripMenuItem";
+            this.translateToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.translateToolStripMenuItem.Text = "Translate";
+            this.translateToolStripMenuItem.Click += new System.EventHandler(this.translateToolStripMenuItem_Click);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 101);
+            this.label1.Location = new System.Drawing.Point(12, 128);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 4;
             this.label1.Text = "Search Results:";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(265, 101);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(39, 13);
-            this.label2.TabIndex = 5;
-            this.label2.Text = "Article:";
             // 
             // ArticleRichTextBox
             // 
             this.ArticleRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ArticleRichTextBox.Location = new System.Drawing.Point(0, 0);
             this.ArticleRichTextBox.Name = "ArticleRichTextBox";
-            this.ArticleRichTextBox.Size = new System.Drawing.Size(512, 424);
-            this.ArticleRichTextBox.TabIndex = 3;
+            this.ArticleRichTextBox.Size = new System.Drawing.Size(526, 397);
+            this.ArticleRichTextBox.TabIndex = 0;
             this.ArticleRichTextBox.Text = "";
             // 
             // ProgressBar
             // 
             this.ProgressBar.Location = new System.Drawing.Point(7, 62);
             this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.Size = new System.Drawing.Size(773, 23);
+            this.ProgressBar.Size = new System.Drawing.Size(793, 23);
             this.ProgressBar.TabIndex = 7;
             // 
             // GoogleButton
             // 
-            this.GoogleButton.Location = new System.Drawing.Point(322, 96);
+            this.GoogleButton.Location = new System.Drawing.Point(268, 96);
             this.GoogleButton.Name = "GoogleButton";
-            this.GoogleButton.Size = new System.Drawing.Size(75, 23);
-            this.GoogleButton.TabIndex = 2;
-            this.GoogleButton.Text = "Google";
+            this.GoogleButton.Size = new System.Drawing.Size(129, 23);
+            this.GoogleButton.TabIndex = 1;
+            this.GoogleButton.Text = "Google Selected Title";
             this.GoogleButton.UseVisualStyleBackColor = true;
             this.GoogleButton.Click += new System.EventHandler(this.GoogleButton_Click);
             // 
@@ -169,19 +170,19 @@
             // 
             this.SaveArticleButton.Location = new System.Drawing.Point(403, 96);
             this.SaveArticleButton.Name = "SaveArticleButton";
-            this.SaveArticleButton.Size = new System.Drawing.Size(75, 23);
-            this.SaveArticleButton.TabIndex = 3;
-            this.SaveArticleButton.Text = "Save Article";
+            this.SaveArticleButton.Size = new System.Drawing.Size(180, 23);
+            this.SaveArticleButton.TabIndex = 2;
+            this.SaveArticleButton.Text = "Save Original Article As Word";
             this.SaveArticleButton.UseVisualStyleBackColor = true;
             this.SaveArticleButton.Click += new System.EventHandler(this.SaveArticleButton_Click);
             // 
             // OpenArticleButton
             // 
-            this.OpenArticleButton.Location = new System.Drawing.Point(484, 96);
+            this.OpenArticleButton.Location = new System.Drawing.Point(588, 125);
             this.OpenArticleButton.Name = "OpenArticleButton";
-            this.OpenArticleButton.Size = new System.Drawing.Size(75, 23);
-            this.OpenArticleButton.TabIndex = 4;
-            this.OpenArticleButton.Text = "Open Article";
+            this.OpenArticleButton.Size = new System.Drawing.Size(212, 23);
+            this.OpenArticleButton.TabIndex = 5;
+            this.OpenArticleButton.Text = "Open Translated Article In WordPad";
             this.OpenArticleButton.UseVisualStyleBackColor = true;
             this.OpenArticleButton.Click += new System.EventHandler(this.OpenArticleButton_Click);
             // 
@@ -196,7 +197,7 @@
             // 
             // ResultsSplitContainer
             // 
-            this.ResultsSplitContainer.Location = new System.Drawing.Point(7, 125);
+            this.ResultsSplitContainer.Location = new System.Drawing.Point(7, 152);
             this.ResultsSplitContainer.Name = "ResultsSplitContainer";
             // 
             // ResultsSplitContainer.Panel1
@@ -206,18 +207,37 @@
             // ResultsSplitContainer.Panel2
             // 
             this.ResultsSplitContainer.Panel2.Controls.Add(this.ArticleRichTextBox);
-            this.ResultsSplitContainer.Size = new System.Drawing.Size(773, 424);
-            this.ResultsSplitContainer.SplitterDistance = 257;
+            this.ResultsSplitContainer.Size = new System.Drawing.Size(793, 397);
+            this.ResultsSplitContainer.SplitterDistance = 263;
             this.ResultsSplitContainer.TabIndex = 12;
+            // 
+            // TranslateButton
+            // 
+            this.TranslateButton.Location = new System.Drawing.Point(403, 125);
+            this.TranslateButton.Name = "TranslateButton";
+            this.TranslateButton.Size = new System.Drawing.Size(180, 23);
+            this.TranslateButton.TabIndex = 4;
+            this.TranslateButton.Text = "Translate Using Google";
+            this.TranslateButton.UseVisualStyleBackColor = true;
+            this.TranslateButton.Click += new System.EventHandler(this.TranslateButton_Click);
+            // 
+            // LanguagesComboBox
+            // 
+            this.LanguagesComboBox.FormattingEnabled = true;
+            this.LanguagesComboBox.Location = new System.Drawing.Point(268, 125);
+            this.LanguagesComboBox.Name = "LanguagesComboBox";
+            this.LanguagesComboBox.Size = new System.Drawing.Size(129, 21);
+            this.LanguagesComboBox.TabIndex = 3;
             // 
             // MainForm
             // 
             this.AcceptButton = this.PhraseToSearchButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 561);
+            this.ClientSize = new System.Drawing.Size(812, 561);
+            this.Controls.Add(this.LanguagesComboBox);
+            this.Controls.Add(this.TranslateButton);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.label2);
             this.Controls.Add(this.GoogleButton);
             this.Controls.Add(this.ResultsSplitContainer);
             this.Controls.Add(this.OpenArticleButton);
@@ -249,7 +269,6 @@
         private System.Windows.Forms.Button PhraseToSearchButton;
         private System.Windows.Forms.ListBox SearchResultsListBox;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.RichTextBox ArticleRichTextBox;
         private System.Windows.Forms.ProgressBar ProgressBar;
         private System.Windows.Forms.ContextMenuStrip SearchResultsContextMenu;
@@ -261,5 +280,8 @@
         private System.Windows.Forms.Button OpenArticleButton;
         private System.Windows.Forms.Label OptionalMessageLabel;
         private System.Windows.Forms.SplitContainer ResultsSplitContainer;
+        private System.Windows.Forms.Button TranslateButton;
+        private System.Windows.Forms.ComboBox LanguagesComboBox;
+        private System.Windows.Forms.ToolStripMenuItem translateToolStripMenuItem;
     }
 }

@@ -12,7 +12,135 @@ namespace CovidLib
 {
     public class JsonArticleToDocument
     {
+        #region Delegates
+
+        public delegate void SetValue(int value);
+
+        #endregion Delegates
+
         #region Public Methods
+
+        public static int JsonArticleHowManyElementsToTranslate(JObject article)
+        {
+            int result = 0;
+
+            var rtf = new RtfDocument();
+            var listOfDocumentParts = new List<RtfDocumentContentBase>();
+
+            var titleParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(16, RtfTextAlign.Center));
+            if (article["metadata"] != null && article["metadata"]["title"] != null)
+            {
+                result++;
+            }
+            
+
+            // Add abstract.
+            var abstractParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(12, RtfTextAlign.Left));
+            abstractParagraph.AppendParagraph();
+            if (article["abstract"] != null && article["abstract"].Children().Count() > 0)
+            {
+                foreach (var articleAbstract in article["abstract"].Children())
+                {
+                    result++;
+                }
+            }
+            listOfDocumentParts.Add(abstractParagraph);
+
+            // Add content.
+            if (article["body_text"] != null && article["body_text"].Children().Count() > 0)
+            {
+                foreach (var bodyText in article["body_text"].Children())
+                {
+                    result++;
+                }
+            }
+
+            return result;
+        }
+
+        public static string JsonArticleToRtfTranslate(JObject article, string targetLanguage, SetValue setValueCallback)
+        {
+            int counter = 0;
+            var rtf = new RtfDocument();
+            var listOfDocumentParts = new List<RtfDocumentContentBase>();
+
+            var titleParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(16, RtfTextAlign.Center));
+            if (article["metadata"] != null && article["metadata"]["title"] != null)
+            {
+                setValueCallback(counter++);
+                var translatedTitle = GoogleTranslate.Translate(article["metadata"]["title"].ToString(), targetLanguage);
+                titleParagraph.AppendText(
+                    new RtfFormattedText(translatedTitle, RtfCharacterFormatting.Bold));
+            }
+            titleParagraph.AppendParagraph();
+            listOfDocumentParts.Add(titleParagraph);
+
+            if (article["metadata"] != null && article["metadata"]["authors"]?.Children() != null)
+            {
+                foreach (var author in article["metadata"]["authors"].Children())
+                {
+                    var authorParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(14, RtfTextAlign.Left));
+                    var authorLine = GetAuthor(author);
+
+                    if (authorLine.ToString().Length >= 10)
+                    {
+                        // We should not add some dummy values.
+                        var authorLineAsString = authorLine.Substring(0, authorLine.Length - 2);
+                        authorParagraph.AppendText(authorLineAsString);
+                        listOfDocumentParts.Add(authorParagraph);
+                    }
+                }
+            }
+
+            // Add abstract.
+            var abstractParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(12, RtfTextAlign.Left));
+            abstractParagraph.AppendParagraph();
+            if (article["abstract"] != null && article["abstract"].Children().Count() > 0)
+            {
+                foreach (var articleAbstract in article["abstract"].Children())
+                {
+                    var translatedAbstract = GoogleTranslate.Translate(articleAbstract["text"].ToString(), targetLanguage);
+                    setValueCallback(counter++);
+                    abstractParagraph.AppendText(
+                        new RtfFormattedText(translatedAbstract, RtfCharacterFormatting.Italic));
+                    abstractParagraph.AppendParagraph();
+                }
+            }
+            listOfDocumentParts.Add(abstractParagraph);
+
+            // Add content.
+            if (article["body_text"] != null && article["body_text"].Children().Count() > 0)
+            {
+                foreach (var bodyText in article["body_text"].Children())
+                {
+                    var contentParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(12, RtfTextAlign.Left));
+                    setValueCallback(counter++);
+                    var translatedBody = GoogleTranslate.Translate(bodyText["text"].ToString(), targetLanguage);
+                    contentParagraph.AppendText(translatedBody);
+                    contentParagraph.AppendParagraph();
+                    listOfDocumentParts.Add(contentParagraph);
+                }
+            }
+
+            // Add Bibliography
+            foreach (var bibEntry in article["bib_entries"].Children())
+            {
+                var bibliographyParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(10, RtfTextAlign.Left));
+                var bibEntryAsString = GetBibEntry(bibEntry);
+
+                // Control spacing
+                bibliographyParagraph.AppendText(bibEntryAsString);
+                listOfDocumentParts.Add(bibliographyParagraph);
+            }
+
+            var arrayOfDocumentParts = listOfDocumentParts.ToArray();
+            rtf.Contents.AddRange(arrayOfDocumentParts);
+
+            var rtfWriter = new RtfWriter();
+            var result = rtfWriter.GetRtfContent(rtf);
+
+            return result;
+        }
 
         public static string JsonArticleToRtf(JObject article)
         {
@@ -33,58 +161,12 @@ namespace CovidLib
                 foreach (var author in article["metadata"]["authors"].Children())
                 {
                     var authorParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(14, RtfTextAlign.Left));
-                    var firstName = author["first"].ToString();
-                    var surname = "";
-                    if (author["middle"].Children().Count() > 0)
-                    {
-                        surname = author["middle"].First().ToString();
-                    }
-                    if (String.IsNullOrEmpty(surname) && author["last"].ToString().Length > 0)
-                    {
-                        surname = author["last"].ToString();
-                    }
-                    var laboratory = "";
-                    var institution = "";
-                    var addrLine = "";
-                    var postCode = "";
-                    var settlement = "";
-                    var country = "";
-                    var email = "";
-
-                    if (author["affiliation"] != null)
-                    {
-                        laboratory = author["affiliation"]["laboratory"] != null ? author["affiliation"]["laboratory"].ToString() : "";
-                        institution = author["affiliation"]["institution"] != null ? author["affiliation"]["institution"].ToString() : "".ToString();
-                        if (author["affiliation"]["location"] != null)
-                        {
-                            addrLine = author["affiliation"]["location"]["addrLine"] != null ? author["affiliation"]["location"]["addrLine"].ToString() : "";
-                            postCode = author["affiliation"]["location"]["postCode"] != null ? author["affiliation"]["location"]["postCode"].ToString() : "";
-                            settlement = author["affiliation"]["location"]["settlement"] != null ? author["affiliation"]["location"]["settlement"].ToString() : "";
-                            country = author["affiliation"]["location"]["country"] != null ? author["affiliation"]["location"]["country"].ToString() : "";
-                        }
-                        email = author["email"].ToString();
-                    }
-
-                    if (author["email"] != null)
-                    {
-                        email = author["email"].ToString();
-                    }
-
-                    var authorLine = new StringBuilder();
-                    AppendLine(authorLine, "", firstName);
-                    AppendLine(authorLine, "", surname);
-                    AppendLine(authorLine, "", laboratory);
-                    AppendLine(authorLine, "", institution);
-                    AppendLine(authorLine, "", addrLine);
-                    AppendLine(authorLine, "", postCode);
-                    AppendLine(authorLine, "", settlement);
-                    AppendLine(authorLine, "", country);
-                    AppendLine(authorLine, "Email: ", email);
+                    var authorLine = GetAuthor(author);
 
                     if (authorLine.ToString().Length >= 10)
                     {
                         // We should not add some dummy values.
-                        var authorLineAsString = authorLine.ToString().Substring(0, authorLine.ToString().Length - 2);
+                        var authorLineAsString = authorLine.Substring(0, authorLine.Length - 2);
                         authorParagraph.AppendText(authorLineAsString);
                         listOfDocumentParts.Add(authorParagraph);
                     }
@@ -121,101 +203,10 @@ namespace CovidLib
             foreach (var bibEntry in article["bib_entries"].Children())
             {
                 var bibliographyParagraph = new RtfFormattedParagraph(new RtfParagraphFormatting(10, RtfTextAlign.Left));
-                var bibEntryBuilder = new StringBuilder();
-
-                var refId = "";
-                var title = "";
-                var authors = new StringBuilder();
-                var year = "";
-                var venue = "";
-                var volume = "";
-                var issn = "";
-                var pages = "";
-                var otherIds = "";
-
-                if (bibEntry.Children()["ref_id"].Count() > 0)
-                {
-                    refId = bibEntry.Children()["ref_id"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Reference Id:", refId);
-                if (bibEntry.Children()["title"].Count() > 0)
-                {
-                    title = bibEntry.Children()["title"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Title:", title);
-
-                if (bibEntry?.Children()["authors"]?.Children() != null && bibEntry.Children()["authors"].Children().Count() > 0)
-                {
-                    foreach (var author in bibEntry.Children()["authors"])
-                    {
-                        var bibRefAuthorFirstName = author[0]["first"].ToString();
-                        if (!String.IsNullOrWhiteSpace(bibRefAuthorFirstName))
-                        {
-                            AppendLine(authors, "", bibRefAuthorFirstName);
-                        }
-
-                        var bibRefAuthorMiddleName = "";
-                        if (author[0]["middle"].Children().Count() > 0)
-                        {
-                            bibRefAuthorMiddleName = author[0]["middle"].First().ToString();
-                        }
-                        if (!String.IsNullOrWhiteSpace(bibRefAuthorMiddleName))
-                        {
-                            AppendLine(authors, "", bibRefAuthorMiddleName);
-                        }
-
-                        var bibRefAuthorSurname = "";
-                        if (author[0]["last"].ToString().Length > 0)
-                        {
-                            bibRefAuthorSurname = author[0]["last"].ToString();
-                        }
-                        if (!String.IsNullOrWhiteSpace(bibRefAuthorSurname))
-                        {
-                            AppendLine(authors, "", bibRefAuthorSurname);
-                        }
-                    }
-                }
-
-                AppendLine(bibEntryBuilder, "Authors:", authors.ToString());
-
-                if (bibEntry.Children()["year"].Count() > 0)
-                {
-                    year = bibEntry.Children()["year"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Year:", year);
-
-                if (bibEntry.Children()["venue"].Count() > 0)
-                {
-                    venue = bibEntry.Children()["venue"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Venue:", venue);
-
-                if (bibEntry.Children()["volume"].Count() > 0)
-                {
-                    volume = bibEntry.Children()["volume"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Volume:", volume);
-
-                if (bibEntry.Children()["issn"].Count() > 0)
-                {
-                    issn = bibEntry.Children()["issn"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Issn:", issn);
-
-                if (bibEntry.Children()["pages"].Count() > 0)
-                {
-                    pages = bibEntry.Children()["pages"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Pages:", pages);
-
-                if (bibEntry.Children()["otherIds"].Count() > 0)
-                {
-                    otherIds = bibEntry.Children()["otherIds"].First().ToString();
-                }
-                AppendLine(bibEntryBuilder, "Other Ids:", otherIds);
+                var bibEntryAsString = GetBibEntry(bibEntry);
 
                 // Control spacing
-                bibliographyParagraph.AppendText(bibEntryBuilder.ToString());
+                bibliographyParagraph.AppendText(bibEntryAsString);
                 listOfDocumentParts.Add(bibliographyParagraph);
             }
 
@@ -250,55 +241,8 @@ namespace CovidLib
             AddSection("Authors", body, 20);
             foreach (var author in article["metadata"]["authors"].Children())
             {
-                var firstName = author["first"].ToString();
-                var surname = "";
-                if (author["middle"].Children().Count() > 0)
-                {
-                    surname = author["middle"].First().ToString();
-                }
-                if (String.IsNullOrEmpty(surname) && author["last"].ToString().Length > 0)
-                {
-                    surname = author["last"].ToString();
-                }
-                var laboratory = "";
-                var institution = "";
-                var addrLine = "";
-                var postCode = "";
-                var settlement = "";
-                var country = "";
-                var email = "";
-
-                if (author["affiliation"] != null)
-                {
-                    laboratory = author["affiliation"]["laboratory"] != null ? author["affiliation"]["laboratory"].ToString() : "";
-                    institution = author["affiliation"]["institution"] != null ? author["affiliation"]["institution"].ToString() : "".ToString();
-                    if (author["affiliation"]["location"] != null)
-                    {
-                        addrLine = author["affiliation"]["location"]["addrLine"] != null ? author["affiliation"]["location"]["addrLine"].ToString() : "";
-                        postCode = author["affiliation"]["location"]["postCode"] != null ? author["affiliation"]["location"]["postCode"].ToString() : "";
-                        settlement = author["affiliation"]["location"]["settlement"] != null ? author["affiliation"]["location"]["settlement"].ToString() : "";
-                        country = author["affiliation"]["location"]["country"] != null ? author["affiliation"]["location"]["country"].ToString() : "";
-                    }
-                    email = author["email"].ToString();
-                }
-
-                if (author["email"] != null)
-                {
-                    email = author["email"].ToString();
-                }
-
-                var authorLine = new StringBuilder();
-                AppendLine(authorLine, "", firstName);
-                AppendLine(authorLine, "", surname);
-                AppendLine(authorLine, "", laboratory);
-                AppendLine(authorLine, "", institution);
-                AppendLine(authorLine, "", addrLine);
-                AppendLine(authorLine, "", postCode);
-                AppendLine(authorLine, "", settlement);
-                AppendLine(authorLine, "", country);
-                AppendLine(authorLine, "Email: ", email);
-
-                if (authorLine.ToString().Length >= 10)
+                var authorLine = GetAuthor(author);
+                if (authorLine.Length >= 10)
                 {
                     // We should not add some dummy values.
                     var spacing = new SpacingBetweenLines() { Line = "240", LineRule = LineSpacingRuleValues.Auto, Before = "0", After = "0" };
@@ -312,7 +256,7 @@ namespace CovidLib
                     authorParagraph.Append(paragraphProperties);
                     var authorRun = authorParagraph.AppendChild(new Run());
                     authorRun.Append(authorRunProperties);
-                    authorRun.Append(new Text(authorLine.ToString().Substring(0, authorLine.ToString().Length - 2) + "\r\n"));
+                    authorRun.Append(new Text(authorLine.Substring(0, authorLine.Length - 2) + "\r\n"));
                 }
             }
 
@@ -357,98 +301,7 @@ namespace CovidLib
             {
                 foreach (var bibEntry in article["bib_entries"].Children())
                 {
-                    var bibEntryBuilder = new StringBuilder();
-
-                    var refId = "";
-                    var title = "";
-                    var authors = new StringBuilder();
-                    var year = "";
-                    var venue = "";
-                    var volume = "";
-                    var issn = "";
-                    var pages = "";
-                    var otherIds = "";
-
-                    if (bibEntry.Children()["ref_id"].Count() > 0)
-                    {
-                        refId = bibEntry.Children()["ref_id"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Reference Id:", refId);
-                    if (bibEntry.Children()["title"].Count() > 0)
-                    {
-                        title = bibEntry.Children()["title"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Title:", title);
-
-                    if (bibEntry?.Children()["authors"]?.Children() != null && bibEntry.Children()["authors"].Children().Count() > 0)
-                    {
-                        foreach (var author in bibEntry.Children()["authors"])
-                        {
-                            var bibRefAuthorFirstName = author[0]["first"].ToString();
-                            if (!String.IsNullOrWhiteSpace(bibRefAuthorFirstName))
-                            {
-                                AppendLine(authors, "", bibRefAuthorFirstName);
-                            }
-
-                            var bibRefAuthorMiddleName = "";
-                            if (author[0]["middle"].Children().Count() > 0)
-                            {
-                                bibRefAuthorMiddleName = author[0]["middle"].First().ToString();
-                            }
-                            if (!String.IsNullOrWhiteSpace(bibRefAuthorMiddleName))
-                            {
-                                AppendLine(authors, "", bibRefAuthorMiddleName);
-                            }
-
-                            var bibRefAuthorSurname = "";
-                            if (author[0]["last"].ToString().Length > 0)
-                            {
-                                bibRefAuthorSurname = author[0]["last"].ToString();
-                            }
-                            if (!String.IsNullOrWhiteSpace(bibRefAuthorSurname))
-                            {
-                                AppendLine(authors, "", bibRefAuthorSurname);
-                            }
-                        }
-                    }
-
-                    AppendLine(bibEntryBuilder, "Authors:", authors.ToString());
-
-                    if (bibEntry.Children()["year"].Count() > 0)
-                    {
-                        year = bibEntry.Children()["year"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Year:", year);
-
-                    if (bibEntry.Children()["venue"].Count() > 0)
-                    {
-                        venue = bibEntry.Children()["venue"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Venue:", venue);
-
-                    if (bibEntry.Children()["volume"].Count() > 0)
-                    {
-                        volume = bibEntry.Children()["volume"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Volume:", volume);
-
-                    if (bibEntry.Children()["issn"].Count() > 0)
-                    {
-                        issn = bibEntry.Children()["issn"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Issn:", issn);
-
-                    if (bibEntry.Children()["pages"].Count() > 0)
-                    {
-                        pages = bibEntry.Children()["pages"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Pages:", pages);
-
-                    if (bibEntry.Children()["otherIds"].Count() > 0)
-                    {
-                        otherIds = bibEntry.Children()["otherIds"].First().ToString();
-                    }
-                    AppendLine(bibEntryBuilder, "Other Ids:", otherIds);
+                    var bibEntryAsString = GetBibEntry(bibEntry);
 
                     // Control spacing
                     var spacing = new SpacingBetweenLines() { Line = "240", LineRule = LineSpacingRuleValues.Auto, Before = "0", After = "0" };
@@ -461,7 +314,7 @@ namespace CovidLib
                     var bibEntryParagraph = body.AppendChild(new Paragraph());
                     var bibEntryRun = bibEntryParagraph.AppendChild(new Run());
                     bibEntryRun.Append(bibEntryRunProperties);
-                    var bibEntryText = bibEntryBuilder.ToString().Substring(0, bibEntryBuilder.ToString().Length - 2);
+                    var bibEntryText = bibEntryAsString.Substring(0, bibEntryAsString.Length - 2);
                     bibEntryRun.Append(new Text(bibEntryText));
                 }
             }
@@ -551,6 +404,157 @@ namespace CovidLib
             var run = paragraph.AppendChild(new Run());
             run.Append(runProperties);
             run.Append(new Text(sectionName));
+        }
+
+        private static string GetBibEntry(JToken bibEntry)
+        {
+            var bibEntryBuilder = new StringBuilder();
+
+            var refId = "";
+            var title = "";
+            var authors = new StringBuilder();
+            var year = "";
+            var venue = "";
+            var volume = "";
+            var issn = "";
+            var pages = "";
+            var otherIds = "";
+
+            if (bibEntry.Children()["ref_id"].Count() > 0)
+            {
+                refId = bibEntry.Children()["ref_id"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Reference Id:", refId);
+            if (bibEntry.Children()["title"].Count() > 0)
+            {
+                title = bibEntry.Children()["title"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Title:", title);
+
+            if (bibEntry?.Children()["authors"]?.Children() != null && bibEntry.Children()["authors"].Children().Count() > 0)
+            {
+                foreach (var author in bibEntry.Children()["authors"])
+                {
+                    var bibRefAuthorFirstName = author[0]["first"].ToString();
+                    if (!String.IsNullOrWhiteSpace(bibRefAuthorFirstName))
+                    {
+                        AppendLine(authors, "", bibRefAuthorFirstName);
+                    }
+
+                    var bibRefAuthorMiddleName = "";
+                    if (author[0]["middle"].Children().Count() > 0)
+                    {
+                        bibRefAuthorMiddleName = author[0]["middle"].First().ToString();
+                    }
+                    if (!String.IsNullOrWhiteSpace(bibRefAuthorMiddleName))
+                    {
+                        AppendLine(authors, "", bibRefAuthorMiddleName);
+                    }
+
+                    var bibRefAuthorSurname = "";
+                    if (author[0]["last"].ToString().Length > 0)
+                    {
+                        bibRefAuthorSurname = author[0]["last"].ToString();
+                    }
+                    if (!String.IsNullOrWhiteSpace(bibRefAuthorSurname))
+                    {
+                        AppendLine(authors, "", bibRefAuthorSurname);
+                    }
+                }
+            }
+
+            AppendLine(bibEntryBuilder, "Authors:", authors.ToString());
+
+            if (bibEntry.Children()["year"].Count() > 0)
+            {
+                year = bibEntry.Children()["year"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Year:", year);
+
+            if (bibEntry.Children()["venue"].Count() > 0)
+            {
+                venue = bibEntry.Children()["venue"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Venue:", venue);
+
+            if (bibEntry.Children()["volume"].Count() > 0)
+            {
+                volume = bibEntry.Children()["volume"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Volume:", volume);
+
+            if (bibEntry.Children()["issn"].Count() > 0)
+            {
+                issn = bibEntry.Children()["issn"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Issn:", issn);
+
+            if (bibEntry.Children()["pages"].Count() > 0)
+            {
+                pages = bibEntry.Children()["pages"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Pages:", pages);
+
+            if (bibEntry.Children()["otherIds"].Count() > 0)
+            {
+                otherIds = bibEntry.Children()["otherIds"].First().ToString();
+            }
+            AppendLine(bibEntryBuilder, "Other Ids:", otherIds);
+
+            return bibEntryBuilder.ToString();
+        }
+
+        private static string GetAuthor(JToken author)
+        {
+            var firstName = author["first"].ToString();
+            var surname = "";
+            if (author["middle"].Children().Count() > 0)
+            {
+                surname = author["middle"].First().ToString();
+            }
+            if (String.IsNullOrEmpty(surname) && author["last"].ToString().Length > 0)
+            {
+                surname = author["last"].ToString();
+            }
+            var laboratory = "";
+            var institution = "";
+            var addrLine = "";
+            var postCode = "";
+            var settlement = "";
+            var country = "";
+            var email = "";
+
+            if (author["affiliation"] != null)
+            {
+                laboratory = author["affiliation"]["laboratory"] != null ? author["affiliation"]["laboratory"].ToString() : "";
+                institution = author["affiliation"]["institution"] != null ? author["affiliation"]["institution"].ToString() : "".ToString();
+                if (author["affiliation"]["location"] != null)
+                {
+                    addrLine = author["affiliation"]["location"]["addrLine"] != null ? author["affiliation"]["location"]["addrLine"].ToString() : "";
+                    postCode = author["affiliation"]["location"]["postCode"] != null ? author["affiliation"]["location"]["postCode"].ToString() : "";
+                    settlement = author["affiliation"]["location"]["settlement"] != null ? author["affiliation"]["location"]["settlement"].ToString() : "";
+                    country = author["affiliation"]["location"]["country"] != null ? author["affiliation"]["location"]["country"].ToString() : "";
+                }
+                email = author["email"].ToString();
+            }
+
+            if (author["email"] != null)
+            {
+                email = author["email"].ToString();
+            }
+
+            var authorLine = new StringBuilder();
+            AppendLine(authorLine, "", firstName);
+            AppendLine(authorLine, "", surname);
+            AppendLine(authorLine, "", laboratory);
+            AppendLine(authorLine, "", institution);
+            AppendLine(authorLine, "", addrLine);
+            AppendLine(authorLine, "", postCode);
+            AppendLine(authorLine, "", settlement);
+            AppendLine(authorLine, "", country);
+            AppendLine(authorLine, "Email: ", email);
+
+            return authorLine.ToString();
         }
 
         #endregion Private Methods

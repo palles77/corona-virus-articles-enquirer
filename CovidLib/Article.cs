@@ -8,5 +8,6 @@ namespace CovidLib
         public byte[] ZippedAbstract { get; set; }
         public byte[] ZippedContent { get; set; }
         public byte[] ZippedJson { get; set; }
+
     }
 }

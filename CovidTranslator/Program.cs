@@ -12,7 +12,8 @@ namespace CovidTranslator
     {
         static void Main(string[] args)
         {
-            var files = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory + "Articles\\").GetFiles("*.json");
+            var articlesDir = args[0];
+            var files = new DirectoryInfo(articlesDir).GetFiles("*.json");
             if (!Directory.Exists("Articles.Out"))
             {
                 Directory.CreateDirectory("Articles.Out");
