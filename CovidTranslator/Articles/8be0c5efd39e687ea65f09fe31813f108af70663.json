@@ -1,0 +1,2582 @@
+{
+    "paper_id": "8be0c5efd39e687ea65f09fe31813f108af70663",
+    "metadata": {
+        "title": "CSAX: Characterizing Systematic Anomalies in eXpression Data",
+        "authors": [
+            {
+                "first": "Keith",
+                "middle": [],
+                "last": "Noto",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Saeed",
+                "middle": [],
+                "last": "Majidi",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Andrea",
+                "middle": [
+                    "G"
+                ],
+                "last": "Edlow",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Heather",
+                "middle": [
+                    "C"
+                ],
+                "last": "Wick",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Diana",
+                "middle": [
+                    "W"
+                ],
+                "last": "Bianchi",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Donna",
+                "middle": [
+                    "K"
+                ],
+                "last": "Slonim",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Methods for translating gene expression signatures into clinically relevant information have typically relied upon having many samples from patients with similar molecular phenotypes. Here, we address the question of what can be done when it is relatively easy to obtain healthy patient samples, but when abnormalities corresponding to disease states may be rare and one-ofa-kind. The associated computational challenge, anomaly detection, is a well-studied machinelearning problem. However, due to the dimensionality and variability of expression data, existing methods based on feature space analysis or individual anomalously expressed genes are insufficient. We present a novel approach, CSAX, that identifies pathways in an individual sample in which the normal expression relationships are disrupted. To evaluate our approach, we have compiled and released a compendium of public expression data sets, reformulated to create a test bed for anomaly detection. We demonstrate the accuracy of CSAX on the data sets in our compendium, compare it to other leading methods, and show that CSAX aids in both identifying anomalies and explaining their underlying biology. We describe an approach to characterizing the difficulty of specific expression anomaly detection tasks. We then illustrate CSAX's value in two developmental case studies. Confirming prior hypotheses, CSAX highlights disruption of platelet activation pathways in a neonate with retinopathy of prematurity and identifies, for the first time, dysregulated oxidative stress response in second trimester amniotic fluid of fetuses with obese mothers. Our approach provides an important step toward identification of individual disease patterns in the era of precision medicine.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "T he development in the 1990s of techniques for genome-wide monitoring of expression data (Lockhart et al., 1996; Shalon et al., 1996) has had a dramatic impact on the field of molecular medicine. Precision diagnostics based on expression array signatures are increasingly moving into the clinic (Mehta et al., 2011; Glas et al., 2006) . However, methods for designing microarray-based diagnostics or discovering disease subtypes require a reasonable number of samples representing each patient class (Slonim, 2002) . There are techniques for boosting the signal when relatively few samples are available (Tusher et al., 2001; Dougherty, 2001) , but these don't eliminate the need for a representative set of samples that fully characterize the molecular variability underlying the phenotypes of interest. For rare diseases or genetically heterogeneous disorders, another analysis paradigm is needed. Here we demonstrate that by characterizing the expression patterns of ''normal'' samples, it is often possible to identify abnormal samples even when each abnormality is one-of-a-kind.",
+            "cite_spans": [
+                {
+                    "start": 90,
+                    "end": 113,
+                    "text": "(Lockhart et al., 1996;",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 114,
+                    "end": 134,
+                    "text": "Shalon et al., 1996)",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 296,
+                    "end": 316,
+                    "text": "(Mehta et al., 2011;",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 317,
+                    "end": 335,
+                    "text": "Glas et al., 2006)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 501,
+                    "end": 515,
+                    "text": "(Slonim, 2002)",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 605,
+                    "end": 626,
+                    "text": "(Tusher et al., 2001;",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 627,
+                    "end": 643,
+                    "text": "Dougherty, 2001)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The problem of determining which samples to flag as abnormal, given only normal training data, is related to the computational field of anomaly detection, sometimes called outlier detection. Anomaly detection is an active research area in both statistics and data mining (Chandola et al., 2009) . It is regularly applied to such problems as spam detection, identifying potential credit-card theft, verifying online identities, and correcting errors in census data.",
+            "cite_spans": [
+                {
+                    "start": 271,
+                    "end": 294,
+                    "text": "(Chandola et al., 2009)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Several previous efforts explicitly apply anomaly detection to bioinformatics problems, including correction in genome annotation (Mikkelsen et al., 2005) and identifying changes in the steady-state behavior of stochastic gene regulatory networks (Kim and Gelenbe, 2009) . A related approach by Torkamani and Schork (2009) identifies genes whose expression pattern is unusual in a given cellular context. For gene expression microarray data, the task of identifying differentially expressed genes has been viewed in the framework of outlier detection (Mpindi et al., 2011; Li et al., 2007; Ghosh, 2010; Karrila et al., 2011) , as has the problem of identifying array artifacts (Sauer et al., 2005) . Perhaps the closest approach to ours is that of Tomlins et al. (2005) , who use outlier detection to identify common translocations in cancer, but the outliers still refer to individual genes rather than samples.",
+            "cite_spans": [
+                {
+                    "start": 130,
+                    "end": 154,
+                    "text": "(Mikkelsen et al., 2005)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 247,
+                    "end": 270,
+                    "text": "(Kim and Gelenbe, 2009)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 295,
+                    "end": 322,
+                    "text": "Torkamani and Schork (2009)",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 551,
+                    "end": 572,
+                    "text": "(Mpindi et al., 2011;",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 573,
+                    "end": 589,
+                    "text": "Li et al., 2007;",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 590,
+                    "end": 602,
+                    "text": "Ghosh, 2010;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 603,
+                    "end": 624,
+                    "text": "Karrila et al., 2011)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 677,
+                    "end": 697,
+                    "text": "(Sauer et al., 2005)",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 748,
+                    "end": 769,
+                    "text": "Tomlins et al. (2005)",
+                    "ref_id": "BIBREF47"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The underlying machine learning problem, that of identifying ''abnormal'' samples given only ''normal'' samples as training data, is a challenging one. Microarray data is particularly ill-suited for anomaly detection, as for many other machine learning problems, because of its noise level, the dimensionality of a typical data set (hundreds of samples but tens of thousands of genes), and the expectation that only a small fraction of those genes may provide any information about the classification of the samples.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Fortunately, other characteristics make the problem potentially tractable. We expect meaningful expression changes to reflect unusual regulation in specific functional pathways. We can therefore use prior knowledge about the relationships between genes to identify anomalous examples. Such information has the added advantage that it may provide hints to the underlying cause of the detected anomalies.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "To evaluate the utility of such an approach, we created a compendium of data sets for anomaly detection from published microarray classification data sets. On this compendium, we compare several state-of-theart methods for anomaly detection, including CSAX, a novel approach that we designed to boost the signal from the prior method most robust to irrelevant features (Noto et al., 2011) while identifying the gene sets that best distinguish each anomalous sample. Our results show that in many cases, anomaly detection can both identify unusual samples and produce meaningful information about the nature of the anomalous data.",
+            "cite_spans": [
+                {
+                    "start": 369,
+                    "end": 388,
+                    "text": "(Noto et al., 2011)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "There is also a question of what abnormalities we can expect to identify. For example, a single abnormal sample characterized by abnormal expression of a single gene could not possibly be detected by any method-the data are simply too noisy. Our method is applicable when a sizable number of genes' expression levels are sufficiently different. We characterize the classes of anomalies we can expect to detect, and we discuss how clinical intuition might be applied to identify anomalies suitable for these methods. Our inspiration for this work came from prenatal and neonatal genomics, where recognizing and interpreting rare developmental abnormalities is crucial. We therefore conclude with a case study illustrating how our methods can contribute in this setting.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "We assembled a compendium of 28 anomaly detection tasks from published gene expression classification studies that involve at least two classes of samples (e.g., healthy vs. disease). We convert these to anomaly detection tasks by (i) designating one class as the ''anomalous'' class, and all samples from the other classes as the ''normal'' class, which may therefore be quite heterogeneous; (ii) creating a training set from a random subset of normal microarrays; and (iii) creating a test set from the remaining samples ( Fig. 1) . We created our compendium from suitably sized data sets with at least two clearly defined classes found in GEO, combined with a testbed of expression classification data sets assembled elsewhere for the development of computational methods (see Acknowledgments section). The compendium includes all the data sets with which we experimented that had previouly been released publicly (Supplementary Material, available online at www.liebertonline.com/cmb).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 525,
+                    "end": 532,
+                    "text": "Fig. 1)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Compendium of microarray anomaly detection data sets"
+        },
+        {
+            "text": "In most envisioned applications, such as diagnosing rare developmental disorders, abnormalities are likely to be one of a kind. However, in each data set in this compendium, we have a collection of relatively similar anomalies, and we know which samples we should expect to identify as anomalous. We therefore use this compendium as a ''gold standard'' data set to evaluate the accuracy of our methods.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Compendium of microarray anomaly detection data sets"
+        },
+        {
+            "text": "2.2.1. Prior methods. There are many existing methods for anomaly detection in high-dimensional data. The most successful general approaches include density-based methods such as the local outlier factor (LOF) (Breunig et al., 2000) , which identifies outliers by comparing their distances from their nearest neighbors to the typical distances between nearby training examples, and one-class support vector machines (SVMs) (Sch\u00f6lkopf et al., 2000) . To compare the approaches described below to one-class support vector machines (Sch\u00f6lkopf et al., 2000) , we use the LIBSVM (Chang and Lin, 2001) implementation with default settings. Preliminary investigation showed that results were not sensitive to a wide range of parameter settings (data not shown).",
+            "cite_spans": [
+                {
+                    "start": 210,
+                    "end": 232,
+                    "text": "(Breunig et al., 2000)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 423,
+                    "end": 447,
+                    "text": "(Sch\u00f6lkopf et al., 2000)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 529,
+                    "end": 553,
+                    "text": "(Sch\u00f6lkopf et al., 2000)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 574,
+                    "end": 595,
+                    "text": "(Chang and Lin, 2001)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods for expression anomaly detection"
+        },
+        {
+            "text": "To compare our approach to LOF (Breunig et al., 2000) , we use our own implementation. LOF requires the specification of a single parameter, MinPts, which is the size of the neighborhood of microarrays. Following a suggestion in the original presentation of LOF (Breunig et al., 2000) , we compute the LOF using all possible values of MinPts and take the maximum LOF. Source code and documentation for our implementation can be found in the Supplementary Material. To create an anomaly detection task from a microarray study with two classes of samples, A and B, we randomly select a portion of the A samples for the test set and use the remainder for training. The task is then to identify samples from class B after training on samples from class A alone.",
+            "cite_spans": [
+                {
+                    "start": 31,
+                    "end": 53,
+                    "text": "(Breunig et al., 2000)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 262,
+                    "end": 284,
+                    "text": "(Breunig et al., 2000)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods for expression anomaly detection"
+        },
+        {
+            "text": "NOTO ET AL.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "404"
+        },
+        {
+            "text": "However, neither of these prior methods is especially well suited for handling the dimensions of expression microarray data. We recently developed an anomaly-detection method called feature regression and classification, or FRaC (Noto et al., 2010 (Noto et al., , 2011 . FRaC learns relationships among gene expression in the training data and measures their reliability. It uses those models to estimate the likelihood of test set expression. The extent to which a test set gene's expression is considered anomalous is measured by the log-loss of its likelihood, according to those models. Anomaly scores for samples are computed by summing anomaly scores over all genes. FRaC is known to be robust to large numbers of irrelevant variables (Noto et al., 2011) , making it well suited for identifying outliers in expression data.",
+            "cite_spans": [
+                {
+                    "start": 229,
+                    "end": 247,
+                    "text": "(Noto et al., 2010",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 248,
+                    "end": 268,
+                    "text": "(Noto et al., , 2011",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 741,
+                    "end": 760,
+                    "text": "(Noto et al., 2011)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "404"
+        },
+        {
+            "text": "Because FRaC forms the core of our new method below, we give a brief summary here. Given a training set and an unlabeled test example, FRaC does the following for all genes i:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "404"
+        },
+        {
+            "text": "1. Infer a predictive model C i of the expression of gene i from the training data. The model will use the expression of some of the other genes to make its predictions. For this step, we use an e-SVR (support vector regression) model with a linear kernel, the e parameter (in the loss function) set to zero, and the C parameter (for regularization) set to 1. Preliminary experiments with expression anomaly detection showed that FRaC is not very sensitive to these choices, and these settings prove to work well (data not shown). 2. Use held-aside training data (i.e., not used in the previous step) to estimate the accuracy of the model by building a model E i of the predictive error. We use leave-one-out cross-validation to sample the predictive error, and we model E i as a normal distribution N (l\u201a r), where l and r are set to the sample mean and standard deviation, respectively. 3. Use the predictive model C i to predict the expression of gene i in the unlabeled example. 4. Compute the likelihood of the error of the prediction using the error model E i . 5. The anomaly score we assign to gene i is the log loss, or surprisal, of the likelihood computed in the previous step.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "404"
+        },
+        {
+            "text": "The anomaly score for the test sample is computed as the sum of the anomaly scores for each gene. We use our own implementation of FRaC; the source code and documentation are available in the Supplementary Material.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "404"
+        },
+        {
+            "text": "A new method for expression anomaly detection. All of the above methods classify samples as outliers, but do not explicitly provide information about the nature of each anomaly. Instead, our goal is to identify gene sets or pathways in which a sample is particularly anomalous. We therefore developed a robust method, Characterizing Systematic Anomalies in eXpression data (CSAX), for doing so, taking advantage of FRaC's robustness to irrelevant variables.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "CSAX uses FRaC to compute an anomaly score for each gene and uses Gene Set Enrichment Analysis (GSEA) (Subramanian et al., 2005; Mootha et al., 2003) to find gene sets containing many genes whose expressions are particularly surprising. GSEA is implemented in Java and available Online. We use the Java archive (gsea2-2.07.jar) and run the ''preranked'' version of GSEA (xtools.gsea .GseaPreranked) on gene sets with at least 7 and at most 500 genes, with 1000 permutations and a weighted scoring scheme (see GSEA documentation). GSEA in this case takes as input a list of genes, ranked by their anomaly scores, and a collection of gene sets. The output of GSEA is a table, listing each gene set, its enrichment score (see Subramanian et al., 2005; Mootha et al., 2003, for details) , and other statistics, including a normalized version of the enrichment score that accounts for gene set size.",
+            "cite_spans": [
+                {
+                    "start": 102,
+                    "end": 128,
+                    "text": "(Subramanian et al., 2005;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 129,
+                    "end": 149,
+                    "text": "Mootha et al., 2003)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 723,
+                    "end": 748,
+                    "text": "Subramanian et al., 2005;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 749,
+                    "end": 782,
+                    "text": "Mootha et al., 2003, for details)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "This approach alone, which we call FRaC + enrichment, has the important advantage of identifying the gene sets that may best explain an anomaly, one of the primary goals of our research. However, applying this method to test set microarrays that come from the normal class will also identify gene sets that are statistically enriched, even though these sets are effectively random and depend on how accurately the training set represents the true distribution of the normal class. Specifically, when the training set is too small to capture the full diversity of the normal sample space, there will be false positive results. For the envisioned applications, we need to better distinguish the results characterizing normal test samples from those characterizing anomalies.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "We therefore use bagging to address this effect: over multiple iterations, we take a random subset of the training set and run FRaC and GSEA on it. This process produces multiple GSEA enrichment rankings for each gene set. The gene sets that best explain a true difference between an unlabeled microarray and the training set will appear at or near the top of GSEA's ranked list over multiple iterations of bagging, whereas CHARACTERIZING ANOMALOUS EXPRESSION the gene sets that are only enriched because their genes are misrepresented in the training set (because of the small sample size) are less likely to do so.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "The remaining challenges are to select the informative gene sets from the GSEA output lists and to combine their enrichment scores into a single anomaly score. A single gene set may not be enough by itself to fully characterize an anomaly, so we must consider multiple gene sets, but we only want the most informative ones-those that are ranked highly in GSEA's output tables. The method that we use first considers the collection of rankings for each gene set and computes its median; for example, if a gene set appears in the #1 position more often than not, its median rank will be 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "Formally, let G be our collection of G gene sets, and B be the number of bagging iterations. Let r b (g) be the ranking (i.e., 1\u201a 2\u201a . . .) of gene set g in the bth iteration of bagging, as ranked by GSEA (the ranked position is a function of enrichment score and gene set size). Let V (g) be the median of all the rankings of gene set g, that is,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "(1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "We consider the gene sets with the best median rankings (lowest values of V) to be the most informative ones. Let M be the G gene sets in G, ordered by their median ranking V, that is, M 1 is the gene set g with the lowest V (g), and",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "We also run FRaC and GSEA on the entire training set (as opposed to the iterations of bagging). Let ES(g) be the enrichment score calculated by GSEA for gene set g on the full training set. We define ES(g) = 0 for any gene set g that does not appear in the table.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "To compute an anomaly score, we combine the enrichment scores of each gene set, discounted by their position in M as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "The single parameter c controls how many of the highest-ranking gene sets are included in the computation of the anomaly score, and, by extension, how many genes influence the predictions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "In our experiments, we set c = 0.95. Overall, we observe similar performance for different values of c (results displayed in Supplementary Materials online). In our experiments, we perform B = 40 iterations of bagging and use the G = 1, 079 reactome pathways as gene sets (Croft et al., 2011) , except where noted. Source code and documentation for CSAX can be found in the online Supplementary Material.",
+            "cite_spans": [
+                {
+                    "start": 272,
+                    "end": 292,
+                    "text": "(Croft et al., 2011)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CSAX:"
+        },
+        {
+            "text": "The goal of any anomaly detection approach is to assign a high anomaly score to unlabeled samples that are not in the normal class. To measure the success of each anomaly detection method on a compendium data set, we construct a receiver operating characteristic (ROC) curve (Spackman, 1989) from the test set labels (normal or anomalous) and the method's predicted anomaly scores and calculate the area under the curve (AUC). The AUC can be viewed as the likelihood that an anomaly detector assigns a higher anomaly score to a test set anomaly than it does to a test set normal. Thus, higher AUCs are better, the best possible score being 1.0. The AUC is a common performance measure that is independent of both the number and proportion of anomalies in the test set.",
+            "cite_spans": [
+                {
+                    "start": 275,
+                    "end": 291,
+                    "text": "(Spackman, 1989)",
+                    "ref_id": "BIBREF44"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Evaluating anomaly detection methods"
+        },
+        {
+            "text": "For each data set in our compendium, we create an anomaly detection task (section 2.1) by randomly selecting 75% of the normal samples for training. The remaining 25% of the normal sampless and all anomalous samples make up the test set. We repeat this process 20 times and report an average AUC for each anomaly detection method for each data set.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Evaluating anomaly detection methods"
+        },
+        {
+            "text": "We compare the performance of CSAX to that of two top-performing anomaly detection methods: local outlier factor (LOF) (Breunig et al., 2000) and one-class support vector machines (SVMs) (Sch\u00f6lkopf et al., 2000) . We also compare against the performance of our own method, FRaC (Noto et al., 2011) , as well as to a method consisting of performing enrichment analysis on genes ranked by their FRaC scores (which we call FRaC + enrichment), but without the bagging and weighting components of CSAX.",
+            "cite_spans": [
+                {
+                    "start": 119,
+                    "end": 141,
+                    "text": "(Breunig et al., 2000)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 187,
+                    "end": 211,
+                    "text": "(Sch\u00f6lkopf et al., 2000)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 278,
+                    "end": 297,
+                    "text": "(Noto et al., 2011)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Evaluating anomaly detection methods"
+        },
+        {
+            "text": "NOTO ET AL.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "406"
+        },
+        {
+            "text": "To further demonstrate the utility of CSAX, we applied it to two developmental data sets. One is a collection of published expression data (Pietrzyk et al., 2013) from the blood of infants born below 32 weeks' gestational age. In this data set, the ''abnormal'' samples came from infants who developed bronchopulmonary dysplasia, retinopathy of prematurity, periventricular leukomalacia, or any combination of these; the controls were infants born at the same ages but whose clinical course did not include any of these three complications of preterm birth.",
+            "cite_spans": [
+                {
+                    "start": 139,
+                    "end": 162,
+                    "text": "(Pietrzyk et al., 2013)",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data for developmental case studies"
+        },
+        {
+            "text": "The second set combines data from several of our own studies of gene expression in second trimester amniotic fluid supernatant samples (Koide et al., 2011; Slonim et al., 2009; Hui et al., 2012 Hui et al., , 2013 Edlow et al., 2014; Massingham et al., 2014) . The abnormal samples include those from fetuses with trisomy 18, trisomy 21, Turner syndrome, twin-twin transfusion syndrome, or obese mothers; the controls are all control samples from these same studies.",
+            "cite_spans": [
+                {
+                    "start": 135,
+                    "end": 155,
+                    "text": "(Koide et al., 2011;",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 156,
+                    "end": 176,
+                    "text": "Slonim et al., 2009;",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 177,
+                    "end": 193,
+                    "text": "Hui et al., 2012",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 194,
+                    "end": 212,
+                    "text": "Hui et al., , 2013",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 213,
+                    "end": 232,
+                    "text": "Edlow et al., 2014;",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 233,
+                    "end": 257,
+                    "text": "Massingham et al., 2014)",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data for developmental case studies"
+        },
+        {
+            "text": "Our team recently created the DFLAT gene set collection (Wick et al., 2014) , a project in which we assembled developmentally relevant gene annotation using the Gene Ontology framework (Blake et al., 2012) , specifically for the purpose of interpreting gene expression data from fetal and neonatal samples. Here we used CSAX with the DFLAT gene sets to analyze these two studies of fetal and neonatal expression.",
+            "cite_spans": [
+                {
+                    "start": 56,
+                    "end": 75,
+                    "text": "(Wick et al., 2014)",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 185,
+                    "end": 205,
+                    "text": "(Blake et al., 2012)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data for developmental case studies"
+        },
+        {
+            "text": "The AUC scores of CSAX, FRaC, FRaC + enrichment, LOF, and SVMs on our compendium are shown in Table 1 . Each of the methods performs best on some data set. If we average the AUC scores over all the data sets, FRaC and CSAX are tied for the best performance. Overall, FRaC has the highest AUC (or is tied for highest AUC) on the largest number of data sets (14). Yet none of FRaC, SVMs, or LOF directly implicates specific gene sets as contributing to the identification of anomalous samples. (FRaC + enrichment does identify gene sets, but the gene sets implicated by FRaC + enrichment are not necessarily the same as those identified by CSAX. Furthermore, anomaly detection accuracy is better with CSAX than with FRaC + enrichment on average and on 19 of 28 compendium data sets.) CSAX also performs well and identifies the gene sets that are most surprisingly dysregulated. These can provide valuable information about the pathways disrupted in the anomalous samples.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 94,
+                    "end": 101,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Detection and characterization of anomalous samples"
+        },
+        {
+            "text": "For example, the ''bild'' data set consists of human mammary epithelial cells in which exogenous oncogenes (either myc, ras, E2F3, b-catenin, or src) are expressed. The src pathway was selected as the anomalous class for the compendium because it had the fewest samples. CSAX's most anomalous pathway across all src samples is ''NCAM signaling for neurite out-growth,'' with a median rank of 2, meaning that this pathway was ranked either first or second in at least half the bagging trials. The next two top pathways, both with median rank 3, were ''Signaling by FGFR'' and ''Downstream signaling of activated FGFR.'' FGFR signaling is mediated by src (Sandilands et al., 2007) . NCAM binds to FGFR-1, and its role in cell migration depends on both FGFR-1 and src activation (Francavilla et al., 2009) , showing that src activation in the anomalous samples produces anomalous gene sets reflecting the direct effects of src expression. These low median rank scores suggest that there is remarkable consistency across the different test samples.",
+            "cite_spans": [
+                {
+                    "start": 653,
+                    "end": 678,
+                    "text": "(Sandilands et al., 2007)",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 776,
+                    "end": 802,
+                    "text": "(Francavilla et al., 2009)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Detection and characterization of anomalous samples"
+        },
+        {
+            "text": "As another example, the ''leukemia'' data set distinguishes between acute myeloid (''normal'') and acute lymphoblastic leukemia (''anomalous'') samples. The top gene set identified by CSAX, with a median rank of 5, is ''Regulation of signaling by CBL.'' CBL, an oncogene known to be translocated or mutated in many acute myeloid leukemias, has more recently been discovered to play a broader role in many myeloid neoplasms (Kales et al., 2010) .",
+            "cite_spans": [
+                {
+                    "start": 423,
+                    "end": 443,
+                    "text": "(Kales et al., 2010)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Detection and characterization of anomalous samples"
+        },
+        {
+            "text": "The variation in performance across the compendium seems to depend strongly on characteristics of individual data sets. For example, on the ''leukemia'' data, where differential expression is known to be substantial and widespread, all five methods perform well, while on the ''diabetes'' data set, known to have only subtle expression differences between the normal and anomalous classes (Mootha et al., 2003) , all methods perform poorly. We would like the ability to predict which anomalous expression patterns should be detectable by these methods. Accordingly, we sought to characterize the difficulty of each compendium data set.",
+            "cite_spans": [
+                {
+                    "start": 389,
+                    "end": 410,
+                    "text": "(Mootha et al., 2003)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "How hard is an anomaly detection task?"
+        },
+        {
+            "text": "We found no reliable way to characterize the difficulty of a data set using only the training data. Given our compendium of gold-standard data, however, we can still learn about characteristics of solvable problems using what we know about the test data. We can then apply this information to help us predict the utility of anomaly detection in applications where we don't know the right answer.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "How hard is an anomaly detection task?"
+        },
+        {
+            "text": "We discovered that the ratio between the median distance separating the training data from an anomalous example and the median distance between the training data and a test-set normal example is an excellent predictor of the eventual performance of an anomaly detector, regardless of which anomaly detector we use. We refer to this measure as the relative anomaly aggregate distance (RAAD). Formally,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "How hard is an anomaly detection task?"
+        },
+        {
+            "text": "where X is the training set, Q a are the test set anomalous instances, Q n are the test set normal instances, and jxqj indicates the vector distance between a training and test set instance (i.e., each gene's expression is one component of a high-dimensional vector). We use the l 1 norm (''Manhattan'' distance) when computing vector distance because it is intuitive-the total distance is the sum of differences in gene One-class SVMs (Sch\u00f6lkopf et al., 2000) , LOF (Breunig et al., 2000) , FRaC (Noto et al., 2011) , FRaC + enrichment (as defined in the text), and CSAX. A different random subset of the normal class is chosen as the training data for each replicate. ''Best AUC'' shows a count of the number of data sets in which the method has or is tied for the highest AUC of the five (shown in boldface). ''Average AUC'' averages the AUC scores over all the data sets for that method. We also include the RAAD score for each set (see section 3.2).",
+            "cite_spans": [
+                {
+                    "start": 436,
+                    "end": 460,
+                    "text": "(Sch\u00f6lkopf et al., 2000)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 467,
+                    "end": 489,
+                    "text": "(Breunig et al., 2000)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 497,
+                    "end": 516,
+                    "text": "(Noto et al., 2011)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "How hard is an anomaly detection task?"
+        },
+        {
+            "text": "NOTO ET AL.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "408"
+        },
+        {
+            "text": "expression between two microarrays. The scatterplot in Figure 2 shows the relationship between RAAD and performance using FRaC. In real applications, where the test data labels are unknown, clinicians' intuition about the degree of expression variation one might expect among the normal class and among the types of envisioned anomalies can be used to estimate whether anomaly detection methods are likely to be helpful. Further, a small test set can be used to estimate the RAAD score, helping to determine the value of obtaining and analyzing additional samples.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 55,
+                    "end": 63,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "408"
+        },
+        {
+            "text": "We applied CSAX to the developmental data sets described in section 2.4. The RAAD scores for the preterm and amniotic fluid data sets were 1.045 and 0.98, respectively. We therefore suspected that it would be impossible to predict abnormalities accurately given the normal amniotic fluid data, and that the presence of preterm complications could be predicted with only moderate accuracy. This hypothesis proved correct. The preterm data set had a CSAX AUC of 0.606 (compared to 0.580, 0.498, and 0.574 with LOF, SVM, and FRaC, respectively); the amniotic fluid data, a CSAX AUC of 0.534 (compared to 0.572, 0.534, and 0.540 with LOF, SVM, and FRaC, respectively). Yet despite the limited overall prediction accuracy, we found the gene sets CSAX highlighted for individuals or groups of samples to be very informative. 3.3.1. Blood from preterm neonates. Only a single neonatal sample had retinopathy of prematurity (ROP) but no other complications. The top gene sets in this sample, with median ranks of 1 and 2 respectively, were ''platelet degranulation'' and ''platelet activation.'' ROP, which can lead to vision defects and even blindness, is caused by disordered retinal vascularization. There is an ongoing debate in the literature about whether platelets play a role in the pathogenesis of ROP and what that role might be ( Jensen et al., 2011; Vinekar et al., 2010) . Our observation of disrupted expression relationships among genes involved in platelet activation in an individual with ROP may provide valuable evidence about the molecular mechanisms of this process. Our samples also included 14 infants with periventricular leukomalacia (PVL), a type of ischemic brain injury that can lead to cerebral palsy. Glutamate-mediated defects in calcium signaling play a significant role in oligodendrocyte damage in PVL (Butt, 2006) and offer the potential for protective therapeutic intervention (Follett et al., 2004) . CSAX highlighted dysregulation of calcium signaling or homeostasis pathways in six individuals with PVL. Such analyses may not only confirm the role of these pathways, but could identify individuals who might be candidates for treatments targeting this process.",
+            "cite_spans": [
+                {
+                    "start": 1331,
+                    "end": 1353,
+                    "text": "( Jensen et al., 2011;",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1354,
+                    "end": 1375,
+                    "text": "Vinekar et al., 2010)",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 1828,
+                    "end": 1840,
+                    "text": "(Butt, 2006)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1905,
+                    "end": 1927,
+                    "text": "(Follett et al., 2004)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case studies on fetal and neonatal samples"
+        },
+        {
+            "text": "3.3.2. Amniotic fluid in aneuploidy and maternal obesity. In the amniotic fluid data set, overall AUC is no better than chance, and indeed CSAX is not the best predictor. The poor RAAD and AUC scores for this data set make sense because the controls are highly variable, including samples collected over a period of more than 6 years. Nonetheless, the gene sets describing the abnormal samples appear to be informative.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Case studies on fetal and neonatal samples"
+        },
+        {
+            "text": "The most dysregulated pathway over all abnormal samples together was ''regulation of chromosome segregation,'' a fitting summary of a data set where 16 of 38 abnormal samples were from fetuses with chromosomal aneupoidy. The most dysregulated pathways in trisomy 21 samples relate to neural development, heart development, and vision; Down syndrome patients are known to have developmental abnormalities in all these systems (Korenberg et al., 1990; McCullough et al., 2013) . In trisomy 18, tooth development, immune processes, and glucocorticoid metabolism were among the top ten gene sets, again consistent with prior knowledge about the phenotype (Pont et al., 2006; Turner and O'Herlihy, 1984; Van Dyke and Allen, 1990 ).",
+            "cite_spans": [
+                {
+                    "start": 425,
+                    "end": 449,
+                    "text": "(Korenberg et al., 1990;",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 450,
+                    "end": 474,
+                    "text": "McCullough et al., 2013)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 651,
+                    "end": 670,
+                    "text": "(Pont et al., 2006;",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 671,
+                    "end": 698,
+                    "text": "Turner and O'Herlihy, 1984;",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 699,
+                    "end": 723,
+                    "text": "Van Dyke and Allen, 1990",
+                    "ref_id": "BIBREF51"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case studies on fetal and neonatal samples"
+        },
+        {
+            "text": "The impact of maternal obesity on fetal development is an active area of research. The top two gene sets implicated by CSAX in these samples overall are ''stem cell development'' and ''stem cell differentiation.'' Also highly ranked are ''glucose metabolic process'' and several gene sets pertaining to nervous system development, including neuronal stem cell maintenance and Notch signaling. Dysregulation of neural stem cells has been noted in the fetal brains of mice fed a high-fat diet (Niculescu and Lupu, 2009; Stachowiak et al., 2013) . Additionally, expression of genes involved in Notch signaling, required for neural stem cell development, is known to be disrupted in the brains of offspring of mice fed high fat diets (Yu et al., 2014) .",
+            "cite_spans": [
+                {
+                    "start": 491,
+                    "end": 517,
+                    "text": "(Niculescu and Lupu, 2009;",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 518,
+                    "end": 542,
+                    "text": "Stachowiak et al., 2013)",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 730,
+                    "end": 747,
+                    "text": "(Yu et al., 2014)",
+                    "ref_id": "BIBREF54"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case studies on fetal and neonatal samples"
+        },
+        {
+            "text": "In individual samples we see different processes coming to the fore. One sample featured disruption of lipid and cholesterol transport pathways; in another, axonogenesis was most affected. In two other samples, the top pathways implicated oxidative stress and inflammation. The original analysis of the samples from obese and lean mothers (Edlow et al., 2014) noted that Apolipoprotein D (APOD) is the most upregulated gene in fetuses of obese women. The ApoD protein has been demonstrated to regulate inflammatory response (Do Carmo et al., 2008) and to exert neuroprotective and neurotrophic effects in a rodent model of excitotoxic brain injury, possibly by protecting against oxidative stress (He et al., 2009; Franz et al., 1999; Bajo-Graneras et al., 2011) . However, until now, the link between increased expression of APOD and increased oxidative stress in second trimester fetuses of obese women has been only speculative; traditional analyses of these same samples sought but did not find evidence of this connection. Our novel observation may shed light on molecular mechanisms underlying the increased expression of APOD noted in these fetuses, demonstrating how CSAX may provide new insights into the molecular etiology of pathological conditions.",
+            "cite_spans": [
+                {
+                    "start": 339,
+                    "end": 359,
+                    "text": "(Edlow et al., 2014)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 524,
+                    "end": 547,
+                    "text": "(Do Carmo et al., 2008)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 697,
+                    "end": 714,
+                    "text": "(He et al., 2009;",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 715,
+                    "end": 734,
+                    "text": "Franz et al., 1999;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 735,
+                    "end": 762,
+                    "text": "Bajo-Graneras et al., 2011)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case studies on fetal and neonatal samples"
+        },
+        {
+            "text": "Finally, because maternal BMI is positively correlated with maternal systemic, placental, and neonatal inflammation (Aye et al., 2014) , and increased age also correlates positively with systemic inflammation (Franceschi et al., 2000) , we reviewed these two patients' clinical characteristics. These two samples are from the patient with the highest maternal age (46 in a cohort with age range 31-46) and one with unusually high BMI (39.5; cohort BMI range: 30.47-39.71). These results strongly suggest that CSAX is identifying valid characteristics of particular samples.",
+            "cite_spans": [
+                {
+                    "start": 116,
+                    "end": 134,
+                    "text": "(Aye et al., 2014)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 209,
+                    "end": 234,
+                    "text": "(Franceschi et al., 2000)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case studies on fetal and neonatal samples"
+        },
+        {
+            "text": "NOTO ET AL.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "410"
+        },
+        {
+            "text": "We have shown that it is often possible to detect and characterize anomalous expression data given training data from normal samples only, and that the two methods designed with expression data in mind perform best, albeit with different strengths. FRaC learns reliable relationships between genes' expression patterns from the training data, and identifies anomalies when these patterns break down. This method is therefore entirely data-driven; it does not rely on prior knowledge about gene sets. Yet it makes sense that many clinically important conditions would be characterized by a breakdown in the expected relationships between genes' expression patterns. So it is perhaps not surprising that FRaC is particularly effective.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "On average, CSAX is about as accurate as FRaC (Table 1) , but it has two very important differences: it identifies gene sets that may help to explain the nature of each anomaly, and it uses fewer gene expression features in its predictions (because of the discount parameter c in Eq. 2), instead gaining power from using known gene sets to integrate prior knowledge about gene relationships into the anomaly detection process. We find it revealing that CSAX also outperforms the simple combination of running enrichment analysis on the FRaC anomaly scores (''FRaC + enrichment''). This result suggests that CSAX's bagging and weighting steps succeed in providing the desired robustness.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 46,
+                    "end": 55,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "The identification of gene sets with known functional roles associated with an abnormal sample is one of the primary goals of our work. It provides insight into the nature of the abnormality, and allows experts to follow up by ordering relevant tests. The fact that the performance of CSAX is comparable to that of FRaC while using fewer genes is evidence that the gene sets identified by our method are indeed relevant, because in general the use of fewer features hurts performance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We also observed that performance depends less on the computational method used than on the difficulty of the data set itself. While the RAAD score is useful for characterizing the difficulty of anomalies whose classification is already known, in most cases such data will not be available. Thus, clinical intuition about the nature of anticipated anomalies will need to come into play. If the anomalous samples are likely to be no more different from the normal samples than the normal samples are from each other, no method is likely to succeed. Prior knowledge about expression variability and heterogeneity of the samples under consideration is expected to be helpful here.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We note that as the cost of sequencing continues to decrease, genome-wide studies of expression are shifting away from microarrays toward RNA-seq approaches. However, there is no reason that CSAX cannot be applied in an RNA-seq setting. Indeed, it might be even more powerful, as changes in the relative abundance of different isoforms can be integrated into the analysis. Future work should therefore include demonstrating CSAX's power to identify systematic anomalies in RNA-seq data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Overall, we have demonstrated that in many biomedically interesting cases, it is indeed possible to identify and characterize individual anomalous samples from their expression patterns. Such one-of-a-kind analyses are crucial steps as we move toward the era of precision medicine.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Increasing maternal body mass index is associated with systemic inflammation in the mother and the activation of distinct placental inflammatory pathways",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Aye",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lager",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Ramirez",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Biol. Reprod",
+            "volume": "90",
+            "issn": "",
+            "pages": "949--960",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "The Gene Ontology: enhancements for 2012",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Blake",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Dolan",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Drabkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Nucleic Acids Research",
+            "volume": "40",
+            "issn": "",
+            "pages": "559--64",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "LOF: identifying density-based local outliers",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Breunig",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kriegel",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "ACM SIGMOD Record",
+            "volume": "29",
+            "issn": "",
+            "pages": "93--104",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Neurotransmitter-mediated calcium signalling in oligodendrocyte physiology and pathology",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Butt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Glia",
+            "volume": "54",
+            "issn": "",
+            "pages": "666--675",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Anomaly detection: A survey",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Chandola",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Banerjee",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "ACM Comput. Surv",
+            "volume": "41",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "LIBSVM: A library for support vector machines",
+            "authors": [
+                {
+                    "first": "C.-C",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-J",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Reactome: a database of reactions, pathways and biological processes",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Croft",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "O&apos;kelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Nucleic Acids Res",
+            "volume": "39",
+            "issn": "",
+            "pages": "691--697",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Neuroprotective effect of apolipoprotein D against human coronavirus OC43-induced encephalitis in mice",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Do Carmo",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Jacomy",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Talbot",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Rassart",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Neurosci",
+            "volume": "28",
+            "issn": "",
+            "pages": "10330--10338",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Small sample issues for microarray-based classification",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Dougherty",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Comp. Funct. Genomics",
+            "volume": "2",
+            "issn": "",
+            "pages": "28--34",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Maternal obesity affects fetal neurodevelopmental and metabolic gene expression: A pilot study",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Edlow",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Vora",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PLoS One",
+            "volume": "9",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Glutamate receptor-mediated oligodendrocyte toxicity in periventricular leukomalacia: a protective role for topiramate",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Follett",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Deng",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Dai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "J. Neurosci",
+            "volume": "24",
+            "issn": "",
+            "pages": "4412--4420",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "The binding of ncam to fgfr1 induces a specific cellular response mediated by receptor trafficking",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Francavilla",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Cattaneo",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Berezin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Cell. Biol",
+            "volume": "187",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Inflamm-aging. An evolutionary perspective on immunosenescence",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Franceschi",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bonafe",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Valensin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Ann. N. Y. Acad. Sci",
+            "volume": "908",
+            "issn": "",
+            "pages": "244--254",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Increased expression of apolipoprotein D following experimental traumatic brain injury",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Franz",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Reindl",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Patel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. Neurochem",
+            "volume": "73",
+            "issn": "",
+            "pages": "1615--1625",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Discrete nonparametric algorithms for outlier detection with genomic data",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Ghosh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Biopharm. Stat",
+            "volume": "20",
+            "issn": "",
+            "pages": "193--208",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Converting a breast cancer microarray signature into a highthroughput diagnostic test",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Glas",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Floore",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Delahaye",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Genomics",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Apolipoprotein D modulates F2-isoprostane and 7-ketocholesterol formation and has a neuroprotective effect on organotypic hippocampal cultures after kainate-induced excitotoxic injury",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "He",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Jittiwat",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Kim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Neurosci. Lett",
+            "volume": "455",
+            "issn": "",
+            "pages": "183--186",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "The amniotic fluid transcriptome: a source of novel information about human fetal development",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Slonim",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wick",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Obstet. Gynecol",
+            "volume": "119",
+            "issn": "",
+            "pages": "111--119",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Global gene expression analysis of amniotic fluid cell-free RNA from recipient twins with twin-twin transfusion syndrome",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Wick",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Moise",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Prenat. Diagn",
+            "volume": "33",
+            "issn": "",
+            "pages": "873--883",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Thrombocytopenia and retinopathy of prematurity",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Jensen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Ying",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J AAPOS",
+            "volume": "15",
+            "issn": "",
+            "pages": "3--4",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Cbl and human myeloid neoplasms: the Cbl oncogene comes of age",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kales",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Ryan",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Nau",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Cancer Res",
+            "volume": "70",
+            "issn": "",
+            "pages": "4789--94",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "A comparison of methods for data-driven cancer outlier discovery, and an application scheme to semisupervised predictive biomarker discovery",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Karrila",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Tucker-Kellogg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Cancer Inform",
+            "volume": "10",
+            "issn": "",
+            "pages": "109--129",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Anomaly detection in gene expression via stochastic models of gene regulatory networks",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Gelenbe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "BMC Genomics",
+            "volume": "10",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Transcriptomic analysis of cell-free fetal RNA suggests a specific molecular phenotype in trisomy 18",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Koide",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Slonim",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Hum. Genet",
+            "volume": "129",
+            "issn": "",
+            "pages": "295--305",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Down syndrome: toward a molecular definition of the phenotype",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Korenberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kawashima",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Pulst",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Am. J. Med. Genet. Suppl",
+            "volume": "7",
+            "issn": "",
+            "pages": "91--97",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "PADGE: analysis of heterogeneous patterns of differential gene expression",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Chaudhuri",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Chant",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Tang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Physiol. Genomics",
+            "volume": "32",
+            "issn": "",
+            "pages": "154--159",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Expression monitoring by hybridization to high-density oligonucleotide arrays",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Lockhart",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Dong",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Byrne",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Nature Biotech",
+            "volume": "14",
+            "issn": "",
+            "pages": "1675--80",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Amniotic fluid RNA gene expression profiling provides insights into the phenotype of Turner syndrome",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Massingham",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Johnson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Scholl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Hum. Genet",
+            "volume": "133",
+            "issn": "",
+            "pages": "1075--1082",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Higher order aberrations in children with Down syndrome",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Mccullough",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Little",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Saunders",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Invest. Ophthalmol. Vis. Sci",
+            "volume": "54",
+            "issn": "",
+            "pages": "1527--1535",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Personalized medicine: the road ahead",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Mehta",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Jain",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Badve",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Clin. Breast Cancer",
+            "volume": "11",
+            "issn": "",
+            "pages": "20--26",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Improving genome annotations using phylogenetic profile anomaly detection",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Mikkelsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Galagan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mesirov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "464--70",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "PGC-1alpha-responsive genes involved in oxidative phosphorylation are coordinately downregulated in human diabetes",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Mootha",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Lindgren",
+                    "suffix": ""
+                },
+                {
+                    "first": "K.-F",
+                    "middle": [],
+                    "last": "Eriksson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nat. Genet",
+            "volume": "34",
+            "issn": "",
+            "pages": "267--73",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "GTI: a novel algorithm for identifying outlier gene expression profiles from integrated microarray datasets",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Mpindi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Sara",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Haapa-Paananen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "PLoS ONE",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "High fat diet-induced maternal obesity alters fetal hippocampal development",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Niculescu",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Lupu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Int. J. Dev. Neurosci",
+            "volume": "27",
+            "issn": "",
+            "pages": "627--633",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Anomaly detection using an ensemble of feature models",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Noto",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Brodley",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Slonim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 10th IEEE International Conference on Data Mining (ICDM 2010)",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "FRaC: A feature-modeling approach for semi-supervised and unsupervised anomaly detection",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Noto",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Brodley",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Slonim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Data Min. Knowl. Discov",
+            "volume": "25",
+            "issn": "",
+            "pages": "109--133",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Gene expression profiling in preterm infants: new aspects of bronchopulmonary dysplasia development",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Pietrzyk",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Kwinta",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wollen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "PLoS ONE",
+            "volume": "8",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Congenital malformations among liveborn infants with trisomies 18 and 13",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Pont",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Robbins",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Bird",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Am. J. Med. Genet. A",
+            "volume": "140",
+            "issn": "",
+            "pages": "1749--1756",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Src kinase modulates the activation, transport and signalling dynamics of fibroblast growth factor receptors",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Sandilands",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Akbarzadeh",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vecchione",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "EMBO Reports",
+            "volume": "8",
+            "issn": "",
+            "pages": "1162--1169",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Quick and simple: quality control of microarray data",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Sauer",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Preininger",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Hany-Schmatzberger",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "1572--1598",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "New support vector algorithms",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Sch\u00f6lkopf",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Smola",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Williamson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Neural Comput",
+            "volume": "12",
+            "issn": "",
+            "pages": "1207--1245",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "A DNA micro-array system for analyzing complex DNA samples using twocolor fluorescent probe hybridization",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Shalon",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Brown",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Gen. Res",
+            "volume": "6",
+            "issn": "",
+            "pages": "639--684",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "From patterns to pathways: gene expression data analysis comes of age",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Slonim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Nat. Genet",
+            "volume": "32",
+            "issn": "",
+            "pages": "502--508",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Functional genomic analysis of amniotic fluid cell-free mrna suggests that oxidative stress is significant in down syndrome fetuses",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Slonim",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Koide",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "PNAS",
+            "volume": "106",
+            "issn": "",
+            "pages": "9425--9429",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Signal detection theory: Valuable tools for evaluating inductive learning",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Spackman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Proceedings of the Sixth International Workshop on Machine Learning",
+            "volume": "",
+            "issn": "",
+            "pages": "160--163",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Maternal obesity affects gene expression and cellular development in fetal brains",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Stachowiak",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Oommen",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Vasu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Nutr. Neurosci",
+            "volume": "16",
+            "issn": "",
+            "pages": "96--103",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Gene set enrichment analysis: A knowledge-based approach for interpreting genome-wide expression profiles",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Subramanian",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Tamayo",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Mootha",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proceedings of the National Academy of Sciences",
+            "volume": "102",
+            "issn": "",
+            "pages": "15545--15550",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Recurrent fusion of TMPRSS2 and ETS transcription factor genes in prostate cancer",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Tomlins",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Rhodes",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Perner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Science",
+            "volume": "310",
+            "issn": "",
+            "pages": "644--648",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "Prestige centrality-based functional outlier detection in gene expression analysis",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Torkamani",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Schork",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Bioinformatics",
+            "volume": "25",
+            "issn": "",
+            "pages": "2222--2228",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Adrenal hypofunction and trisomy 18",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Turner",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Herlihy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1984,
+            "venue": "Obstet. Gynecol",
+            "volume": "63",
+            "issn": "",
+            "pages": "84--85",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "Significance analysis of microarrays applied to the ionizing radiation response",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Tusher",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Tibshirani",
+                    "suffix": ""
+                },
+                {
+                    "first": "Chu",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "PNAS",
+            "volume": "98",
+            "issn": "",
+            "pages": "5116--5121",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Clinical management considerations in long-term survivors with trisomy 18",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Van Dyke",
+                    "suffix": ""
+                },
+                {
+                    "first": "Allen",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "Pediatrics",
+            "volume": "85",
+            "issn": "",
+            "pages": "753--759",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Do platelets have a role in the pathogenesis of aggressive posterior retinopathy of prematurity?",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vinekar",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Hegde",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Gilbert",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Retina",
+            "volume": "30",
+            "issn": "",
+            "pages": "20--23",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "DFLAT: functional annotation for human development",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Wick",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Drabkin",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ngu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "BMC Bioinformatics",
+            "volume": "15",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Maternal high-fat diet affects Msi/Notch/Hes signaling in neural stem cells of offspring mice",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "J. Nutr. Biochem",
+            "volume": "25",
+            "issn": "",
+            "pages": "227--231",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "FIG. 1. To create an anomaly detection task from a microarray study with two classes of samples, A and B, we randomly select a portion of the A samples for the test set and use the remainder for training. The task is then to identify samples from class B after training on samples from class A alone.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "A scatterplot comparing relative anomaly aggregate distance (RAAD) with test set performance over the 28 compendium data sets (each shown in its own color). Points show 20 replicates (random selection of training/test samples) for each data set. Horizontal and vertical lines show an area under the curve (AUC) of 0.5 (random guessing) and a RAAD of 1.0 (normal and anomalous instances equidistant), respectively. (Scatter plots showing individual data sets are available in the Supplementary Material.)",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "The Average AUC over 20 Replicate Experiments of Five Anomaly Detection Methods on the Tasks in Our Compendium",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This research was supported by awards R01-HD-058880 and R01-HD-076140 from the Eunice Kennedy Shriver National Institute of Child Health and Human Development. The content is solely the responsibility of the authors and does not necessarily reflect the views of the NICHD or the National Institutes of Health. Additional support was provided by a Senior Faculty Research Fellowship from Tufts University. The authors thank Pablo Tamayo, George Steinhardt, and Arthur Liberzon for the data behind many of the compendium data sets, and Stan Letovsky and Jill Mesirov for feedback on earlier versions of this work.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGMENTS"
+        },
+        {
+            "text": "No competing financial interests exist.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "AUTHOR DISCLOSURE STATEMENT"
+        }
+    ]
+}

@@ -1,0 +1,1909 @@
+{
+    "paper_id": "a86ca55226a141946ed6f52dc73b3e8f4d9d6fe5",
+    "metadata": {
+        "title": "Semiparametric Relative-risk Regression for Infectious Disease Transmission Data",
+        "authors": [
+            {
+                "first": "Eben",
+                "middle": [],
+                "last": "Kenah",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Florida",
+                    "location": {
+                        "postCode": "326110-7450",
+                        "settlement": "Gainesville",
+                        "region": "FL"
+                    }
+                },
+                "email": "ekenah@ufl.edu"
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "This paper introduces semiparametric relative-risk regression models for infectious disease data. The units of analysis in these models are pairs of individuals at risk of transmission. The hazard of infectious contact from i to j consists of a baseline hazard multiplied by a relative risk function that can be a function of infectiousness covariates for i, susceptibliity covariates for j, and pairwise covariates. When who-infects-whom is observed, we derive a profile likelihood maximized over all possible baseline hazard functions that is similar to the Cox partial likelihood. When whoinfects-whom is not observed, we derive an EM algorithm to maximize the profile likelihood integrated over all possible combinations of who-infected-whom. This extends the most important class of regression models in survival analysis to infectious disease epidemiology. These methods can be implemented in standard statistical software, and they will be able to address important scientific questions about emerging infectious diseases with greater clarity, flexibility, and rigor than current statistical methods allow.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "Keywords",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "Appendices for Section 2 Outline of sufficient conditions for consistency and asymptotic normality (Appendix A) and derivation of the asymptotic variance of baseline hazard estimates (Appendix B).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "We assume that r has continuous first and second derivatives, r(0) = 1, and ln r(\u03b2 T X) is bounded on . Letting r(x) = exp(x) gives us a loglinear relative risk regression model like Kenah",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Infectious diseases are an important threat to human health and commerce, and understanding the transmission of disease is crucial to the design of public health interventions. The statistical analysis of infectious disease data is complicated by the fact that infections are inherently dependent, especially when they are transmitted directly from person to person (Becker, 1989; Andersson and Britton, 2000) . Epidemiologists have dealt with this problem in three ways. The most common approach is to model susceptibility to disease using standard statistical methods such as logistic or Cox regression, ignoring disease transmission. A second approach is to use chain binomial models (Rampey et al., 1992) , which estimate the probability of escaping infectious contact from infected members SUPPLEMENTARY MATERIALS Supplementary material available online at the Journal of the American Statistical Association website includes: of groups such as households, classrooms, or hospital wards. The third approach is to model the spread of disease as a branching process where infectees are the o spring of their infectors (Wallinga and Teunis, 2004; White and Pagano, 2008) . The time between the infections of an infector and an infectee is called a generation interval. In this approach, the generation intervals are assumed to be independent and identically distributed (iid).",
+            "cite_spans": [
+                {
+                    "start": 366,
+                    "end": 380,
+                    "text": "(Becker, 1989;",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 381,
+                    "end": 409,
+                    "text": "Andersson and Britton, 2000)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 687,
+                    "end": 708,
+                    "text": "(Rampey et al., 1992)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1121,
+                    "end": 1148,
+                    "text": "(Wallinga and Teunis, 2004;",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 1149,
+                    "end": 1172,
+                    "text": "White and Pagano, 2008)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "To understand transmission, it is crucial to separate the e ects of covariates on infectiousness and susceptibility from their association with exposure to infected people (Rhodes et al., 1996) . Regression models that ignore transmission cannot do this. When disease transmission is modeled as a branching process, uninfected people do not exist and cannot be exposed to infected people. The failure to account for uninfected person-time and competing risks of infection cause several problems with this approach (Svensson, 2007; Kenah et al., 2008) . The assumption that generation intervals are iid is di cult to relax, making estimation of covariate e ects di cult (Kenah, 2013) . Chain binomial models are a statistically sound response to the problem of dependence and can be used to estimate covariate e ects. However, their use is limited in two ways: First, they are not implemented in standard statistical software-a problem solved partially by the publicly-available package TranStat (www.epimodels.org/midas/transtat.do). Second, they use discrete time.",
+            "cite_spans": [
+                {
+                    "start": 172,
+                    "end": 193,
+                    "text": "(Rhodes et al., 1996)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 514,
+                    "end": 530,
+                    "text": "(Svensson, 2007;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 531,
+                    "end": 550,
+                    "text": "Kenah et al., 2008)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 669,
+                    "end": 682,
+                    "text": "(Kenah, 2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Since infectious disease data are usually recorded by the day or week, this is not unnatural. However, continuous-time models corrected for ties may o er a more flexible modeling framework. Kenah (2011) extended parametric methods from survival analysis to infectious disease data by modeling the contact interval. In the ordered pair ij, the contact interval \u03c4 ij is the time between the onset of infectiousness in i and the first infectious contact from i to j, where infectious contact is a contact sufficient to infect a susceptible individual. It is right-censored if the infectious period of i ends before i makes infectious contact with j or if j is infected by someone other than i. These methods solve the problem of dependence by treating ordered pairs of individuals, not the individuals themselves, as the units of analysis. Kenah (2013) showed that the contact interval distribution could be estimated nonparametrically by adapting the Nelson-Aalen estimator from standard survival analysis. These methods assume a homogeneous population where the contact interval distribution is the same for all pairs ij in which transmission from i to j is possible. They are unable to estimate covariate e ects on transmission, which is a primary goal of vaccine trials, outbreak investigations, and many other studies of infectious disease.",
+            "cite_spans": [
+                {
+                    "start": 190,
+                    "end": 202,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 837,
+                    "end": 849,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "The goal of this paper is to extend the methods of Kenah (2013) to develop a relative-risk regression model similar to that of Cox (1972) . This model will allow semiparametric estimation of the e ects of covariates on the hazard of infectious contact in pairs of individuals. For the ordered pair ij, the covariate vector can include infectiousness covariates for i, susceptibility covariates for j, and pairwise covariates. This semiparametric regression model will allow many of the most important scientific questions in infectious disease epidemiology to be addressed with greater clarity, flexibility, and rigor.",
+            "cite_spans": [
+                {
+                    "start": 51,
+                    "end": 63,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 127,
+                    "end": 137,
+                    "text": "Cox (1972)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Consider a closed population of n individuals assigned indices 1 . . . n. Each individual is in one of four states: susceptible (S), exposed (E), infectious (I), or removed (R). Person i moves from S to E at his or her infection time t i , with t i = \u221e if i is never infected. After infection i has a latent period of length \u03b5 i , during which he or she is infected but not infectious. At time t i + \u03b5 i , i moves from E to I, beginning an infectious period of length i . At time t i + \u03b5 i + l i , i moves from I to R. Once in R, i can no longer infect others or be infected.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic S(E)IR epidemic model"
+        },
+        {
+            "text": "The states and notation are illustrated at the top of Figure 1 . The latent period is a nonnegative random variable, the infectious period is a strictly positive random variable, and both have finite mean and variance.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 54,
+                    "end": 62,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Stochastic S(E)IR epidemic model"
+        },
+        {
+            "text": "An epidemic begins with one or more persons infected from outside the population, which we call imported infections. The methods in this paper require that the set of imported infections is known. For simplicity, we assume that epidemics begin with one or more imported infections at time 0 and there are no other imported infections.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic S(E)IR epidemic model"
+        },
+        {
+            "text": "After becoming infectious at time t i + \u03b5 i , person i makes infectious contact with j \u2260 i at time , where the infectious contact interval is a strictly positive random variable with if infectious contact never occurs. Since infectious contact must occur while i is infectious or never, or . We define infectious contact to be a contact sufficient infect a susceptible person, so t j \u2264 t ij for all i \u2260 j. The infectious contact interval is illustrated at the bottom of Figure 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 470,
+                    "end": 478,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Stochastic S(E)IR epidemic model"
+        },
+        {
+            "text": "For each ordered pair ij, let C ij = 1 if infectious contact from i to j is possible and C ij = 0 otherwise. These C ij could be the entries in an adjacency matrix for a static contact network.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic S(E)IR epidemic model"
+        },
+        {
+            "text": "We assume that the infectious contact interval is generated in the following way: A contact interval \u03c4 ij is drawn from a distribution with hazard function \u03bb ij (\u03c4). If \u03c4 ij \u2264 l i and C ij = 1, then . Otherwise, . In this paper, we assume the contact intervals in all ordered pairs ij are independent and have finite mean and variance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic S(E)IR epidemic model"
+        },
+        {
+            "text": "Our population has size n, and we observe the times of all S \u2192 E (infection), E \u2192 I (onset of infectiousness), and I \u2192 R (removal) transitions in the population between time 0 and time T . For all ordered pairs ij such that i is infected, we observe C ij . We first consider the case where who-infects-whom is observed and then consider the more realistic case where it is not.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observation and censoring"
+        },
+        {
+            "text": "We assume that we can observe \u03c4 ij only if j is infected by i at time t i +\u03b5 i +\u03c4 ij . Clearly, \u03c4 ij can be observed only if C ij = 1. We also have right-censoring of \u03c4 ij :",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observation and censoring"
+        },
+        {
+            "text": "1. Since infectious contact can occur only while i is infectious, \u03c4 ij can be right-censored by the infectious period l i of i. Let indicate whether i remains infectious at infectious age \u03c4.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observation and censoring"
+        },
+        {
+            "text": "2. Since j is susceptible to infection by i only if he or she has not been infected by anyone else, \u03c4 ij can be right-censored by t i\u2032j \u2212 t i \u2212 \u03b5 i for i\u2032 \u2260 i. Let indicate whether j remains susceptible at infectious age \u03c4 of i.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observation and censoring"
+        },
+        {
+            "text": "Let T denote the time at which observation ends. Then \u03c4 ij can be right-censored by the end of observation at infectious age T \u2212 t i \u2212 \u03b5 i of i. Let indicate whether observation is ongoing when i reaches infectious age \u03c4.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observation and censoring"
+        },
+        {
+            "text": ", , and are left-continuous,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Since"
+        },
+        {
+            "text": "is a left-continuous process that indicates the risk of an observed infectious contact from i to j at infectious age \u03c4 of i. The assumptions made in the stochastic S(E)IR model above ensure that and independently censor \u03c4 ij . We also require that T is a stopping time with respect to the observed data such that, for all i, independently censors \u03c4 ij for each j exposed to infectious contact from i. The possible censoring scenarios are illustrated in Figure 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 453,
+                    "end": 461,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Since"
+        },
+        {
+            "text": "Following Wallinga and Teunis (2004) , let v j denote the index of the person who infected person j, with v j = 0 for imported infections and v j = \u221e for persons not infected prior to the end of observation. The transmission tree is the directed network with an edge from v j to j for each j such that t j \u2264 T . It can be represented by a vector v = (v 1 , . . . , v n ). Let denote the set of possible infectors of person j, which we call the infectious set of j. Let denote the set of all v consistent with the observed data. A can be generated by choosing a for each non-imported infection j. Kenah (2013) described the nonparametric estimation of the contact interval distribution for a homogeneous population. Here, we consider a semiparametric relative-risk model like that of Prentice and Self (1983) . Let (2) where \u03bb 0 (\u03c4) is an unspecified baseline hazard function, is a relative risk function, \u03b2 0 is an unknown b \u00d7 1 coefficient vector, and X ij (\u03c4) is a b \u00d7 1 predictable covariate process taking values in a set . The covariates X ij (\u03c4) can include individual-level covariates predicting the infectiousness of i or the susceptibility of j as well as pairwise covariates (e.g., membership in the same household) that predict the hazard of infectious contact from i to j. that of Cox (1972) , and letting r(x) = 1 + x gives us a linear relative risk regression model. To fit these semiparametric models, we adapt the nonparametric estimators from Kenah (2013) to account for the relative risk function.",
+            "cite_spans": [
+                {
+                    "start": 10,
+                    "end": 36,
+                    "text": "Wallinga and Teunis (2004)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 596,
+                    "end": 608,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 783,
+                    "end": 807,
+                    "text": "Prentice and Self (1983)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 814,
+                    "end": 817,
+                    "text": "(2)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1293,
+                    "end": 1303,
+                    "text": "Cox (1972)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1460,
+                    "end": 1472,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Transmission trees and infectious sets"
+        },
+        {
+            "text": "Let N ij (\u03c4) = 1 \u03c4ij \u2264 \u03c4 indicate whether an observed infectious contact from i to j has occurred by infectious age \u03c4 in i, and let . Note that we must observe whoinfected-whom in order to calculate N(\u03c4).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Who-infects-whom is observed"
+        },
+        {
+            "text": ". Given \u03b2, the Breslow estimator (Breslow, 1972) ",
+            "cite_spans": [
+                {
+                    "start": 33,
+                    "end": 48,
+                    "text": "(Breslow, 1972)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "The Breslow estimator has two desirable properties. First, is an unbiased estimator of \u039b 0 (\u03c4). Let (5) Then for all \u03c4 such that Y (\u03c4) > 0, (6) is a mean-zero martingale when \u03b2 = \u03b2 0 . Second, maximizes the log likelihood (7) over all step functions \u039b(\u03c4). Substituting into l(\u03b2, \u039b) profile likelihood (8) where . The first term is similar to the log partial likelihood from Cox (1972) and the second term does not depend on \u03b2. Dropping the second term, let be the log partial likelihood for \u03b2. This derivation of the partial likelihood as a profile likelihood follows that of Johansen (1983) . Let denote the value of \u03b2 that maximizes pl(\u03b2), and let denote the corresponding Breslow estimate of the baseline cumulative hazard.",
+            "cite_spans": [
+                {
+                    "start": 100,
+                    "end": 103,
+                    "text": "(5)",
+                    "ref_id": null
+                },
+                {
+                    "start": 140,
+                    "end": 143,
+                    "text": "(6)",
+                    "ref_id": null
+                },
+                {
+                    "start": 222,
+                    "end": 225,
+                    "text": "(7)",
+                    "ref_id": null
+                },
+                {
+                    "start": 301,
+                    "end": 304,
+                    "text": "(8)",
+                    "ref_id": null
+                },
+                {
+                    "start": 374,
+                    "end": 384,
+                    "text": "Cox (1972)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 585,
+                    "end": 591,
+                    "text": "(1983)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "We can rewrite pl(\u03b2) as a sum of stochastic integrals: (10) The corresponding score process is (11) where (12) is the expected value of over the risk set at u when each pair is weighted by its hazard of infectious contact at u. By the Doob-Meyer decomposition, there is a mean-zero martingale M ij (u) for each ij such that (13) Expanding equation (11) using this decomposition and simplifying, we get (14) Since it is a sum of integrals of predictable processes with respect to martingales, U(\u03b2 0 , \u03c4) is a mean-zero martingale.",
+            "cite_spans": [
+                {
+                    "start": 55,
+                    "end": 59,
+                    "text": "(10)",
+                    "ref_id": null
+                },
+                {
+                    "start": 95,
+                    "end": 99,
+                    "text": "(11)",
+                    "ref_id": null
+                },
+                {
+                    "start": 324,
+                    "end": 328,
+                    "text": "(13)",
+                    "ref_id": null
+                },
+                {
+                    "start": 402,
+                    "end": 406,
+                    "text": "(14)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Partial likelihood score process"
+        },
+        {
+            "text": "Let for a column vector v. Since the N ij (\u03c4) do not jump simultaneously in continuous time, the predictable variation process of U(\u03b2 0 , \u03c4) is (15) where Kenah Page 6 J Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "cite_spans": [
+                {
+                    "start": 144,
+                    "end": 148,
+                    "text": "(15)",
+                    "ref_id": null
+                },
+                {
+                    "start": 155,
+                    "end": 160,
+                    "text": "Kenah",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Observed and expected information"
+        },
+        {
+            "text": "is the variance of over the risk set at u when each pair ij is weighted by its hazard of infectious contact at u.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observed and expected information"
+        },
+        {
+            "text": "be the observed information. Then (17) Expanding I(\u03b2 0 ) via the Doob-Meyer decomposition (13) and simplifying, we get (18) The second term has expectation zero, so I(\u03b2 0 ) is an unbiased estimate of Var(U(\u03b2 0 , \u221e)).",
+            "cite_spans": [
+                {
+                    "start": 34,
+                    "end": 38,
+                    "text": "(17)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "Another estimate Var(U(\u03b2 0 , \u221e)) is obtained by substituting the increments of the Breslow estimator (3) for \u03bb 0 (u) du in equation (15). This gives us the estimated expected information (19) Expanding using the Doob-Meyer decomposition and simplifying, we get (20) where . The second term has expectation zero, so is also an unbiased estimate of the variance of U(\u03b2 0 , \u221e). may be a better estimator of Var(U(\u03b2 0 , \u221e)) than I(\u03b2 0 ) because it is guaranteed to be positive semidefinite (Prentice and Self, 1983) and it depends only on aggregates over risk sets (Aalen et al., 2009 ).",
+            "cite_spans": [
+                {
+                    "start": 187,
+                    "end": 191,
+                    "text": "(19)",
+                    "ref_id": null
+                },
+                {
+                    "start": 261,
+                    "end": 265,
+                    "text": "(20)",
+                    "ref_id": null
+                },
+                {
+                    "start": 486,
+                    "end": 511,
+                    "text": "(Prentice and Self, 1983)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 561,
+                    "end": 580,
+                    "text": "(Aalen et al., 2009",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "When r(x) = exp(x) as in the Cox model, for all \u03b2. For general r(x), I(\u03b2 0 ) and are asymptotically equivalent under weak regularity conditions (see Appendix A online).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "Appendix A, available online, outlines sufficient conditions for the asymptotic normality of U(\u03b2 0 , \u03c4) and as m \u2192 \u221e, where m is the number of pairs ij at risk of transmission. Under these conditions, hypothesis tests and confidence intervals for \u03b2 0 can be obtained using score, Wald, or likelihood ratio statistics. These conditions are very similar to those for the standard Cox model (Prentice and Self, 1983 ) except for the additional requirement that both the number of susceptibles and the number of pairs be large such that each susceptible is exposed to a number of infectors < < m. When a given susceptible j is infected, all pairs ij are censored. If there were many pairs but few susceptibles, each susceptible would be exposed to a very high hazard of infection and most pairs would be censored very quickly. To take an extreme case, imagine a single susceptible exposed to m infecteds. The number of pairs at risk of transmission is m but the susceptible will be infected almost immediately when m is large. After this, there are no more pairs at risk of transmission and we can learn nothing further about \u03b2 0 or \u039b 0 (\u03c4).",
+            "cite_spans": [
+                {
+                    "start": 388,
+                    "end": 412,
+                    "text": "(Prentice and Self, 1983",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Large-sample estimation of \u03b2 0 and \u039b 0 (\u03c4)"
+        },
+        {
+            "text": "Given the Breslow estimator of . Its variance is consistently estimated by (21) which is derived in Appendix B.1.",
+            "cite_spans": [
+                {
+                    "start": 75,
+                    "end": 79,
+                    "text": "(21)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Large-sample estimation of \u03b2 0 and \u039b 0 (\u03c4)"
+        },
+        {
+            "text": "can be replaced by . Using the martingale central limit theorem and a log transformation, we get the approximate pointwise 1 \u2212 \u03b1 confidence limits (22) Point and interval estimates for the baseline survival function can be obtained using the relationship S 0 (\u03c4) = exp (\u2212 \u039b 0 (\u03c4)",
+            "cite_spans": [
+                {
+                    "start": 147,
+                    "end": 151,
+                    "text": "(22)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Large-sample estimation of \u03b2 0 and \u039b 0 (\u03c4)"
+        },
+        {
+            "text": "When we do not observe who-infected-whom, we do not know which contact intervals are observed and which are censored. It impossible to calculate the partial likelihood pl(\u03b2) or the Breslow estimate . In this section, we show how an EM algorithm similar to that of Kenah (2013) can be used to obtain consistent and asymptotically normal estimates of \u03b2 0 and \u039b 0 (\u03c4).",
+            "cite_spans": [
+                {
+                    "start": 181,
+                    "end": 197,
+                    "text": "Breslow estimate",
+                    "ref_id": null
+                },
+                {
+                    "start": 264,
+                    "end": 276,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Who-infects-whom is not observed"
+        },
+        {
+            "text": "Given \u03b2, \u03bb(\u03c4), and the observed information, the probability that j was infected by i is and the infectors of different infected persons can be chosen independently (Kenah et al., 2008) . The probability of a transmission network v = (v 1 , . . . , v n ) given \u03b2, \u03bb(\u03c4), and the observed data is (24) Note that the last two equations assume a continuous contact interval distribution, so simultaneous infectious contacts have probability zero.",
+            "cite_spans": [
+                {
+                    "start": 165,
+                    "end": 185,
+                    "text": "(Kenah et al., 2008)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 295,
+                    "end": 299,
+                    "text": "(24)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Who-infects-whom is not observed"
+        },
+        {
+            "text": "Let pl v (\u03b2) be the log partial likelihood that we would have calculated had we observed the transmission network v. Given a coefficient vector \u03b2 * and a baseline hazard function \u03bb * (\u03c4), the expected log likelihood is The marginal Breslow estimate given \u03b2 * and \u03bb * (\u03c4) is (27) where .",
+            "cite_spans": [
+                {
+                    "start": 274,
+                    "end": 278,
+                    "text": "(27)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Who-infects-whom is not observed"
+        },
+        {
+            "text": "For the relative risk function r(x) = exp(x), the expected log partial likelihood is the log partial likelihood of a weighted Cox regression model (Therneau and Grambsch, 2000) with two copies of each pair ij: an uncensored copy with weight p ij (\u03b2 * , \u03bb * ) and a censored copy with weight 1 \u2212 p ij (\u03b2 * , \u03bb * ). The baseline hazard estimate from this model is the marginal Breslow estimate , where .",
+            "cite_spans": [
+                {
+                    "start": 147,
+                    "end": 176,
+                    "text": "(Therneau and Grambsch, 2000)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Who-infects-whom is not observed"
+        },
+        {
+            "text": "When who-infects-whom is not observed, the semiparametric regression model can be fit using the ECM algorithm of Meng and Rubin (1993) , which is an extension of the EM algorithm of Dempster et al. (1977) . In each iteration, we first estimate \u03b2 0 using the expected log partial likelihood and then calculate the marginal Breslow estimator of \u039b 0 (\u03c4). We use these new estimates to re-weight the possible v. The entire process is described in Algorithm 1. Algorithm 1 ECM algorithm for semiparametric estimation of \u03b2 0 and \u039b 0 (\u03c4).",
+            "cite_spans": [
+                {
+                    "start": 113,
+                    "end": 134,
+                    "text": "Meng and Rubin (1993)",
+                    "ref_id": null
+                },
+                {
+                    "start": 182,
+                    "end": 204,
+                    "text": "Dempster et al. (1977)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "EM algorithm"
+        },
+        {
+            "text": "To show that this is an ECM algorithm, we must show that the CM1 and CM2 steps are conditional maximizations of the expected log likelihood. The CM1 step is a conditional maximization by definition, so it remains to show that the CM2 step is a conditional maximization. Given a coefficient vector \u03b2 * and a hazard function \u03bb * , the expected log likelihood is (28) Differentiating with respect to d\u039b(t j \u2212 t i \u2212 \u03b5 i ) for each i and j shows that, for a fixed \u03b2, l\u03b2 * , \u03bb * (\u03b2, \u039b) is maximized over all step functions \u039b(\u03c4) by setting (29) exactly as in the marginal Breslow estimator . Therefore, Algorithm 1 is an ECM algorithm. When it is known that \u03b2 = 0, it reduces to the EM algorithm in Kenah (2013) . Therefore, the convergence of both \u03b2 (k) and \u039b (k) (\u03c4) should be monitored.",
+            "cite_spans": [
+                {
+                    "start": 360,
+                    "end": 364,
+                    "text": "(28)",
+                    "ref_id": null
+                },
+                {
+                    "start": 533,
+                    "end": 537,
+                    "text": "(29)",
+                    "ref_id": null
+                },
+                {
+                    "start": 692,
+                    "end": 704,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "EM algorithm"
+        },
+        {
+            "text": "Let denote the estimate of \u03b2 0 to which the ECM algorithm converges, and let denote the corresponding estimate of \u03bb 0 (\u03c4). Let U v (\u03c4, \u03b2) and I v (\u03b2) denote the score and the observed information that we would have calculated had we observed the transmission network v. Using the methods of Louis (1982) , the observed information is (30) where denotes an expectation taken under the assumption that the true coefficient vector is \u03b2 and the true baseline hazard function is \u03bb(\u03c4). The first term in (30) is (31) where",
+            "cite_spans": [
+                {
+                    "start": 291,
+                    "end": 303,
+                    "text": "Louis (1982)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 334,
+                    "end": 338,
+                    "text": "(30)",
+                    "ref_id": null
+                },
+                {
+                    "start": 506,
+                    "end": 510,
+                    "text": "(31)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Large-sample estimation of \u03b2 0"
+        },
+        {
+            "text": ". This is the observed information matrix from a weighted regression model where each ij has an uncensored copy with weight and a censored copy with weight 1 \u2212 . To evaluate the second term in (30), let where \u00d1 .j (u) = \u03a3 i\u2260j \u00d1 .j (u). Using the martingale central limit theorem and a log transformation, we get the approximate pointswise 1 \u2212 \u03b1 confidence limits (36) Point and interval estimates for the baseline survival function can be obtained using the relationship S 0 (\u03c4) = exp (\u2212 \u039b 0 (\u03c4)",
+            "cite_spans": [
+                {
+                    "start": 363,
+                    "end": 367,
+                    "text": "(36)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Large-sample estimation of \u03b2 0"
+        },
+        {
+            "text": "The performance of the methods from Section 2 was tested with a series of 12000 networkbased epidemic simulations. All epidemics took place on a Watts-Strogatz small-world network (Watts and Strogatz, 1998) , which mimics the high clustering and low diameter of real human contact networks. Starting with a ring of 50000 nodes, each node was connected to its 10 nearest neighbors and each edge was rewired to a randomly chosen node with probability 0.1. A new contact network was built for each simulation.",
+            "cite_spans": [
+                {
+                    "start": 180,
+                    "end": 206,
+                    "text": "(Watts and Strogatz, 1998)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SIMULATIONS"
+        },
+        {
+            "text": "All epidemic models were written in Python 2.7 (www.python.org) using the packages NetworkX 1.6 (networkx.lanl.gov), NumPy 1.6, and SciPy 0.9 (www.scipy.org). Statistical analysis was done in in R 2.15 (www.r-project.org) via the Rpy2 2.2 package (rpy.sourceforge.net). The code for the models is available as Online Supplementary Information.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SIMULATIONS"
+        },
+        {
+            "text": "The transmission model had a latent period of zero and an exponential infectious period with mean one. The baseline contact interval distribution was Weibull(\u03b1, \u03b3), where \u03b1 is the shape parameter and \u03b3 is the rate parameter. 6000 simulations had a Weibull(0.5, 0.2) distribution, which has \u039b 0 (\u03c4) = (0.2\u03c4) 0.5 . The other 6000 had a Weibull(2, 0.6) distribution, which has \u039b 0 (\u03c4) = (0.6\u03c4) 2 . These distributions gave a basic reproduction number (expected number of infectious contacts made by a typical infectious person) R 0 \u2248 3 in a null model. In the transmission model, each person i had an infectiousness covariate and a susceptibility covariate . Each pair ij connected by an edge had a pairwise covariate . All covariates were independent Bernoulli(.5) random variables. For a connected pair ij, the hazard of infectious contact from i to j at infectious age \u03c4 of i was Each simulated epidemic began with a single person infected at time 0. Data from the next 1000 infections was used to fit two regression models, one using information on whoinfected-whom as in Section 2.1 and one using an EM algorithm as in Section 2.5. The EM algorithm used a minimum of 2 and a maximum of 25 iterations. At each iteration, a weighted Cox model was run using the last parameter estimates as the initial parameter estimates. Convergence was defined as a change less than 0.002 in the expected log likelihood (tighter convergence criteria yielded nearly identical parameter estimates). After convergence, a Cox model was run using the final weights and initial parameters \u03b2 inf = \u03b2 sus = \u03b2 pair = 0.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Transmission model"
+        },
+        {
+            "text": "After each simulation, we recorded the true value, estimate, and 95% confidence interval endpoints for each in the model and the baseline hazard at the 10 th , 25 th , 50 th , 75 th , and 90 th percentiles of all censored and observed contact intervals. We also recorded the \u03b1 and \u03b3 of the baseline hazard function and the number of EM iterations. Figure 3 shows good agreement between the estimated and true \u03b2 inf , \u03b2 sus , and \u03b2 pair for both (who-infects-whom observed) and (who-infects-whom unobserved). Table 1 shows excellent 95% confidence interval coverage probabilities for all combinations of baseline hazards and parameters. The estimates had slightly lower coverage probabilities than the estimates. The lower right panel of Figure 3 shows that this was achieved with relatively few iterations. The median number of iterations was 6, and 98% of simulations required \u2264 10 iterations. Only 2 out of 12000 simulations failed to converge within 25 iterations. (who-infects-whom observed) and (who-infects-whom unobserved). The smoothed means show almost no bias in or . Table 2 shows good 95% confidence interval coverage probabilites for both base-line hazards and all percentiles except for \u03b1 = 2 at the 10 th and 25 th percentiles. When \u03b1 = 2, the baseline hazard of infectious contact is \u03bb 0 (\u03c4) = 1.2\u03c4. At low values of \u03c4, the hazard of infectious contact is very small, so almost all of the contact intervals will be censored. Since the percentiles are calculated for all censored and observed contact intervals, there may be too few observed intervals at the 10 th and 25th percentiles when \u03b1 = 2 for the large-sample normal approximation to be valid. Figure 6 shows the widths of the confidence intervals when who-infects-whom is not observed in terms of the width of the confidence interval when who-infects-whom is observed for \u03b2 inf , \u03b2 sus , \u03b2 pair , and \u039b 0 (\u03c4). For \u03b2 inf and \u03b2 pair , the precision gained by observing who-infects-whom is roughly equivalent to a 20-40% increase in sample size. The baseline hazard plays an important role in how much precision is gained, with a larger gain for \u03b1 = 0.5 than for \u03b2 = 2. There is no gain in precision for \u03b2 sus because observing who-infectswhom does not add to our knowledge of who was infected. Seeing who-infects-whom only slightly improves the precision of baseline hazard estimates.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 348,
+                    "end": 356,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 508,
+                    "end": 515,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 737,
+                    "end": 745,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 1078,
+                    "end": 1085,
+                    "text": "Table 2",
+                    "ref_id": "TABREF7"
+                },
+                {
+                    "start": 1667,
+                    "end": 1675,
+                    "text": "Figure 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Transmission model"
+        },
+        {
+            "text": "Observing who-infects-whom allows point estimates that are closer to the truth and interval estimates with better coverage probabilities. However, the EM algorithm can recover a great deal of information when who-infects-whom is not observed, making the iterative regression model of Section 2.5 a promising tool for infectious disease epidemiology.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "To show how the methods of Section 2 can be applied, we will look at the effect of antiviral prophylaxis and age on the transmission of pandemic influenza A(H1N1) in Los Angeles County in 2009. The Los Angeles County Department of Public Health (LACDPH) collected household surveillance data between April 22 and May 19 according to the following protocol (Sugimoto et al., 2011): 1. Nasopharyngeal swabs and aspirates were taken from individuals who reported to the LACDPH or other health care providers with acute febrile respiratory illness (AFRI), defined as a fever \u2265 100\u00b0F plus cough, core throat, or runny nose. These specimens were tested for influenza, and the age, gender, and symptom onset date of the AFRI patient were recorded.",
+            "cite_spans": [
+                {
+                    "start": 356,
+                    "end": 380,
+                    "text": "(Sugimoto et al., 2011):",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "2. Patients whose specimens tested positive for pandemic influenza A(H1N1) or for influenza A of undetermined subtype were enrolled as index cases. Each of them was given a structured phone interview to collect the following information about his or her household contacts: age, gender, type of contact (household, intimate, in-home daycare, non-home daycare), and high risk status (pregnant, child on long-term aspirin therapy, immunosuppressed, or history of a chronic cardiac, pulmonary, renal, liver, or neurologic condition). The interviewer also recorded whether prophylactic antiviral medication was being taken by the household contacts. They were asked to report the symptom onset date of any AFRI episodes among their household contacts.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "3. When necessary, a follow-up interview was given 14 days after the symptom onset date of the index case to assess whether any additional AFRI episodes had occurred in the household, including their illness onset date.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "There were 58 households with a total of 299 members. There were 99 infections, of which 62 were index cases (4 of the 58 households had co-primary cases) and 27 were household contacts with an AFRI. For simplicity, we assume these were all influenza A(H1N1) cases and that all household members were susceptible to infection.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "Our natural history assumptions were adapted from Yang et al. (2009) and are identical to those in Kenah (2013) . In the primary analysis, we assumed an incubation period of 2 days, a latent period of 0 days, and an infectious period of 6 days. Under these assumptions, a person j with symptom onset at time was infected at time and will stop being infectious at time . Under these assumptions, person j can transmit infection on days t j + 1 to t j + 6. In a sensitivity analysis, we vary the latent period from 0 to 1 days, and the infectious period from 5 to 7 days.",
+            "cite_spans": [
+                {
+                    "start": 50,
+                    "end": 68,
+                    "text": "Yang et al. (2009)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 99,
+                    "end": 111,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "We modeled influenza transmission within households, not between households or from outside the observed households. In each household, infected household members who had no possible infector within the household according to our natural history assumptions were assumed to be imported infections. We assumed that any infected household member could infect any susceptible household member. We used the regression model of Section 2.5 to estimate influenza transmission hazard ratios for the following covariates:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "\u2022 age inf = 0 if the infectious person is < 18 years old and 1 otherwise,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "\u2022 age sus = 0 if the susceptible is < 18 years old and 1 otherwise,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "\u2022 proph sus = 0 if the susceptible is not on antiviral prophylaxis and 1 otherwise.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "Since antiviral prophylaxis was initiated after the initial case in each household, it was considered only as a susceptibility covariate. All statistical analysis was done in R 2.15 (www.r-project.org).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA ANALYSIS"
+        },
+        {
+            "text": "There were 114 people aged < 18 years and 185 aged \u2265 18 years, with no missing age data. There were 91 people taking antiviral prophylaxis and 152 not taking prophylaxis, with missing prophylaxis data for 56 people. When who-infects-whom is not observed, a complete-case analysis requires the removal of all rows corresponding to infectioussusceptible pairs ij where and any member of is missing data. Otherwise, the remaining members of get too much credit for the infection of j.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "In the main analysis, there were 70 people infected from outside the household (i.e., no possible infector in the household), 16 with 1 possible infector, 7 with 2 possible infectors, 4 with 4 possible infectors, and 2 with 8 possible infectors, giving us 1 16 \u00d7 2 7 \u00d7 4 4 \u00d7 8 2 = 2097152 possible transmission trees. The pairwise data contains 443 infectious-susceptible pairs with a total of 2455 pair-days at risk of infection. Of these, 16 \u00d7 1 + 7 \u00d7 2 + 4 \u00d7 4 + 2 \u00d7 8 = 62 rows represent possible infection events. All models used the Efron approximation (Efron, 1977) for the partial likelihood with tied failure times.",
+            "cite_spans": [
+                {
+                    "start": 559,
+                    "end": 572,
+                    "text": "(Efron, 1977)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "The top panel of Table 3 shows the results of seven models. All of the models including prophylaxis suggested that antiviral prophylaxis reduced the hazard of infectious contact by about 60%, with low p-values. Hazard ratio point estimates for the main effects of age in all models suggest that adults are more infectious and less susceptible than children. However, evidence for this result is very weak. Only one of the age effects was statistically significant in univariable models, and none were significant in any multivariable model. Multivariable and stratified models with interaction terms for age and antiviral prophylaxis suggest a stronger effect of antiviral prophylaxis on transmission to and from adults than on transmission to and from children. However, the evidence for this result is also weak; these coefficients had high p-values and wide confidence intervals. The bottom panel of Table 3 shows the results of a sensitivity analysis using the multivariable model without interaction.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 17,
+                    "end": 24,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 903,
+                    "end": 910,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "Varying the latent and infectious periods has little effect on the results of the model. Figure 7 shows estimates of the cumulative transmission probability based on the multivariable and stratified models without interaction. The results of the two models are similar, but the stratified model showed lower probabilities of transmission from children and higher probabilities of transmission from adults. All four panels clearly show the estimated effect of antiviral prophylaxis. All curves show bigger jumps on the first four days after infection than on days 5 and 6, which is consistent with the results of Kenah (2013) .",
+            "cite_spans": [
+                {
+                    "start": 612,
+                    "end": 624,
+                    "text": "Kenah (2013)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 89,
+                    "end": 97,
+                    "text": "Figure 7",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "Comparing the top and bottom rows shows that children are estimated to be less infectious than adults. Comparing the left and right columns shows that children are estimated to be more susceptible than adults. As noted above, these differences are not statistically significant.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "This data analysis has been intended primarily to illustrate the flexibility of the regression modeling framework for analyzing transmission data. There are several important limitations of the analysis itself. With only 29 within-household transmissions, the largesample normal approximations may not hold and there is limited power to estimate the effects of age and antiviral prophylaxis. The age classification is crude, so it may not accurately capture the effects of age. The prophylaxis variable was missing for many pairs and was binary, allowing no consideration of the timing of prophylaxis relative to exposure. Analyses of the household transmission of influenza A(H3N2) found greater child-to-child than adult-to-adult transmission (Addy et al., 1991) . In our analysis of influenza A(H1N1), children appeared less infectious and more susceptible than adults, but these differences were not statistically significant. If not due to random noise, such a result could reflect a difference between the H3N2 and H1N1 subtypes of influenza A or a bias caused the failure to account for infection from outside the household. In any case, this analysis shows that the model needs to be extended to model infection from outside the household and to handle missing data.",
+            "cite_spans": [
+                {
+                    "start": 745,
+                    "end": 764,
+                    "text": "(Addy et al., 1991)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "The semiparametric relative-risk regression model proposed here has several important advantages over the chain binomial model. It can be fit using standard statistical software with parameter interpretations that resemble the Cox model. Standard software can be used to convert the results into curves representing the cumulative probability of transmission in pairs of individuals with specific characteristics. It does not make any parametric assumptions about the baseline hazard of infectious contact, and it allows many of the same extensions as the Cox model, including stratification, interaction, and time-dependent covariates. This flexibility and ease of use will make it an important tool for infectious disease epidemiology. To realize this potential, there are several limitations that remain to be addressed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We assumed that the set of imported infections is known. The chain binomial model handles unknown imported infections by including a per-time-unit probability of escaping infection from outside the household. In the semipara-metric regression model, this could be achieved by fitting two models in each step of the EM algorithm: a pairwise contact interval model within the household and an individual-level model in absolute time for infection from outside the household. At each step, the weights would be recalculated based on covariates, coefficient estimates, the baseline hazard of the contact interval distribution, and the baseline hazard of infection from outside the household.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We assumed that infection times, latent periods, and infectious periods were all observed. We can usually observe only the clinical course of the disease, so these times must be imputed. In Section 4, we had missing data on covariates. Simple missing data (such as antiviral prophylaxis) could be handled by extending the EM algorithm to calculate the expected log likelihood over the possible values of the missing data as well as who-infectedwhom. More complex missing data (such as infection and removal times) could be handled using data augmentation in a profile sampler (Lee et al., 2005) , getting a posterior distribution for the model coefficients while treating the baseline hazards as a nuisance parameter.",
+            "cite_spans": [
+                {
+                    "start": 576,
+                    "end": 594,
+                    "text": "(Lee et al., 2005)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We assumed that all possible infectors of each person were observed. Unobserved infectors could occur because of incomplete contact tracing or asymptomatic infection. The possible bias caused by unobserved sources of infection needs to be studied, and methods for controlling it analytically or assessing its severity in a sensitivity analysis need to be developed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Some of our assumptions must be relaxed to capture the natural history of complex diseases. We assumed an SEIR framework best suited to acute, immunizing diseases that spread directly from person to person. Many foodborne and waterborne diseases, pneumococcal and meningococcal diseases, and other infectious diseases of major public health importance do not fit easily into this framework. To extend the proposed regression model to complex diseases, we could allow individuals to experience multiple events (e.g., first infection, second infection) or to experience different types of events (e.g., colonization, infection, relapse). We assumed that contact intervals were independent of infectious periods even though both are a ected by the same host-pathogen interaction. In some cases, there may be a covariate process X(\u03c4) such that I i (\u03c4) and are conditionally independent given X(\u03c4 \u2212 ). Otherwise, infectious contact and the infectious period must be modeled as a multivariate survival process.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Several technical issues need further attention. The smoothing step is crucial to the fitting the regression model when who-infects-whom is not observed. Here, we used cubic smoothing splines because they were convenient and worked well. However, these do not guarantee that the smoothed hazard function is monotonically increasing and lack a convenient interpretation in terms of the likelihood. A penalized likelihood estimator that guarantees monotonicity, such as that of Anderson and Senthilselvan (1980) , would be more consistent with the EM algorithm. Model diagnostics, goodness-of-fit tests, and smallsample methods for point and interval estimation need to be developed, and a more rigorous study of the model asymptotics needs to be done.",
+            "cite_spans": [
+                {
+                    "start": 476,
+                    "end": 509,
+                    "text": "Anderson and Senthilselvan (1980)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Despite these limitations, the semiparametric relative-risk regression model presented here is a powerful new framework for the analysis of infectious disease transmission data. Placing statistical methods for infectious disease epidemiology on the broad and deep theoretical foundation of survival analysis will help clarify study design and causal inference for communicable diseases and allow statistical methods to develop in concert with advances in molecular biology. Ultimately, these improvements may lead to more efficient vaccine trials and a better-informed public health response to future outbreaks and epidemics. and versus true \u039b 0 (\u03c4) for the 6000 simulations with a Weibull(0.5, 0.2) baseline contact interval distribution. For each simulation and each estimator, a circle is shown for the 10 th , 25 th , 50 th , 75 th , and 90 th percentiles of all possible contact intervals. The smoothed means were calculated using cubic smoothing splines. Kenah Page 23",
+            "cite_spans": [
+                {
+                    "start": 962,
+                    "end": 967,
+                    "text": "Kenah",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "and versus true \u039b 0 (\u03c4) for the 6000 simulations with a Weibull(2, 0.6) baseline contact interval distribution. For each simulation and each estimator, a circle is shown for the 10 th , 25 th , 50 th , 75 th , and 90 th percentiles of all possible contact intervals. The smoothed means were calculated using cubic smoothing splines. Kenah Page 24",
+            "cite_spans": [
+                {
+                    "start": 333,
+                    "end": 338,
+                    "text": "Kenah",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Figure 5."
+        },
+        {
+            "text": "The width of 95% confidence intervals when who-infects-whom is not observed divided by its width when who-infects-whom is observed for \u03b2 inf , \u03b2 sus , \u03b2 pair , and \u039b 0 (\u03c4). The solid gray lines show smoothed means for \u03b1 = 0.5 and dashed gray lines show smoothed means for \u03b1 = 2. The smoothed means were calculated using cubic smoothing splines. Table 1 Hazard ratio 95% confidence interval coverage probabilities in simulations. Each probability is based on the results of 1000 simulations. 95% confidence interval coverage probabilities in simulations. Each probability is based on the results of 6000 simulations.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 345,
+                    "end": 352,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Figure 6."
+        },
+        {
+            "text": "Baseline hazard Quantile \u03b1 = .5 \u03b1=2 \u039b 0 (\u03c4) \u039b 0 (\u03c4) \u039b 0 (\u03c4) \u039b 0 (\u03c4) 10% . ",
+            "cite_spans": [
+                {
+                    "start": 68,
+                    "end": 71,
+                    "text": "10%",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Figure 6."
+        }
+    ],
+    "bib_entries": {
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Survival and Event History Analysis: A Process Point of View",
+            "authors": [],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "A generalized stochastic model for the analysis of infectious disease final size data",
+            "authors": [
+                {
+                    "first": "Cheryl",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Addy",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ira",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "Michael",
+                    "middle": [],
+                    "last": "Haber",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Biometrics",
+            "volume": "47",
+            "issn": "",
+            "pages": "961--974",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Smooth estimates for the hazard function",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Senthilselvan",
+                    "suffix": ""
+                }
+            ],
+            "year": 1980,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "42",
+            "issn": "",
+            "pages": "322--327",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Stochastic Epidemic Models and Their Statistical Analysis",
+            "authors": [
+                {
+                    "first": "H\u00e5kan",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Andersson",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tom",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Monographs on Statistics and Applied Probability. Chapman & Hall/CRC",
+            "authors": [
+                {
+                    "first": "Niels",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Contribution to discussion of paper",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Breslow",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Cox",
+                    "suffix": ""
+                }
+            ],
+            "year": 1972,
+            "venue": "Journal of the Royal Statistical Society B",
+            "volume": "34",
+            "issn": "",
+            "pages": "216--217",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Regression models and life-tables",
+            "authors": [
+                {
+                    "first": "David",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Cox",
+                    "suffix": ""
+                }
+            ],
+            "year": 1972,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "34",
+            "issn": "",
+            "pages": "187--220",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Maximum likelihood from in complete data via the EM algorithm",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Dempster",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Laird",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Rubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "39",
+            "issn": "",
+            "pages": "1--38",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "The e ciency of Cox's likelihood function for censored data",
+            "authors": [
+                {
+                    "first": "Bradley",
+                    "middle": [],
+                    "last": "Efron",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "Journal of the American Statistical Association",
+            "volume": "72",
+            "issn": "",
+            "pages": "557--565",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "An extension of Cox's regression model",
+            "authors": [
+                {
+                    "first": "Johansen",
+                    "middle": [],
+                    "last": "Soren",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "International Statistical Review",
+            "volume": "51",
+            "issn": "",
+            "pages": "165--174",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Contact intervals, survival analysis of epidemic data, and estimation of R 0",
+            "authors": [
+                {
+                    "first": "Eben",
+                    "middle": [],
+                    "last": "Kenah",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Biostatistics",
+            "volume": "12",
+            "issn": "",
+            "pages": "548--566",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Nonparametric survival analysis of epidemic data",
+            "authors": [
+                {
+                    "first": "Eben",
+                    "middle": [],
+                    "last": "Kenah",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "75",
+            "issn": "",
+            "pages": "277--303",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Generation interval contraction and epidemic data analysis",
+            "authors": [
+                {
+                    "first": "Eben",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Kenah",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                },
+                {
+                    "first": ";",
+                    "middle": [],
+                    "last": "Marc",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Robins",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "James",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Mathematical Biosciences",
+            "volume": "213",
+            "issn": "",
+            "pages": "71--79",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "The profile sampler",
+            "authors": [
+                {
+                    "first": "Leng",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": ";",
+                    "middle": [],
+                    "last": "Bee",
+                    "suffix": ""
+                },
+                {
+                    "first": "Michael",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Kosorok",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jason",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Fine",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Journal of the American Statistical Association",
+            "volume": "100",
+            "issn": "",
+            "pages": "960--969",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Finding the observed information matrix when using the EM algorithm",
+            "authors": [
+                {
+                    "first": "Thomas",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Louis",
+                    "suffix": ""
+                }
+            ],
+            "year": 1982,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "44",
+            "issn": "",
+            "pages": "226--233",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Maximum likelihood estimation via the ECM algorithm: A general framework",
+            "authors": [
+                {
+                    "first": "Donald",
+                    "middle": [],
+                    "last": "Rubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Biometrika",
+            "volume": "80",
+            "issn": "",
+            "pages": "267--278",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Asymptotic distribution theory for Cox-type regression models with general relative risk form",
+            "authors": [
+                {
+                    "first": "Ross",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Prentice",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Self",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Steven",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "Annals of Statistics",
+            "volume": "11",
+            "issn": "",
+            "pages": "804--813",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "A discrete-time model for the statistical analysis of infectious disease incidence data",
+            "authors": [
+                {
+                    "first": "Alvin",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Rampey",
+                    "suffix": ""
+                },
+                {
+                    "first": ";",
+                    "middle": [],
+                    "last": "Jr",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ira",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": ";",
+                    "middle": [],
+                    "last": "Jr",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Haber",
+                    "suffix": ""
+                },
+                {
+                    "first": ";",
+                    "middle": [],
+                    "last": "Michael",
+                    "suffix": ""
+                },
+                {
+                    "first": "Arnold",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Monto",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Biometrics",
+            "volume": "48",
+            "issn": "",
+            "pages": "117--128",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Counting process models for infectious disease data: Distinguishing exposure to infection from susceptibility",
+            "authors": [
+                {
+                    "first": "Philip",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Rhodes",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Elizabeth Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ira",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Jr",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Journal of the Royal Statistical Society B",
+            "volume": "58",
+            "issn": "",
+            "pages": "751--762",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Accounting for unobserved immunity and asymptomatic infection in the early household transmission of the pandemic influenza A (H1N1)",
+            "authors": [
+                {
+                    "first": "Jonathan",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Sugimoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yang; Elizabeth",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Dean",
+                    "suffix": ""
+                },
+                {
+                    "first": ";",
+                    "middle": [],
+                    "last": "Brandon",
+                    "suffix": ""
+                },
+                {
+                    "first": "Brit; Ann",
+                    "middle": [],
+                    "last": "Oiulfstad",
+                    "suffix": ""
+                },
+                {
+                    "first": "Dee",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Bagwell",
+                    "suffix": ""
+                },
+                {
+                    "first": "Laurene",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Mascola",
+                    "suffix": ""
+                },
+                {
+                    "first": "Elizabeth",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Bancroft",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ira",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Jr",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "A note on generation times in epidemic models",
+            "authors": [
+                {
+                    "first": "\u00c5ke",
+                    "middle": [],
+                    "last": "Svensson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Mathematical Biosciences",
+            "volume": "208",
+            "issn": "",
+            "pages": "300--311",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Modeling Survival Data: Extending the Cox Model",
+            "authors": [
+                {
+                    "first": "Terry",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Therneau",
+                    "suffix": ""
+                },
+                {
+                    "first": "Patricia",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Grambsch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Di erent epidemic curves for severe acute respiratory syndrome reveal similar impacts of control measures",
+            "authors": [
+                {
+                    "first": "Jacco",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "Peter",
+                    "middle": [],
+                    "last": "Teunis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "American Journal of Epidemiology",
+            "volume": "160",
+            "issn": "",
+            "pages": "509--516",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Collective dynamics of 'small-world' networks",
+            "authors": [
+                {
+                    "first": "Duncan",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Strogatz",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Steven",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Nature",
+            "volume": "393",
+            "issn": "",
+            "pages": "440--442",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "A likelihood-based method for real-time estimate of the serial interval and reproductive number of an epidemic",
+            "authors": [
+                {
+                    "first": "Forsberg",
+                    "middle": [],
+                    "last": "White",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "Pagano",
+                    "middle": [],
+                    "last": "Marcello",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Statistics in Medicine",
+            "volume": "27",
+            "issn": "",
+            "pages": "2999--3016",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "The transmissibility and control of pandemic influenza A(H1N1) virus",
+            "authors": [
+                {
+                    "first": "Yang",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jonathan; Elizabeth",
+                    "middle": [],
+                    "last": "Sugimoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "Nicole",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Basta",
+                    "suffix": ""
+                },
+                {
+                    "first": "Dennis",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Chao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Laura",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Matrajt",
+                    "suffix": ""
+                },
+                {
+                    "first": "Gail",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Potter",
+                    "suffix": ""
+                },
+                {
+                    "first": "Eben",
+                    "middle": [
+                        ";"
+                    ],
+                    "last": "Kenah",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ira",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Jr",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Science",
+            "volume": "326",
+            "issn": "",
+            "pages": "729--733",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Author manuscript; available in PMC",
+            "authors": [],
+            "year": 2016,
+            "venue": "J Am Stat Assoc",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "parameter \u03b2, there were 4000 simulations where its true value was chosen from a uniform distribution on (\u22121, 1). Of these, 2000 simulations used the Weibull(0.5, 0.2) baseline hazard and 2000 used the Weibull(2, 0.6) baseline hazard. Of the 2000 simulations for each baseline hazard, 1000 had the other two \u03b2 set to 0 and 1000 had the other two \u03b2 set to 1.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Figures 4 and 5 show good agreement between the estimated and true base-line hazard for both (who-infects-whom observed) and (who-infects-whom unobserved). The",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Notation for the stochastic SEIR model natural history (top) and infectious contact process (bottom). In the bottom diagram, the infectious contact interval is equal to the contact interval \u03c4 ij because \u03c4 ij \u2264 l i . Otherwise, we would have and no infectious contact from i to j would occur.The three censoring processes for the contact interval \u03c4 ij . The onset of infectiousness in i occurs at time t i + \u03b5 i , and the infection of j occurs at t j . At the top, \u03c4 ij is censored because . In the middle, \u03c4 ij is observed if and censored otherwise. At the bottom, \u03c4 ij is censored Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "The top two panels and the bottom left panel show (black circles) and (gray circles) versus true \u03b2 for \u03b2 inf , \u03b2 sus , and \u03b2 pair . The bottom right panel shows a histogram of the number of EM iterations required for convergence. Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Figure 4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Household transmission of 2009 pandemic influenza A(H1N1) in Los Angeles County. Each panel shows separate curves for susceptible contacts with (gray lines) and without (black lines) antiviral prophylaxis. The solid lines are based on the multivariable model, and the dotted lines are based on the model stratified by age inf . Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "J Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "we would have calculated had we observed the transmission network v. The corresponding Breslow estimate is",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "J Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "J Am Stat Assoc. Author manuscript; available in PMC 2016 March 01.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF6": {
+            "text": "Baseline hazardParameter: \u03b2 inf\u03b2 sus =\u03b2 pair =0 \u03b2 sus =\u03b2 pair =1 \u03b2 inf = \u03b2 pair = 0 \u03b2 inf = \u03b2 pair = 1Baseline hazard Parameter: \u03b2 pair \u03b2 inf = \u03b2 sus = 0 \u03b2 inf = \u03b2 sus = 0 \u03b2 pair \u03b2 pair \u03b2 pair \u03b2 pair",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF7": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This research was supported by National Institute of Allergy and Infectious Diseases (NIAID) grant K99/R00 AI095302. The content is solely the responsibility of the author and does not necessarily represent the o cial views of NIAID or the National Institutes of Health. The author thanks Tom Britton, Yang Yang, M. Elizabeth Halloran, and Ira M. Longini, Jr. for their comments and suggestions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "Refer to Web version on PubMed Central for supplementary material. Table 3 Hazard ratios with 95% con dence intervals and p-values for different models of the 2009 pandemic inuenza A(H1N1) household surveillance data from Los Angeles County. Likelihood ratio p-values comparing models with and without interaction terms are also given. The multivariable and stratied models without interaction were used as the final models. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 67,
+                    "end": 74,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Supplementary Material"
+        }
+    ]
+}

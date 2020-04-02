@@ -1,0 +1,3074 @@
+{
+    "paper_id": "0be8d44cdaf0b7cca9697c33a590770f9d6e7fd0",
+    "metadata": {
+        "title": "Erlang epidemic models",
+        "authors": [
+            {
+                "first": "Wayne",
+                "middle": [
+                    "M"
+                ],
+                "last": "Getz",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of California",
+                    "location": {
+                        "settlement": "Berkeley, Berkeley",
+                        "region": "CA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Eric",
+                "middle": [
+                    "R"
+                ],
+                "last": "Dougherty",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of California",
+                    "location": {
+                        "settlement": "Berkeley, Berkeley",
+                        "region": "CA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Erlang differential equation models of epidemic processes provide more realistic disease-class transition dynamics from susceptible (S) to exposed (E) to infectious (I) and removed (R) categories than the ubiquitous SEIR model. The latter is itself is at one end of the spectrum of Erlang SE m I n R models with m \u2265 1 concatenated E compartments and n \u2265 1 concatenated I compartments. Discrete-time models, however, are computationally much simpler to simulate and fit to epidemic outbreak data than continuous-time differential equations, and are also much more readily extended to include demographic and other types of stochasticity. Here we formulate discrete-time deterministic analogs of the Erlang models, and their stochastic extension, based on a time-to-go distributional principle. Depending on which distributions are used (e.g. discretized Erlang, Gamma, Beta, or Uniform distributions), we demonstrate that our formulation represents both a discretization of Erlang epidemic models and generalizations thereof. We consider the challenges of fitting SE m I n R models and our discrete-time analog to data (the recent outbreak of Ebola in Liberia). We demonstrate that the latter performs much better than the former; although confining fits to strict SEIR formulations reduces the numerical challenges, but sacrifices best-fit likelihood scores by at least 7%.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "ARTICLE HISTORY",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "An SEIR epidemic modelling framework, where S, E, I and R represent the named susceptible (S), exposed (E: infected but not yet infectious), infectious (I), and removed (R: either dead or recovered and now immune) disease classes -and italicized letters S, E, I, and R represent the number of individuals in each of these classes -underpins all infectious disease modelling at the population level [27, 52] . This holds whether the models are continuous or discrete-time [21] , deterministic or stochastic [2, 10] , or framed at the compartmental-or individual-level formulation [1, 11, 24] . Fitting epidemiological models to real data possess significant challenges because most epidemics do not conform to the assumptions underlying the basic SEIR formulation. In particular, populations are rarely spatially homogeneous [25, 30, 32] , and disease transmission varies with age [55] and other individual-level factors, including behaviour [16] . An additional acknowledged weaknesses of the SEIR formulation is that if a group of n individuals enter class X (X = E or I) at time t and exit at rate \u03b3 , then the number of individuals still in state X at time t + \u03c4 is given by the exponential function n(t + \u03c4 ) = n(t) e \u2212\u03b3 X \u03c4 [56] . This approach has been shown from outbreak data to underestimate the basic reproductive ratio R 0 of an epidemic process [56] . A more reasonable assumption is that individuals will mostly exit around a characteristic diseaseclass-specific residence time \u03c1 X , which corresponds to the latent period and infectious period for any disease [49, 56] . Models that address deviations from the above assumptions have been proposed. For example, one way to modify the standard SEIR continuous-time formulation so that the modal exit-time of individuals from disease states E and I is close to empirically measured values, \u03c1 E and \u03c1 I respectively, is to use either a discrete-time formulation in which individuals take a set number of time periods to move through each disease state (e.g. as has been done in modelling SARS [23, 37] ), or to use a continuous time distributed-delay approach [7, 9, 13, 33] . This latter approach can be modelled using a so-called boxcar formulation: the process by which individuals pass through each disease state (i.e. compartment) X is represented by individuals passing through k X concatenated sub-compartments at a rate \u03b3 X in each of the sub-compartments [7, 31, 33, 35] (Figure 1 ). In this case, the number of individuals n(t) entering at time t still in state X at time t + \u03c4 is not given by an exponential function, but rather n(t) multiplied by (1 \u2212 F Erlang (\u03c4 , k X , \u03b3 X )), where F Erlang (\u03c4 , k X , \u03b3 X ) is the cumulative Erlang distribution with parameters k X and \u03b3 X . Note that the Erlang is a special case of the Gamma distribution when the shape parameter k X is a positive integer [33] . Further, the fact that a distributed-delay integrodifferential equation formulation can, under certain assumptions, be turned into an ordinary differential equation formulation of higher dimension, using the so-called 'linear chain trick' has been known in biological modelling for the past 40 years ( [14, 40, 44] , and see [51] for a more recent treatment).",
+            "cite_spans": [
+                {
+                    "start": 398,
+                    "end": 402,
+                    "text": "[27,",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 403,
+                    "end": 406,
+                    "text": "52]",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 471,
+                    "end": 475,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 506,
+                    "end": 509,
+                    "text": "[2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 510,
+                    "end": 513,
+                    "text": "10]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 579,
+                    "end": 582,
+                    "text": "[1,",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 583,
+                    "end": 586,
+                    "text": "11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 587,
+                    "end": 590,
+                    "text": "24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 824,
+                    "end": 828,
+                    "text": "[25,",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 829,
+                    "end": 832,
+                    "text": "30,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 833,
+                    "end": 836,
+                    "text": "32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 880,
+                    "end": 884,
+                    "text": "[55]",
+                    "ref_id": "BIBREF54"
+                },
+                {
+                    "start": 941,
+                    "end": 945,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 1229,
+                    "end": 1233,
+                    "text": "[56]",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 1357,
+                    "end": 1361,
+                    "text": "[56]",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 1574,
+                    "end": 1578,
+                    "text": "[49,",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 1579,
+                    "end": 1582,
+                    "text": "56]",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 2054,
+                    "end": 2058,
+                    "text": "[23,",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 2059,
+                    "end": 2062,
+                    "text": "37]",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 2121,
+                    "end": 2124,
+                    "text": "[7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 2125,
+                    "end": 2127,
+                    "text": "9,",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 2128,
+                    "end": 2131,
+                    "text": "13,",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 2132,
+                    "end": 2135,
+                    "text": "33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 2425,
+                    "end": 2428,
+                    "text": "[7,",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 2429,
+                    "end": 2432,
+                    "text": "31,",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 2433,
+                    "end": 2436,
+                    "text": "33,",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 2437,
+                    "end": 2440,
+                    "text": "35]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 2869,
+                    "end": 2873,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 3178,
+                    "end": 3182,
+                    "text": "[14,",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 3183,
+                    "end": 3186,
+                    "text": "40,",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 3187,
+                    "end": 3190,
+                    "text": "44]",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 3201,
+                    "end": 3205,
+                    "text": "[51]",
+                    "ref_id": "BIBREF50"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 2441,
+                    "end": 2450,
+                    "text": "(Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "Beyond individuals emerging from a disease state according to an Erlang distribution, a more general discrete-time modelling approach can be taken in which any distribution of emergence can be specified. Here we develop a general discrete-time, distributed-delay formulation, taking the novel approach of identifying disease subclasses that represent the number of days individuals have left before they transfer from the current disease class to the next in the chain (i.e. E to I and I to R, and so on), as depicted in Figure 1 . This permits exponential, Erlang, and Uniform distributions, among others, to be used. Beyond comparing our discrete-time formulation that corresponds to continuous-time Erlang formulations, we compare simulation output among the Erlang, Exponential, and Uniform cases, demonstrating some surprising results. For example, the case that yields the highest levels of prevalence switches as the values of the reproductive ratios R 0 increase from low (R 0 = 1.25) to very high (R 0 = 20). We also demonstrate how easily discrete-time formulations can be implemented stochastically, and we compare sample mean ensembles of stochastic simulations to discrete-time solutions. Finally, we compare the efficiencies of fitting continuous-time Erlang models and our various discrete models to real data. To keep our analysis focused, our formulation and simulations ignore the processes of recruitment and mortality. These, of course, are easily added, as we discuss, along with other important extensions such as spatial structure using metapopulation networks. The standard continuous-time SEIR compartmental model has individuals flowing through the E and I compartments at rates \u03b3 E and \u03b3 I respectively, with rates of flow from compartments S to E and V to S (V is the immune part of R, D is the dead part of R) represented by \u03c4 and \u03b3 V respectively. The boxcar or Erlang version divides E into k E and I into k I sub-compartments with the mean time that it takes to pass through compartments E and I now given by \u03c1 E = k E /\u03b3 E and \u03c1 I = k I /\u03b3 I , respectively. The discrete time-to-go model can be regarded as the discrete-time analog of the Erlang model where the proportions (deterministic setting) or probabilities (stochastic setting) p E i , i = 1, . . . , n E and p I j , j = 1, . . . , n I follow Erlang distributions, as described in the text.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 521,
+                    "end": 529,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "The basic equations for the SEIR distributed-delay model [7] are well known. For the sake of completeness, however, we present these equations here in terms of a general transmission function T ) that depends on the total number I tot of infectious individuals in the population. As depicted in Figure 1 , if the number of E and I class compartments is k E and k I , respectively, with associated rate parameters \u03b3 E and \u03b3 I , then the boxcar models takes the form:",
+            "cite_spans": [
+                {
+                    "start": 57,
+                    "end": 60,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 295,
+                    "end": 303,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": ". . .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": ". . .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "The simplest form of the transmission function is T (I) = T (I tot ) = \u03b2I tot . It is convenient when applying the model to normalize the transmission rate parameter \u03b2 > 0 in T by total population size N so that \u03b2 does not have to be adjusted for populations of different sizes. This ensures that expressions for the basic reproductive ratio, R 0 , of the disease is independent of population size (cf. [4] ). This normalization is done by dividing \u03b2 by N, where",
+            "cite_spans": [
+                {
+                    "start": 403,
+                    "end": 406,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "If deaths are ignored during the course of the epidemic, then N(t) is constant and the transmission function",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "varies only with I tot (t) over time, otherwise it will vary with N(t) as well. In this latter case, T (I tot )(t) is referred to as frequency-dependent transmission. This representation of transmission is particularly appropriate when contact rates are influenced by processes other than population density, as in sexually transmitted diseases [22] . The ubiquitous density-dependent form \u03c4 (I, N) = \u03b2I though is useful when population density is low. A more general approach that approximates density-dependent transmission at relatively low populations densities and frequency-dependent transmission at relatively high population densities, for some arbitrary constant L > 0 (to be estimated when fitting the model to data), is given by the transmission function [21, 41] ",
+            "cite_spans": [
+                {
+                    "start": 345,
+                    "end": 349,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 766,
+                    "end": 770,
+                    "text": "[21,",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 771,
+                    "end": 774,
+                    "text": "41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "The assumption that the transmission rate parameter \u03b2 is time independent is also problematic. The primary reason that epidemics subside, other than running out of susceptible individuals (which is linked to the so-called threshold effect [22, 38] ), is that \u03b2(t) precipitously falls due to behavioural changes that influence contact rates as the epidemic proceeds (e.g. as in the recent Ebola outbreak in West Africa [12, 24] ). A remedy for this is to assume that \u03b2 has the exponential form \u03b2(t) = \u03b2 0 e \u2212\u03b5t (e.g. as in [3] ). This approach, however, implies that \u03b2 declines most steeply at the start of the epidemic -a highly suspect assumption. A more likely situation is that \u03b2 only starts to decline once public awareness of the full potential of the epidemic becomes apparent. In this case, a reverse S-shaped curve, such as",
+            "cite_spans": [
+                {
+                    "start": 239,
+                    "end": 243,
+                    "text": "[22,",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 244,
+                    "end": 247,
+                    "text": "38]",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 418,
+                    "end": 422,
+                    "text": "[12,",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 423,
+                    "end": 426,
+                    "text": "24]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 522,
+                    "end": 525,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "is more realistic, where t c > 0 is that amount of time after the start of the epidemic that it takes for \u03b2(t) to fall to half its original intensity, and \u03b5 > 1 is an abruptness parameter for the onset of this fall (in a manner analogous to the onset of density-dependence discussed in [20] ). In the absence of an independent estimate for t c when fitting models to data, one can estimate \u03b2 0 by fitting a constant \u03b2 model to the early stages of an epidemic, and then use this value to estimate the reproductive ratio parameter R 0 (the number of individuals that the index case can be expected to infect at the start of the epidemic [15, 26] ). Using the simple frequency-dependent transmission rate (Equation (4)) and assuming that \u03b2 is constant over time, the model given by Equations (1)-(4) is a five parameter system (\u03b2 > 0, \u03b3 E > 0, and \u03b3 I > 0, as well as positive integers k E and k I ) that can be fitted to data to obtain the best estimate of the transmission rate parameter \u03b2, and the mean residence times",
+            "cite_spans": [
+                {
+                    "start": 286,
+                    "end": 290,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 635,
+                    "end": 639,
+                    "text": "[15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 640,
+                    "end": 643,
+                    "text": "26]",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "in the disease states E and I, respectively. This also implies that the mean residence from exposure to removal is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "Here we make use of the fundamental definition of R 0 as the ratio of all newly infected individuals transferring into disease classes E+I to the net change of individuals across classes E+I [15, 26] . This is formally equivalent to finding the dominant eigenvalue of the next generation matrix, as defined in [53] . Since we are ignoring births and deaths, this ratio has the particularly simple form",
+            "cite_spans": [
+                {
+                    "start": 191,
+                    "end": 195,
+                    "text": "[15,",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 196,
+                    "end": 199,
+                    "text": "26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 310,
+                    "end": 314,
+                    "text": "[53]",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "Note that ignoring births and deaths can also be regarded as an approximation to situations where the epidemiological process is an order of magnitude faster than demographic processes. This is, however, an assumption that breaks down once disease-induced mortality rates become significantly greater than background natural mortality rates.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Continuous deterministic"
+        },
+        {
+            "text": "In formulating a discrete-time analogue of Equation (1), we take an approach of placing individuals into subclasses that represent the length of time that each will remain within the disease class under consideration. Thus, we use the notation E i (t + 1) to represent the number of individuals in disease class E at time t+1 who will depart from this class (to enter class I) at time t+1+i. These individuals were either in compartment E i+1 at time t or are newly allocated from the individuals that were infected over the time interval [t, t + 1) using the proportions described below. The same process applies to the compartments represented by the variables I i (t + 1), with individuals transitioning to disease class R. These proportions are denoted by 0 < p E i < 1, i = 1, . . . , n E and 0 < p I i < 1, i = 1, . . . , n I , and represent the proportions of individuals entering the disease classes E and I who only stay in those classes for i additional periods of time. The integers n E and n I are selected so that all individuals (essentially > 99% in the case of populations of several thousand or more individuals) upon entering diseases classes E and I at time t have exited these disease classes on or before times t + n E and t + n I , respectively. In the context of stochastic models, these proportions can be used to characterize the cumulative functions F(x; k E , \u03b3 E ) and F(x; k I , \u03b3 I ) of two distributions: namely,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discrete time-to-go formulation"
+        },
+        {
+            "text": "In our discrete model, we use the variables E 0 (t) and I 0 (t) to represent the number of individuals changing state over the discrete-time interval [t, t + 1] from S to E and E to I, respectively. We also use E tot (t) and I tot (t) to represent the total number of individuals in classes E and I at time t. Over the time interval [t, t + 1), the susceptibles S(t) are assumed to be exposed to I tot (t) infectious individuals (taken to be constant over the interval, which is generally a reasonable approximation), thereby resulting in the infection of approximately",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discrete time-to-go formulation"
+        },
+        {
+            "text": "susceptible individuals. Hence we obtain the equation:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discrete time-to-go formulation"
+        },
+        {
+            "text": "Recall that the equations for the compartments E i (t + 1) need to account for the transfer of individuals from E i+1 (t), as well as the newly allocated individuals p E i+1 E 0 (t). These considerations yield the system:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discrete time-to-go formulation"
+        },
+        {
+            "text": "These newly infectious individuals I 0 (t) can themselves be distributed so that proportions p I i , where i = 1, . . . , n I enter the removed class at time t. That is, we obtain the equations:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discrete time-to-go formulation"
+        },
+        {
+            "text": "Finally, we need to compute E tot (t) and I tot (t) by applying Equation (2) with n E and n I replacing k E and k I to obtain",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discrete time-to-go formulation"
+        },
+        {
+            "text": "The discrete stochastic formulation results in a model that is identical to the discrete deterministic model except for the fact that proportions in Equations (10) and (11) are replaced by random drawings from multinomial distributions, which approach proportions (i.e. the discrete formulation) as R 0 (i.e. \u03b2) increases in size and the number of samples grows large.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": "In presenting the stochastic model, we use the notation",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": "to denote that x is a random variable representing the number of heads that might be obtained when flipping a biased coin n times, with a probability p of getting heads on each flip (i.e. a Bernoulli process with probability p). Thus, x is binomially distributed. We will use the notation X to represent an instance of the number of heads (positive outcomes) of an actual n-trial sampling of this distribution with probability parameter p. More generally:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": "In other words, it is the probability of gettingX i positive outcomes of type i = 1, . . . , q when the probability of getting a positive outcome of type i at any drawing is p i , with q i=1 p i = 1, and the total number of drawings is n. To keep our presentation succinct, the convention (X 1 , . . . ,X q ) := MULTINOMIAL n, p 1 , . . . , p q , is adopted in the model formulations below to denote one outcome of a random drawing from the indicated distribution.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": "With this above notation, the stochastic equivalent of the deterministic model represented by Equations (9)-(12) is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": ". . .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": ". . .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic implementation"
+        },
+        {
+            "text": "If we want our probabilities to follow truncated Erlang distributions, then we can first select n E such that",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "We can then define the probabilities associated with passage through disease class E as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "Similarly, we select n I such that",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "Fitting the discrete Erlang model to data involves estimating five parameters: (k E , \u03b3 E , k I , \u03b3 I , \u03b2). It also requires constraining k E and k I to be positive integers. In general, however, we can allow k E and k I to vary continuously on the positive reals, and use gamma functions, which interpolate the Erlang when k E and k I are not integers. The boxcar version of the distributed-delay model (which, in addition to its formulation in terms of k first-order differential equations, can also be formulated as a kth order ordinary differential equation), under assumptions that the rate is constant through all the box cars associated with each disease class, is known to produce Erlang distribution residence times [29] . This implies that the distribution of residence times x is given by the probability density function",
+            "cite_spans": [
+                {
+                    "start": 725,
+                    "end": 729,
+                    "text": "[29]",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "and, hence, the cumulative distribution function",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "From these we can calculate the probabilities (proportions in the deterministic model) that individuals entering a k boxcar complex at time t, and exiting this concatenation of cars during the time",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "A theoretically simpler, and computationally faster, approach to fitting the discrete model to data is to use one parameter Uniform distributions f Unif (x; 0, a) rather than two parameter Erlang. These probabilities are provided in the Appendix.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Erlang probabilities"
+        },
+        {
+            "text": "Various approaches can be taken to setting initial conditions in comparing discrete and continuous time simulation models. The primary consideration is to have a good way to match up initial values because the continuous model has k E + k I + 2 states while the discrete model has n E + n I + 2 states (where, typically, n X > 2k X , X = E, I). Further, when injecting stochastic models into the comparative study, one needs to be cognizant of the fact that continuous and discrete deterministic simulations are independent of scale -i.e. the size of N -and only the stochastic simulations are affected by the size of N. Specifically, the influence of demographic stochasticity on simulated values reduces at a rate proportional to 1/ \u221a N. In our first set of simulations, we selected S(0) = 10, 000, but varied S(0) from 1000 to 10 6 in subsequent sets of simulations that explore aspects of demographic stochasticity and compare the efficiency of fitting discrete versus continuous models to simulated data. To initiate the start of an epidemic, we placed one individual in the last Esubcomponent class, which corresponds to setting E k E (0) = 1 in the continuous time model and E 0 (0) = 1 in the discrete-time deterministic and stochastic Erlang models. In all of the simulations, the initial values of the remaining E and I subcomponent states were set to 0, as was R(0).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "For purposes of illustration and comparison of simulations we consider continuous and discrete-time implementations for cases involving k E and k I equal to 5 and 10, as well Table 1 . Simulation cases 1-33 are sorted from the shortest (5 days) to longest (10 days) mean infectious period, and then subsorted within infectious periods from shortest to longest total duration (exposed plus infected) and within that from least to most distributed-delay in infected and then exposed.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 175,
+                    "end": 182,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "(2, 10, 1, 5) 3, 19 (1, 5, 2, 10) (5, 5, 10)",
+            "cite_spans": [
+                {
+                    "start": 17,
+                    "end": 19,
+                    "text": "19",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "(2, 10, 2, 10) 5, 21",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "(1, 5, 0.5, 5 ) 6, 22",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "(1, 10, 1, 5) 7, 23 (0.5, 5, 2, 10) (10, 5, 15) R 0 = 1.25, R 0 = 5 8, 24 (1, 10, 2, 10) 9, 25 (1, 5, 0.5, 5) 10, 26",
+            "cite_spans": [
+                {
+                    "start": 71,
+                    "end": 73,
+                    "text": "24",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 92,
+                    "end": 94,
+                    "text": "25",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "(2, 10, 0.5, 5) 11, 27",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "(1, 5, 1, 10) as parameterizations involving \u03b3 E and \u03b3 I equal to 0.5, 1, and 2, and \u03b2 equal to 0.25, 1, and 2, as listed in Table 1 . Implementation of these cases by the discrete model requires that we compute probabilities associated with Erlang cumulative distribution functions F Erlang (x; 5, 0.5), F Erlang (x; 5, 1), F Erlang (x; 10, 1), and F Erlang (x; 10, 2). These probabilities are given in Table 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 125,
+                    "end": 132,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 404,
+                    "end": 411,
+                    "text": "Table 2",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Initial conditions and cases considered"
+        },
+        {
+            "text": "Continuous-time, deterministic simulations of prevalence levels over time (i.e. plots of I tot (t) against t) for Cases 1-32 are illustrated in Figure 2 (a). These 32 cases can be organized into four groups, each of which yields the same set of (\u03c1 E , \u03c1 I , \u03c1 E+I ) values, differing only in whether 5 or 10 boxcars were used in each of the E and I classes ( Table 1 ). The main difference among the four groups corresponding to a particular set of values (\u03c1 E ,\u03c1 I ,\u03c1 E+I ) is the amount of variation associated with the distributions around \u03c1 E and \u03c1 I : specifically, 5-boxcar formulations with associated progression rate\u03b3 have larger variation around \u03c1 X than 10-boxcar formulations with associated rate 2\u03b3 . These four groups of four cases each were implemented in the context of two values of \u03b2 to yield corresponding values of the reproductive ratio R 0 . The resulting eight sets of four cases fall very neatly into eight sets of outputs (Figure 2(a) ), indicating that the selection of 5 versus 10-boxcar formulations makes very little difference in terms of the projected levels of disease prevalence associated with a given (\u03b2,\u03c1 E ,\u03c1 I ,\u03c1 E+I ) combination. Clearly, as expected, lower R 0 leads to significantly lower peak prevalence, but as we see in Figure 2 (a), it also results in longer outbreaks.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 144,
+                    "end": 152,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 359,
+                    "end": 366,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 947,
+                    "end": 959,
+                    "text": "(Figure 2(a)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1265,
+                    "end": 1273,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Differences among continuous deterministic solutions"
+        },
+        {
+            "text": "As expected, smaller values of \u03c1 E lead to more rapid outbreaks, as we see in comparing the (R 0 ,\u03c1 E ,\u03c1 I ) = (10, 5, 10) (cf. Cases 25-28 in Figure 2 (b)) and (R 0 ,\u03c1 E ,\u03c1 I ) = (10, 10, 10) (cf. Cases 29-32 in Figure 2(b) ) outbreaks, with a noticeably higher peak ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 143,
+                    "end": 151,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 213,
+                    "end": 224,
+                    "text": "Figure 2(b)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Differences among continuous deterministic solutions"
+        },
+        {
+            "text": "The discrete Erlang model produces very similar results to its corresponding continuous Erlang model, as we see in Figure 3 for both Cases 29 and 32, although the discrete peak is slightly lower. The mean of the corresponding stochastic ensemble for the case N = 10,000 is slightly lower than either deterministic case. [42, 46, 47, 50] , which we designate here as an initial fadeout (IFO) and breakout (BO) The basic disease reproductive rates (R 0 ) and mean residence times in the exposed (\u03c1 E ) and infectious (\u03c1 E ) classes for each of the eight groups of four cases, as detailed in Table 1 Table 1. component. Instantiations of the stochastic model that belong to the IFO component, occur with probability P IFO , and those belonging to the BO component occur with probability 1 \u2212 P IFO . It is only the BO component that can be approximately modelled by a corresponding deterministic system [46] , provided N is sufficiently large. The size of the IFO component is strongly linked to the critical value R 0 = 1. For R 0 \u2264 1 only the IFO Table 1 . Note that mean of the non-fadeout ensemble is averaged over only those that do not initially fadeout. component exists, and solutions are referred to as stuttering transmission chains [8, 39] . When R 0 > 1, the size of the IFO stuttering transmission chain component rapidly diminishes with increasing R 0 . For example, in generating the prevalence profiles in Figure 3 , which corresponds to the case R 0 = 10 (\u03b2 = 1), no stuttering chains were evident in our ensemble of 100 runs. Selecting \u03b2 = 0.25 and repeating the exercise for Runs 1 and 4 for the case N = 10,000 -i.e. R 0 = 1.25, we obtained the prevalence profiles plotted in Figure 4 . Now, 14 and 9 of the 100 Monte Carlo instantiations for Cases 1 and 4, respectively, were stuttering transmission chains that faded out before they could break out.",
+            "cite_spans": [
+                {
+                    "start": 320,
+                    "end": 324,
+                    "text": "[42,",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 325,
+                    "end": 328,
+                    "text": "46,",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 329,
+                    "end": 332,
+                    "text": "47,",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 333,
+                    "end": 336,
+                    "text": "50]",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 899,
+                    "end": 903,
+                    "text": "[46]",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 1239,
+                    "end": 1242,
+                    "text": "[8,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1243,
+                    "end": 1246,
+                    "text": "39]",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 115,
+                    "end": 123,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 589,
+                    "end": 596,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 597,
+                    "end": 605,
+                    "text": "Table 1.",
+                    "ref_id": null
+                },
+                {
+                    "start": 1045,
+                    "end": 1052,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1418,
+                    "end": 1426,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 1692,
+                    "end": 1700,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF7"
+                }
+            ],
+            "section": "Differences among deterministic and mean stochastic solutions"
+        },
+        {
+            "text": "IFO rates vary somewhat among repeated sets of ensemble runs and are also affected by the size of the population. In particular, IFO rates are much more difficult to assess in small than in large populations because the sorting of runs into the IFO and BO components is much more difficult when N is relatively small. This problem is evident from the results obtained from simulations conducted for varying N, as reported in the next section.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Differences among deterministic and mean stochastic solutions"
+        },
+        {
+            "text": "When the transmission rate is normalized by the value N, as we have in Equation (4), the solutions to the continuous and discrete deterministic model are scale-independent with regard to population size N. That is, epidemics in isolated towns of 10,000 individuals are per-capita the same as epidemics in isolated mega-cities of 10 million individuals. This is not the case for stochastic populations because demographic stochasticity is not scale-independent. Rather, due to sampling processes for which the variance declines in proportion to sample size, the effects of demographic stochasticity are proportional to 1/ \u221a N. But even large populations are structured into smaller subpopulations that may not be well-mixed on the time scale of an epidemic. This is particularly true of local school populations where the same group of several hundred children aggregate for a substantial portion of the day, on five of the seven days each week. Thus, disease outbreaks in mega-cities, particularly those associated with children, may behave somewhat like disease outbreaks in interconnected sets of large villages or small towns, with large population behaviour depending on suitably high transfer rates of individuals among localities.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Small and large populations"
+        },
+        {
+            "text": "To gain insights into the effects of population size, we will consider outbreaks in isolated groups of N = 500, 2000, and 50,000 individuals. For the scenario N = 500, 90/500 runs (i.e. 18.0%) belonged to the initial fadeout component (IFO), while for the scenarios N = 2000 and N = 50,000 the IFO contained 21.0% and 18.2% of the runs, respectively. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Small and large populations"
+        },
+        {
+            "text": "In Figures 3 and 4 , and the third column of Figure 5 , we have plotted the average of a number of instantiations of our stochastic Erlang model, which looks relatively smooth over an ensemble of 100 runs, except when R 0 is small (i.e. R 0 = 1.25) or N is small (i.e. N = 500). It remains unclear precisely which circumstances enable the convergence between the mean of an ensemble of stochastic instantiations and the solution of its discrete counterpart. This convergence depends, at least, upon the following three aspects: Figure 5 . To see Figure 6 . The left, middle, and right columns are plots of prevalence obtained from the discrete deterministic model (blue curves) and averages over ensembles of 100 runs (n = 100) of the discrete stochastic Erlang models (red curves; broken lines are \u00b1 one standard deviation around solid curve mean) for Cases 1, 17, and 33 (cf. Table 1 ). the effects of N and R 0 on the mean of ensembles of instantiations of the stochastic model, consider the (\u03b3 E , k E , \u03b3 I , k I ) = (5, 5, 1, 1) configuration of the model for the cases \u03b2 = 0.25 (R 0 = 1.25), \u03b2 = 1 (R 0 = 5), and \u03b2 = 2 (R 0 = 20), which correspond to, Runs 1, 17, and 33 in Table 1 , for scenarios N = 10 3 , 10 4 ,and 10 6 . The results obtained are presented in Figure 6 . From these results, we see that ensembles larger than n = 100 are needed to smooth out the curves generated when R 0 and N are both relatively small (e.g. R 0 = 1.25 and N = 10 3 ; top left panel), but are quite smooth when either N is relatively large (e.g. R 0 = 1.25 and N = 10 6 ; bottom left panel), or when R 0 is somewhat larger (e.g. R 0 = 5 and N = 10 3 ; top middle panel). When R 0 = 1.25, the ensemble mean underestimates the deterministic solution (left column of panels) by 25-30%. This falls to just under 10% when R 0 = 5 (centre column of panels), and below 2% when R 0 = 20 (right column of panels).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 18,
+                    "text": "Figures 3 and 4",
+                    "ref_id": "FIGREF6"
+                },
+                {
+                    "start": 45,
+                    "end": 53,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 528,
+                    "end": 536,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF8"
+                },
+                {
+                    "start": 546,
+                    "end": 554,
+                    "text": "Figure 6",
+                    "ref_id": null
+                },
+                {
+                    "start": 878,
+                    "end": 885,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1181,
+                    "end": 1188,
+                    "text": "Table 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 1271,
+                    "end": 1279,
+                    "text": "Figure 6",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discrete model convergence"
+        },
+        {
+            "text": "We compared the deterministic solutions obtained from the (k E , k I , \u03b3 E , \u03b3 I ) = (1, 5, 1, 5) Erlang models (both discrete and continuous) with their R 0 -equivalent deterministic Uniform and Exponential discrete-time models for the scenarios R 0 = 1.25 (\u03b2 = 0.25), R 0 = 5 (\u03b2 = 1) and R 0 = 20 (\u03b2 = 0.4). The prevalence curves obtained, normalized to proportions (since deterministic solutions do not depend on N) are presented in Figure 7 . Except in cases with a low R 0 value (top panel), the Uniform provides a much better fit to the Erlang model than the Exponential does. Figure 7 . The prevalence in the population (normalized to a proportion) is plotted for the continuous and discrete (k E , k I , \u03b3 E , \u03b3 I ) = (1, 5, 1, 5) Erlang models (dotted and blue curves respectively), as well as their Uniform (brown curve) and Exponential (green curve) discrete-time counterparts for the cases \u03b2 = 0.25, 1 and 4 (R 0 = 1.25, 5, and 20 respectively).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 436,
+                    "end": 444,
+                    "text": "Figure 7",
+                    "ref_id": null
+                },
+                {
+                    "start": 583,
+                    "end": 591,
+                    "text": "Figure 7",
+                    "ref_id": null
+                }
+            ],
+            "section": "Model comparisons"
+        },
+        {
+            "text": "Using published data from the Ebola outbreak in Liberia during the 74 weeks following initial reporting in March of 2014 (compiled by [5] ), we fitted several of the proposed formulations to real outbreak data. The models tested on the Ebola data (the discrete and continuous Erlang) were compared to the discrete and continuous versions of the standard SEIR formulation (with an exponential distribution governing transitions between compartments) to judge the utility of the alternative methods for model fitting. Because the transmission rate was treated as a constant throughout the epidemic, only the initial quasi-exponential increase was used for the purposes of fitting. In order to fit these models to the subsequent decline in infections (when the population of susceptible hosts is not exhausted during the initial increase), assumptions regarding the form of the change in the transmission parameter (\u03b2) must be made. While some have used an exponential decay to represent this shifting \u03b2 value over time [3] , others have used threshold functions [34] or related the transmission parameter to environmental covariates like seasonality [43] . Fitting to the initial increase in the epidemic should be informative with regard to the ability of each alternative formulation to fit to real epidemic data without requiring a potentially confounding assumption about the form of the change in the transmission rate over time. As in [3] , a total population size of 10 6 was used for each model, and the epidemic was initialized with a single infected case.",
+            "cite_spans": [
+                {
+                    "start": 134,
+                    "end": 137,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1017,
+                    "end": 1020,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1060,
+                    "end": 1064,
+                    "text": "[34]",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 1148,
+                    "end": 1152,
+                    "text": "[43]",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 1439,
+                    "end": 1442,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fitting models to Ebola data"
+        },
+        {
+            "text": "The standard SEIR formulation, which consists of three parameters (\u03b2, \u03b3 , and \u03c3 ), converged relatively quickly, as indicated by the resulting multivariate potential scale reduction factor (PSRF; a metric of MCMC convergence associated with Gelman and Rubin [19] , where values close to 1 indicate success). The negative log-likelihood of the discrete model was lower than that of the continuous formulation, no matter the number of iterations, despite being slightly less computationally efficient. The MCMC sampling algorithm mixed well in both cases, with acceptance rates between approximately 0.1 and 0.6 generally treated as suitable (Table 3) . Importantly, the R 0 values for each of the models were fairly consistent with one another, ranging from 4.25 to 4.62 (Table 4) . Note: Three of the parameters (\u03c3 , \u03b3 , and R 0 ) were estimated directly using an MCMC approach, whereas \u03b2 was derived based on the other parameter estimates. Note: The computational time required to run six parallel chains, the mixing rate (as determined by the mean acceptance rate across all chains) and convergence (PSRF), as well as the negative log-likelihood of the best fitting chain are displayed. Four different sets were run, each with a different number of iterations to illustrate how the diagnostic statistics and fit changed with additional time. The asterisk indicates the fact that final run of the continuous Erlang was analysed using a longer burn-in period of 200,000 iterations (40%) rather than the 20% used for the other runs.",
+            "cite_spans": [
+                {
+                    "start": 258,
+                    "end": 262,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 640,
+                    "end": 649,
+                    "text": "(Table 3)",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 770,
+                    "end": 779,
+                    "text": "(Table 4)",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Fitting models to Ebola data"
+        },
+        {
+            "text": "The Erlang models have more dynamic model structures than the standard SEIR formulations due to the complications involved in altering the number of compartments through which exposed and infected individuals move. This resulted in substantially longer computation times for these models compared to the simpler SEIR models ( Table 5 ). The Erlang formulations also required more iterations to converge consistently on the same parameter values. Despite nearly optimal mixing rates, the six chains of the discrete Erlang model still had PSRF values substantially higher than 1, indicating that even more iterations (and computational resources) were required for the six chains to converge on the same parameter Note: In the discrete case, three of the parameters (\u03b2, \u03b3 E , and \u03b3 I ), whereas the shape parameters (k E and k I ) were fixed at 5. These shape parameters were multiplied by 3 to determine the number of boxcars in the E and I classes to ensure that \u223c 99% of individuals made it through the E and I states. Finally, the R 0 values were derived from the other parameter values. In the case of the continuous model, five parameters (k E , k I , \u03b3 E , \u03b3 I , and R 0 ) were fit directly with the MCMC sampler, while \u03b2 was derived from the other parameter estimates. The asterisk indicates the fact that final run of the continuous Erlang was analysed using a longer burn-in period of 200,000 iterations (40%) rather than the 20% used for the other runs.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 326,
+                    "end": 333,
+                    "text": "Table 5",
+                    "ref_id": "TABREF4"
+                }
+            ],
+            "section": "Fitting models to Ebola data"
+        },
+        {
+            "text": "estimates. The best fitting chains of the discrete Erlang model (after at least 100,000 iterations) did fit more closely to the data than the best fitting models from the discrete standard SEIR model (Table 5 ; Figure 8 ). This indicates that the discrete Erlang offers a more accurate representation of epidemic dynamics than the simple SEIR model, but the additional computation time and the failure to converge consistently on the same parameter values makes the method much more demanding than the approximation offered by the standard SEIR model. Notably, the R 0 values estimated using the Erlang models ranged from 3.76 to 4.60, a slightly larger range than the standard SEIR models (likely due to the lack of convergence), but similar in magnitude to those obtained using the simpler alternatives (Table 6 ). In both cases, these R 0 values are higher than previously published estimates for Ebola, which have ranged from 1.35 to 3.65 [28] .",
+            "cite_spans": [
+                {
+                    "start": 943,
+                    "end": 947,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 200,
+                    "end": 208,
+                    "text": "(Table 5",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 211,
+                    "end": 219,
+                    "text": "Figure 8",
+                    "ref_id": "FIGREF10"
+                },
+                {
+                    "start": 805,
+                    "end": 813,
+                    "text": "(Table 6",
+                    "ref_id": "TABREF5"
+                }
+            ],
+            "section": "Fitting models to Ebola data"
+        },
+        {
+            "text": "The discrete stochastic Erlang model was not used to fit the empirical epidemic data because of the complexities involved in the interpretation of the results. Even when averages over a substantial number of instantiations are used to calculate the fit associated with a particular parameter set, the uncertainty bounds surrounding this mean may be just as important in producing the empirical data as the mean itself. A real-world epidemic is indeed a stochastic process, but it is unclear whether the epidemic represents an instantiation at one of the extremes around the set of parameters that govern the process or the mean or a realization somewhere in between. This fact hinders model fitting procedures in epidemiology when using a deterministic model as well. However, due to computational limitations, the most efficient method likely involves fitting a discrete deterministic model first, and then exploring the potential spread that an epidemic can exhibit around those resulting parameters using a stochastic formulation of the model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fitting models to Ebola data"
+        },
+        {
+            "text": "Continuous-time Erlang SE n I m R models may be aesthetically appealing because epidemic events can arise at any time (i.e. time is continuous), and humped-shaped specific diseaseclass residence times provide better fits to real data than the exponentially distributed residence times associated with the standard single component SEIR model [49, 56] . Data, however, are usually aggregated and binned into discrete-time intervals, not only for convenience, but also because the precise times of actual events (e.g. when exactly a particular individual was exposed to a dose of pathogen, or when exactly a particular individual became or ceased to be infectious) is not usually known. Thus, continuous models cannot be regarded as intrinsically more accurate than discrete models, particularly when noise within the data is taken into account. All else being equal, we should choose models that are computationally more tractable. This is particularly the case for discrete-time models where the interval is synchronized with the temporal aggregation of data, typically daily or weekly for fast epidemics, or monthly or quarterly for slow epidemics. Further, when extending formulations to incorporate stochasticity, discrete models are more easily implemented than having to apply a Gillespie or modified Gillespie algorithm to simulate continuous time stochastic processes, which may also require an unrealistic Poisson process assumption [17, 18, 54] . No matter how little or much stochasticity is associated with environmental factors, demographic stochasticity always plays a major role in epidemics because all epidemics start with a small number of infected individuals. This implies that even for values of R 0 comfortably larger than 1 (e.g. in the range 2-4), the fadeout of an epidemic before it can breakout is an event we can expect to occasionally observe [2, 10, 24, 45, 47, 48] .",
+            "cite_spans": [
+                {
+                    "start": 342,
+                    "end": 346,
+                    "text": "[49,",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 347,
+                    "end": 350,
+                    "text": "56]",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 1441,
+                    "end": 1445,
+                    "text": "[17,",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1446,
+                    "end": 1449,
+                    "text": "18,",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 1450,
+                    "end": 1453,
+                    "text": "54]",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 1871,
+                    "end": 1874,
+                    "text": "[2,",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1875,
+                    "end": 1878,
+                    "text": "10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 1879,
+                    "end": 1882,
+                    "text": "24,",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 1883,
+                    "end": 1886,
+                    "text": "45,",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 1887,
+                    "end": 1890,
+                    "text": "47,",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1891,
+                    "end": 1894,
+                    "text": "48]",
+                    "ref_id": "BIBREF47"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "The real challenge in applying epidemic models is to either strategically identify key factors that lead to outbreaks (thereby providing a guide to reducing the risk of such outbreaks) or tactically manage ongoing epidemics through appropriate interventions. In both cases, we should avoid focusing our computational efforts on model fitting at the expense of numerical simulations to obtain broad comprehension: the imperative to find the best fitting set of parameters for the model at hand comes at the expense of obtaining a deeper understanding through exploratory simulations. This exploration includes a full assessment of possible ranges of outcomes due to stochastic factors (both demographic and environmental). Additional exploration requires that we incorporate factors that profoundly affect the course of epidemics, yet are not included in our SEIR formulations. Specifically, here we addressed the issue of replacing exponential residence times in disease classes with the more realistic distributed-delay residences times. We also overcome the issue of modelling declining transmission rates over time by fitting our models only to data from early stages of the epidemic.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Future studies that fit models to data that continue beyond the exponential outbreak phase need to include time-varying transmission rate functions of the form depicted in Equation (5) . Equally important for many diseases is eliminating the assumption that the epidemic is occurring in a spatially homogeneous population. In these cases, models need to include spatial structure. This is most easily done by assuming a metapopulation structure: i.e. a small network of relatively large homogeneous subpopulations [6, 30, 36] . In the context of epidemics, spatial structure typically has two major components. The first is the way populations are distributed into major population centres, each of which can be assumed to constitute a homogeneous subpopulation. The second is to appropriately characterize the movement of individuals among subpopulations [32] , particularly individuals who are infected, but still asymptomatic (e.g. individuals who are in class E, but make the transition to class I once they have moved).",
+            "cite_spans": [
+                {
+                    "start": 181,
+                    "end": 184,
+                    "text": "(5)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 514,
+                    "end": 517,
+                    "text": "[6,",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 518,
+                    "end": 521,
+                    "text": "30,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 522,
+                    "end": 525,
+                    "text": "36]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 856,
+                    "end": 860,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Whatever approach is taken in future studies to modelling epidemics in populations with notable substructures -whether that substructure depends upon spatial organization, age, behavioural, or alternative means of categorizing individuals -computationally efficient stochastic models are needed. Further, these models should exhibit realistic residence-time properties for individuals within disease classes. The discrete time-to-go model formulated here represents a useful step towards satisfying the latter proposition.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Comparing large-scale computational approaches to epidemic modeling: Agent-based versus structured metapopulation models",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ajelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Gon\u00e7alves",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Balcan",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Colizza",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ramasco",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Merler",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vespignani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "BMC Infect. Dis",
+            "volume": "10",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "A primer on stochastic epidemic models: Formulation, numerical simulation, and analysis",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Allen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Infect. Dis. Model",
+            "volume": "2",
+            "issn": "2",
+            "pages": "128--142",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Estimating the reproduction number of Ebola Virus (EBOV) during the 2014 outbreak in West Africa",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Althaus",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PLOS Curr. Outbreaks",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/currents.outbreaks.91afb5e0f279e7f29e7056095255b288"
+                ]
+            }
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Infectious Diseases of Humans: Dynamics and Control",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "May",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Spatiotemporal analysis of the 2014 Ebola epidemic in West Africa",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Backer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "PLOS Comput. Biol",
+            "volume": "12",
+            "issn": "12",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Modeling the spatial spread of infectious diseases: The GLobal Epidemic and Mobility computational model",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Balcan",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Gon\u00e7alves",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ramasco",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Colizza",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vespignani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. Comput. Sci",
+            "volume": "1",
+            "issn": "3",
+            "pages": "132--145",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Global stability analysis for SEIS models with n latent classes",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Bame",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bowong",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mbang",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Sallet",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-J",
+                    "middle": [],
+                    "last": "Tewa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Math. Biosci. Eng",
+            "volume": "5",
+            "issn": "1",
+            "pages": "20--33",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Inference of R 0 and transmission heterogeneity from the size distribution of stuttering chains",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Blumberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "PLoS Comput. Biol",
+            "volume": "9",
+            "issn": "5",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Distributed incubation and infectious periods in models of the transmission dynamics of the human immunodeficiency virus (HIV)",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Blythe",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Math. Med. Biol",
+            "volume": "5",
+            "issn": "1",
+            "pages": "1--19",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Stochastic epidemic models: A survey",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Math. Biosci",
+            "volume": "225",
+            "issn": "1",
+            "pages": "24--35",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Individual-based computational modeling of smallpox epidemic control strategies",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Burke",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Epstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A T"
+                    ],
+                    "last": "Cummings",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Parker",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Cline",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Singa",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Chakravarty",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Acad. Emerg. Med",
+            "volume": "13",
+            "issn": "11",
+            "pages": "1142--1149",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Potential for large outbreaks of Ebola virus disease",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Camacho",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Kucharski",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Funk",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Breman",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Piot",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Edmunds",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Epidemics",
+            "volume": "9",
+            "issn": "",
+            "pages": "70--78",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "SIR epidemic models with general infectious period distribution",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Clancy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Statist. Probab. Lett",
+            "volume": "85",
+            "issn": "",
+            "pages": "1--5",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Integrodifferential Equations and Delay Models in Population Dynamics",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Cushing",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "",
+            "volume": "20",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "On the definition and the computation of the basic reproduction ratio R 0 in models for infectious diseases in heterogeneous populations",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Diekmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Heesterbeek",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A J"
+                    ],
+                    "last": "Metz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J. Math. Biol",
+            "volume": "28",
+            "issn": "4",
+            "pages": "365--382",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Modelling the influence of human behaviour on the spread of infectious diseases: A review",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Funk",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Salath\u00e9",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Jansen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J. R. Soc. Interface",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "A general method for numerically simulating the stochastic time evolution of coupled chemical reactions",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Gillespie",
+                    "suffix": ""
+                }
+            ],
+            "year": 1976,
+            "venue": "J. Comput. Phys",
+            "volume": "22",
+            "issn": "4",
+            "pages": "403--434",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Exact stochastic simulation of coupled chemical reactions",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Gillespie",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "J. Phys. Chem",
+            "volume": "81",
+            "issn": "25",
+            "pages": "2340--2361",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Inference from iterative simulation using multiple sequences",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Gelman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Rubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Statist. Sci",
+            "volume": "7",
+            "issn": "",
+            "pages": "457--472",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "A hypothesis regarding the abruptness of density dependence and the growth rate of populations",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Ecology",
+            "volume": "77",
+            "issn": "7",
+            "pages": "2014--2026",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Basic methods for modeling the invasion and spread of contagious diseases",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "DIMACS Ser. Discrete Math. Theoret. Comput. Sci",
+            "volume": "71",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Epidemic models: Thresholds and population regulation",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pickering",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "Am. Nat",
+            "volume": "121",
+            "issn": "6",
+            "pages": "892--898",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Modeling the invasion and spread of contagious diseases in heterogeneous populations",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Cross",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bar-David",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Johnson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Porco",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Disease Evolution: Models, Concepts, and Data Analyses",
+            "volume": "71",
+            "issn": "",
+            "pages": "113--144",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Tactics and strategies for managing Ebola outbreaks and the salience of immunization",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J.-P",
+                    "middle": [],
+                    "last": "Gonzalez",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Salter",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Bangura",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Carlson",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Coomber",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Dougherty",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Kargbo",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Wolfe",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Wauquier",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Comput. Math. Methods Med",
+            "volume": "",
+            "issn": "",
+            "pages": "1--9",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Travelling waves and spatial hierarchies in measles epidemics",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Grenfell",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Bj\u00f8rnstad",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kappey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Nature",
+            "volume": "414",
+            "issn": "6865",
+            "pages": "716--723",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Perspectives on the basic reproductive ratio",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Heffernan",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wahl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. R. Soc. Interf",
+            "volume": "2",
+            "issn": "4",
+            "pages": "281--293",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "The mathematics of infectious diseases",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Hethcote",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "SIAM Rev",
+            "volume": "42",
+            "issn": "4",
+            "pages": "599--653",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Epidemiological dynamics of Ebola outbreaks",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "House",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Elife",
+            "volume": "3",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "A stochastic distributed-delay model of disease processes in dynamic populations",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hurd",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Kaneene",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Lloyd",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Prev. Vet. Med",
+            "volume": "16",
+            "issn": "1",
+            "pages": "21--29",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "The effects of local spatial structure on epidemiological invasions",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Keeling",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proc. R. Soc. Lond. B",
+            "volume": "266",
+            "issn": "",
+            "pages": "859--867",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Avoidable errors in the modelling of outbreaks of emerging pathogens, with special reference to Ebola",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "King",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "De Cell\u00e8s",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Magpantay",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rohani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Proc. R. Soc. B",
+            "volume": "282",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1098/rspb.2015.0347"
+                ]
+            }
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Spatial spread of the West Africa Ebola epidemic",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kramer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Pulliam",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Alexander",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Park",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rohani",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Drake",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Royal Soc. Open Sci",
+            "volume": "3",
+            "issn": "8",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1098/rsos.160294"
+                ]
+            }
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Estimating the delay between host infection and disease (incubation period) and assessing its significance to the epidemiology of plant diseases",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Leclerc",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Dor\u00e9",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Gilligan",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lucas",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Filipe",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "PloSOne",
+            "volume": "9",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Statistical inference in a stochastic epidemic SEIR model with control intervention: Ebola as a case study",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Lekone",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Finkenst\u00e4dt",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Biometrics",
+            "volume": "62",
+            "issn": "4",
+            "pages": "1170--1177",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Destabilization of epidemic models with the inclusion of realistic distributions of infectious periods",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lloyd",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proc. R. Soc. Lond. B",
+            "volume": "268",
+            "issn": "",
+            "pages": "985--993",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Spatiotemporal dynamics of epidemics: Synchrony in metapopulation models",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lloyd",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Jansen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Math. Biosci",
+            "volume": "188",
+            "issn": "1",
+            "pages": "1--16",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Curtailing transmission of severe acute respiratory syndrome within a community and its hospital",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Galvani",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proc. R. Soc. Lond. B",
+            "volume": "270",
+            "issn": "",
+            "pages": "1979--1989",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Should we expect population thresholds for wildlife disease?",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Cross",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Briggs",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Daugherty",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Getz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Latto",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Sanchez",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Swei",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Trends Ecol. Evol",
+            "volume": "20",
+            "issn": "9",
+            "pages": "511--519",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Nine challenges in modelling the emergence of novel pathogens",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Funk",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Mclean",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Riley",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wood",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Epidemics",
+            "volume": "10",
+            "issn": "",
+            "pages": "35--39",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Time Lags in Biological Models",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Macdonald",
+                    "suffix": ""
+                }
+            ],
+            "year": 1978,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "How should pathogen transmission be modelled?",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Mccallum",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Barlow",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hone",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Trends Ecol. Evol",
+            "volume": "16",
+            "issn": "6",
+            "pages": "295--300",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "WKB theory of epidemic fade-out in stochastic populations",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Meerson",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Sasorov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Phys. Rev. E",
+            "volume": "80",
+            "issn": "4",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Seasonality and comparative dynamics of six childhood infections in pre-vaccination Copenhagen",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "J E"
+                    ],
+                    "last": "Metcalf",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Bj\u00f8rnstad",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Grenfell",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Andreasen",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proc. R. Soc. Lond. B",
+            "volume": "276",
+            "issn": "",
+            "pages": "4111--4118",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "The Dynamics of Physiologically Structured Populations",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Metz",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Diekmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "",
+            "volume": "68",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "The threshold concept in stochastic epidemic and endemic models, Epidemic models: their structure and relation to data",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "On the time to extinction in recurrent epidemics",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J. R. Stat. Soc. Ser. B Stat. Methodol",
+            "volume": "61",
+            "issn": "2",
+            "pages": "309--330",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Stochastic models of some endemic infections",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Math. Biosci",
+            "volume": "179",
+            "issn": "1",
+            "pages": "1--19",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "A new look at the critical community size for childhood infections, Theor",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Popul. Biol",
+            "volume": "67",
+            "issn": "3",
+            "pages": "203--216",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "Introduction and snapshot review: Relating infectious disease transmission models to data",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "O&apos;neill",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Stat. Med",
+            "volume": "29",
+            "issn": "20",
+            "pages": "2069--2077",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "A two-stage model for the SIR outbreak: Accounting for the discrete and stochastic nature of the epidemic at the initial contamination stage",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Sazonov",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kelbert",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Gravenor",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Math. Biosci",
+            "volume": "234",
+            "issn": "2",
+            "pages": "108--117",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "An Introduction to Delay Differential Equations with Applications to the Life Sciences",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Smith",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "",
+            "volume": "57",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Ross, Macdonald, and a theory for the dynamics and control of mosquito-transmitted pathogens",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Battle",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Hay",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Barker",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Scott",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Mckenzie",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "PLoS Pathog",
+            "volume": "8",
+            "issn": "4",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Reproduction numbers and sub-threshold endemic equilibria for compartmental models of disease transmission",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Van Den Driessche",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Watmough",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Math. Biosci",
+            "volume": "180",
+            "issn": "1",
+            "pages": "29--48",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Temporal Gillespie algorithm: Fast simulation of contagion processes on time-varying networks",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Vestergaard",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "G\u00e9nois",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PLoS Comput. Biol",
+            "volume": "11",
+            "issn": "10",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Using data on social contacts to estimate age-specific transmission parameters for respiratory-spread infectious agents",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Teunis",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kretzschmar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Am. J. Epidemiol",
+            "volume": "164",
+            "issn": "10",
+            "pages": "936--944",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Appropriate models for the management of infectious diseases",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wearing",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rohani",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Keeling",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "PLoS Med",
+            "volume": "2",
+            "issn": "7",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Figure 1. The standard continuous-time SEIR compartmental model has individuals flowing through the E and I compartments at rates \u03b3 E and \u03b3 I respectively, with rates of flow from compartments S to E and V to S (V is the immune part of R, D is the dead part of R) represented by \u03c4 and \u03b3 V respectively. The boxcar or Erlang version divides E into k E and I into k I sub-compartments with the mean time that it takes to pass through compartments E and I now given by \u03c1 E = k E /\u03b3 E and \u03c1 I = k I /\u03b3 I , respectively. The discrete time-to-go model can be regarded as the discrete-time analog of the Erlang model where the proportions (deterministic setting) or probabilities (stochastic setting) p E i , i = 1, . . . , n E and p I j , j = 1, . . . , n I follow Erlang distributions, as described in the text.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Transmission parameter \u03b2 = 0.25 in Cases 1-16 and \u03b2 = 1 in Cases 17-32 producing the R 0 values given in the last column, while \u03b2 = 2 was used only in Case 33.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "The last column is the uniform (p Uni i ) distribution for which \u03c1 = 5.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "prevalence in the former (roughly 6000 versus 4500). Despite these differences, because they arise in delays associated with disease class E only, the areas under the prevalence curves of Cases 25-32 all add up to the same value of 49,651 (units are prevalencedays when time is in days). For Cases 17-24 the area under the prevalence curves sums to 99,995. The pattern of lower-delayed peaks when \u03c1 E is larger, can be verified fromFigure 2(a), by comparing the other three sets of comparisons: (R 0 ,\u03c1 E ,\u03c1 I ) = (5, 5, 5) with (R 0 ,\u03c1 E ,\u03c1 I ) = (5, 10, 5), (R 0 ,\u03c1 E ,\u03c1 I ) = (2.5, 5, 10) with (R 0 ,\u03c1 E ,\u03c1 I ) = (2.5, 10, 105), and (R 0 ,\u03c1 E ,\u03c1 I ) = (1.25,5,5) with (R 0 ,\u03c1 E ,\u03c1 I ) = (1.25,10,5).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "A. Disease prevalence values obtained from simulation Cases 1-32 (N = 10,000) of our continuous-time, deterministic SEIR Erlang model are plotted against time.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": ", are provided for clarity. B. An expanded view (cf. time axis of upper and lower panels) of the four left-most groups of simulations in panel A.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Disease prevalence values are plotted against time for the continuous and discrete-time, deterministic and the stochastic SEIR Erlang models for Cases 29 and 32, with \u03b2 = 1, N = 10,000, as described in",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "Disease prevalence values are plotted against time for the continuous and discrete-time, deterministic models as well as the mean of an ensemble of stochastic SEIR Erlang simulations for Cases 1 and 4 (N = 10,000), as described in",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "Results from 500 Monte Carlo runs of the discrete stochastic Erlang corresponding to Case 1:(\u03b2, \u03b3 E , k E , \u03b3 I , k I ) = (0.25,1,5,1,5). In the left column, the areas under the prevalence curves (units: prevalence-days) of each of the 500 runs are plotted from smallest to largest for the scenarios N = 500, 2000, and 50,000. In the latter scenario (bottom left panel), a clear distinction exists between simulations with < 500 (IFO: initial fadeout component) and > 80, 000 (BO: breakout component) prevalence-days, with no cases in between. For the remaining two cases, the IFO and BO components are not as easily identified, and the IFO components were arbitrarily set to < 200 and < 500 prevalence-days for the scenarios N = 200 and N = 500, respectively. The middle column of the three panels depicts three typical instantiations of BO component solutions while the right-most column of smaller panels represents the means of the solutions in the IFO (blue) and BO (red) components. Note that the IFO and BO are plotted on vastly different scales in the bottom right-hand inset.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "the number of simulations n used to generate the mean; (2) the size N of the population involved; and (3) the value of R 0 associated with the value of the parameters used in the model. In particular, in the context of the latter, larger values of \u03b2 yield proportionally larger values of R 0 for specified (k E , k I , \u03b3 E , \u03b3 I ) configurations of the model. The effects of ensemble size n are fairly obvious: for example, compare the middle panel of individual runs and the left panel of averages depicted in",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "The incidence data from the first 155 days of the 2014 Ebola outbreak in Liberia are plotted together with output from the best fitting continuous and discrete SEIR and SE n I m R-Erlang models (corresponding to the fits that run for the longest number of iterations in each case), with details diagnostic fitting and parameter value details provided inTables 3 and 6.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Probabilities associated with truncating the four indicated Erlang cumulative distribution functions F Erlang (x; k, \u03b3 ) (p TrEr i ), as well as the truncated exponential distribution (p TrEx i : Erlang with k = 1): truncation involves setting the < 1% cumulative right tail probabilities to 0 and renormalizing the remaining > 0.99% cumulative probabilities to 1.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Diagnostic results of the standard SEIR Model using both discrete and continuous time formulations.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "The",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Diagnostic results of the Erlang formulations using both discrete and continuous time formulations.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "The parameter values associated with the best fitting model (in terms of negative loglikelihood) are shown for each of the Erlang models.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "WMG would like to thank Juliet Pulliam for hosting his visit in October 2016 to the South African Center for Epidemiological Modeling and Analysis (SACEMA) where his initial work on the SEIR time-to-go model began. WMG developed the discrete SEIR time-to-go formulation ( Figure 1 ) and formulated the model equations reported in Section 2, as well as generating the comparative simulations (Figures 2-6) . ERD fitted the models to the Liberian Ebola data and obtained the results reported in Tables 3-6. Both authors contributed to the writing and editing of the manuscript.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 272,
+                    "end": 280,
+                    "text": "Figure 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 391,
+                    "end": 404,
+                    "text": "(Figures 2-6)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "No potential conflict of interest was reported by the authors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Disclosure statement"
+        },
+        {
+            "text": "This work in part was thus supported by South African Center for Epidemiological Modeling and Analysis and also by NIH Grant GM117617 to Jason Blackburn with WMG as subcontractor.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Funding"
+        }
+    ]
+}

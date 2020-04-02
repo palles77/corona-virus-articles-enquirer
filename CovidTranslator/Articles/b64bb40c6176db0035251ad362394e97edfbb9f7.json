@@ -1,0 +1,4303 @@
+{
+    "paper_id": "b64bb40c6176db0035251ad362394e97edfbb9f7",
+    "metadata": {
+        "title": "SHAPE-Directed RNA Secondary Structure Prediction",
+        "authors": [
+            {
+                "first": "Justin",
+                "middle": [
+                    "T"
+                ],
+                "last": "Low",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Kevin",
+                "middle": [
+                    "M"
+                ],
+                "last": "Weeks",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The diverse functional roles of RNA are determined by its underlying structure. Accurate and comprehensive knowledge of RNA structure would inform a broader understanding of RNA biology and facilitate exploiting RNA as a biotechnological tool and therapeutic target. Determining the pattern of base pairing, or secondary structure, of RNA is a first step in these endeavors. Advances in experimental, computational, and comparative analysis approaches for analyzing secondary structure have yielded accurate structures for many small RNAs, but only a few large (>500 nts) RNAs. In addition, most current methods for determining a secondary structure require considerable effort, analytical expertise, and technical ingenuity. In this review, we outline an efficient strategy for developing accurate secondary structure models for RNAs of arbitrary length. This approach melds structural information obtained using SHAPE chemistry with structure prediction using nearest-neighbor rules and the dynamic programming algorithm implemented in the RNAstructure program. Prediction accuracies reach \u226595% for RNAs on the kilobase scale. This approach facilitates both development of new models and refinement of existing RNA structure models, which we illustrate using the Gag-Pol frameshift element in an HIV-1 M-group genome. Most promisingly, integrated experimental and computational refinement brings closer the ultimate goal of efficiently and accurately establishing the secondary structure for any RNA sequence.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "RNA is a uniquely versatile macromolecule with diverse functions. In addition to its classically understood role as the intermediary between genome and proteome, RNA plays direct roles in fundamental cellular processes including biological catalysis, gene regulation and host defense. RNA also serves as the genome for many viruses. All of these functions depend on, or are modulated by, the ability of RNA to fold into higher order structures. Accurate models for the underlying structure are therefore critical for proposing and confirming hypotheses regarding RNA function.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Determining the complete three-dimensional (termed the tertiary) structure is the ultimate goal for many RNAs. However, only limited sets of RNAs are candidates for current high resolution crystallography and NMR approaches. A simpler problem is to determine the base pairing pattern (termed the secondary structure) of an RNA. Secondary structure determination, independent of higher order structural information, is possible because the hydrogen bonding and stacking interactions that collectively form secondary structure are usually stronger than tertiary interactions [1] [2] [3] [4] , and because RNA folding is often hierarchical [5, 6] , with many secondary structural motifs forming prior to tertiary contacts. Additionally, knowledge of the secondary structure greatly restricts possible three-dimensional conformations and facilitates tertiary structure prediction [7] [8] [9] . Moreover, a subset of RNA functions may depend more directly on secondary structural motifs than on global folds.",
+            "cite_spans": [
+                {
+                    "start": 573,
+                    "end": 576,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 577,
+                    "end": 580,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 581,
+                    "end": 584,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 585,
+                    "end": 588,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 637,
+                    "end": 640,
+                    "text": "[5,",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 641,
+                    "end": 643,
+                    "text": "6]",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 876,
+                    "end": 879,
+                    "text": "[7]",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 880,
+                    "end": 883,
+                    "text": "[8]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 884,
+                    "end": 887,
+                    "text": "[9]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Insight into the secondary structure can be gleaned using computer-based predictions performed using the sequence alone, or in combination with sequence alignment information or experimental data. Sequence-based folding generally includes two main elements: an energy function based on experimentally derived thermodynamic parameters, and an algorithm that explores the conformational space available to the RNA and ranks computed structures. Most energy functions use the Turner et al. [10, 11] set of nearest neighbor parameters, derived from optical melting experiments. A summary of these parameters is available at the Nearest-Neighbor Database [12] . Exploring conformational space is challenging because of the vast number of possible secondary structures, which is estimated to scale exponentially as ~1.8 N , where N is the number of nucleotides in the RNA [13] . This means that a \"brute force\" approach that samples every possible conformation is impossible both from a computational standpoint and from the perspective of efficient RNA folding in vivo. Consequently, the intrinsic thermodynamics and kinetics of RNA folding must conspire to restrict the folding pathway to a narrow subset of these structures, only one (or perhaps a few) of which is likely to dominate the equilibrium ensemble. Especially for short RNAs, thermodynamic considerations are likely paramount and thus the structure with the lowest free energy is the biologically active one.",
+            "cite_spans": [
+                {
+                    "start": 487,
+                    "end": 491,
+                    "text": "[10,",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 492,
+                    "end": 495,
+                    "text": "11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 650,
+                    "end": 654,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 866,
+                    "end": 870,
+                    "text": "[13]",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Programs based on the Zuker dynamic programming algorithm [14, 15] are widely used to search for the minimum free energy structure [16] [17] [18] [19] [20] [21] [22] . These algorithms are deterministic, meaning that given a defined set of energy rules, they always find the lowest free energy structure. The Zuker algorithm scales as O(N 3 ) in time, where N is the number of nucleotides in the sequence. This means that doubling the sequence length requires eight times as much time to predict the structure. Nevertheless, on modern computers, the time to make a prediction is reasonably fast. The guarantee that the optimal structure can be computed and the relative computational efficiency are made possible, first, by incorporating simplifying assumptions into the energy function, and second, by limiting the types of allowed RNA folds.",
+            "cite_spans": [
+                {
+                    "start": 58,
+                    "end": 62,
+                    "text": "[14,",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 63,
+                    "end": 66,
+                    "text": "15]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 131,
+                    "end": 135,
+                    "text": "[16]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 136,
+                    "end": 140,
+                    "text": "[17]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 141,
+                    "end": 145,
+                    "text": "[18]",
+                    "ref_id": null
+                },
+                {
+                    "start": 146,
+                    "end": 150,
+                    "text": "[19]",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 151,
+                    "end": 155,
+                    "text": "[20]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 156,
+                    "end": 160,
+                    "text": "[21]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 161,
+                    "end": 165,
+                    "text": "[22]",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dynamic Programming Algorithms for RNA Secondary Structure Prediction"
+        },
+        {
+            "text": "The total energy is assumed to be a simple sum over all energetic components that characterize local structural elements. Two features primarily contribute to the total energy: negative (favorable) free energies arising from stabilizing base stacking and hydrogen bonding interactions in and adjacent to helices, and positive (unfavorable) free energies arising from the entropic cost of restricting conformational freedom in loops. Helix energy terms are sequence-dependent, reflect the energetic bonus of adding a base pair to a helix, and implicitly include both canonical hydrogen bonding and base stacking. These terms depend solely on interactions involving adjacent base pairs or interactions at the ends of helices. This local interaction model is termed the nearest-neighbor approximation [23] .",
+            "cite_spans": [
+                {
+                    "start": 798,
+                    "end": 802,
+                    "text": "[23]",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dynamic Programming Algorithms for RNA Secondary Structure Prediction"
+        },
+        {
+            "text": "The dynamic programming algorithm calculates the energy of the lowest free energy structure (but does not compute the complete structure itself) for all possible subsequences of an RNA. This approach is efficient because the solution for each subsequence is computed from solutions for pre-computed smaller subsequences, allowing the energies for each structural element to be computed only once. The results are stored in triangular N \u00d7 N arrays whose elements i,j represent the optimal folding energy for an RNA subsequence from nucleotide i to nucleotide j. The structure for the entire RNA sequence is obtained by tracing a structure through an optimal combination of component subsequences in the array [24] .",
+            "cite_spans": [
+                {
+                    "start": 708,
+                    "end": 712,
+                    "text": "[24]",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dynamic Programming Algorithms for RNA Secondary Structure Prediction"
+        },
+        {
+            "text": "Thermodynamics-based dynamic programming algorithms have several limitations. First, computing the minimum free energy structure in a relatively efficient O(N 3 ) manner excludes consideration of non-nested topologies. These include the biologically important case of pseudoknots, in which a loop in one helix forms the stem of another helix. Second, the assumption that the minimum free energy structure is the biologically active one may not always hold for larger RNAs, where folding kinetics may play a prominent role. Third, the biologically relevant ensemble may be dominated by several interconverting states, making a single structural model inadequate. Finally, incomplete thermodynamic rules and the simplifications inherent in the nearest neighbor model introduce uncertainty to the energy calculations.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Dynamic Programming Algorithms for RNA Secondary Structure Prediction"
+        },
+        {
+            "text": "The net effect of these limitations is that the current best-performing algorithms achieve prediction accuracies of 50-70% [11, [25] [26] [27] [28] [29] . Accuracies tend to be especially poor for larger RNAs. For example, for Escherichia coli 16S rRNA, which is probably the most thoroughly studied large RNA, the prediction accuracy based on sequence alone is less than 50% [26, 30] .",
+            "cite_spans": [
+                {
+                    "start": 123,
+                    "end": 127,
+                    "text": "[11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 128,
+                    "end": 132,
+                    "text": "[25]",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 133,
+                    "end": 137,
+                    "text": "[26]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 138,
+                    "end": 142,
+                    "text": "[27]",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 143,
+                    "end": 147,
+                    "text": "[28]",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 148,
+                    "end": 152,
+                    "text": "[29]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 376,
+                    "end": 380,
+                    "text": "[26,",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 381,
+                    "end": 384,
+                    "text": "30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Dynamic Programming Algorithms for RNA Secondary Structure Prediction"
+        },
+        {
+            "text": "One way of overcoming these limitations is to use information from RNA sequence alignments [31] [32] [33] . Termed comparative sequence or covariation analysis, this approach is grounded in the principle that homologous RNAs have secondary structures that are much more conserved than their primary sequences. An alignment of homologous RNAs is used to propose base pairing interactions based on patterns of sequence variation, assuming a common consensus secondary structure. Candidate base pairs are favored or disfavored depending on whether sequence variations tend to maintain canonical base pairing or tend to occur independently, respectively.",
+            "cite_spans": [
+                {
+                    "start": 91,
+                    "end": 95,
+                    "text": "[31]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 96,
+                    "end": 100,
+                    "text": "[32]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 101,
+                    "end": 105,
+                    "text": "[33]",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparative Sequence Analysis"
+        },
+        {
+            "text": "A model with good covariation support commands strong confidence in its accuracy and such models are often the gold standard in the absence of crystallographic models. However, comparative sequence analysis cannot be applied to many RNAs of interest because the method requires multiple divergent sequences with a common secondary structure. The sequences must be similar enough to admit a multiple sequence alignment, yet divergent enough to show sufficient variation. Sequences corresponding to open reading frames are especially recalcitrant to analysis because selective pressure at the protein coding level further restricts the degree of variation. Finally, constructing a model from a sequence alignment is an iterative process that requires considerable user effort and skill.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparative Sequence Analysis"
+        },
+        {
+            "text": "In cases where comparative analysis is of limited use, significant improvements to RNA secondary structure prediction can be achieved when computer predictions are constrained by experimental data derived from structure-sensitive enzymatic cleavage and chemical probing reagents [11, 34, 35] . However, the net improvement gained from using traditional reagents is often modest. First, traditional reagents tend to react with only a subset of nucleotides, so the absence of reactivity cannot usually be taken as evidence for likely base pairing. Second, different reagents are required to react with all four RNA nucleotides and some of the more useful reagents, like dimethyl sulfate (DMS), react at different base functional groups depending on the nucleotide. Third, the dynamic range for many reagents is low, making it difficult to distinguish levels of reactivity beyond a qualitative \"low,\" \"medium,\" and \"high\" scale. Finally, while alternative chemistries such as in-line probing [36] and hydroxyl radical footprinting [37] provide valuable insight into higher order structures and react broadly with all four RNA nucleotides, they less directly report the intrinsic nucleotide flexibilities that largely characterize secondary structure. Thus, it is challenging to create quantitative relationships between reagent reactivity and RNA secondary structure.",
+            "cite_spans": [
+                {
+                    "start": 279,
+                    "end": 283,
+                    "text": "[11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 284,
+                    "end": 287,
+                    "text": "34,",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 288,
+                    "end": 291,
+                    "text": "35]",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 989,
+                    "end": 993,
+                    "text": "[36]",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 1028,
+                    "end": 1032,
+                    "text": "[37]",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Incorporating Experimental Data"
+        },
+        {
+            "text": "Selective 2\u2032-Hydroxyl Acylation analyzed by Primer Extension (SHAPE) [38, 39] chemical probing technology largely addresses these challenges. SHAPE yields quantitative reactivity information for nearly every nucleotide in an RNA. Advantageously, SHAPE is not limited by RNA size and is remarkably insensitive to solvent accessibility [38, 40, 41] . Additionally, SHAPE can be applied to both in vitro transcripts and also to RNAs from native-like cellular and viral environments. Combining SHAPE information with a thermodynamics-based dynamic programming algorithm, as implemented in RNAstructure [11] , results in highly accurate secondary structure models [30] . This approach has been benchmarked and shown to yield secondary structures for diverse RNAs, including the E. coli 16S rRNA (1542 nucleotides), with >95% accuracy as judged by sensitivity (percentage of known base pairs predicted correctly) and positive predictive value (PPV, percentage of predicted base pairs in the known structure) [30] (Table 1 ). SHAPE has been used to propose experimentally-informed secondary structural models for many RNAs and RNA states whose structures are unlikely to be determinable by covariation or high resolution experimental approaches [30, 39, [41] [42] [43] [44] [45] [46] [47] [48] [49] [50] [51] [52] [53] [54] [55] [56] [57] . In this work, we will briefly review the SHAPE experimental protocol and data processing steps. We will then describe in detail how SHAPE experimental information is incorporated into a nearest neighbor dynamic programming algorithm to create accurate secondary structure models. We close with an analysis of a novel SHAPE-supported model for the HIV-1 frameshift element.",
+            "cite_spans": [
+                {
+                    "start": 69,
+                    "end": 73,
+                    "text": "[38,",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 74,
+                    "end": 77,
+                    "text": "39]",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 334,
+                    "end": 338,
+                    "text": "[38,",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 339,
+                    "end": 342,
+                    "text": "40,",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 343,
+                    "end": 346,
+                    "text": "41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 598,
+                    "end": 602,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 659,
+                    "end": 663,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1002,
+                    "end": 1006,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1238,
+                    "end": 1242,
+                    "text": "[30,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1243,
+                    "end": 1246,
+                    "text": "39,",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1247,
+                    "end": 1251,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 1252,
+                    "end": 1256,
+                    "text": "[42]",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1257,
+                    "end": 1261,
+                    "text": "[43]",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 1262,
+                    "end": 1266,
+                    "text": "[44]",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 1267,
+                    "end": 1271,
+                    "text": "[45]",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 1272,
+                    "end": 1276,
+                    "text": "[46]",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 1277,
+                    "end": 1281,
+                    "text": "[47]",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1282,
+                    "end": 1286,
+                    "text": "[48]",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 1287,
+                    "end": 1291,
+                    "text": "[49]",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 1292,
+                    "end": 1296,
+                    "text": "[50]",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 1297,
+                    "end": 1301,
+                    "text": "[51]",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 1302,
+                    "end": 1306,
+                    "text": "[52]",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 1307,
+                    "end": 1311,
+                    "text": "[53]",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 1312,
+                    "end": 1316,
+                    "text": "[54]",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 1317,
+                    "end": 1321,
+                    "text": "[55]",
+                    "ref_id": "BIBREF54"
+                },
+                {
+                    "start": 1322,
+                    "end": 1326,
+                    "text": "[56]",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 1327,
+                    "end": 1331,
+                    "text": "[57]",
+                    "ref_id": "BIBREF56"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1007,
+                    "end": 1015,
+                    "text": "(Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Towards Accurate SHAPE-Directed Secondary Structure Prediction"
+        },
+        {
+            "text": "SHAPE technology involves covalently modifying RNA in a structure-dependent manner (selective 2\u2032-hydroxyl acylation), followed by detecting the sites of modification by primer extension (original protocols described in [58, 59] ). The RNA modification involves the nucleophilic attack of the 2\u2032-hydroxyl group of the RNA ribose moiety on an electrophilic SHAPE reagent to form a 2\u2032-O-adduct ( Fig. 1A ) [38] . This reaction occurs more readily with conformationally unconstrained or flexible nucleotides such as those in single stranded regions, loops, or bulges (spheres, Fig. 1B ). Flexible nucleotides react preferentially because they more readily sample conformations conducive to nucleophilic attack. In contrast, nucleotides in highly structured regions are conformationally constrained and less frequently achieve an optimal geometry, making them less reactive towards SHAPE reagents. In general, solvent inaccessible, but unconstrained, nucleotides are still reactive by SHAPE.",
+            "cite_spans": [
+                {
+                    "start": 219,
+                    "end": 223,
+                    "text": "[58,",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 224,
+                    "end": 227,
+                    "text": "59]",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 403,
+                    "end": 407,
+                    "text": "[38]",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 393,
+                    "end": 400,
+                    "text": "Fig. 1A",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 573,
+                    "end": 580,
+                    "text": "Fig. 1B",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Overview of SHAPE Technology"
+        },
+        {
+            "text": "Following modification of the RNA, modified positions are detected by primer extension using end-labeled, target-specific primers and a thermostable reverse transcriptase (Fig. 1C ). Since the reverse transcriptase enzyme cannot proceed past 2\u2032-O-modified sites in RNA, the lengths of the resulting cDNA products correspond to the distance between the primer binding and 2\u2032-O-adduct sites. Due to differential modification of structured versus unstructured nucleotides, the frequency of producing a given cDNA product reflects the underlying RNA structure. Comparison with dideoxy nucleotide sequencing ladders allows each SHAPE reagentdependent peak to be matched with the corresponding nucleotide position (Fig. 1D ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 171,
+                    "end": 179,
+                    "text": "(Fig. 1C",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 708,
+                    "end": 716,
+                    "text": "(Fig. 1D",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Overview of SHAPE Technology"
+        },
+        {
+            "text": "SHAPE technology can be implemented in an efficient and high-throughput way by automated capillary electrophoresis using DNA sequencing instruments (Fig. 1E ). The capillary electrophoresis data are analyzed using the software program ShapeFinder [60] . ShapeFinder processes these data to yield normalized SHAPE reactivity values (Fig. 1F ). These reactivities can be converted to \u0394G SHAPE pseudo-free energy terms and used with the energy function in the RNAstructure program to yield, generally highly accurate, secondary structure models for RNA (Table 1 , and see section 3.1 below) [11, 30] .",
+            "cite_spans": [
+                {
+                    "start": 247,
+                    "end": 251,
+                    "text": "[60]",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 588,
+                    "end": 592,
+                    "text": "[11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 593,
+                    "end": 596,
+                    "text": "30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 148,
+                    "end": 156,
+                    "text": "(Fig. 1E",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 331,
+                    "end": 339,
+                    "text": "(Fig. 1F",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 550,
+                    "end": 558,
+                    "text": "(Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Overview of SHAPE Technology"
+        },
+        {
+            "text": "The experimental component of a SHAPE analysis has been recently reviewed in detail [59, 61] . Briefly, RNA is modified in a structure-selective way using an electrophilic SHAPE reagent. While SHAPE has been most commonly performed on in vitro RNA transcripts or RNAs extracted from biological environments, SHAPE reagents readily cross biological membranes and, for example, react with RNAs inside authentic HIV-1 particles [39] .",
+            "cite_spans": [
+                {
+                    "start": 84,
+                    "end": 88,
+                    "text": "[59,",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 89,
+                    "end": 92,
+                    "text": "61]",
+                    "ref_id": "BIBREF60"
+                },
+                {
+                    "start": 425,
+                    "end": 429,
+                    "text": "[39]",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE Experimental Protocol"
+        },
+        {
+            "text": "Approximately 2 pmol of RNA is needed in each primer extension reaction to obtain adequate signal intensity in the capillary electrophoresis detection step, using commercially available instruments. We routinely achieve read lengths of 300 -650 nucleotides in each primer extension reaction [50, 60] . For longer RNAs, information obtained from multiple primers, with overlapping read windows, can be combined to create datasets spanning arbitrarily long lengths [30, 39, 41] .",
+            "cite_spans": [
+                {
+                    "start": 291,
+                    "end": 295,
+                    "text": "[50,",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 296,
+                    "end": 299,
+                    "text": "60]",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 463,
+                    "end": 467,
+                    "text": "[30,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 468,
+                    "end": 471,
+                    "text": "39,",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 472,
+                    "end": 475,
+                    "text": "41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE Experimental Protocol"
+        },
+        {
+            "text": "To maintain a native-like conformation, the RNA must be renatured (in vitro transcripts) or maintained (RNAs from cellular or viral sources) in a physiological-like folding buffer. We typically use a simple standard solution [50 mM HEPES (pH 8.0), 200 mM potassium acetate (pH 8.0), 3 mM MgCl 2 ], and incubate at 37 \u00b0C for 10 -30 min prior to modification. SHAPE works well under a wide variety of conditions, including in the presence of biological amines and carbohydrates and proteins that bind RNA. The main requirement for SHAPE is that the pH be maintained in the 7.6 -8.3 range [38] .",
+            "cite_spans": [
+                {
+                    "start": 586,
+                    "end": 590,
+                    "text": "[38]",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE Experimental Protocol"
+        },
+        {
+            "text": "RNA structure is interrogated by adding a SHAPE reagent. Initial work in our laboratory used the commercially available NMIA reagent [58] ; more recent work has utilized the fasterreacting 1M7 reagent, whose synthesis is described in [62] . The SHAPE reagent is dissolved in DMSO and added to the RNA solution to a final concentration of about 5 mM. The optimal reagent concentration varies and can be system-specific: too high a concentration of SHAPE reagent results in significant signal decay and reduced read lengths, while too low a concentration yields data with a poor signal. Background signals in the primer extension reaction are measured by performing a no-reagent control in which DMSO is added in place of the SHAPE reagent, in an otherwise identical reaction. Both reactions should be incubated at 37 \u00b0C for either 35 min if using NMIA or 70 sec if using 1M7. Both reagents self-quench by reacting with water in the aqueous solution.",
+            "cite_spans": [
+                {
+                    "start": 133,
+                    "end": 137,
+                    "text": "[58]",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 234,
+                    "end": 238,
+                    "text": "[62]",
+                    "ref_id": "BIBREF61"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE Experimental Protocol"
+        },
+        {
+            "text": "Following an ethanol precipitation step, fluorescently-labeled primers are annealed to the (+) and (\u2212) reagent-treated RNA and to untreated RNAs (the latter are used for sequencing). A thermostable reverse transcriptase enzyme is used for the primer extension reactions to convert the structural information into cDNA libraries. We perform the separation step in a single capillary by employing 3-4 different dyes for the (+) reagent, (\u2212) reagent, and dideoxy sequencing ladder(s) [39, 59] . The dyes are chosen to have similar electrophoretic mobilities, which simplifies the alignment of the electropherograms during the data processing steps. The cDNA products are recovered by ethanol precipitation, resuspended in formamide, and resolved on a commercial capillary electrophoresis DNA sequencing instrument.",
+            "cite_spans": [
+                {
+                    "start": 481,
+                    "end": 485,
+                    "text": "[39,",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 486,
+                    "end": 489,
+                    "text": "59]",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE Experimental Protocol"
+        },
+        {
+            "text": "The ShapeFinder software has been described in detail [60] and is freely available for download, with tutorials [63]. Here we briefly outline the steps required to convert capillary electrophoresis electropherograms into quantitative reactivity measurements (Fig. 2) .",
+            "cite_spans": [
+                {
+                    "start": 54,
+                    "end": 58,
+                    "text": "[60]",
+                    "ref_id": "BIBREF59"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 258,
+                    "end": 266,
+                    "text": "(Fig. 2)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Data Analysis to Create Normalized SHAPE Reactivities"
+        },
+        {
+            "text": "The raw sequencer data file is opened in ShapeFinder and saved as a .shape folder. The first step is to correct baselines using the Fitted Baseline Adjust tool. Second, fluorescence intensity decays exponentially with increasing cDNA length due to incomplete processivity of the reverse transcriptase enzyme during primer extension [44, 60] . This is corrected using the Signal Decay Correction tool. Third, the Mobility Shift tool is used to align (+) reagent, (\u2212) reagent, and dideoxy sequencing traces, since the different fluorescent dyes introduce small offsets in the raw electropherogram in their respective labeled cDNA fragments. Mobility shifts are performed manually using the sliding traces function in ShapeFinder. Fourth, the (+) and (\u2212) reagent traces are scaled to each other to account for differences in signal intensity between the dyes. In general, the lowest (+) reagent peaks, corresponding to low or no SHAPE reactivity, should be scaled to overlap with their corresponding (\u2212) reagent peaks. Finally, the Align and Integrate tool is used to align all peaks with the known primary sequence (supplied as a .seq text file), to make minor adjustments in peak alignments, and to integrate all peaks in the (+) and (\u2212) reagent traces. When the calculation is complete, a text file called the peaks file is generated (Fig. 2 ). This file contains information about each nucleotide, including integrated (+) and (\u2212) reagent peak areas (labeled RX and BG, respectively) and their subtracted, normalized SHAPE reactivities.",
+            "cite_spans": [
+                {
+                    "start": 332,
+                    "end": 336,
+                    "text": "[44,",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 337,
+                    "end": 340,
+                    "text": "60]",
+                    "ref_id": "BIBREF59"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1334,
+                    "end": 1341,
+                    "text": "(Fig. 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Data Analysis to Create Normalized SHAPE Reactivities"
+        },
+        {
+            "text": "A major challenging endeavor in RNA biology is to consistently and efficiently develop correct secondary structure models for RNAs of arbitrary length and complexity. The thermodynamics-based computational methods outlined above (Section 1.1) are highly useful for rapid computation of candidate structural models. However, prediction accuracies are inconsistent for many RNAs and tend to be particularly poor for large RNAs. These limitations can be broadly attributed to simplifications inherent in the nearest-neighbor model and incomplete knowledge of RNA energetics. However, for many RNAs, it is possible to obtain robust secondary structure predictions by incorporating SHAPE reactivities into the energy function used in a nearest neighbor dynamic programming algorithm. This approach has been implemented in the RNAstructure program [64].",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SHAPE-Constrained RNAstructure Folding: Theory"
+        },
+        {
+            "text": "The RNAstructure energy function is modified by adding pseudo-free energy change terms derived from SHAPE reactivities. This approach is grounded in the observation that SHAPE reactivities correlate strongly with local nucleotide flexibility [38, 40] and, thus, also with the probability that a nucleotide is single stranded. The NMIA and 1M7 SHAPE reagents react with all four RNA nucleotides with limited base-dependent preferences [65] . It is therefore possible to create a softer, continuous, and more physically grounded restraint function than is typically used with conventional chemical mapping reagents that exhibit strong idiosyncratic and nucleotide-specific reactivities. In essence, these additional energetic terms provide a knowledge-based correction to the nearest-neighbor energy function.",
+            "cite_spans": [
+                {
+                    "start": 242,
+                    "end": 246,
+                    "text": "[38,",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 247,
+                    "end": 250,
+                    "text": "40]",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 434,
+                    "end": 438,
+                    "text": "[65]",
+                    "ref_id": "BIBREF62"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE-Constrained RNAstructure Folding: Theory"
+        },
+        {
+            "text": "We derive a pseudo-free energy change term for each base-paired residue i from its SHAPE reactivity: (1) The empirical parameters m and b serve to scale the strength of the experimental contribution to the energy function. The intercept b represents the pseudo-free energy contribution of a basepaired nucleotide whose SHAPE reactivity is zero. The sign of b is negative to reflect an energetic bonus for base pairing by constrained nucleotides. In contrast, the slope m represents the strength of the energetic penalty assigned for pairing nucleotides with high SHAPE reactivities and consequently has a positive sign.",
+            "cite_spans": [
+                {
+                    "start": 101,
+                    "end": 104,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "SHAPE-Constrained RNAstructure Folding: Theory"
+        },
+        {
+            "text": "Optimal values for m and b were determined by assessing the prediction accuracy for E. coli 23S rRNA over a range of slope and intercept values [30] . This work identified m = 2.6 kcal/ mol and b = \u22120.8 kcal/mol as optimal values for folding large ribosomal RNAs and, importantly, also established these values as being located at the center of a \"sweet spot\" of a broad set of m and b values that yields accurate SHAPE-directed structure predictions [30] (emphasized in red, Fig. 3 ). Given the large size (2,904 nts) of the E. coli 23S rRNA and the diversity of structural motifs it contains, these parameter values are also likely to work well for other RNAs. We empirically find this to be the case, although slightly different parameter values, still in the sweet spot (Fig. 3) , can be chosen heuristically to refine predictions for some RNAs [41] . The logarithmic relationship between SHAPE reactivities and the derived \u0394G SHAPE term has the effect of forgiving differences among the most highly reactive nucleotides. The usefulness of this behavior reflects the observation that highly reactive nucleotides are the most sensitive to signal processing artifacts and have the highest variance. Furthermore, the logarithmic relationship between SHAPE reactivity and pseudo-free energy change loosely reflects a statistical mechanical interpretation of SHAPE reactivity, which indirectly measures the number of conformational states accessible to each nucleotide.",
+            "cite_spans": [
+                {
+                    "start": 144,
+                    "end": 148,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 451,
+                    "end": 455,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 849,
+                    "end": 853,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 476,
+                    "end": 482,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 774,
+                    "end": 782,
+                    "text": "(Fig. 3)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "SHAPE-Constrained RNAstructure Folding: Theory"
+        },
+        {
+            "text": "We illustrate the combined nearest-neighbor and SHAPE energy function, as implemented in RNAstructure, for a short fragment of an HIV-1 RNA sequence (Fig. 4) . Nucleotides are colorcoded by their SHAPE reactivities as reported in [41] . The energy function [12] includes favorable nearest-neighbor energy terms for helix stacking (in green, Fig. 4 ) and entropic penalties for anchoring loops (in red, Fig. 4 ). Stacking terms are added for all helical interactions, including terminal mismatches and dangling ends at helix termini, as well as for coaxial stacking between adjacent helices [25, 66] . Stacking terms depend on the sequence identity of all nucleotides participating in the stack (the nearest-neighbors), while loop entropy terms depend primarily on the number of nucleotides in the loop.",
+            "cite_spans": [
+                {
+                    "start": 230,
+                    "end": 234,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 257,
+                    "end": 261,
+                    "text": "[12]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 590,
+                    "end": 594,
+                    "text": "[25,",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 595,
+                    "end": 598,
+                    "text": "66]",
+                    "ref_id": "BIBREF63"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 149,
+                    "end": 157,
+                    "text": "(Fig. 4)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 341,
+                    "end": 347,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 402,
+                    "end": 408,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "SHAPE-Constrained RNAstructure Folding: Theory"
+        },
+        {
+            "text": "In contrast to the nearest-neighbor thermodynamics-based energy parameters, pseudo-free energy terms (\u0394G SHAPE ) are calculated for each nucleotide individually (Fig. 4 , black and gray numbers). Nucleotides with high SHAPE reactivities have positive pseudo-free energies and those with low SHAPE reactivities have negative pseudo-free energies (Eqn. 1). \u0394G SHAPE terms are only added to the free energy calculation for base paired nucleotides (Fig. 4 , black numbers). \u0394G SHAPE terms for nucleotides at the ends of helices are counted once and those in the interior of helices are counted twice since they contribute to two stacks (Fig. 4 , blue \u00d71 and \u00d72 symbols, respectively). Base paired nucleotides with high SHAPE reactivities contribute large positive pseudo-free energies (for example, see the red G in Fig. 4) . Such nucleotides are more likely to be allowed at the end, as opposed to the interior, of a helix because they are added to the total free energy only once. This is consistent with the observation that nucleotides at the ends of helices are more dynamic, and experience greater fraying, than interior nucleotides. On the other hand, unpaired nucleotides with low SHAPE reactivities represent an incomplete model and could suggest non-canonical interactions that are not currently predicted by the algorithm (for example, see the tandem black G residues in the apical loop of Fig. 4) . The total folding energy (\u0394G total ) is simply the sum of all nearest neighbor thermodynamic terms (\u0394G NN ) and pseudo-free energy (\u0394G SHAPE ) contributions (Fig. 4) . This sum is used to rank RNA structures and should not be interpreted as a physical energy because it includes both thermodynamic terms and SHAPE-derived pseudo-free energy change terms.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 161,
+                    "end": 168,
+                    "text": "(Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 444,
+                    "end": 451,
+                    "text": "(Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 632,
+                    "end": 639,
+                    "text": "(Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 812,
+                    "end": 819,
+                    "text": "Fig. 4)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 1397,
+                    "end": 1404,
+                    "text": "Fig. 4)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 1564,
+                    "end": 1572,
+                    "text": "(Fig. 4)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "SHAPE-Constrained RNAstructure Folding: Theory"
+        },
+        {
+            "text": "The final output of ShapeFinder peak integration is a tab-delimited text file termed the peaks file (Fig. 2, top) . Columns in the file include integrated peak areas for the (+) and (\u2212) reagent traces, their subtracted areas, and absolute SHAPE reactivities.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 100,
+                    "end": 113,
+                    "text": "(Fig. 2, top)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "SHAPE-Constrained RNAstructure Folding: Procedure"
+        },
+        {
+            "text": "reactivities are normalized to a uniform scale that is valid for diverse RNAs. Some RNAs are highly structured, with relatively few unconstrained nucleotides, while other RNAs contain large flexible loop regions. In developing a normalization procedure, we make the fundamental assumption that all RNAs will have at least a few unreactive and also a few highly reactive positions, corresponding to strongly constrained and highly dynamic nucleotides, respectively. Experience in our laboratory has found that secondary structure calculations are tolerant of variation in the absolute normalization scale, and instead depend primarily on the relative differences in SHAPE reactivities.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Normalization-SHAPE"
+        },
+        {
+            "text": "A normalized reactivity of 1.0 is defined as the average intensity of the top 10% most reactive peaks, excluding a few highly reactive nucleotides taken to be outliers. We use two distinct approaches to identify outlier peaks, the choice of which varies depending on the system under study. In the simple normalization scheme, the most reactive 2% of all intensities are removed from the pool. The intensities of the next 8% most reactive peaks are averaged and all reactivities are divided by this average value. This heuristic rule is based on general experience in our laboratory.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Normalization-SHAPE"
+        },
+        {
+            "text": "In the box-plot normalization scheme, peaks greater than 1.5 times the interquartile range (numerical distance between the 25 th and 75 th percentiles) above the 75 th percentile are removed. This definition of outliers is consistent with common practice in model-free statistics [67] . After excluding these outliers, the next 10% of intensities are averaged and all reactivities, including outliers, are divided by this value. Generally, we suggest using the box-plot method if the sequence is long enough for meaningful statistics to be calculated (typically > 300 reactivity measurements). Advanced users may opt to calculate their own normalized SHAPE reactivities if a particular experiment has a large number of very reactive peaks. The net result of normalization is to place all reactivities on a scale spanning 0 to ~1.5, where 0 indicates no reactivity (and a highly constrained nucleotide) and reactivities >0.7 typically indicate highly flexible nucleotides.",
+            "cite_spans": [
+                {
+                    "start": 280,
+                    "end": 284,
+                    "text": "[67]",
+                    "ref_id": "BIBREF64"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Normalization-SHAPE"
+        },
+        {
+            "text": "RNAs-For large RNAs, we typically disallow base-pairing between nucleotides greater than 600 positions distant from each other in the primary sequence. More than 99% of all known ribosomal RNA pairings span less than 600 nucleotides and applying this restriction increases prediction accuracy for the 16S and 23S rRNAs [30] . Applying this constraint is also attractive from the perspective of RNA folding kinetics, since RNA folding likely occurs co-transcriptionally, and nucleotides located very far from each other are unlikely to have the opportunity to base pair. This constraint thus represents a very approximate approach for accounting for RNA folding kinetics, which are otherwise ignored in a conventional thermodynamic nearest-neighbor or our SHAPE pseudofree energy folding algorithm.",
+            "cite_spans": [
+                {
+                    "start": 319,
+                    "end": 323,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Maximum Pairing Distance in Large"
+        },
+        {
+            "text": "RNA secondary structure calculations using the RNAstructure program require two input text files: (1) a sequence file with a .seq extension that contains the primary sequence, and (2) a SHAPE reactivity file with a .shape extension (Fig. 2) . The sequence file format has at least one comment line, each preceded by a semicolon, followed by a one-line title, followed by the RNA sequence. The numeral 1 signals the end of the sequence. The sequence should be entered in uppercase; lowercase letters may be included and indicate nucleotides that the user specifically wishes to prohibit from base pairing (an alternative method using the .shape file is also described below). Any T's present in the sequence are interpreted as U's.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 232,
+                    "end": 240,
+                    "text": "(Fig. 2)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "File Preparation-SHAPE-constrained"
+        },
+        {
+            "text": "The user creates a .shape file as a text file containing two columns: the numerical nucleotide position and the SHAPE reactivity for that position. It is important to differentiate positions where the measured reactivity is zero from positions where no data was obtained or SHAPE reactivities could not be determined. The measurement of zero is a critical one and indicates that a position is highly structured. If the reagent and background traces were properly scaled in the ShapeFinder analysis step, there should be no, or very few, negative SHAPE reactivity values. Negative peaks are treated as having a SHAPE reactivity of zero (provided they are > \u2212500).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "File Preparation-SHAPE-constrained"
+        },
+        {
+            "text": "SHAPE reactivities for a few nucleotides typically need to be excluded from the folding calculation. These no-data positions include nucleotides with high background in the noreagent control and difficult-to-resolve peaks either near the 3\u2032 primer annealing site or at the 5\u2032 end of the trace. For such positions, one of two methods is used to signal the RNAstructure program to use only thermodynamic parameters when calculating energies involving these nucleotides. The row containing the nucleotide number and its reactivity can be deleted from the .shape file or the SHAPE reactivity can be replaced with a value \u2264 \u2212500. We typically use the latter approach and set uncertain nucleotides to -999. For a carefully performed experiment, only a small number of positions typically need to be excluded. For example, out of >9000 nucleotides in the NL4-3 HIV-1 genome, only 53 nucleotides needed to be excluded from the \u0394G SHAPE pseudo-free energy calculation. Finally, known single stranded regions or those that interact with another RNA or protein can be prohibited from forming base pairs by assigning these nucleotides a high SHAPE reactivity value (by convention, we set these to 100). This was important, for example, in folding calculations for an HIV-1 genome at positions that form intermolecular base pairs with the tRNA primer [41] .",
+            "cite_spans": [
+                {
+                    "start": 1338,
+                    "end": 1342,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [],
+            "section": "File Preparation-SHAPE-constrained"
+        },
+        {
+            "text": "preparing the sequence and SHAPE text files, the user is ready to initiate folding in RNAstructure via RNA/Fold RNA Single Strand, then selecting the input sequence and output connectivity files (.ct file, Fig. 2) . The sequence can also be input by hand via File/New Sequence. For large RNAs, we usually restrict base pair distances to less than 600 nucleotides via Force/Maximum Pairing Distance. SHAPE data are then read via Force/ Read SHAPE Reactivity -Pseudo-Energy Constraint at which point the slope (m) and intercept (b) (Eqn. 1) are chosen. Optimal values of m = 2.6 kcal/mol and b = \u2212 0.8 kcal/mol were obtained by optimizing structural predictions for 23S rRNA, but there is a range of values that yield high prediction accuracies (Fig. 3 ) [30] . We empirically find that different weights within this range may be optimal for other RNAs. For example, in our current HIV-1 work, we use values of m = 3.0 kcal/mol and b = \u22120.6 kcal/mol [41] . The user accepts the SHAPE file and initiates the folding calculation by selecting START.",
+            "cite_spans": [
+                {
+                    "start": 753,
+                    "end": 757,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 948,
+                    "end": 952,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 206,
+                    "end": 213,
+                    "text": "Fig. 2)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 743,
+                    "end": 750,
+                    "text": "(Fig. 3",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "RNAstructure-After"
+        },
+        {
+            "text": "The completed calculation generates a .ct file and the user is prompted with the option of drawing the resulting secondary structures. Viewing perspectives are manipulated under the Draw tab in RNAstructure. The structure can be colored by SHAPE reactivity via Draw/Add SHAPE annotation and choosing the appropriate .shape file. Nucleotides are drawn using the following convention [30] : SHAPE reactivities < 0.3 are black; those \u2265 0.7, red; those in between, orange; and those without SHAPE data, gray (Fig. 4 ).",
+            "cite_spans": [
+                {
+                    "start": 382,
+                    "end": 386,
+                    "text": "[30]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 504,
+                    "end": 511,
+                    "text": "(Fig. 4",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Model Visualization-"
+        },
+        {
+            "text": "An RNA secondary structure model is consistent with the input SHAPE reactivities if double stranded regions are generally black and single stranded nucleotides red or orange. While the RNAstructure viewer is useful for analyzing predicted structures, for presentation quality images and large RNAs, we recommend exporting the structures as helix text files (Draw/ Export Structure to Text File) that can be read by viewing software such as XRNA [68] . The .ct file displays the total folding energy corresponding to the sum of both thermodynamic and SHAPE-derived pseudo-free energy change contributions (see Fig. 4 ). The folding energy that corresponds solely to the sum of thermodynamic terms can be obtained by running RNA/Efn2 RNA on the .ct file.",
+            "cite_spans": [
+                {
+                    "start": 445,
+                    "end": 449,
+                    "text": "[68]",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 609,
+                    "end": 615,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Model Visualization-"
+        },
+        {
+            "text": "We conclude this review with an example from HIV-1 biology describing how SHAPEconstrained RNAstructure calculations can be used to propose new structural models for RNA domains. The human immunodeficiency virus maximizes coding efficiency through the use of overlapping reading frames in its RNA genome. The gene coding for Pol, the polyprotein precursor for viral enzymes, does not have its own start codon but, instead, is encoded in an open reading frame that is offset by -1 nucleotide relative to the upstream Gag reading frame. In order to translate Pol, the ribosome initially translates Gag before pausing, backing up 1 nucleotide, and proceeding to translate the pol reading frame [69] . This process is called frameshifting and occurs at a conserved heptanucleotide UUUUUUA \"slippery\" sequence with a frequency of approximately 5-10% [70, 71] . The precise level of frameshifting is crucial for viral replication and the ratio of Gag to Gag-Pol polyprotein products appears to be tightly regulated [72] . The HIV-1 frameshift element is thus an intriguing target for antiretroviral drug development [71, 73] .",
+            "cite_spans": [
+                {
+                    "start": 691,
+                    "end": 695,
+                    "text": "[69]",
+                    "ref_id": "BIBREF66"
+                },
+                {
+                    "start": 845,
+                    "end": 849,
+                    "text": "[70,",
+                    "ref_id": "BIBREF67"
+                },
+                {
+                    "start": 850,
+                    "end": 853,
+                    "text": "71]",
+                    "ref_id": "BIBREF68"
+                },
+                {
+                    "start": 1009,
+                    "end": 1013,
+                    "text": "[72]",
+                    "ref_id": "BIBREF69"
+                },
+                {
+                    "start": 1110,
+                    "end": 1114,
+                    "text": "[71,",
+                    "ref_id": "BIBREF68"
+                },
+                {
+                    "start": 1115,
+                    "end": 1118,
+                    "text": "73]",
+                    "ref_id": "BIBREF70"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Example: A SHAPE-Supported Model for the HIV-1 Gag-Pol Frameshift Element"
+        },
+        {
+            "text": "The Gag-Pol frameshift element has traditionally been drawn as consisting of a single stranded slippery sequence followed by a downstream stimulatory element consisting of a 12 base pair hairpin structure (Fig. 5A ). This stem-loop RNA structural element functions to enhance ribosomal pausing and to increase the frequency of frameshifting [74] . However, comparisons with ribosomal frameshift structures from other retroviruses and experimental evidence that this classical stem-loop is necessary, but not sufficient, for frameshifting [75, 76] have motivated alternative proposals for this element. These alternative structures include pseudoknots [77] [78] [79] and a two-stem model (Fig. 5B ) [80] . The two-stem model was confirmed by NMR studies performed on 41 and 45 nucleotide transcripts containing precisely this region [81, 82] .",
+            "cite_spans": [
+                {
+                    "start": 341,
+                    "end": 345,
+                    "text": "[74]",
+                    "ref_id": "BIBREF71"
+                },
+                {
+                    "start": 538,
+                    "end": 542,
+                    "text": "[75,",
+                    "ref_id": "BIBREF72"
+                },
+                {
+                    "start": 543,
+                    "end": 546,
+                    "text": "76]",
+                    "ref_id": "BIBREF73"
+                },
+                {
+                    "start": 651,
+                    "end": 655,
+                    "text": "[77]",
+                    "ref_id": "BIBREF74"
+                },
+                {
+                    "start": 656,
+                    "end": 660,
+                    "text": "[78]",
+                    "ref_id": "BIBREF75"
+                },
+                {
+                    "start": 661,
+                    "end": 665,
+                    "text": "[79]",
+                    "ref_id": "BIBREF76"
+                },
+                {
+                    "start": 698,
+                    "end": 702,
+                    "text": "[80]",
+                    "ref_id": "BIBREF77"
+                },
+                {
+                    "start": 832,
+                    "end": 836,
+                    "text": "[81,",
+                    "ref_id": "BIBREF78"
+                },
+                {
+                    "start": 837,
+                    "end": 840,
+                    "text": "82]",
+                    "ref_id": "BIBREF79"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 205,
+                    "end": 213,
+                    "text": "(Fig. 5A",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 687,
+                    "end": 695,
+                    "text": "(Fig. 5B",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Example: A SHAPE-Supported Model for the HIV-1 Gag-Pol Frameshift Element"
+        },
+        {
+            "text": "However, SHAPE probing of the full-length HIV-1 RNA genome, as extracted from authentic viruses, suggests yet another, more complex, structure (Fig. 5C) [41] . Most strikingly, nucleotides in the slippery sequence (blue boxes, Fig. 5 ) have mostly low SHAPE reactivities. These experimental measurements indicate that the slippery sequence is base paired (or otherwise constrained) rather than being single stranded in the intact genome as isolated from viruses. Furthermore, when SHAPE reactivities are used to direct RNAstructure folding calculations of the entire intact genome, analysis of the frameshift region in its global context suggests that this functional element is one part of a much larger, 140-nucleotide long, structural unit (Fig. 5C) . Further work will clearly be needed to discriminate among these models and to determine whether the frameshift element might adopt multiple conformations during HIV-1 replication. However, this example illustrates the ability of SHAPE-constrained folding to identify elements of current models that may be incomplete and to facilitate development of new RNA structure models in the context of their global, native-like, sequence and structural environments.",
+            "cite_spans": [
+                {
+                    "start": 153,
+                    "end": 157,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 143,
+                    "end": 152,
+                    "text": "(Fig. 5C)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 227,
+                    "end": 233,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 743,
+                    "end": 752,
+                    "text": "(Fig. 5C)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Example: A SHAPE-Supported Model for the HIV-1 Gag-Pol Frameshift Element"
+        },
+        {
+            "text": "The SHAPE-constrained RNA folding approach outlined here provides a straightforward way of proposing, validating, and refining accurate secondary structure models for nearly any RNA. Current limitations in the SHAPE approach remain active research focuses, including the requirement for pmol-scale amounts of RNA, which can be difficult to obtain in some cases, and the inability to directly predict pseudoknots and other tertiary interactions. SHAPEconstrained RNA folding is particularly valuable for the large universe of functionally important RNAs for which there is little evolutionary data and for which high-resolution structure determination is unrealizable. In addition, the ability to probe RNA structures in cellular and viral environments or in native-like extracted forms can provide biological insights that are not obtainable using simplified in vitro models. Continued development of SHAPE reagents and of algorithms for using experimental information to constrain RNA structure prediction will expand the classes of RNA motifs and structure-function relationships that can be understood at a molecular level. Overview of the SHAPE experimental and data analysis steps. Adapted from ref. [60] . Overview of the steps involved in processing capillary electrophoresis data, obtaining normalized SHAPE reactivities, and calculating experimentally-informed RNA secondary structure models [11, 30, 39, 60] . Summary of thermodynamic and SHAPE-derived free energy change contributions for a simple HIV-1 hairpin (NL4-3 nucleotides 594 -626) [41] . Favorable nearest-neighbor stacking and unfavorable loop thermodynamic terms are shown in green and red, respectively. The total nearest neighbor free energy change \u0394G NN is the sum over all these contributions. \u0394G SHAPE pseudo-free energy change terms are shown for base paired (black) and non-base paired (gray) nucleotides; only base paired values are included in the net free energy change. The \u0394G SHAPE term is added once for each nucleotide at the ends of helices and twice for interior nucleotides (blue symbols). The \u0394G SHAPE calculations used m = 3.0 kcal/mol and b = \u22120.6 RNA secondary structure models for the HIV-1 M-group Gag-Pol frameshift element. All models are colored by their SHAPE reactivities as reported in [41] using the scale shown in Figure 4 . The \"slippery sequence\" where frameshifting occurs is enclosed in a blue box. The numbering is for the NL4-3 reference sequence. (A) Classical model [69] . (B) Two-stem model [80] . (C) SHAPE-supported model [41] . Table 1 RNA secondary structure prediction accuracies for folding calculations performed without and with SHAPE constraints Sensitivity and PPV are the percentage of known base pairs predicted correctly and the percentage of predicted base pairs in the known structure, respectively. Calculations were performed using RNAstructure [11] . Accuracies for SHAPE-constrained structures are typically \u226595%. However, accuracy for the RNase Pspecificity domain is significantly lower, likely because many base pairs in this RNA only form in concert with the tertiary structure [62] . Data are from refs. [30, 62] .",
+            "cite_spans": [
+                {
+                    "start": 1205,
+                    "end": 1209,
+                    "text": "[60]",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 1401,
+                    "end": 1405,
+                    "text": "[11,",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 1406,
+                    "end": 1409,
+                    "text": "30,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1410,
+                    "end": 1413,
+                    "text": "39,",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1414,
+                    "end": 1417,
+                    "text": "60]",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 1552,
+                    "end": 1556,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 2288,
+                    "end": 2292,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 2478,
+                    "end": 2482,
+                    "text": "[69]",
+                    "ref_id": "BIBREF66"
+                },
+                {
+                    "start": 2504,
+                    "end": 2508,
+                    "text": "[80]",
+                    "ref_id": "BIBREF77"
+                },
+                {
+                    "start": 2537,
+                    "end": 2541,
+                    "text": "[41]",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 2875,
+                    "end": 2879,
+                    "text": "[11]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 3114,
+                    "end": 3118,
+                    "text": "[62]",
+                    "ref_id": "BIBREF61"
+                },
+                {
+                    "start": 3141,
+                    "end": 3145,
+                    "text": "[30,",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 3146,
+                    "end": 3149,
+                    "text": "62]",
+                    "ref_id": "BIBREF61"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 2318,
+                    "end": 2326,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 2544,
+                    "end": 2551,
+                    "text": "Table 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Conclusions"
+        },
+        {
+            "text": "Methods. Author manuscript; available in PMC 2011 October 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "The molecular mechanism of thermal unfolding of Escherichia coli formylmethionine transfer RNA",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Crothers",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Cole",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Hilbers",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Shulman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1974,
+            "venue": "J Mol Biol",
+            "volume": "87",
+            "issn": "",
+            "pages": "63--88",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Thermal unfolding of a group I ribozyme: the low-temperature transition is primarily disruption of tertiary structure",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Banerjee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Jaeger",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Biochemistry",
+            "volume": "32",
+            "issn": "",
+            "pages": "153--63",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Secondary structure model of the RNA recognized by the reverse transcriptase from the R2 retrotransposable element",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Banerjee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Luan",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Eickbush",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "RNA",
+            "volume": "3",
+            "issn": "",
+            "pages": "1--16",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Identifying kinetic barriers to mechanical unfolding of the T. thermophila ribozyme",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Onoa",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Dumont",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liphardt",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Tinoco",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Bustamante",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "299",
+            "issn": "",
+            "pages": "1892--1897",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "How RNA folds",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Tinoco",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Bustamante",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J Mol Biol",
+            "volume": "293",
+            "issn": "",
+            "pages": "271--81",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Direct observation of hierarchical folding in single riboswitch aptamers",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Greenleaf",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Frieda",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Foster",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Woodside",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Block",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Science",
+            "volume": "319",
+            "issn": "",
+            "pages": "630--633",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Structural principles from large RNAs",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Holbrook",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Annu Rev Biophys",
+            "volume": "37",
+            "issn": "",
+            "pages": "445--64",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Topology links RNA secondary structure with global conformation, dynamics, and adaptation",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Bailor",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Sun",
+                    "suffix": ""
+                },
+                {
+                    "first": "Al-Hashimi",
+                    "middle": [],
+                    "last": "Hm",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Science",
+            "volume": "327",
+            "issn": "",
+            "pages": "202--208",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Thermodynamic parameters for an expanded nearest-neighbor model for formation of RNA duplexes with Watson-Crick base pairs",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Xia",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Santalucia",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Burkard",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Kierzek",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Schroeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Jiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cox",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Biochemistry",
+            "volume": "37",
+            "issn": "",
+            "pages": "14719--14754",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Incorporating chemical modification constraints into a dynamic programming algorithm for prediction of RNA secondary structure",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Disney",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Childs",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Schroeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Proc Natl Acad Sci U S A",
+            "volume": "101",
+            "issn": "",
+            "pages": "7287--92",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "NNDB: the nearest neighbor parameter database for predicting stability of nucleic acid secondary structure",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Nucleic Acids Res",
+            "volume": "38",
+            "issn": "",
+            "pages": "280--282",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "RNA secondary structures and their prediction",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sankoff",
+                    "suffix": ""
+                }
+            ],
+            "year": 1984,
+            "venue": "Bull. Math. Biol",
+            "volume": "46",
+            "issn": "",
+            "pages": "591--621",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Optimal computer folding of large RNA sequences using thermodynamics and auxiliary information",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Stiegler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1981,
+            "venue": "Nucleic Acids Res",
+            "volume": "9",
+            "issn": "",
+            "pages": "133--181",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "On finding all suboptimal foldings of an RNA molecule",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Science",
+            "volume": "244",
+            "issn": "",
+            "pages": "48--52",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Biological sequence analysis : probabilistic models of proteins and nucleic acids",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Durbin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Krogh",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Mitchison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Predictive Methods Using RNA Sequences",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wiley; Hoboken",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Baxevanis, AD",
+            "volume": "",
+            "issn": "",
+            "pages": "143--70",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Prediction of RNA secondary structure by free energy minimization",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Curr Opin Struct Biol",
+            "volume": "16",
+            "issn": "",
+            "pages": "270--278",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Beyond Mfold: recent advances in RNA bioinformatics",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Reeder",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hochsmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Rehmsmeier",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Voss",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Giegerich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J Biotechnol",
+            "volume": "124",
+            "issn": "",
+            "pages": "41--55",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Bridging the gap in RNA structure prediction",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Shapiro",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Yingling",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Kasprzak",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Bindewald",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Curr Opin Struct Biol",
+            "volume": "17",
+            "issn": "",
+            "pages": "157--65",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Advances in RNA structure prediction from sequence: new tools for generating hypotheses about viral RNA structure-function relationships",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Schroeder",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J Virol",
+            "volume": "83",
+            "issn": "",
+            "pages": "6326--6360",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Thermodynamics of base pairing",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Curr Opin Struct Biol",
+            "volume": "6",
+            "issn": "",
+            "pages": "299--304",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "How do RNA folding algorithms work?",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nat Biotechnol",
+            "volume": "22",
+            "issn": "",
+            "pages": "1457--1465",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Expanded sequence dependence of thermodynamic parameters improves prediction of RNA secondary structure",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sabina",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zuker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "J Mol Biol",
+            "volume": "288",
+            "issn": "",
+            "pages": "911--951",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Evaluation of the suitability of free-energy minimization using nearest-neighbor energy parameters for RNA secondary structure prediction",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Doshi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Cannone",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Cobaugh",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Gutell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "BMC Bioinformatics",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Evaluation of several lightweight stochastic context-free grammars for RNA secondary structure prediction",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Dowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Eddy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "BMC Bioinformatics",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Extracting stacking interaction parameters for RNA from the data set of native structures",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Dima",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Hyeon",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Thirumalai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J Mol Biol",
+            "volume": "347",
+            "issn": "",
+            "pages": "53--69",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "RNA secondary structure prediction without physics-based models",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Do",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Woods",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Batzoglou",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Contrafold",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Bioinformatics",
+            "volume": "22",
+            "issn": "",
+            "pages": "90--98",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Accurate SHAPE-directed RNA structure determination",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Deigan",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proc Natl Acad Sci U S A",
+            "volume": "106",
+            "issn": "",
+            "pages": "97--102",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Phylogenetic comparative analysis and the secondary structure of ribonuclease P RNA--a review",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Pace",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Olsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "James",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Gene",
+            "volume": "82",
+            "issn": "",
+            "pages": "65--75",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Modelling of the three-dimensional architecture of group I catalytic introns based on comparative sequence analysis",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Michel",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Westhof",
+                    "suffix": ""
+                }
+            ],
+            "year": 1990,
+            "venue": "J Mol Biol",
+            "volume": "216",
+            "issn": "",
+            "pages": "585--610",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "The accuracy of ribosomal RNA comparative structure models",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Gutell",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Cannone",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Curr Opin Struct Biol",
+            "volume": "12",
+            "issn": "",
+            "pages": "301--311",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Probing the structure of RNAs in solution",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Ehresmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Baudin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Mougel",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Romby",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Ebel",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ehresmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "Nucleic Acids Res",
+            "volume": "15",
+            "issn": "",
+            "pages": "9109--9137",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Enzymatic approaches to probing of RNA secondary and tertiary structure",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Knapp",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Methods Enzymol",
+            "volume": "180",
+            "issn": "",
+            "pages": "192--212",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "In-line probing analysis of riboswitches",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Regulski",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Breaker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Methods Mol Biol",
+            "volume": "419",
+            "issn": "",
+            "pages": "53--67",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Mapping nucleic acid structure by hydroxyl radical cleavage",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Tullius",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Greenbaum",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Curr Opin Chem Biol",
+            "volume": "9",
+            "issn": "",
+            "pages": "127--161",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "RNA structure analysis at single nucleotide resolution by selective 2\u2032-hydroxyl acylation and primer extension (SHAPE)",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Merino",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Coughlan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J Am Chem Soc",
+            "volume": "127",
+            "issn": "",
+            "pages": "4223--4254",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "High-throughput SHAPE analysis reveals structures in HIV-1 genomic RNA strongly conserved across distinct biological states",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gorelick",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Vasa",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Guex",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Rein",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mathews",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Giddings",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "PLoS Biol",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Strong correlation between SHAPE chemistry and the generalized NMR order parameter (S2) in RNA",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Gherghe",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Shajani",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Varani",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J Am Chem Soc",
+            "volume": "130",
+            "issn": "",
+            "pages": "12244--12249",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Architecture and secondary structure of an entire HIV-1 RNA genome",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Dang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gorelick",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Leonard",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Bess",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Swanstrom",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Burch",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Nature",
+            "volume": "460",
+            "issn": "",
+            "pages": "711--717",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "RNA flexibility in the dimerization domain of a gamma retrovirus",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Badorrek",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nat Chem Biol",
+            "volume": "1",
+            "issn": "",
+            "pages": "104--115",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Structure of an RNA switch that enforces stringent retroviral genomic RNA dimerization",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Badorrek",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Gherghe",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proc Natl Acad Sci",
+            "volume": "103",
+            "issn": "",
+            "pages": "13640--13645",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Architecture of a gamma retroviral genomic RNA dimer",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Badorrek",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Biochemistry",
+            "volume": "45",
+            "issn": "",
+            "pages": "12664--72",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Structure of stem-loop IV of Tetrahymena telomerase RNA",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Fender",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Legassie",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Jarstfer",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Bryan",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Varani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "EMBO J",
+            "volume": "25",
+            "issn": "",
+            "pages": "3156--66",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "The SL1-SL2 (stem-loop) domain is the primary determinant for stability of the gamma retroviral genomic RNA dimer",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Gherghe",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J Biol Chem",
+            "volume": "281",
+            "issn": "",
+            "pages": "37952--61",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "A high-throughput screen for synthetic riboswitches reveals mechanistic insights into their function",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Lynch",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Desai",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Sajja",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Gallivan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Chem Biol",
+            "volume": "14",
+            "issn": "",
+            "pages": "173--84",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Local RNA structural changes induced by crystallization are revealed by SHAPE",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Vicens",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Gooding",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Laederach",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Cech",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "RNA",
+            "volume": "13",
+            "issn": "",
+            "pages": "536--584",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "tRNA-mRNA mimicry drives translation initiation from a viral IRES",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Costantino",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Pfingsten",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Rambo",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Kieft",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Nat Struct Mol Biol",
+            "volume": "15",
+            "issn": "",
+            "pages": "57--64",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "SHAPE analysis of long-range interactions reveals extensive and thermodynamically preferred misfolding in a fragile group I intron RNA",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Duncan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Biochemistry",
+            "volume": "47",
+            "issn": "",
+            "pages": "8504--8517",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "Lack of secondary structure characterizes the 5\u2032 ends of mammalian mitochondrial mRNAs",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Hung",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Spremulli",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "RNA",
+            "volume": "14",
+            "issn": "",
+            "pages": "862--71",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Complex ligand-induced conformational changes in tRNA(Asp) revealed by single-nucleotide resolution SHAPE chemistry",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Biochemistry",
+            "volume": "47",
+            "issn": "",
+            "pages": "3454--61",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "A structural basis for the recognition of 2\u2032-deoxyguanosine by the purine riboswitch",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Batey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J Mol Biol",
+            "volume": "385",
+            "issn": "",
+            "pages": "938--986",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Structure of a viral cap-independent translation element that functions via high affinity binding to the eIF4E subunit of eIF4F",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Treder",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Miller",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J Biol Chem",
+            "volume": "284",
+            "issn": "",
+            "pages": "14189--202",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Structural characterization of the Rous sarcoma virus RNA stability element",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Weil",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hadjithomas",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Beemon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J Virol",
+            "volume": "83",
+            "issn": "",
+            "pages": "2119--2148",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Secondary structure of the mature ex virio Moloney murine leukemia virus genomic RNA dimerization domain",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Gherghe",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Leonard",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Gorelick",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J Virol",
+            "volume": "84",
+            "issn": "",
+            "pages": "898--906",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Mechanistic role of structurally dynamic regions in Dicistroviridae IGR IRESs",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Pfingsten",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Castile",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Kieft",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "J Mol Biol",
+            "volume": "395",
+            "issn": "",
+            "pages": "205--222",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Selective 2\u2032-hydroxyl acylation analyzed by primer extension (SHAPE): quantitative RNA structure analysis at single nucleotide resolution",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Merino",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Nat Protoc",
+            "volume": "1",
+            "issn": "",
+            "pages": "1610--1616",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "High-Throughput Shape and Hydroxyl Radical Analysis of RNA Structure and Ribonucleoprotein Assembly",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Mcginnis",
+                    "suffix": ""
+                },
+                {
+                    "first": "Cds",
+                    "middle": [],
+                    "last": "Duncan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Methods Enzymol",
+            "volume": "468",
+            "issn": "",
+            "pages": "67--89",
+            "other_ids": {}
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "ShapeFinder: a software system for high-throughput quantitative analysis of nucleic acid reactivity information resolved by capillary electrophoresis",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Vasa",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Guex",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Giddings",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "RNA",
+            "volume": "14",
+            "issn": "",
+            "pages": "1979--90",
+            "other_ids": {}
+        },
+        "BIBREF60": {
+            "ref_id": "b60",
+            "title": "Time-resolved RNA SHAPE chemistry: quantitative RNA structure analysis in one-second snapshots and at single-nucleotide resolution",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mortimer",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Nat Protoc",
+            "volume": "4",
+            "issn": "",
+            "pages": "1413--1434",
+            "other_ids": {}
+        },
+        "BIBREF61": {
+            "ref_id": "b61",
+            "title": "A fast-acting reagent for accurate analysis of RNA secondary and tertiary structure by SHAPE chemistry",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mortimer",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J Am Chem Soc",
+            "volume": "129",
+            "issn": "",
+            "pages": "4144--4149",
+            "other_ids": {}
+        },
+        "BIBREF62": {
+            "ref_id": "b62",
+            "title": "Influence of nucleotide identity on ribose 2\u2032-hydroxyl reactivity in RNA",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Vasa",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Deigan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Mortimer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Giddings",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "RNA",
+            "volume": "15",
+            "issn": "",
+            "pages": "1314--1335",
+            "other_ids": {}
+        },
+        "BIBREF63": {
+            "ref_id": "b63",
+            "title": "Predicting thermodynamic properties of RNA",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Serra",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Turner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Methods Enzymol",
+            "volume": "259",
+            "issn": "",
+            "pages": "242--61",
+            "other_ids": {}
+        },
+        "BIBREF64": {
+            "ref_id": "b64",
+            "title": "Introductory biostatistics for the health sciences : modern applications including bootstrap",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Chernick",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Friis",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF66": {
+            "ref_id": "b66",
+            "title": "Characterization of ribosomal frameshifting in HIV-1 gag-pol expression",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Jacks",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Power",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Masiarz",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Luciw",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Barr",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Varmus",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Nature",
+            "volume": "331",
+            "issn": "",
+            "pages": "280--283",
+            "other_ids": {}
+        },
+        "BIBREF67": {
+            "ref_id": "b67",
+            "title": "Programmed ribosomal frameshifting in HIV-1 and the SARS-CoV",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Brierley",
+                    "suffix": ""
+                },
+                {
+                    "first": "Dos",
+                    "middle": [],
+                    "last": "Ramos",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Virus Res",
+            "volume": "119",
+            "issn": "",
+            "pages": "29--42",
+            "other_ids": {}
+        },
+        "BIBREF68": {
+            "ref_id": "b68",
+            "title": "Ribosomal frameshifting: an emerging drug target for HIV",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Gareiss",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Miller",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Curr Opin Investig Drugs",
+            "volume": "10",
+            "issn": "",
+            "pages": "121--129",
+            "other_ids": {}
+        },
+        "BIBREF69": {
+            "ref_id": "b69",
+            "title": "Maintenance of the Gag/Gag-Pol ratio is important for human immunodeficiency virus type 1 RNA dimerization and viral infectivity",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Shehu-Xhilaga",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Crowe",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mak",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "J Virol",
+            "volume": "75",
+            "issn": "",
+            "pages": "1834--1875",
+            "other_ids": {}
+        },
+        "BIBREF70": {
+            "ref_id": "b70",
+            "title": "Selection of peptides interfering with a ribosomal frameshift in the human immunodeficiency virus type 1",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dulude",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Theberge-Julien",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Brakier-Gingras",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Heveker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "RNA",
+            "volume": "14",
+            "issn": "",
+            "pages": "981--91",
+            "other_ids": {}
+        },
+        "BIBREF71": {
+            "ref_id": "b71",
+            "title": "HIV expression strategies: ribosomal frameshifting is directed by a short sequence in both mammalian and yeast systems",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Braddock",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Adams",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Rathjen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kingsman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Kingsman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "Cell",
+            "volume": "55",
+            "issn": "",
+            "pages": "1159--69",
+            "other_ids": {}
+        },
+        "BIBREF72": {
+            "ref_id": "b72",
+            "title": "Ribosomal pausing during translation of an RNA pseudoknot",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Somogyi",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Jenner",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Brierley",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Inglis",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Mol Cell Biol",
+            "volume": "13",
+            "issn": "",
+            "pages": "6931--6971",
+            "other_ids": {}
+        },
+        "BIBREF73": {
+            "ref_id": "b73",
+            "title": "Ribosomal pausing at a frameshifter RNA pseudoknot is sensitive to reading phase but shows little correlation with frameshift efficiency",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Kontos",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Napthine",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Brierley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Mol Cell Biol",
+            "volume": "21",
+            "issn": "",
+            "pages": "8657--70",
+            "other_ids": {}
+        },
+        "BIBREF74": {
+            "ref_id": "b74",
+            "title": "A basis for new approaches to the chemotherapy of AIDS: novel genes in HIV-1 potentially encode selenoproteins expressed by ribosomal frameshifting and termination suppression",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Taylor",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Ramanathan",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Jalluri",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Nadimpalli",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "J Med Chem",
+            "volume": "37",
+            "issn": "",
+            "pages": "2637--54",
+            "other_ids": {}
+        },
+        "BIBREF75": {
+            "ref_id": "b75",
+            "title": "Structure of the autoregulatory pseudoknot within the gene 32 messenger RNA of bacteriophages T2 and T6: a model for a possible family of structurally related RNA pseudoknots",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Du",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Giedroc",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Hoffman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Biochemistry",
+            "volume": "35",
+            "issn": "",
+            "pages": "4187--98",
+            "other_ids": {}
+        },
+        "BIBREF76": {
+            "ref_id": "b76",
+            "title": "The frameshift stimulatory signal of human immunodeficiency virus type 1 group O is a pseudoknot",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Baril",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dulude",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Steinberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Brakier-Gingras",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J Mol Biol",
+            "volume": "331",
+            "issn": "",
+            "pages": "571--83",
+            "other_ids": {}
+        },
+        "BIBREF77": {
+            "ref_id": "b77",
+            "title": "Characterization of the frameshift stimulatory signal controlling a programmed -1 ribosomal frameshift in the human immunodeficiency virus type 1",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dulude",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Baril",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Brakier-Gingras",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Nucleic Acids Res",
+            "volume": "30",
+            "issn": "",
+            "pages": "5094--102",
+            "other_ids": {}
+        },
+        "BIBREF78": {
+            "ref_id": "b78",
+            "title": "Structure of the RNA signal essential for translational frameshifting in HIV-1",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Gaudin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Mazauric",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Traikia",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Guittet",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Yoshizawa",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Fourmy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J Mol Biol",
+            "volume": "349",
+            "issn": "",
+            "pages": "1024--1059",
+            "other_ids": {}
+        },
+        "BIBREF79": {
+            "ref_id": "b79",
+            "title": "Solution structure and thermodynamic investigation of the HIV-1 frameshift inducing element",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Staple",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Butcher",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J Mol Biol",
+            "volume": "349",
+            "issn": "",
+            "pages": "1011--1034",
+            "other_ids": {}
+        },
+        "BIBREF80": {
+            "ref_id": "b80",
+            "title": "The total folding free energy change, \u0394G total , is the sum of nearest neighbor and SHAPE-derived contributions",
+            "authors": [],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Figure 1.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Figure 2.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Base pair prediction sensitivities for E. coli 23S rRNA for a range of slope (m) and intercept (b) values (Eqn. 1). Optimal values of m = 2.6 kcal/mol and b = \u22120.6 kcal/mol are depicted by the white box. Adapted from ref.[30].",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Figure 4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Figure 5.",
+            "latex": null,
+            "type": "figure"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work was supported by National Institutes of Health grant AI068462 (to K.M.W.), National Research Service Award F30DA027364 (to J.T.L.), and Medical Scientist Training Program T32GM008719. Work in our laboratory on experimentally-directed RNA secondary structure prediction benefits from a close and lively collaboration with David Mathews (University of Rochester). We thank David Mauger and David Mathews for critically reviewing this manuscript and members of the Weeks laboratory for helpful comments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        }
+    ]
+}

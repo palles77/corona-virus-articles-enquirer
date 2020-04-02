@@ -1,0 +1,1569 @@
+{
+    "paper_id": "b5a94ade4dd3cb05a85905eccfd90a7e2b521028",
+    "metadata": {
+        "title": "Estimating Absolute and Relative Case Fatality Ratios from Infectious Disease Surveillance Data HHS Public Access",
+        "authors": [
+            {
+                "first": "Nicholas",
+                "middle": [
+                    "G"
+                ],
+                "last": "Reich",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Massachusetts",
+                    "location": {
+                        "postCode": "01002",
+                        "settlement": "Amherst",
+                        "region": "Massachusetts",
+                        "country": "U.S.A"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Justin",
+                "middle": [],
+                "last": "Lessler",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Johns Hopkins University",
+                    "location": {
+                        "postCode": "21205",
+                        "settlement": "Baltimore",
+                        "region": "Maryland",
+                        "country": "U.S.A"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Derek",
+                "middle": [
+                    "A T"
+                ],
+                "last": "Cummings",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Johns Hopkins University",
+                    "location": {
+                        "postCode": "21205",
+                        "settlement": "Baltimore",
+                        "region": "Maryland",
+                        "country": "U.S.A"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Ron",
+                "middle": [],
+                "last": "Brookmeyer",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of California",
+                    "location": {
+                        "postCode": "90095",
+                        "settlement": "Los Angeles",
+                        "region": "California",
+                        "country": "U.S.A"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Knowing which populations are most at risk for severe outcomes from an emerging infectious disease is crucial in deciding the optimal allocation of resources during an outbreak response. The case fatality ratio (CFR) is the fraction of cases that die after contracting a disease. The relative CFR is the factor by which the case fatality in one group is greater or less than that in a second group. Incomplete reporting of the number of infected individuals, both recovered and dead, can lead to biased estimates of the CFR. We define conditions under which the CFR and the relative CFR are identifiable. Furthermore, we propose an estimator for the relative CFR that controls for time-varying reporting rates. We generalize our methods to account for elapsed time between infection and death. To demonstrate the new methodology, we use data from the 1918 influenza pandemic to estimate relative CFRs between counties in Maryland. A simulation study evaluates the performance of the methods in outbreak scenarios. An R software package makes the methods and data presented here freely available. Our work highlights the limitations and challenges associated with estimating absolute and relative CFRs in practice. However, in certain situations, the methods presented here can help identify vulnerable subpopulations early in an outbreak of an emerging pathogen such as pandemic influenza.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "The case fatality ratio (CFR), a measure of the virulence of an infectious disease, is the fraction of cases that die after contracting the disease. A relative CFR is defined as the CFR of one group divided by that of a reference group. However, incomplete reporting of the number of infected individuals, both recovered and dead, makes it difficult to accurately estimate the CFR.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "In public health response, both the absolute and the relative CFRs have important roles to play. The absolute CFR has an obvious role-it provides a measure of the severity of the disease. For setting public health priorities, an order-of-magnitude estimate of the absolute CFR may be adequate, and sophisticated methods may not be needed. Once the severity of the disease has been established, the relative CFR takes on primary importance as it becomes the guiding principle for targeting interventions to those populations that are most at risk of severe outcomes. In the 2009 pandemic of influenza A (H1N1) we have a prime example. Early on, limited supplies of antivirals were the only option for prophylaxis and treatment of the disease, and public health agencies needed to decide how these should best be deployed. Later, as limited vaccine became available, officials had to prioritize subpopulations for vaccination. In many cases, targeting decisions came down to the relative severity of disease in different populations, i.e., the relative CFR. Hence, accurately estimating this quantity early in an epidemic in a changing surveil-lance environment is of great importance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "Because an accurate and precise estimate of the relative CFR depends on complete observation of the number of cases and deaths in an outbreak, reliable data can often be difficult to find or collect. In many settings, nonfatal cases will go undetected either because of mild symptoms or insufficient public health surveillance infrastructure. Fatalities may be misreported as well, perhaps due to poor surveillance or incorrect attribution to another cause. Furthermore, depending on the survival times of cases, many deaths will be unreported simply because they have not yet occurred.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "Due to variation in the host and the disease, the CFR may vary across a population. For example, one group of individuals may be more or less likely to succumb to a disease than others because of previous exposure or an underlying condition.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "Although estimation of the CFR has been the focus of several papers in recent years, none of them address directly the challenges posed by an incompletely observed epidemic. Using data collected during the 2002-2003 severe acute respiratory syndrome (SARS) outbreak, Ghani et al. (2005) developed methods to address the challenge of estimating the CFR in real time when the survival distribution of the disease is not known and when not all infected cases have died. Also motivated by the SARS epidemic, Jewell et al. (2007) developed nonparametric methods to estimate the CFR using a competing-risks framework from survival analysis. However, because the SARS outbreak was assumed to be fully observed-an assumption verified by subsequent serological analysis (Leung et al., 2004 )neither of these papers addresses issues of incomplete case ascertainment or changes in case reporting rates.",
+            "cite_spans": [
+                {
+                    "start": 267,
+                    "end": 286,
+                    "text": "Ghani et al. (2005)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 504,
+                    "end": 524,
+                    "text": "Jewell et al. (2007)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 761,
+                    "end": 780,
+                    "text": "(Leung et al., 2004",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "In the 2009 H1N1 influenza pandemic, a few attempts were made to estimate the CFR. Garske et al. (2009) gave a concise summary of the issues surrounding accurate estimation of the CFR. They proposed an estimator that adjusts for the survival distribution of influenza but not for changes in reporting. Nishiura et al. (2009) developed methods to estimate the CFR in the middle of an epidemic. This method adjusts a na\u00efve estimator (which divides the total number of observed deaths by the number of observed cases) based on information about the (assumed known) survival distribution of the particular disease. These two papers proposed analogous estimators, similar to what we propose as the E-step of the expectation maximization (EM) algorithm for the lag-adjusted estimator (see Section 3.3 below). However, neither of these recent works investigated the effects of changes in reporting rates on their estimate of the CFR. Other papers have taken more direct approaches to estimate the CFR, using surrogate measures for the number of individuals who become infected and who die (Presanis et al., 2009) or simply by making ad hoc adjustments to the observed case counts to account for underreporting (de Silva et al., 2009; Donaldson et al., 2009; Wilson and Baker, 2009 ).",
+            "cite_spans": [
+                {
+                    "start": 83,
+                    "end": 103,
+                    "text": "Garske et al. (2009)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 302,
+                    "end": 324,
+                    "text": "Nishiura et al. (2009)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1082,
+                    "end": 1105,
+                    "text": "(Presanis et al., 2009)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 1203,
+                    "end": 1226,
+                    "text": "(de Silva et al., 2009;",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1227,
+                    "end": 1250,
+                    "text": "Donaldson et al., 2009;",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1251,
+                    "end": 1273,
+                    "text": "Wilson and Baker, 2009",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "Our goal with this article is to define situations where we can identify the relative CFR and to develop methods to estimate it. We define a typology of reporting rates for fatal and nonfatal cases that can be used to classify surveillance systems. We use this typology to determine conditions under which the relative CFR is identifiable. When it is, we utilize loglinear regression to estimate the relative CFR-a method analogous to standard relative risk estimation (Frome and Checkoway, 1985) . Section 2 presents the notation and surveillance system typology. Section 3 introduces methods to estimate the relative CFR that can control for time-varying reporting and disease-delayed mortality. Section 4 presents results from a simulation study. Section 5 demonstrates the methods with an analysis of data from the 1918 influenza pandemic.",
+            "cite_spans": [
+                {
+                    "start": 469,
+                    "end": 496,
+                    "text": "(Frome and Checkoway, 1985)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction and Background"
+        },
+        {
+            "text": "During an outbreak, health organizations periodically report the number of incident (or cumulative) cases and deaths. These counts may only represent a fraction of the actual cases and actual deaths. Suppose we have T time periods, and a covariate (e.g., age) with J levels. We define N tj be the total number of reported cases with symptom onset at time t for covariate level j. We define D tj as the number of reported deaths with symptom onset at time t for covariate level j. (For now, we assume that the onset time of all deaths is known and that survival time is always shorter than the reporting interval, i.e., deaths are reported in the same interval in which they fall sick. We relax this assumption in our discussion of varying survival times in Section 3.3). Also, S tj is the reported number of recovered cases with onset at time t for covariate level j. Therefore N tj = D tj + S tj . However, underlying the reported data are recovered cases and deaths that go unreported. Let be the total number of cases, both reported and unreported, at time t for covariate level j.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observed Data and Notation"
+        },
+        {
+            "text": "The CFR, p tj , is the probability of death, conditional on being a case. We assume the following reporting rates for time t and group j: \u03c6 tj is the probability a recovered case is reported and \u03c8 tj is the probability a dead case is reported. Table 1 illustrates the probabilistic structure of the observed and unobserved data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 244,
+                    "end": 251,
+                    "text": "Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Observed Data and Notation"
+        },
+        {
+            "text": "We wish to clarify our use of the term reported. If a recovered case is reported then by that we mean it is counted as a case and is included in the denominator but not the numerator of the CFR. On the other hand, if a dead case is reported, by that we mean it is counted as both a case and a death and accordingly is included in both the numerator and the denominator of the CFR. By allowing different reporting probabilities for dead cases and recovered cases, we are making the event of being reported depend on the vital status of the case. We suggest in Section 6 alternative set-ups that may also be useful to consider.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Observed Data and Notation"
+        },
+        {
+            "text": "We assume that \u03c6 tj and \u03c8 tj vary independently across groups and times and that p tj = p j , i.e., the group-specific CFR stays constant over time. We return to our central question: what conditions or assumptions allow us to estimate an absolute or relative CFR?",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "A Typology of Reporting Rate Scenarios"
+        },
+        {
+            "text": "Observed relative CFRs and reporting rates for cases and deaths are mathematically intertwined. For example, say we calculate an observed relative CFR for group A over group B at two different times. An increase in this observed relative CFR over time could be due to any number of factors: an increase in death reporting in group A, an increase in case reporting in group B, a decrease in case reporting in group A, a decrease in death reporting in group B, an actual change in the relative CFR, or some combination of all these factors. Without some assumptions on how the case reporting rates vary over group and time, the relative CFR itself is unidentifiable.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "A Typology of Reporting Rate Scenarios"
+        },
+        {
+            "text": "We developed a typology of reporting rate scenarios that classifies surveillance systems by how reporting rates for recovered and dead cases vary across time and covariate group. In a general model, we make no assumptions about how the reporting rates vary by t and j. In this scenario, both the absolute and relative CFRs are unidentifiable. In a covariateindependent model, the reporting rates do vary across time but, at a given t, are constant across covariate j. For example, reporting rates may improve over time as an outbreak develops and public health surveillance teams are mobilized. However, at any given time, the detection rates may be identical for, say, men and women. In a constant proportion model there is a constant factor which relates the reporting rates of cases to that of deaths. This type of model might be appropriate in nonoutbreak or endemic disease contexts. Finally, in a complete fatality reporting model, we assume that the reporting rate for recovered cases does not vary by covariate group and that the reporting rate for fatal cases is nearly 100%. This may be a feasible model to assume in an enclosed population or when there is good reason to believe that a surveillance system is identifying all deaths. Table 2 displays this classification that can be applied to disease surveillance systems and Figure 1 depicts the relationships between the different models. In the three models with assumptions about reporting rates, the relative CFR is identifiable. The absolute CFR for group j will only be identifiable if the reporting rates for deaths and recovered cases are identical for all t.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1244,
+                    "end": 1251,
+                    "text": "Table 2",
+                    "ref_id": "TABREF5"
+                },
+                {
+                    "start": 1337,
+                    "end": 1345,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "A Typology of Reporting Rate Scenarios"
+        },
+        {
+            "text": "The na\u00efve estimator for the absolute CFR is based on the observed case counts. We define the na\u00efve estimator for group j as .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Na\u00efve Estimator"
+        },
+        {
+            "text": "In Web Appendix A, we show that in covariate-independent models \u03b5 j is an inconsistent estimator for p j unless \u03c6 t = \u03c8 t , \u2200t. To do this, we assume a structure based on Table 1 :",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 171,
+                    "end": 178,
+                    "text": "Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "The Na\u00efve Estimator"
+        },
+        {
+            "text": "(1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Na\u00efve Estimator"
+        },
+        {
+            "text": "Although this model gives insight into the behavior of the na\u00efve estimator, it does not enable us to estimate p j . The identifiability problems are twofold. First, the model specified by equation 1 has more parameters than observations. Second, the multinomial probabilities are nonlinear functions of the parameters of interest. Under certain conditions, a slightly modified version of this model can lead to estimates of the relative CFR. We explore these scenarios in the upcoming sections.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Na\u00efve Estimator"
+        },
+        {
+            "text": "In the context of an outbreak, where surveillance and public awareness of a disease change over time, a major weakness of the na\u00efve estimator is that it does not adjust for time-varying rates of case reporting. In this section, we develop a model which, under certain conditions, provides accurate estimates of the relative CFR.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "We begin by introducing a conditional binomial approach that is derived from the multinomial model in equation 1. By conditioning on N tj , we can model D tj directly as realizations from a binomial distribution. At each (t, j) pair, we say that D tj follows a Binomial distribution of size N tj and success probability . However, the sum in the denominator of the probability of death will make this conditional binomial model hard to fit in practice because the likelihood contains nonlinear functions of the parameters.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "A second approach provides a more practical alternative while closely approximating the conditional binomial model in many situations. Assume that the p j are small. Then is well approximated by (see derivation in Web Appendix B) and the multinomial framework from equation 1 gives us that . Because death is assumed to be a rare event, we can use the Poisson approximation to formulate the model as Although the conditional binomial model represents the data-generating model that we assume to be true, the Poisson formulation in equation 2 will only be accurate when the p j are small (see Section 4.3). The Poisson formulation can be useful in log-linear form:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "(3)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "We can now merge this model with the typology of reporting rates outlined in Section 2.2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "Constant proportion of reporting rates-In this class of models, we assume that \u03c8 tj = k \u00b7 \u03c6 tj . Under these assumptions about reporting rates, the model in equation 3 reduces to",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": ". We can reparameterize this model as (4) where is the log relative CFR comparing group j and group 1. Also, \u03b2 0 = log(p 1 k).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "Covariate-independent reporting-Assume \u03c6 tj = \u03c6 t for all j, that is, we assume that the reporting probability depends only on time and not the covariate; also assume that \u03c8 tj = \u03c8 t for all j. Then the model in equation 3 reduces to , which can be reparameterized as (5) where \u03b1 t is defined for t = 2, . . . , T and \u03b3 j is defined for j = 2, . . . , J. Then, \u03b3 j is again the log relative CFR, while and .",
+            "cite_spans": [
+                {
+                    "start": 268,
+                    "end": 271,
+                    "text": "(5)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "Complete fatality reporting-In this model, we assume that \u03c6 tj = \u03c6 t and \u03c8 tj = 1. This model is a subset of the covariate-independent model, but it represents an interesting special case. The model in equation 3 reduces to , which can be reparameterized as (6) Again, \u03b3 j is the log relative CFR, while and .",
+            "cite_spans": [
+                {
+                    "start": 258,
+                    "end": 261,
+                    "text": "(6)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "Models 4, 5, and 6 can be fit with standard software by declaring log N tj as an offset. The relative CFR will be estimated by . We will call this quantity the reporting-rateadjusted estimator of the relative CFR.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Time-Varying Reporting"
+        },
+        {
+            "text": "If reporting rates change over time and deaths are observed only at the time of death and not at the time of infection, the methods outlined in the previous sections may yield biased estimates of the relative CFR. These methods can be extended to account for incomplete observation of deaths due to the variable survival times from the time of infection. Real-time application of this method is dependent on death occurring in response to an acute infection, as with a disease such as influenza, where most deaths would be expected to occur within a fixed number, L, weeks of infection. With diseases such as HIV/AIDS, where the survival time can be years or decades, this model may be hard to apply in real-time settings.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "During an outbreak, at time t + L, we can estimate the relative CFR using cases with symptom onset through time t. We add to our existing notation as follows, ignoring any other delays in reporting: \u03b7 i = given death, known probability of dying i time units after symptom onset, D\u0302t j = number of deaths whose symptom onset occurred at time t in group j.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "We propose a model for that is similar to the earlier models for :",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "However, the D\u0302t j are not explicitly observed during an outbreak. We have developed a method to reconstruct an estimate of D\u0302t j from the observed data, which allows us to then fit the model in equation 7. To reconstruct D\u0302t j we need to estimate how many of the dead cases observed at times t + 1, . . . , t + L would be expected to have symptom onset date of time t. Assuming a known survival distribution for the disease, our method employs the EM algorithm (Dempster, Laird, and Rubin, 1977) to generate estimates of the relative CFR.",
+            "cite_spans": [
+                {
+                    "start": 462,
+                    "end": 496,
+                    "text": "(Dempster, Laird, and Rubin, 1977)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "We propose the following EM algorithm, assuming a covariate independent model:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "(1) Fix \u03b1 (0) , a vector of starting values for the \u03b1 t , for t = 2, . . . , T .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "(2) Fix iter = 0 and choose a tolerance \u03b4 to determine convergence.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "(3) Fix iter = iter + 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "(4) (E-step) Find the expected reported deaths with symptom onset at time t, using equation 8, for each covariate group j, conditioning on \u03b7 (the vector of survival probabilities, assumed known) and \u03b1 (iter\u22121) .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "(5) (M-step) Fit the model from equation 7 using the E-step results as the outcome.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "(6) Store as the fitted coefficients from the model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Adjusting for Survival Time"
+        },
+        {
+            "text": "Repeat steps 3.3-3.3 until the parameters from the covariate-independent model converge, i.e., until each component of is less than the tolerance \u03b4.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "(7)"
+        },
+        {
+            "text": "Use the supplemented EM algorithm (Meng and Rubin, 1991) to calculate the standard errors for parameter estimates.",
+            "cite_spans": [
+                {
+                    "start": 34,
+                    "end": 56,
+                    "text": "(Meng and Rubin, 1991)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "(8)"
+        },
+        {
+            "text": "To compute the E-step, we use the following formula, derived in Web Appendix C: where pairs that contribute to the observed death count on day t + i and D \u00b7j and N \u00b7j are the vectors of observed values of D tj and N tj for t = 1, . . . , T . The Mstep may be run using standard GLM software. The full EM routine may be implemented using the EMforCFR() function in the coarseDataTools package for R (see Web Appendix F), freely available from CRAN, the Comprehensive R Archive Network (Reich, 2010) . We refer to this estimate of the relative CFR as the lag-adjusted estimator.",
+            "cite_spans": [
+                {
+                    "start": 484,
+                    "end": 497,
+                    "text": "(Reich, 2010)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "(8)"
+        },
+        {
+            "text": "To test the performance of our proposed estimators in a wide range of circumstances, we conducted several simulation studies. In the central scenario, a population experiences an epidemic made up of staggered outbreaks in two distinct subgroups of the population. We compared the performance of the na\u00efve, reporting-rate-adjusted and lag-adjusted methods in estimating the relative CFR between the two groups, which was fixed at . Details of the data-generation model can be found in Web Appendix D.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "A Simulation Study"
+        },
+        {
+            "text": "Our study followed three lines of inquiry. First, we compared the performance of the na\u00efve and reporting-rate-adjusted estimators in scenarios where the reporting rates followed simple step functions and where the date of onset was assumed known for all deaths. Second, we compared the performance of the na\u00efve, reporting-rate-adjusted and lag-adjusted estimators when reporting rates changed over time and when the time of onset for deaths was unobserved but the survival distribution was assumed to be known. Third, we tested the sensitivity of our model to the assumption that the p j are small. Results from these simulations are summarized below. Complete methodological details and results are provided in Web Appendix D.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "A Simulation Study"
+        },
+        {
+            "text": "We considered scenarios where the reporting rates \u03c8 t and \u03c6 t follow a step function with a changepoint halfway through the outbreak. For a fixed set of reporting rates, \u03c8 t and \u03c6 t , we simulated and analyzed 500 outbreak datasets. For each dataset we estimated the absolute and relative CFRs using the na\u00efve estimator and the relative CFR using the reporting-rateadjusted estimator while assuming the correct reporting model.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Na\u00efve versus Reporting-Rate-Adjusted Estimators"
+        },
+        {
+            "text": "The results, given in Table 3 , show that while the reporting-rate-adjusted estimator consistently performed well, with minimal bias across all models, the na\u00efve estimator's performance was more erratic. In some cases, notably the constant proportion models, the na\u00efve estimator was close to unbiased. (These empirical results are supported by the theoretical asymptotic results in Web Appendix A and more detailed simulations in Web Appendix D.) However, in most scenarios, the na\u00efve estimator missed the target by a wide margin. In a few cases, it reversed the direction and on average estimated the relative CFR to be over 1.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 22,
+                    "end": 29,
+                    "text": "Table 3",
+                    "ref_id": "TABREF6"
+                }
+            ],
+            "section": "Na\u00efve versus Reporting-Rate-Adjusted Estimators"
+        },
+        {
+            "text": "We ran a simulation to examine the performance of our estimators when the symptom onset for deaths is unknown but the survival distribution, dependent on a parameter \u03b7, is assumed to be known. Details of the data-generation algorithm are provided in Web Appendix D.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparison of all Estimators, Accounting for Survival Time"
+        },
+        {
+            "text": "Under each of 10 different discrete survival distributions (scenarios A through J in Table 4 ) 1000 datasets were generated. The na\u00efve, reporting-rate-adjusted and lag-adjusted estimators were calculated for each dataset. The lag-adjusted estimator was computed three times assuming different discrete survival distributions. First, we computed the estimate using the survival distribution used to generate the data (denoted by truth in Table 4 ). Second, we computed the estimate assuming a symmetric survival distribution with a mean of three time units and maximum possible survival of 4 (denoted by short in Table 4 ). The time-unitspecific probabilities of death for times 2 through 4 were (0.3, 0.4, 0.3). Lastly, we computed the estimate assuming a symmetric survival distribution, with mean survival of 8 days and maximum survival of 11 days (denoted by long in Table 4 ). The time-unit-specific probabilities of death for times 5 through 11 were (0.1, 0.15, 0.15, 0.2, 0.15, 0.15, 0.1).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 85,
+                    "end": 92,
+                    "text": "Table 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 437,
+                    "end": 444,
+                    "text": "Table 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 612,
+                    "end": 619,
+                    "text": "Table 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 870,
+                    "end": 877,
+                    "text": "Table 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Comparison of all Estimators, Accounting for Survival Time"
+        },
+        {
+            "text": "The 10 discrete survival distributions were chosen to represent a range of maximum survival times, different degrees of skewness, and varying levels of heterogeneity. A discretized version of a Weibull distribution (shape = 1.5, scale = 8) was truncated at 15 units and used for scenarios H and I. The survival probabilities for the 15 units are (0.05, 0.08, 0.09, 0.1, 0.1, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.04, 0.03, 0.02). This distribution has a mean of 6.75. Scenario H used these probabilities as the probabilities of death at time 1 through 15. Scenario I used the reversed vector of probabilities. Other distributions are described in Table 4 . Table 4 shows the simulation results and compares the estimators' MSE and bias. Comparing MSEs of the five estimators across the different scenarios, we see that the adjustment for survival time provides a large gain in efficiency when the assumed survival distribution has roughly the same mean as the truth. This holds for distributions with short survival times (scenarios A-E) as well as those with long possible survival times (scenarios F-J). In the 10 scenarios we studied, the MSEs for the lag-adjusted estimates that assumed a known survival distribution with the same mean as the truth were an order of magnitude smaller than those for the reporting-rate-adjusted estimator and two orders of magnitude smaller than the na\u00efve method. When the incorrect survival distribution was assumed, the lag-adjusted estimator's performance varied. When the true survival distribution was short but we assumed a long distribution, we overestimated the relative CFR. When the true survival distribution was long but we assumed a short distribution, we underestimated the true relative CFR. However, in these cases the lag-adjusted estimator was less biased on average and had a lower MSE than the reporting-rate-adjusted estimator. These results suggest that the central tendency of the survival distribution is more important to specify correctly than the spread. A more detailed analysis of these patterns could provide additional insight.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 652,
+                    "end": 659,
+                    "text": "Table 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 662,
+                    "end": 669,
+                    "text": "Table 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Comparison of all Estimators, Accounting for Survival Time"
+        },
+        {
+            "text": "As discussed earlier, approximating N* by provides an important link between a model that is unidentified and one where the relative CFR is estimable. This approximation, as discussed in Web Appendix B, relies on the p j being small. We examined the degree to which this approximation can impact the reliability of results.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Sensitivity of Estimation to Large Case Fatality Ratio"
+        },
+        {
+            "text": "We used the same data-generating process as in the previous simulations to generate simulated datasets with case and death counts for two subgroups of the population. The relative CFR between the groups was held fixed at , and the larger of the two CFRs was allowed to vary from to 1. Deaths were assumed to be completely reported and case reporting followed the step-function pattern described earlier. For a given pair of CFRs and case reporting step function, 500 datasets were simulated and the na\u00efve and reporting-rate adjusted estimators calculated. Figure 2 shows the sensitivity of the estimates of the relative CFR to the true CFR for a particular case reporting step function. We found that until the larger of the two CFRs reached the rough threshold of , the reporting-rate-adjusted estimator remained within 10% of the true value of the relative CFR. The na\u00efve estimator showed large bias for all values of the group 1 CFR. Further simulations (not shown) uphold these conclusions for other case reporting rate patterns and confirm that the bias depends largely on the magnitude of the maximum CFR.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 556,
+                    "end": 564,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Sensitivity of Estimation to Large Case Fatality Ratio"
+        },
+        {
+            "text": "We analyzed data from the 1918 influenza pandemic from counties in the state of Maryland, USA. The Annual Report of the State Board of Health of Maryland for the year ending December 31st, 1918 provides counts of influenza cases and deaths for the final 4 months of 1918 (Maryland State Board of Health, 1922) . Influenza was made a reportable disease in September of 1918 and there are virtually no records of cases or deaths prior to this time.",
+            "cite_spans": [
+                {
+                    "start": 271,
+                    "end": 309,
+                    "text": "(Maryland State Board of Health, 1922)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data Analysis: 1918 Influenza Case Fatality in Maryland"
+        },
+        {
+            "text": "Case and death counts were crosstabulated for the months of September through December, 1918 and for a subset of Maryland counties. These data are presented in Web Table 1 . Inclusion criteria for counties were established to create a subset of counties for which the assumption of covariate independence might be reasonably assumed to hold. Covariate independence implies that at every month t, the rates of case reporting are the same across all counties and the rates of reporting of deaths are the same across all the counties. The following inclusion criteria were chosen to control for county-level factors that we believed could impact reporting rates. The county must (1) have a hospital, (2) have population density less than 100 individuals per square mile, and (3) not contain military bases or installations. Eight counties met these criteria: Carroll, Cecil, Dorchester, Frederick, Somerset, Talbot, Washington, and Wicomico counties. Data on these county-level characteristics were obtained from the state Board of Health annual report, U.S. Census data, and an article on hospitals in the United States (Anonymous., 1921; Maryland State Board of Health, 1922; Department of Commerce, USA, 1924) . Because the time period of reporting (1 month) is generally thought to be greater than most survival times for influenza, we did not additionally adjust for prolonged survival after symptom onset. Reporting-rate-adjusted relative CFRs were estimated by fitting the covariate-independent model from equation 5.",
+            "cite_spans": [
+                {
+                    "start": 1118,
+                    "end": 1136,
+                    "text": "(Anonymous., 1921;",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1137,
+                    "end": 1174,
+                    "text": "Maryland State Board of Health, 1922;",
+                    "ref_id": null
+                },
+                {
+                    "start": 1175,
+                    "end": 1209,
+                    "text": "Department of Commerce, USA, 1924)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 164,
+                    "end": 171,
+                    "text": "Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Data Analysis: 1918 Influenza Case Fatality in Maryland"
+        },
+        {
+            "text": "It has been shown that socioeconomic status of geographical regions was associated with mortality from influenza in 1918 (Murray et al., 2007) . We sorted the eight counties by percentage of the population that was not native-born white (range: 4.8-36.6%), a proxy for socioeconomic status. We chose Somerset, the county with the lowest percentage of nativeborn white population, as the reference county for the data analysis.",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 142,
+                    "text": "(Murray et al., 2007)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data Analysis: 1918 Influenza Case Fatality in Maryland"
+        },
+        {
+            "text": "The estimated relative CFRs and accompanying 95% confidence intervals are shown in Figure 3A . In Figure 3B , the percent nonwhite population for each county is plotted against the adjusted estimate of the relative CFR with a linear regression line drawn through the data. We find that the counties with a higher proportion of white population have on average lower CFRs than counties with higher proportions of minorities. Three of eight counties had percent native-born white population above 90% (Carroll, Frederick, and Washington counties) and these were the only three counties where we observed a significant difference in the reporting-rate-adjusted CFR when compared with Somerset county, with the lowest percent white population.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 83,
+                    "end": 92,
+                    "text": "Figure 3A",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 98,
+                    "end": 107,
+                    "text": "Figure 3B",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Data Analysis: 1918 Influenza Case Fatality in Maryland"
+        },
+        {
+            "text": "We postulate several possible explanations for this observed pattern. First, the existence of county-level variation in the CFR may be due in part to socioeconomic status. Second, differential case or death reporting in the counties may violate the assumption of covariate independence and lead to biased estimates of the relative CFR. For example, if the case reporting rate was higher in counties with higher white population, this may increase the denominator for estimating the CFR when compared with the other counties, leading to a reduction in the estimate of the relative CFR. Third, the variation in the estimated relative CFR appears to depend on geographical location as well. Carroll, Frederick, and Washington counties are all counties in central Maryland, near to Baltimore County and Baltimore City. Dorchester, Somerset, Talbot, and Wicomico counties are all located on the eastern shore of Maryland, a peninsula bordered by the Chesapeake Bay and the Atlantic Ocean.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data Analysis: 1918 Influenza Case Fatality in Maryland"
+        },
+        {
+            "text": "The CFR can play a large role in establishing the public health threat of a given disease. Accurate estimates of the relative CFR can help determine the optimal allocation of resources for surveillance, prevention, and treatment of disease. However, outbreak settings often generate data that are incomplete, where both recovered and fatal cases go unreported. In these situations, it is important to understand the assumptions necessary to identify an absolute or relative CFR, and to what extent those assumptions are realistic. We have shown that the absolute CFR is only identifiable when reporting rates for cases and deaths are equal to each other at every observation timepoint-a very unlikely scenario in practice. Furthermore, we have shown that only with fairly stringent assumptions about the way that reporting varies over time can a relative CFR be identified. However, when it is identifiable, our reporting-rate-adjusted and lag-adjusted estimators can provide unbiased or nearly unbiased estimates of the relative CFR while the na\u00efve estimator is virtually always biased, often severely so.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Our work identifies and defines several important structural aspects of case fatality data. First, a 2 \u00d7 2 table (see Table 1 ) elucidates the structure of the observed and unobserved data. Second, our typology of reporting rates provides a simple classification scheme for disease surveillance systems. The new methods proposed in this article require case and death counts that are crosstabulated by units of time (i.e., weeks or months) and a categorical covariate such as gender. By providing such crosstabulations, surveillance reporting systems could make more data available for estimating the virulence of an infectious disease.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 118,
+                    "end": 125,
+                    "text": "Table 1",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "Although our model for a surveillance system reporting framework is general and applicable to a wide range of settings, other setups may be worthy of consideration. For example, a framework could define reporting rates without conditioning on the outcome status.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "There are several limitations to this work. Some of our methods rely on the assumption that the reporting rates are independent of the covariate of interest. This is likely not true for a covariate such as age, as surveillance may more easily target school-age children than adults. But it may hold for other covariates such as gender or geographical location. Another limitation is that delays in reporting not due to survival times are not accounted for in this model. If these delays are uniform across all cases, then this may not introduce bias. However if the delays are different for different subgroups, this may impact the performance of the proposed estimators. Also, when using the lag-adjusted estimator, we assume a survival distribution for the disease in question. Our simulation results (see Section 4.2 and Web Appendix D) suggest that knowing the exact distribution is not vital as long as it the center of mass is roughly centered on the truth (Table 4) , although it may increase the estimated variance of the estimates (Web Table 4 ). However, knowing the center of mass of a survival distribution may be difficult with an emerging pathogen. An in-depth analysis could provide more detailed information about the performance of these methods.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 963,
+                    "end": 972,
+                    "text": "(Table 4)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1045,
+                    "end": 1052,
+                    "text": "Table 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "We also rely on the assumption that the true CFR is small in each of the population subgroups. This assumption enables us to make a key algebraic simplification. The impact of the assumption may be small for diseases such as influenza, whose CFR is thought to be on the order of 1 in 1000 (see Section 4.3 and Figure 2 ). However, an avenue for further research could be to find ways to adapt this method to work for diseases with larger CFRs. We also assume that the CFR does not change over time. This may not be case with an emerging pathogen, as disease treatment and management may improve as clinical and epidemiological understanding of the disease evolves (Yip et al., 2005) .",
+            "cite_spans": [
+                {
+                    "start": 664,
+                    "end": 682,
+                    "text": "(Yip et al., 2005)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 310,
+                    "end": 318,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "Finally, our method for calculating the lag-adjusted estimator is not computationally simple to implement. However the code, an example dataset, and a vignette are available in the coarseDataTools package (see Web Appendix F).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Developing the framework to include additional covariates would be a useful extension to this work. For example, methods to estimate and compare the relative CFRs between men and women across several different countries could be useful. This could be achieved by inclusion of more covariates directly in the GLM framework or by fitting a multilevel model. Either way, the ability to test whether there is evidence that the CFR is different between two locations (while controlling for a second covariate) could be a helpful addition to this model. Further, allowing for a survival distribution that varies across levels of a covariate would be a useful addition to this framework. Finally, extending these methods to incorporate available evidence on reporting rates would be valuable.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Because disease outbreaks are often only partially observed, estimating absolute and relative CFRs remains a challenging problem for epidemiologists and public health officials. The methods developed in this article contribute a new set of tools for obtaining accurate estimates of the relative CFR in some scenarios. Such estimates could inform a timely and targeted response to an infectious disease outbreak.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Refer to Web version on PubMed Central for supplementary material. This graph compares the percent average bias for the na\u00efve estimator (dashed line) and the reporting-rate-adjusted estimator (solid line) for different magnitudes of the true CFRs. The x-axis is indexed by the larger of the two group-specific CFRs. For all simulations, the relative CFR was fixed at . The lines trace out the average of 500 estimates from simulated datasets. The shaded regions demarcate the 5th and 95th percentiles of the 500 point estimates at each CFR magnitude. This graphic summarizes the results of the data analysis presented in section 5. Panel A shows the estimated relative CFRs for the seven counties with respect to Somerest, the reference county. The vertical tick marks indicate the point estimates for each county and the horizontal lines indicate 95% confidence intervals for each county. The vertical tick marks have been scaled to represent the total number of cases observed in each county. Panel B plots the estimated relative CFRs against the percent of the county's population whose race is not native-born white. The linear regression line is drawn through the points to illustrate an observed association between these two variables. The Pearson correlation coefficient for these two variables is 0.76. Cell probabilities for calculating the CFR, for covariate level j and time t",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Supplementary Material"
+        },
+        {
+            "text": "Reported Results from 500 simulated outbreaks. For pairs of reporting rate step functions (defined by the first four columns), we calculate the average estimate of the absolute CFR per 1000 cases and relative CFR using the naive estimator (\u03b5 j ) and the reporting-rate-adjusted estimator ( ). The standard errors of the estimates are given in the parentheses. If the outbreak were fully observed, i.e., when both reporting rates are 100%, then the absolute CFR would be estimated as 2.00 and relative CFR would be estimated as 0.33. The first five rows of the table represent data coming from complete fatality reporting systems; the next three rows are from covariate independent models and the final two rows are from constant proportion models Table 4 Sensitivity to misspecification of the survival distribution. This table shows the empirical mean squared error (MSE) and average estimates calculated for the three estimators of the relative CFR: na\u00efve, reporting-rate-adjusted (RR-adj) and lag-adjusted. For the lag-adjusted estimator, three estimates are shown, referring to estimates made under different assumptions about the known survival distribution. Lag-adjusted estimates under the truth header were calculated using the survival distribution that was used to generate the data. Under the short header are lag-adjusted estimates computed assuming the maximum 4-day survival distribution described in the main text. Under the long header are lag-adjusted estimates computed assuming the maximum 11day survival distribution described in the main text. These results are based the analysis of 1000 simulated datasets using each estimator ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 747,
+                    "end": 754,
+                    "text": "Table 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Recovered Died Total"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Hospital service in the United States",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Anonymous",
+                    "suffix": ""
+                }
+            ],
+            "year": 1921,
+            "venue": "JAMA",
+            "volume": "76",
+            "issn": "",
+            "pages": "1083--1103",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "A preliminary analysis of the epidemiology of influenza a(h1n1)v virus infection in thailand from early outbreak data",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "De Silva",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Warachit",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Waicharoen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Chittaganpitch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Euro Surveill",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Maximum likelihood from incomplete data via the EM algorithm",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dempster",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Laird",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Rubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "39",
+            "issn": "",
+            "pages": "1--38",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Fourteenth Census of the United States: State Compendium Maryland. Government Printing Office",
+            "authors": [
+                {
+                    "first": "Usa",
+                    "middle": [],
+                    "last": "Department Of Commerce",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Mortality from pandemic a/h1n1 2009 influenza in England: Public Health Surveillance Study",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Donaldson",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Rutter",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ellis",
+                    "suffix": ""
+                },
+                {
+                    "first": "Fec",
+                    "middle": [],
+                    "last": "Greaves",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Mytton",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Pebody",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yardley",
+                    "middle": [],
+                    "last": "Ie",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "BMJ",
+            "volume": "339",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1136/bmj.b5213"
+                ]
+            }
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Use of Poisson regression models in estimating incidence rates and ratios",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Frome",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Checkoway",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "American Journal of Epidemiology",
+            "volume": "121",
+            "issn": "",
+            "pages": "309--323",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Assessing the severity of the novel influenza A/H1N1 pandemic",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Garske",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Legrand",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Ward",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ferguson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ghani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "BMJ",
+            "volume": "339",
+            "issn": "",
+            "pages": "220--224",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Methods for estimating the case fatality ratio for a novel, emerging infectious disease",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ghani",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cox",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Griffin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Lam",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Ho",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hedley",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Leung",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "American Journal of Epidemiology",
+            "volume": "162",
+            "issn": "",
+            "pages": "479--486",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Non-parametric estimation of the case fatality ratio with competing risks data: An application to severe acute respiratory syndrome (SARS)",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Jewell",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Lei",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ghani",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Ho",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Cowling",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hedley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Statistics in Medicine",
+            "volume": "26",
+            "issn": "",
+            "pages": "1982--1998",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "SARS-CoV antibody prevalence in all Hong Kong patient contacts",
+            "authors": [],
+            "year": 2004,
+            "venue": "Emerging Infectious Diseases",
+            "volume": "10",
+            "issn": "",
+            "pages": "1653--1656",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Annual Report of the State Board of Health of Maryland for the Year Ending December 31st, 1918. King Brothers",
+            "authors": [],
+            "year": 1922,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Using EM to obtain asymptotic variance-covariance matrices: The SEM algorithm",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Meng",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Rubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "JASA",
+            "volume": "86",
+            "issn": "",
+            "pages": "899--909",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Estimation of potential global pandemic influenza mortality on the basis of vital registry data from the 1918-20 pandemic: A quantitative analysis. The Lancet",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Murray",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Lopez",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Chin",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Feehan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Hill",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "368",
+            "issn": "",
+            "pages": "2211--2218",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Early epidemiological assessment of the virulence of emerging infectious diseases: A case study of an influenza pandemic",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Nishiura",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Klinkenberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Roberts",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Heesterbeek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "PLoS One",
+            "volume": "4",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/journal.pone.0006852"
+                ]
+            }
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "The severity of pandemic H1N1 influenza in the United States",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Presanis",
+                    "suffix": ""
+                },
+                {
+                    "first": "D ;",
+                    "middle": [],
+                    "last": "De Angelis",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hagy",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Reed",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Riley",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Cooper",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Finelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Biedrzycki",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Swine Flu Investigation Team",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "e1000207.10.1371/journal.pmed.1000207"
+                ]
+            }
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Estimates of the prevalence of pandemic (H1N1) 2009, United States",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Reed",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Angulo",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Swerdlow",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Meltzer",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Jernigan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Finelli",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Emerg Infect Dis",
+            "volume": "15",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "coarseDataTools: A Collection of Functions to Help with Analysis of Coarse Infectious Disease Data",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Reich",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "The emerging influenza pandemic: Estimating the case fatality ratio",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Baker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Euro Surveillance",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "A comparison study of realtime fatality rates: Severe acute respiratory syndrome in Hong Kong",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Yip",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Lam",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Lau",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Chau",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Tsang",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Chao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "China. Journal of the Royal Statistical Society, Series A",
+            "volume": "168",
+            "issn": "",
+            "pages": "233--243",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Venn diagram showing which models are subsets of the others.Reich et al.   Page15Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Figure 2.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Figure 3.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "A typology based on reporting rates General \u03d5 tj = \u03d5 tj \u03c8 tj = \u03c8 tj Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF6": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF8": {
+            "text": "Biometrics. Author manuscript; available in PMC 2015 August 18.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "NGR and RB were supported by the National Center for the Study of Preparedness and Catastrophic Event Response (PACER), which is funded by the U.S. Department of Home-land Security (N00014-06-1-0991). NGR and DATC were supported by the National Institute of General Medical Sciences (Award R01GM090204). JL and DATC were supported by grants from the NIG Fogarty Institute (1 R01 TW 0008246-01) and the Bill and Melinda Gates Foundation (705580-3). DATC holds a Career Award at the Scientific Interface from the Burroughs Wellcome Fund.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        }
+    ]
+}

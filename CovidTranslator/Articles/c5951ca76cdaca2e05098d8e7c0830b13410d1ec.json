@@ -1,0 +1,4087 @@
+{
+    "paper_id": "c5951ca76cdaca2e05098d8e7c0830b13410d1ec",
+    "metadata": {
+        "title": "Predicting linear B-cell epitopes using string kernels",
+        "authors": [
+            {
+                "first": "Yasser",
+                "middle": [],
+                "last": "El-Manzalawy",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Drena",
+                "middle": [],
+                "last": "Dobbs",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Vasant",
+                "middle": [],
+                "last": "Honavar",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "The identification and characterization of B-cell epitopes play an important role in vaccine design, immunodiagnostic tests, and antibody production. Therefore, computational tools for reliably predicting linear B-cell epitopes are highly desirable. We evaluated Support Vector Machine (SVM) classifiers trained utilizing five different kernel methods using fivefold cross-validation on a homology-reduced data set of 701 linear B-cell epitopes, extracted from Bcipep database, and 701 non-epitopes, randomly extracted from SwissProt sequences. Based on the results of our computational experiments, we propose BCPred, a novel method for predicting linear B-cell epitopes using the subsequence kernel. We show that the predictive performance of BCPred (AUC \u00bc 0.758) outperforms 11 SVM-based classifiers developed and evaluated in our experiments as well as our implementation of AAP (AUC \u00bc 0.7), a recently proposed method for predicting linear B-cell epitopes using amino acid pair antigenicity. Furthermore, we compared BCPred with AAP and ABCPred, a method that uses recurrent neural networks, using two data sets of unique B-cell epitopes that had been previously used to evaluate ABCPred. Analysis of the data sets used and the results of this comparison show that conclusions about the relative performance of different B-cell epitope prediction methods drawn on the basis of experiments using data sets of unique B-cell epitopes are likely to yield overly optimistic estimates of performance of evaluated methods. This argues for the use of carefully homology-reduced data sets in comparing B-cell epitope prediction methods to avoid misleading conclusions about how different methods compare to each other. Our homology-reduced data set and implementations of BCPred as well as the APP method are publicly available through our web-based server, BCPREDS, at:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "B-cell epitopes are antigenic determinants that are recognized and bound by receptors (membrane-bound antibodies) on the surface of B lymphocytes (Pier et al., 2004) . There are many different types of B-cell receptors, but each B-cell produces only one type. When a B-cell receptor binds its cognate antigen, the B-cell is stimulated to undergo proliferation. This involves the generation of two types of cells, effector or plasma B-cells, which produce and secrete soluble antibodies, and memory B-cells, which remain in the organism and can proliferate rapidly if re-exposed to antigen. Hence, understanding the sequence and structural features of B-cell epitopes is critical both for the design of effective vaccines and for the development of sensitive diagnostic tests.",
+            "cite_spans": [
+                {
+                    "start": 146,
+                    "end": 165,
+                    "text": "(Pier et al., 2004)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "B-cell epitopes can be classified into two types: linear (continuous) epitopes and conformational (discontinuous) epitopes. Linear epitopes are short peptides, corresponding to a contiguous amino acid sequence fragment of a protein (Barlow et al., 1986; Langeveld et al., 2001) . In contrast, conformational epitopes are composed of amino acids that are not contiguous in primary sequence, but are brought into close proximity within the folded protein structure. Although it is believed that a large majority of B-cell epitopes are discontinuous (Walter, 1986) , experimental epitope identification has focused primarily on linear B-cell epitopes (Flower, 2007) . Even in the case of linear B-cell epitopes, however, antibody-antigen interactions are often conformationdependent. The conformation-dependent aspect of antibody binding complicates the problem of B-cell epitope prediction, making it less tractable than T-cell epitope prediction. Therefore, the development of reliable computational methods for predicting linear B-cell epitopes is an important challenge in bioinformatics and computational biology (Greenbaum et al., 2007) .",
+            "cite_spans": [
+                {
+                    "start": 232,
+                    "end": 253,
+                    "text": "(Barlow et al., 1986;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 254,
+                    "end": 277,
+                    "text": "Langeveld et al., 2001)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 547,
+                    "end": 561,
+                    "text": "(Walter, 1986)",
+                    "ref_id": "BIBREF54"
+                },
+                {
+                    "start": 648,
+                    "end": 662,
+                    "text": "(Flower, 2007)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 1115,
+                    "end": 1139,
+                    "text": "(Greenbaum et al., 2007)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Several studies have reported correlations between certain physicochemical properties of amino acids and the locations of linear B-cell epitopes within protein sequences (Emini et al., 1985; Karplus and Schulz, 1985; Parker et al., 1986; Pellequer et al., 1991; , and several epitope prediction methods based on physicochemical properties of amino acids have been proposed. For example, hydrophilicity, flexibility, turns, or solvent accessibility propensity scales were used in the methods of Parker (www.interscience.wiley.com) DOI:10.1002 DOI:10. /jmr.893 et al., (1986 , Karplus and Schulz (1985) , and Emini et al. (1985) , respectively. PREDITOP , PEOPLE (Alix, 1999) , BEPITOPE (Odorico and Pellequer, 2003) , and BcePred (Saha and Raghava, 2004) predict linear B-cell epitopes based on groups of physicochemical properties instead of a single property.",
+            "cite_spans": [
+                {
+                    "start": 170,
+                    "end": 190,
+                    "text": "(Emini et al., 1985;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 191,
+                    "end": 216,
+                    "text": "Karplus and Schulz, 1985;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 217,
+                    "end": 237,
+                    "text": "Parker et al., 1986;",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 238,
+                    "end": 261,
+                    "text": "Pellequer et al., 1991;",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 530,
+                    "end": 541,
+                    "text": "DOI:10.1002",
+                    "ref_id": null
+                },
+                {
+                    "start": 542,
+                    "end": 572,
+                    "text": "DOI:10. /jmr.893 et al., (1986",
+                    "ref_id": null
+                },
+                {
+                    "start": 575,
+                    "end": 600,
+                    "text": "Karplus and Schulz (1985)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 607,
+                    "end": 626,
+                    "text": "Emini et al. (1985)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 654,
+                    "end": 673,
+                    "text": "PEOPLE (Alix, 1999)",
+                    "ref_id": null
+                },
+                {
+                    "start": 685,
+                    "end": 714,
+                    "text": "(Odorico and Pellequer, 2003)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 729,
+                    "end": 753,
+                    "text": "(Saha and Raghava, 2004)",
+                    "ref_id": "BIBREF44"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Recently, Blythe and Flower (2005) performed an exhaustive assessment of 484 amino acid propensity scales, combined with ranges of profile parameters, to examine the correlation between propensity scale-based profiles and the location of linear B-cell epitopes in a set of 50 proteins. They reported that for predicting B-cell epitopes based on amino acid sequence information, even the best combinations of amino acid propensities performed only marginally better than random. They concluded that the reported performance of such methods in the literature is likely to have been overly optimistic, in part due to the small size of the data sets on which the methods had been evaluated.",
+            "cite_spans": [
+                {
+                    "start": 10,
+                    "end": 34,
+                    "text": "Blythe and Flower (2005)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Motivated by Blythe and Flower (2005) results and the increasing availability of experimentally identified linear B-cell epitopes, several studies have attempted to improve the accuracy of linear B-cell epitope prediction methods using machine learning approaches. BepiPred (Larsen et al., 2006) combines two amino acid propensity scales and a Hidden Markov Model (HMM) trained on linear epitopes to yield a slight improvement in prediction accuracy relative to techniques that rely on analysis of amino acid physicochemical properties. ABCPred (Saha and Raghava, 2006b ) uses artificial neural networks for predicting linear B-cell epitopes. Both feed-forward and recurrent neural networks were evaluated on a non-redundant data set of 700 B-cell epitopes and 700 non-epitope peptides, using fivefold cross-validation tests. Input sequence windows ranging from 10 to 20 amino acids, were tested and the best performance, 66% accuracy, was obtained using a recurrent neural network trained on peptides 16 amino acids in length. In the method of S\u00f6 llner and Mayer (2006) , each epitope is represented using a set of 1487 features extracted from a variety of propensity scales, neighborhood matrices, and respective probability and likelihood values.",
+            "cite_spans": [
+                {
+                    "start": 13,
+                    "end": 37,
+                    "text": "Blythe and Flower (2005)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 274,
+                    "end": 295,
+                    "text": "(Larsen et al., 2006)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 545,
+                    "end": 569,
+                    "text": "(Saha and Raghava, 2006b",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1058,
+                    "end": 1070,
+                    "text": "Mayer (2006)",
+                    "ref_id": "BIBREF51"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Of two machine learning methods tested, decision trees and a nearest-neighbor method combined with feature selection, the latter was reported to attain an accuracy of 72% on a data set of 1211 B-cell epitopes and 1211 non-epitopes, using a fivefold cross-validation test (S\u00f6 llner and Mayer, 2006) . Chen et al. (2007) observed that certain amino acid pairs (AAPs) tend to occur more frequently in B-cell epitopes than in non-epitope peptides. Using an AAP propensity scale based on this observation, in combination with a support vector machine (SVM) classifier, they reported prediction accuracy of 71% on a data set of 872 B-cell epitopes and 872 non-B-cell epitopes, estimated using fivefold cross-validation. In addition, Chen et al. (2007) demonstrated an improvement in the prediction accuracy, 72.5%, when the APP propensity scale is combined with turns, accessibility, antigenicity, hydrophilicity, and flexibility propensity scales.",
+            "cite_spans": [
+                {
+                    "start": 271,
+                    "end": 297,
+                    "text": "(S\u00f6 llner and Mayer, 2006)",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 300,
+                    "end": 318,
+                    "text": "Chen et al. (2007)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 727,
+                    "end": 745,
+                    "text": "Chen et al. (2007)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "In this report, we present BCPred, a method for predicting linear B-cell epitopes using an SVM machine learning method. Although the performance of SVM-based classifiers largely depends on the selection of the kernel function, there are no theoretical foundations for choosing good kernel functions in a data-dependent way. Therefore, one objective of this study was to explore a class of kernel methods, namely string kernels, in addition to the widely used radial bias function (RBF) kernel. Our choice of string kernels was motivated by their successful application in a number of bioinformatics classification tasks, including protein remote homology detection (Leslie et al., 2002 (Leslie et al., , 2004 Zaki et al., 2005) , protein structure prediction (Rangwala et al., 2006) , protein binding site prediction (Wu et al., 2006) , and major histocompatibility complex (MHC) binding peptide prediction (Salomon and Flower, 2006) . In addition, we introduce the subsequence kernel (SSK), which has been successfully used in text classification (Lodhi et al., 2002) , but has been under-explored in macromolecular sequence classification applications. Our empirical results demonstrate superior performance of SSK over other string kernels and the RBF kernel. Hence, we employed the SSK in building SVM classifiers for our proposed linear B-cell epitope prediction method, BCPred.",
+            "cite_spans": [
+                {
+                    "start": 665,
+                    "end": 685,
+                    "text": "(Leslie et al., 2002",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 686,
+                    "end": 708,
+                    "text": "(Leslie et al., , 2004",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 709,
+                    "end": 727,
+                    "text": "Zaki et al., 2005)",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 759,
+                    "end": 782,
+                    "text": "(Rangwala et al., 2006)",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 817,
+                    "end": 834,
+                    "text": "(Wu et al., 2006)",
+                    "ref_id": "BIBREF56"
+                },
+                {
+                    "start": 907,
+                    "end": 933,
+                    "text": "(Salomon and Flower, 2006)",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 1048,
+                    "end": 1068,
+                    "text": "(Lodhi et al., 2002)",
+                    "ref_id": "BIBREF30"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "A second goal of this study was to determine how existing methods for linear B-cell epitope prediction compare with each other and with BCPred. At present, little is known about the relative performance of different methods, due to the lack of published direct comparisons using standard benchmark data sets. Unfortunately, neither the data set used by S\u00f6 llner and Mayer (2006) nor the code used for generating and selecting the features used to represent epitope peptides as input to the classifiers is publicly available. The code for the AAP method is also not publicly available; however, in contrast to the other methods, it is relatively straightforward for implementation. Fortunately, although the code used to train the neural network classifier used in ABCPred is not publicly available, Saha and Raghava (2006b) have made available the data set used for developing and evaluating the ABCPred server, as well as a blind test set (Saha and Raghava, 2006a) . Thus, although we are unable to include direct comparisons with results of S\u00f6 llner and Mayer (S\u00f6 llner and Mayer, 2006) , in this paper we report direct comparisons of the ABCPred method (Saha and Raghava, 2006b) , our implementation of the AAP method of Chen et al. (2007) , and our proposed BCPred method, using the ABCPred data sets made publicly available by Saha and Raghava (2006a) .",
+            "cite_spans": [
+                {
+                    "start": 353,
+                    "end": 378,
+                    "text": "S\u00f6 llner and Mayer (2006)",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 799,
+                    "end": 823,
+                    "text": "Saha and Raghava (2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 940,
+                    "end": 965,
+                    "text": "(Saha and Raghava, 2006a)",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 1062,
+                    "end": 1088,
+                    "text": "(S\u00f6 llner and Mayer, 2006)",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 1156,
+                    "end": 1181,
+                    "text": "(Saha and Raghava, 2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1224,
+                    "end": 1242,
+                    "text": "Chen et al. (2007)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1332,
+                    "end": 1356,
+                    "text": "Saha and Raghava (2006a)",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Homology-reduced data sets Bcipep database (Saha et al., 2005) contains 1230 unique linear B-cell epitopes. We retrieved a set of 947 unique epitopes with each epitope satisfying one of the following two conditions: (i) the epitope length is at least 20 amino acids; or (ii) the epitope is less than 20 amino acids in length and the accession number of the source antigen is provided.",
+            "cite_spans": [
+                {
+                    "start": 43,
+                    "end": 62,
+                    "text": "(Saha et al., 2005)",
+                    "ref_id": "BIBREF43"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data sets"
+        },
+        {
+            "text": "A set of 20-mer peptides was derived from the 947 unique epitopes by: (i) truncating epitopes longer than 20 residues by removing amino acids from both ends to yield a 20-mer from the middle, and (ii) extending epitopes shorter than 20 residues by adding amino acids on both ends, based on the corresponding complete antigen sequences retrieved from SwissProt (Bairoch and Apweiler, 2000) . Because the resulting data set of 947 20-mer peptides was no longer non-redundant, we removed duplicated and highly homologous peptides by filtering the data set based on an 80% sequence identity cutoff using the CD-HIT program (Li et al., 2002) to obtain a homology-reduced data set of 701 peptides (positive instances of B-cell epitopes). A total of 701 non-epitope peptides were generated by randomly extracting 20-mer peptides from sequences in SwissProt database (Bairoch and Apweiler, 2000) while ensuring that none of the negative instances so obtained also occur in the positive instances.",
+            "cite_spans": [
+                {
+                    "start": 360,
+                    "end": 388,
+                    "text": "(Bairoch and Apweiler, 2000)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 619,
+                    "end": 636,
+                    "text": "(Li et al., 2002)",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 859,
+                    "end": 887,
+                    "text": "(Bairoch and Apweiler, 2000)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data sets"
+        },
+        {
+            "text": "Because there is no evidence that 20 amino acids is the optimal length for B-cell epitopes, we decided to experiment with different epitope lengths. Variants of the 20-mer data set were generated by repeating the above procedure for peptide lengths of 18,16, 14, or 12 residues. For the sake of brevity, we will refer to these data sets by BCPnn, where nn is a two digit number representing the length of the peptides in the data set (e.g., BCP16 refers to the homology-reduced data set where each peptide is composed of 16 residues).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data sets"
+        },
+        {
+            "text": "It should be noted that deriving a data set of shorter peptides from the 20-mer data set by trimming amino acids from both termini of each peptide is not guaranteed to produce a data set with <80% sequence identity because such trimming could increase the similarity between two peptides in the data set. Therefore, to ensure that the resulting data sets are homology-reduced, we reapplied the 80% sequence identity cutoff filter in generating each data set of epitopes less than 20 residues in length. The resulting homology-reduced data sets (BCP20, BCP18, BCP16, BCP14, and BCP12) are available at http:// ailab.cs.iastate.edu/bcpreds/.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data sets"
+        },
+        {
+            "text": "ABCPred data set Saha and Raghava (2006a) have made available the data sets used to train and evaluate ABCPred. Because the best reported performance of ABCPred was obtained using a 16-mer peptide data set (ABCP16), we chose this data set for directly comparing ABCPred with BCPred and AAP using fivefold cross-validation.",
+            "cite_spans": [
+                {
+                    "start": 17,
+                    "end": 41,
+                    "text": "Saha and Raghava (2006a)",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data sets"
+        },
+        {
+            "text": "Saha and Raghava (2006a) have made available a blind test set comprising 187 epitopes, none of which were used in training the ABCPred method, and a set of 200 16-mer non-epitope peptides extracted from the non-allergen data set of Bj\u00f6 rklund et al. (2005) . B-cell epitopes less than 16 amino acids in length were extended to 16-mer peptides by adding an equal number of residues to both ends based on the protein sequence of the source antigen. In the remaining text, we will use the abbreviation (SBT16) to refer to Saha 16-mer blind test set.",
+            "cite_spans": [
+                {
+                    "start": 250,
+                    "end": 256,
+                    "text": "(2005)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Blind test set"
+        },
+        {
+            "text": "Support vector machines (SVMs) (Vapnik, 2000) are a class of supervised machine learning methods used for classification and regression. Given a set of labeled training data (x i ,y i ), where x i 2 R d and y i 2 f\u00fe1; \u00c01g, training an SVM classifier involves finding a hyperplane that maximizes the geometric margin between positive and negative training data samples. The hyperplane is described as f \u00f0x\u00de \u00bc w; x h i\u00fe b, where w is a normal vector and b is a bias term. A test instance, x, is assigned a positive label if f (x) > 0, and a negative label otherwise. When the training data are not linearly separable, a kernel function is used to map nonlinearly separable data from the input space into a feature space. Given any two data samples x i and x j in an input space X 2 R d , the kernel function K returns K\u00f0x i ; x j \u00de \u00bc F\u00f0x i \u00de; F\u00f0x j \u00de where F is a nonlinear map from the input space X to the corresponding feature space. The kernel function K has the property that K(x i ,x j ) can be computed without explicitly mapping x i and x j into the feature space, but instead, using their dot product x i ; x j in the input space. Therefore, the kernel trick allows us to train a linear classifier, e.g., SVM, in a high-dimensional feature space where the data are assumed to be linearly separable without explicitly mapping each training example from the input space into the feature space. This approach relies implicitly on the selection of a feature space in which the training data are likely to be linearly separable (or nearly so) and explicitly on the selection of the kernel function to achieve such separability. Unfortunately, there is no single kernel that is guaranteed to perform well on every data set. Consequently, the SVM approach requires some care in selecting a suitable kernel and tuning the kernel parameters (if any).",
+            "cite_spans": [
+                {
+                    "start": 31,
+                    "end": 45,
+                    "text": "(Vapnik, 2000)",
+                    "ref_id": "BIBREF53"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Support vector machines and kernel methods"
+        },
+        {
+            "text": "String kernels (Haussler, 1999; Lodhi et al., 2002; Leslie et al., 2002 Leslie et al., , 2004 Saigo et al., 2004) are a class of kernel methods that have been successfully used in many sequence classification tasks (Leslie et al., 2002 (Leslie et al., , 2004 Saigo et al., 2004; Zaki et al., 2005; Rangwala et al., 2006; Wu et al., 2006) . In these applications, a protein sequence is viewed as a string defined on a finite alphabet of 20 amino acids. In this work, we explore four string kernels: spectrum (Leslie et al., 2002) , mismatch (Leslie et al., 2004) , local alignment (Saigo et al., 2004) , and subsequence (Lodhi et al., 2002) , in predicting linear B-cell epitopes. The subsequence kernel (Lodhi et al., 2002) has proven useful in text classification (Lodhi et al., 2002) and natural language processing (Clark et al., 2006) . However, to the best of our knowledge, this kernel has not been previously explored in the context of macromolecular sequence classification problems. A brief description of the four kernels follows.",
+            "cite_spans": [
+                {
+                    "start": 15,
+                    "end": 31,
+                    "text": "(Haussler, 1999;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 32,
+                    "end": 51,
+                    "text": "Lodhi et al., 2002;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 52,
+                    "end": 71,
+                    "text": "Leslie et al., 2002",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 72,
+                    "end": 93,
+                    "text": "Leslie et al., , 2004",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 94,
+                    "end": 113,
+                    "text": "Saigo et al., 2004)",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 215,
+                    "end": 235,
+                    "text": "(Leslie et al., 2002",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 236,
+                    "end": 258,
+                    "text": "(Leslie et al., , 2004",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 259,
+                    "end": 278,
+                    "text": "Saigo et al., 2004;",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 279,
+                    "end": 297,
+                    "text": "Zaki et al., 2005;",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 298,
+                    "end": 320,
+                    "text": "Rangwala et al., 2006;",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 321,
+                    "end": 337,
+                    "text": "Wu et al., 2006)",
+                    "ref_id": "BIBREF56"
+                },
+                {
+                    "start": 507,
+                    "end": 528,
+                    "text": "(Leslie et al., 2002)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 540,
+                    "end": 561,
+                    "text": "(Leslie et al., 2004)",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 580,
+                    "end": 600,
+                    "text": "(Saigo et al., 2004)",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 619,
+                    "end": 639,
+                    "text": "(Lodhi et al., 2002)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 703,
+                    "end": 723,
+                    "text": "(Lodhi et al., 2002)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 765,
+                    "end": 785,
+                    "text": "(Lodhi et al., 2002)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 818,
+                    "end": 838,
+                    "text": "(Clark et al., 2006)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "String kernels"
+        },
+        {
+            "text": "Let A denote a finite alphabet, e.g., 20 amino acids. x and y denote two strings defined on the alphabet A. For k ! 1, the k-spectrum is defined as (Leslie et al., 2002) :",
+            "cite_spans": [
+                {
+                    "start": 148,
+                    "end": 169,
+                    "text": "(Leslie et al., 2002)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Spectrum kernel"
+        },
+        {
+            "text": "where f a is the number of occurrences of the k-length substring a in the sequence x. The k-spectrum kernel of the two sequences x and y is obtained by taking the dot product of the corresponding k spectra:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Spectrum kernel"
+        },
+        {
+            "text": "Intuitively, this kernel captures a simple notion of string similarity: two strings are deemed similar (i.e., have a high k-spectrum kernel value) if they share many of the same k-length substrings.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Spectrum kernel"
+        },
+        {
+            "text": "The mismatch kernel (Leslie et al., 2004) is a variant of the spectrum kernel in which inexact matching is allowed. Specifically, the (k, m)-mismatch kernel allows up to m k mismatches to occur when comparing two k-length substrings. Let a be a k-length substring, the (k, m)-mismatch feature map is defined on a as:",
+            "cite_spans": [
+                {
+                    "start": 20,
+                    "end": 41,
+                    "text": "(Leslie et al., 2004)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mismatch kernel"
+        },
+        {
+            "text": "where f b \u00f0a\u00de \u00bc 1 if b 2 N \u00f0k;m\u00de\u00f0a\u00de , where b is the set of k-mer substrings that differs from a by at most m mismatches. Then, the feature map of an input sequence x is the sum of the feature vectors for k-mer substrings in x:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mismatch kernel"
+        },
+        {
+            "text": "The (k, m)-mismatch kernel is defined as the dot product of the corresponding feature maps in the feature space:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mismatch kernel"
+        },
+        {
+            "text": "K msmtch \u00f0k;m\u00de \u00f0x; y\u00de \u00bc F \u00f0k;m\u00de \u00f0x\u00de; F \u00f0k;m\u00de \u00f0y\u00de \u00f05\u00de",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mismatch kernel"
+        },
+        {
+            "text": "It should be noted that the (k, 0)-mismatch kernel results in a feature space that is identical to that of the k-spectrum kernel. An efficient data structure for computing the spectrum and mismatch kernels in O(|x|\u00fe|y|) and O\u00f0k m\u00fe1 jAj m \u00f0jxj \u00fe jyj\u00de\u00de, respectively, has been provided by Leslie et al. (2004) .",
+            "cite_spans": [
+                {
+                    "start": 287,
+                    "end": 307,
+                    "text": "Leslie et al. (2004)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Mismatch kernel"
+        },
+        {
+            "text": "Local alignment (LA) kernel (Saigo et al., 2004 ) is a string kernel adapted for biological sequences. The LA kernel measures the similarity between two sequences by summing up scores obtained from gapped local alignments of the sequences. This kernel has several parameters: the gap opening and extension penalty parameters, d and e, the amino acid mutation matrix s, and the factor b, which controls the influence of suboptimal alignments on the kernel value. Detailed formulation of the LA kernel and a dynamic programming implementation of the kernel with running time complexity in O(jxjjyj) have been provided by Saigo et al. (2004) .",
+            "cite_spans": [
+                {
+                    "start": 28,
+                    "end": 47,
+                    "text": "(Saigo et al., 2004",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 619,
+                    "end": 638,
+                    "text": "Saigo et al. (2004)",
+                    "ref_id": "BIBREF47"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Local alignment kernel"
+        },
+        {
+            "text": "The subsequence kernel (Lodhi et al., 2002) generalizes the k-spectrum kernel by considering a feature space generated by the set of all (contiguous and non-contiguous) k-mer subsequences. For example, if we consider the two strings ''act'' and ''acctct'' , the value returned by the spectrum kernel with k \u00bc 3 is 0. On the other hand, the (3, 1)-mismatch kernel will return 3 because the 3-mer substrings ''acc''', ''cct'' , and ''tct'' have at most one mismatch when compared with ''act'' . The subsequence kernel considers the set (''ac-t'' , ''a-ct'' , ''ac-t'' , ''a-c-t'' , ''a-ct'') of non-contiguous substrings and returns a similarity score that is weighted by the length of each non-contiguous substring. Specifically, it uses a decay factor, l 1, to penalize noncontiguous substring matches. Therefore, the subsequence kernel with k \u00bc 3 will return 2l 4 \u00fe 3l 6 when applied to ''act'' and ''acctct'' strings. More precisely, the feature map F k of a string x is given by ",
+            "cite_spans": [
+                {
+                    "start": 23,
+                    "end": 43,
+                    "text": "(Lodhi et al., 2002)",
+                    "ref_id": "BIBREF30"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Subsequence kernel"
+        },
+        {
+            "text": "This kernel can be computed using a recursive algorithm based on dynamic programming in O(kjxjjyj) time and space. The running time and memory requirements can be further reduced using techniques described by Seewald and Kleedorfer (2005) .",
+            "cite_spans": [
+                {
+                    "start": 209,
+                    "end": 238,
+                    "text": "Seewald and Kleedorfer (2005)",
+                    "ref_id": "BIBREF50"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Subsequence kernel"
+        },
+        {
+            "text": "Amino acid pairs (AAPs) are obtained by decomposing a protein/ peptide sequence into its 2-mer subsequences. Chen et al. (2007) observed that some particular AAPs tend to occur more frequently in B-cell epitopes than in non-epitope peptides. Based on this observation, they developed an AAP propensity scale defined by:",
+            "cite_spans": [
+                {
+                    "start": 109,
+                    "end": 127,
+                    "text": "Chen et al. (2007)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Amino acid pairs propensity scale"
+        },
+        {
+            "text": "where f \u00fe a and f \u00c0 a are the occurrence frequencies of AAP a in the epitope and non-epitope peptide sequences, respectively. These frequencies have been derived from Bcipep (Saha et al., 2005) and Swissprot (Bairoch and Apweiler, 2000) databases, respectively. To avoid the dominance of an individual AAP propensity value, the scale in equation (8) has been normalized to a (\u00c01, \u00fe1) interval through the following conversion:",
+            "cite_spans": [
+                {
+                    "start": 174,
+                    "end": 193,
+                    "text": "(Saha et al., 2005)",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 208,
+                    "end": 236,
+                    "text": "(Bairoch and Apweiler, 2000)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Amino acid pairs propensity scale"
+        },
+        {
+            "text": "where max and min are the maximum and minimum values of the propensity scale before the normalization. Chen et al. (2007) explored SVMs using two kernels: a dot product kernel applied to the average of the AAP scale values for all the AAPs in a peptide and an RBF kernel defined in a 400-dimensional feature space as follows:",
+            "cite_spans": [
+                {
+                    "start": 103,
+                    "end": 121,
+                    "text": "Chen et al. (2007)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Amino acid pairs propensity scale"
+        },
+        {
+            "text": "where f a \u00f0x\u00de is the number of occurrences of the 2-mer a in the peptide x. The optimal performance was obtained using the RBF kernel and a window of 20 amino acids .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Amino acid pairs propensity scale"
+        },
+        {
+            "text": "In our experiments, we used stratified fivefold cross-validation tests in which the data set is randomly partitioned into five equal subsets such that the relative proportion of epitopes to non-epitopes in each subset is 1:1. Four of the five subsets are used for training the classifier and the fifth subset is used for testing the classifier. This procedure is repeated five times, each time choosing different subsets of the data for training and testing. The estimated performance of the classifier corresponds to an average of the results from the five cross-validation runs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fivefold cross-validation"
+        },
+        {
+            "text": "We used Weka (Witten and Frank, 2005) machine learning workbench for implementing the spectrum, mismatch, and LA kernels (RBF and the subsequence kernel are already implemented in Weka). We evaluated the k-spectrum kernel, K spct k , for k \u00bc 1, 2, and 3. The (k, m)-mismatch kernel was evaluated at (k, m) equals (3, 1), (4, 1), (5, 1), and (5, 2). The subsequence kernel, K sub \u00f0k;l\u00de , was evaluated at k \u00bc 2, 3, and 4 and the default value for l, 0.5. The LA kernel was evaluated using the BLOSUM62 substitution matrix, gap opening and extension parameters equal to 10 and 1, respectively, and b \u00bc 0.5. For the SVM classifier, we used the Weka implementation of the SMO (Platt, 1998) Y. EL-MANZALAWY kernels, the default value of the C parameter, C \u00bc 1, was used for the SMO classifier. For methods that use the RBF kernel, we found that tuning the SMO cost parameter C and the RBF kernel parameter g is necessary to obtain satisfactory performance. We tuned these parameters using a two-dimensional grid search over the range C \u00bc 2 \u00c05 , 2 \u00c03 , . . ., 2 3 , g \u00bc 2 \u00c015 , 2 \u00c013 ,. . ., 2 3 . It should be noted that the parameter optimization was performed using only the training data.",
+            "cite_spans": [
+                {
+                    "start": 13,
+                    "end": 37,
+                    "text": "(Witten and Frank, 2005)",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 672,
+                    "end": 685,
+                    "text": "(Platt, 1998)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Implementation and SVM parameter optimization"
+        },
+        {
+            "text": "The prediction accuracy (ACC), sensitivity (S n ), specificity (S p ), and correlation coefficient (CC) are often used to evaluate prediction algorithms (Baldi et al., 2000) . The CC measure has a value in the range from \u00c01 to \u00fe1, and the closer the value to \u00fe1, the better the predictor. ACC, S n , S p , and CC are defined as follows:",
+            "cite_spans": [
+                {
+                    "start": 153,
+                    "end": 173,
+                    "text": "(Baldi et al., 2000)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Performance evaluation"
+        },
+        {
+            "text": "where TP, FP, TN, and FN are the numbers of true positives, false positives, true negatives, and false negatives, respectively. Although these metrics are widely used to assess the performance of machine learning methods, they all suffer from the important limitation of being threshold-dependent. Threshold-dependent metrics describe the classifier performance at a specific threshold value. It is often possible to increase the number of true positives (equivalently, sensitivity) of the classifier at the expense of an increase in false positives (equivalently, false alarm rate). The receiver operating characteristic (ROC) curve describes the performance of the classifier over all possible thresholds. The ROC curve is obtained by plotting the true positive rate as a function of the false positive rate or, equivalently, sensitivity versus (1-specificity) as the discrimination threshold of the binary classifier is varied. Each point on the ROC curve describes the classifier at a certain threshold value, i.e., at a particular choice of tradeoff between true positive rate and false positive rate. The area under ROC curve (AUC) is a useful summary statistic for comparing two ROC curves. AUC is defined as the probability that a randomly chosen positive example will be ranked higher than a randomly chosen negative example. An ideal classifier will have an AUC \u00bc 1, while a classifier assigning labels at random will have an AUC \u00bc 0.5, any classifier performing better than random will have an AUC value that lies between these two extremes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Performance evaluation"
+        },
+        {
+            "text": "In the first set of experiments, we used our homology-reduced data sets to evaluate SVMs trained using the spectrum kernel at k \u00bc 1, 2, and 3, the (k, m)-mismatch kernel at (k, m) \u00bc (3, 1), (4, 1), (5, 1), and (5, 2), the LA kernel, and the subsequence kernel at k \u00bc 2, 3, and 4. We compared the performance of the four string kernels to that of the RBF kernel trained using a binary representation of the data in which each amino acid is represented by a 20-bit binary string. In addition, we evaluated our implementation of the AAP method on our data sets. For all methods, the performance was evaluated using fivefold cross-validation. Because it is not feasible to include the complete set of results in this paper, we report only the results on the 20-mer peptides data set, BCP20, and provide the results on data sets BCP18, BCP16, BCP14, and BCP12 in the Supplementary Materials. Table 1 compares the performance of different kernel-based SVM classifiers on BCP20 data set. The subsequence kernel has the best overall performance, in terms of AUC. The (5, 1)-mismatch kernel performs slightly better than the k-spectrum kernel, and the performance of k-spectrum kernel with k \u00bc 1 and k \u00bc 3 is much better than its performance with k \u00bc 2. The performance of both the k-spectrum and (k, m)-mismatch kernels appears to be very sensitive to the choice of k and m parameters, because for some choices of k and m, the classifier performance deteriorates to that expected for random assignment of labels to test instances. In contrast, the performance of the subsequence kernel appears to be much less sensitive to the choice of parameter k.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 887,
+                    "end": 894,
+                    "text": "Table 1",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "SVM using the subsequence kernel outperforms other kernel methods and the AAP method"
+        },
+        {
+            "text": "Our implementation of the AAP method has the second best overall performance and demonstrates the highest specificity. The LA kernel is very competitive in performance with AAP. Interestingly, the AAP significantly outperforms the RBF kernel trained using data in its binary representation. The AAP method is essentially an RBF kernel trained on the same data but using a different representation in which each peptide is represented by a vector of 400 numeric values computed based on the AAP propensity scale. The significant difference observed in performance of these two RBF-based methods highlights the importance of the data representation in kernel methods. All of these observations hold not only for the BCP20 data set but also for the homology-reduced data sets of peptides with different lengths (see Supplementary Materials). Most of the methods have their best performance on BCP20 data set and show slight decreases in performance on data sets with decreasing peptide length. Figure 1 shows the ROC curves for all methods evaluated in this experiment. The ROC curve for the subsequence kernel, K sub \u00f04;0:5\u00de , dominates the other ROC curves over a broad range of choices for the tradeoff between true positive and false positive rates. For any user-selected threshold corresponding to specificity in the range 100 to 20%, K sub \u00f04;0:5\u00de has the best corresponding sensitivity. We conclude that BCPred, SVM-based classifier trained using the subsequence kernel K sub \u00f04;0:5\u00de , outperforms all other methods tested in predicting linear B-cell epitopes.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 991,
+                    "end": 999,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "SVM using the subsequence kernel outperforms other kernel methods and the AAP method"
+        },
+        {
+            "text": "We summarize statistical analysis of the results and conclusions presented in the preceding subsection. Specifically, we attempt to answer, from a statistical prospective, the following questions: is the performance of BCPred significantly different from those of other methods? Or more generally, how do the different B-cell epitope prediction methods compare with each other?",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Statistical analysis"
+        },
+        {
+            "text": "To answer these questions, we utilized multiple hypothesis comparisons (Fisher, 1973; Friedman, 1940) for comparing a set of classifiers on multiple data sets. We chose to use the AUC as the performance metric in these tests. Table 2 shows the AUC values of 13 classifiers on the five homology-reduced data sets.",
+            "cite_spans": [
+                {
+                    "start": 71,
+                    "end": 85,
+                    "text": "(Fisher, 1973;",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 86,
+                    "end": 101,
+                    "text": "Friedman, 1940)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 226,
+                    "end": 233,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Statistical analysis"
+        },
+        {
+            "text": "One approach for performing multiple hypothesis comparisons over the results in Table 2 , is to perform paired t-tests between each pair of classifiers at p-value equal to 0.05. However, when the number of classifiers being compared is large (Neter et al., 1985) in performing multiple comparisons. Specifically, two classifiers are considered different at 0.05 significance level, if the null hypothesis (that they are not different) is rejected by a paired t-test at 0.05/12 \u00bc 0.0042 confidence level (12 denotes the number of comparisons). Table 3 summarizes the results of Bonferroni-corrected tests comparing the performance of the classifiers. Significantly different pairs of classifiers are indicated with a \u00c2. The results in Table 3 show that the reported performance of BCPred is significantly different from the performance of other classifiers. On the other hand, the differences between the performance of K spct 3 , K msmtch \u00f05;1\u00de",
+            "cite_spans": [
+                {
+                    "start": 242,
+                    "end": 262,
+                    "text": "(Neter et al., 1985)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 80,
+                    "end": 87,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 543,
+                    "end": 550,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 734,
+                    "end": 741,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Statistical analysis"
+        },
+        {
+            "text": ", LA, and K sub \u00f03;0:5\u00de classifiers and the performance of AAP are not statistically significant.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Statistical analysis"
+        },
+        {
+            "text": "A second approach for performing multiple hypothesis comparisons over the results in Table 2 is to use non-parametric tests. Dem\u0161ar (Dem\u0161ar, 2006) has suggested that non-parametric tests should be preferred over parametric tests for comparing machine learning algorithms because the non-parametric tests, unlike parametric tests, do not assume normal distribution of the samples (e.g., the data sets). Dem\u0161ar suggested a three-step procedure for performing multiple hypothesis comparisons using non-parametric tests. First, the classifiers being compared are ranked on the basis of their observed performance on each data set (see Table 2 ). Second, Friedman test is applied to determine whether the measured average ranks are significantly different from the mean rank under the null hypothesis. Third, if the null hypothesis can be rejected at 0.05 significance level, the Nemenyi test is used to determine whether significant differences exist between any given pair of classifiers. Unfortunately, this procedure requires the number of data sets to be greater than 10 and the number of methods to be greater than 5 (Dem\u0161ar, 2006) . Because we have 13 classifiers to compare and only 5 data sets, we cannot use this procedure. However, as noted by Dem\u0161ar (Dem\u0161ar, 2006) , the average ranks by themselves provide a reasonably fair comparison of classifiers. Hence, we use average ranks to compare BCPred with the other methods. As shown in Table 2 , BCPred and K sub \u00f03;0:5\u00de have average ranks 1 and 2, respectively, followed by AAP and LA kernel with average ranks 3.4 and 4.1.",
+            "cite_spans": [
+                {
+                    "start": 132,
+                    "end": 146,
+                    "text": "(Dem\u0161ar, 2006)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 1118,
+                    "end": 1132,
+                    "text": "(Dem\u0161ar, 2006)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 1257,
+                    "end": 1271,
+                    "text": "(Dem\u0161ar, 2006)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 85,
+                    "end": 92,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 631,
+                    "end": 638,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 1441,
+                    "end": 1448,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Statistical analysis"
+        },
+        {
+            "text": "In summary, the results reported in Table 2 along with the statistical analysis of the results lend support to the conclusion summarized in the preceding subsection that the performance of BCPred is superior to that of the other 12 methods.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 36,
+                    "end": 43,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Statistical analysis"
+        },
+        {
+            "text": "Our choice of an epitope length of 20 amino acids in the experiments summarized above was motivated by the previous works (Saha and Raghava, 2006b; Chen et al., 2007) . Figure 2 shows the distribution of unique epitope lengths in Bcipep database (Saha et al., 2005) . The Bcipep database contains 1230 unique B-cell epitopes with 99.4% of the epitopes having lengths ranging from 3 to 38 amino acids. It turns out that 86.7% of the unique B-cell epitopes are at most 20 amino acids in length. However, it is natural to ask as to how the performance of BCPred varies with the choice of epitope length. We now proceed to examine the effect of epitope length on the performance of BCPred.",
+            "cite_spans": [
+                {
+                    "start": 122,
+                    "end": 147,
+                    "text": "(Saha and Raghava, 2006b;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 148,
+                    "end": 166,
+                    "text": "Chen et al., 2007)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 246,
+                    "end": 265,
+                    "text": "(Saha et al., 2005)",
+                    "ref_id": "BIBREF43"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 169,
+                    "end": 177,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Effect of epitope length on BCPred performance"
+        },
+        {
+            "text": "In order to study the effect of epitope length we compared the performance of BCPred and other methods trained and tested on data sets with epitope lengths of 20, 18, 16, 14, and 12 amino acids. Our results show that BCPred and five other methods reach their best performance (in terms of AUC) on data set BCP20 (corresponding to epitope length of 20) (see Table 2 ). This observation raises an obvious question: can we improve the predictive performance of BCPred if we increase the epitope length to beyond 20? To explore this question, we generated five additional homology-reduced data sets, BCP22, BCP24, BCB26, BCP28, and BCP30 (corresponding to epitope lengths of 22, 24, 26, 28, and 30, respectively) and compared the performance of BCPred on the resulting data sets using fivefold cross-validation. The performance of BCPred on the five data sets is summarized in Table 4 . It is interesting to note that the measured AUC on BCP22 Table 3 . Results of Bonferroni adjustments using p-value \u00bc 0.0042. ''\u00c2'' indicates that the corresponding pair of methods is significantly different",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 357,
+                    "end": 364,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 873,
+                    "end": 880,
+                    "text": "Table 4",
+                    "ref_id": "TABREF4"
+                },
+                {
+                    "start": 940,
+                    "end": 947,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Effect of epitope length on BCPred performance"
+        },
+        {
+            "text": "is 0.788 compared to 0.758 on BCP20. A slightly better AUC, 0.804, was observed on BCP28. Why does BCPred have a better performance on BCP28 compared with its performance on BCP20? There are at least three possible explanations: (i) BCP28 includes longer segments of epitope sequences of length greater than 20 amino acids in the data set than BCP20; (ii) Some of the hard-to-predict epitopes in BCP20 are eliminated from BCP28 because these epitopes are located very close to the ends of the antigen sequence and so extending these epitopes to 28 amino acids in length by adding an equal number of amino acids from both ends is not possible; (iii) amino acid neighbors of the epitopes carry some useful signal that helps the classifier to better discriminate epitopes from non-epitopes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Effect of epitope length on BCPred performance"
+        },
+        {
+            "text": "To test these hypotheses, we constructed a modified version of BCP20 data set, MBCP20. MBCP20 was derived from BCP28 by trimming 4 amino acids from both ends of each peptide in BCP28. Therefore, BCP28 and MBCP20 can be viewed as two different representations of the same set of epitope/non-epitope data. However, the sequence similarity between any pair of epitopes in BCP28 is guaranteed to be less than 80% but this is not necessarily the case for epitopes in MBCP20. The performance of BCPred on MBCP20 data set is shown in Table 4 . The results show that the performance of BCPred on MBCP20, the trimmed version of BCP28, is worse than that on BCP28. This observation provides some evidence against the second of the three possible explanations for observed improvements in performance with epitope length chosen to construct the data sets used to train and test BCPred. It also lends some credence to the suggestion that the amino acid neighbors of the B-cell epitopes may help the classifier to better discriminate between epitopes and non-epitope sequences. As noted earlier, another possibility is that increasing the length results in covering a larger fraction of epitope sequence in the data set in the case of epitope sequences that are longer than 20 amino acid in length (about 13% of the epitopes).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 527,
+                    "end": 534,
+                    "text": "Table 4",
+                    "ref_id": "TABREF4"
+                }
+            ],
+            "section": "Effect of epitope length on BCPred performance"
+        },
+        {
+            "text": "Although a number of machine learning based methods for predicting linear B-cell epitopes have been proposed (Saha and Raghava, 2006b; S\u00f6 llner and Mayer, 2006; Chen et al., 2007) , little is known about how these methods directly compare with one another due to the lack of published comparisons using standard benchmark data sets. Unfortunately, because the code and precise parameters used to train several of these methods are not available, we were unable to make direct comparisons of these methods using the homology-reduced data sets we used in our first set of experiments (summarized in Tables 1 and 2 ). However, we were able to compare BCPred with our implementation of APP and ABCPred, using the publicly available benchmark data sets (Saha and Raghava, 2006a ) that were used to evaluate ABCPred. Because the best reported performance of ABCPred was obtained using a data set of 16-mer peptides, comprising 700 epitopes and 700 non-epitopes peptides, we used the same data set, ABCP16, to compare ABCPred with BCPred and AAP. In addition, a blind test set, SBT16, consisting of 187 epitopes and 200 16-mer non-epitopes, also made available by Saha and Raghava (2006a) , was used to compare the three methods. Table 5 compares the performance of BCPred, AAP, and ABCPred on ABCP16 data set (Saha and Raghava, 2006a ), using fivefold cross-validation. In terms of overall accuracy, both BCPred Y. EL-MANZALAWY and AAP outperformed ABCPred on this data set, with BCPred showing the best performance (74.57%). Interestingly, the performance of BCPred and AAP on ABCP16 data set was better than their performance on the homology-reduced data set used in the first set of experiments described above. The performance of the three classifiers trained on ABCP16 data set, but tested on the blind test set SBT16 is summarized in Table 6 . In this case, the performance of ABCPred was slightly better than that of BCPred and APP.",
+            "cite_spans": [
+                {
+                    "start": 109,
+                    "end": 134,
+                    "text": "(Saha and Raghava, 2006b;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 135,
+                    "end": 160,
+                    "text": "S\u00f6 llner and Mayer, 2006;",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 161,
+                    "end": 179,
+                    "text": "Chen et al., 2007)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 748,
+                    "end": 772,
+                    "text": "(Saha and Raghava, 2006a",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 1157,
+                    "end": 1181,
+                    "text": "Saha and Raghava (2006a)",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 1303,
+                    "end": 1327,
+                    "text": "(Saha and Raghava, 2006a",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 597,
+                    "end": 611,
+                    "text": "Tables 1 and 2",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 1223,
+                    "end": 1230,
+                    "text": "Table 5",
+                    "ref_id": null
+                },
+                {
+                    "start": 1834,
+                    "end": 1841,
+                    "text": "Table 6",
+                    "ref_id": "TABREF5"
+                }
+            ],
+            "section": "Comparing BCPred with existing linear B-cell epitope prediction methods"
+        },
+        {
+            "text": "What explains the discrepancy between the performance estimated on ABCP16 data set and the performance on SBT16 blind test set?",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparing BCPred with existing linear B-cell epitope prediction methods"
+        },
+        {
+            "text": "Based on the empirical results summarized above, it is natural to ask: How can we explain the differences in relative performance of BCPred and AAP on our homology-reduced data sets versus the performance of these methods on ABCP16 data set (Saha and Raghava, 2006b) ? How can we explain the observation that BCPred and AAP outperform ABCPred in fivefold cross validation experiments using ABCP16 data set but not on the blind test set, SBT16 data set? Could the observed differences in relative performance be explained by differences in the two data sets, BCP16 and ABCP16? To explore this possibility, we considered the procedures used to create the data sets. Recall that Saha and Raghava (2006b) started with a data set of 20-mer peptides (after extending the length of shorter B-cell epitopes based on the corresponding antigen sequences). [As noted above, there is a possibility that the resulting data set of 20-mer peptides includes several highly similar peptides (e.g., peptides that differ from each other in only one or two amino acids). More importantly, the 16-mer data set, ABCP16, was derived from the 20-mer data set, ABCP20, by trimming two amino acids from the ends of each 20-mer peptide; as a result, two 20-mers that were not duplicates of each other might yield 16-mers that are highly similar after the ends are trimmed off. In summary, the ABCP20 data set reported by Saha and Raghava (2006b) was constructed from unique epitopes without applying any homology reduction filters. Moreover, the procedure used by Saha and Raghava (2006b) to derive ABCP16 from ABCP20 can be expected to increase the pair-wise similarity between sequences in ABCP16 relative to the pairwise sequence similarity within ABCP20.",
+            "cite_spans": [
+                {
+                    "start": 241,
+                    "end": 266,
+                    "text": "(Saha and Raghava, 2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 676,
+                    "end": 700,
+                    "text": "Saha and Raghava (2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1394,
+                    "end": 1418,
+                    "text": "Saha and Raghava (2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1537,
+                    "end": 1561,
+                    "text": "Saha and Raghava (2006b)",
+                    "ref_id": "BIBREF46"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparing BCPred with existing linear B-cell epitope prediction methods"
+        },
+        {
+            "text": "Indeed, when we scanned the positive peptides in ABCP16 data set (Saha and Raghava, 2006a) for duplicate peptides, we found 37 cases in which a 16-mer peptide has at least one exact duplicate in the 16-mer data set and several of these have multiple copies in the 16-mer data set (see Table 7 ). Consequently, fivefold cross validation using ABCP16 data set is likely to yield overly optimistic performance estimates, especially for methods that rely on sequence features such as those identified by the subsequence kernel and AAP.",
+            "cite_spans": [
+                {
+                    "start": 65,
+                    "end": 90,
+                    "text": "(Saha and Raghava, 2006a)",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 285,
+                    "end": 292,
+                    "text": "Table 7",
+                    "ref_id": null
+                }
+            ],
+            "section": "Comparing BCPred with existing linear B-cell epitope prediction methods"
+        },
+        {
+            "text": "To determine exactly how redundant are the positive peptides in ABCP16 data set, we filtered them using an 80% sequence identity cutoff. We found that applying the 80% sequence identity cutoff resulted in the number of positive peptides in the ABCP16 data being reduced from 696 to 532. Thus, 23.5% of the positive peptides in ABCP16 data set have more than 80% sequence identity. This observation leads us to conclude that the observed differences in the performance of BCPred and AAP on the homology-reduced data set (BCP16) relative to that on the ABCP16 data set, as well as the results of comparisons of AAP, ABCPred, and BCPred on the blind test set (SBT16), are explained by the presence of a relatively large number of highly similar peptides in ABCP16 data set.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Comparing BCPred with existing linear B-cell epitope prediction methods"
+        },
+        {
+            "text": "The preceding analysis highlights an important issue in evaluating linear B-cell prediction tools, which, to our knowledge, has not been addressed in previous studies. Previously published linear B-cell epitope prediction methods (Larsen et al., 2006; Saha and Raghava, 2006b; S\u00f6 llner and Mayer, 2006; Chen et al., 2007) have been evaluated using data sets of unique epitopes without considering any sequence similarities that may exist among epitopes. In reality, unique epitopes may share a high degree of similarity (e.g., a shorter epitope may be included within a longer one, or two epitopes may differ in only one or two amino acids). In this work, we demonstrated that cross-validation performance estimated on such data sets can be overly optimistic. Moreover, such data sets can lead to false conclusions when used to compare different prediction methods. For instance, our comparison of ABCPred, AAP, and BCPred using fivefold crossvalidation on ABCP16 data set suggested that AAP and BCPred significantly outperform ABCPred. Such a conclusion may not be valid because evaluation of the three methods on a blind test set, ",
+            "cite_spans": [
+                {
+                    "start": 230,
+                    "end": 251,
+                    "text": "(Larsen et al., 2006;",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 252,
+                    "end": 276,
+                    "text": "Saha and Raghava, 2006b;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 277,
+                    "end": 302,
+                    "text": "S\u00f6 llner and Mayer, 2006;",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 303,
+                    "end": 321,
+                    "text": "Chen et al., 2007)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Comparing BCPred with existing linear B-cell epitope prediction methods"
+        },
+        {
+            "text": "We have implemented BCPREDS, an online web server for B-cell epitope prediction, using classifiers trained on the homologyreduced data sets of B-cell epitopes developed in this work. The server can be accessed at http://ailab.cs.iastate.edu/bcpreds/. Because it is often valuable to compare predictions of multiple methods, and consensus predictions are more reliable than individual predictions, the BCPREDS server allows users to choose the method for predicting B-cell epitopes, either BCPred or AAP (and in the future, additional methods). Users provide an antigen sequence and optionally can specify desired epitope length and specificity threshold. Results are returned in several user-friendly formats. In what follows, we illustrate the use of the BCPREDS server in a representative application of B-cell epitope prediction.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "BCPREDS web server"
+        },
+        {
+            "text": "Since its outbreak in 2002, the development of an effective and safe vaccine against Severe Acute Respiratory Syndrome Coronavirus (SARS-CoV) has become an urgent need for preventing future worldwide outbreak of SARS, a life threatening disease (Drosten et al., 2003; Fouchier et al., 2003; Ksiazek et al., 2003; Peiris et al., 2003) . Infection by SARS-CoV is initiated by the binding of its spike (S) protein to its functional receptor, angiotensin-converting enzyme 2 (ACE2), which is expressed on the surface of host cells (Dimitrov, 2003; Li et al., 2003) . The S protein comprises 1255 amino acids and consists of two functional domains: S1 (residues 1-667) and S2 (residues 668-1255) (Wu et al., 2004) . The S1 domain is responsible for binding to receptors on target cells (Li et al., 2003) and the S2 domain contributes to the subsequence fusion between viral envelope and cellular membrane (Beniac et al., 2006) . In addition, the S2 domain contains two highly conserved heptad repeat (HR) regions, HR1 and HR2 correspond to amino acid residues 915-949 and 1150-1184, respectively (Sainz et al., 2005) . Several studies reported that the receptor-binding domain (RBD), residues 318-510, is an attractive target for developing SARS-CoV vaccine because blocking the binding of S1 domain to cellular receptors can prevent envelope fusion and virus entry mediated by the S2 domain (Sui et al., 2004; Prabakaran et al., 2006) . Based on these findings, we surveyed the literature to collect previously identified epitopes within the RBD fragment of the SARS-CoV S protein. The collected epitopes are summarized in Table 8 . None of these epitopes appears in our training data sets. Because epitope SP3 is included within the epitope (434-467) (GNYNY-KYRYLKHGKLRPFERDISNVPFSPDGKPC) reported by Lien et al. (2007) , we omitted the longer epitope.",
+            "cite_spans": [
+                {
+                    "start": 245,
+                    "end": 267,
+                    "text": "(Drosten et al., 2003;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 268,
+                    "end": 290,
+                    "text": "Fouchier et al., 2003;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 291,
+                    "end": 312,
+                    "text": "Ksiazek et al., 2003;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 313,
+                    "end": 333,
+                    "text": "Peiris et al., 2003)",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 527,
+                    "end": 543,
+                    "text": "(Dimitrov, 2003;",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 544,
+                    "end": 560,
+                    "text": "Li et al., 2003)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 691,
+                    "end": 708,
+                    "text": "(Wu et al., 2004)",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 781,
+                    "end": 798,
+                    "text": "(Li et al., 2003)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 900,
+                    "end": 921,
+                    "text": "(Beniac et al., 2006)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1091,
+                    "end": 1111,
+                    "text": "(Sainz et al., 2005)",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 1387,
+                    "end": 1405,
+                    "text": "(Sui et al., 2004;",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 1406,
+                    "end": 1430,
+                    "text": "Prabakaran et al., 2006)",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1798,
+                    "end": 1816,
+                    "text": "Lien et al. (2007)",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1619,
+                    "end": 1626,
+                    "text": "Table 8",
+                    "ref_id": "TABREF6"
+                }
+            ],
+            "section": "Identifying B-cell epitopes in the receptor-binding domain of SARS-CoV spike protein"
+        },
+        {
+            "text": "We submitted 193 residues comprising the RBD region of SARS-CoV S protein (residues 318-510 according to accession AAT74874) to the BCPREDS, ABCPred, and Bepipred servers. For BCPREDS, we used the default specificity threshold (75%) and set the epitope length to 16 residues. For the other two servers, we used the default settings. Figure 3 shows the BCPred (top) and AAP (bottom) predictions returned by BCPREDS. Four of the B-cell epitopes predicted by BCPred overlap with epitopes that have been identified in the antigenic regions of RBD of SARS-CoV S Y. EL-MANZALAWY protein through experiments. Three of the five epitopes predicted by AAP have substantial overlap with the SP1, SP2, and SP5 epitopes, and the fourth partially overlaps epitopes SP2 and SP3; the fifth does not overlap with any experimentally reported epitopes. In contrast, the ABCPred server, using default parameters, returned 22 predictions covering almost the entire query sequence. BepiPred returned nine predicted variablelength epitopes, but only three of them are longer than four residues in length. Two out of these four epitopes overlap with experimentally reported epitopes. The complete ABCPred and BepiPred predictions are provided in the Supplementary Materials. In evaluating these results, it is worth noting that a high false positive rate is more problematic than an occasional false negative prediction in the B-cell epitope prediction task (S\u00f6 llner and Mayer, 2006) , because a major goal of B-cell epitope prediction tools is to reduce the time and expense of wet lab experiments. The B-cell epitopes predicted over the entire SARS-CoV S protein using BCPred is given in Figure S3 . Interestingly, the predictions of BCPred over the RBD region are identical regardless of whether the predictions are made over only the RBD sequence fragment or over the entire S protein sequence of SARS-CoV.",
+            "cite_spans": [
+                {
+                    "start": 1434,
+                    "end": 1460,
+                    "text": "(S\u00f6 llner and Mayer, 2006)",
+                    "ref_id": "BIBREF51"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 333,
+                    "end": 341,
+                    "text": "Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1667,
+                    "end": 1676,
+                    "text": "Figure S3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Identifying B-cell epitopes in the receptor-binding domain of SARS-CoV spike protein"
+        },
+        {
+            "text": "In this paper, we explored a family of SVM-based machine learning methods for predicting linear B-cell epitopes from primary amino acid sequence. We explored four string kernel methods and compared them to the widely used RBF kernel. Our results demonstrate the usefulness of the four string kernels in predicting linear B-cell epitopes, with the subsequence kernel showing a superior performance over other kernels. In addition, we observed that the subsequence kernel is less sensitive to the choice of the parameter k than the k-spectrum and (k,m)-mismatch kernels. Our experiments using fivefold crossvalidation on a homology-reduced data set of 701 linear B-cell epitopes and 701 non-epitopes demonstrated that the subsequence kernel significantly outperforms other kernel methods in addition to APP method . To the best of our knowledge, the subsequence kernel (Lodhi et al., 2002) although previously used in text classification and natural language processing applications, have not been widely exploited in the context of macromolecular sequence classification tasks. The superior performance of the subsequence kernel on B-cell epitope prediction task suggests that it might find use in other related macromolecular sequence classification tasks, e.g., MHC binding peptide prediction (Salomon and Flower, 2006; Cui et al., 2006) and protein subcellular localization prediction (Bulashevska and Eils, 2006; Yu et al., 2006) .",
+            "cite_spans": [
+                {
+                    "start": 867,
+                    "end": 887,
+                    "text": "(Lodhi et al., 2002)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 1294,
+                    "end": 1320,
+                    "text": "(Salomon and Flower, 2006;",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 1321,
+                    "end": 1338,
+                    "text": "Cui et al., 2006)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 1387,
+                    "end": 1415,
+                    "text": "(Bulashevska and Eils, 2006;",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 1416,
+                    "end": 1432,
+                    "text": "Yu et al., 2006)",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "One of the challenges for developing reliable linear B-cell epitope predictors is how to deal with the large variability in the length of the epitopes which ranges from 3 to 30 amino acids in length. Many standard machine learning methods require training and testing the classifier using sequences of fixed length. For example, the AAP method was evaluated on a data set where the length of the input sequences was fixed to 20 amino acids. Saha and Raghava (2006b) experimented with data sets consisting of peptide sequences of length 20 and shorter, and reported optimal performance of ABCPred classifier on a data set consisting of 16-mer peptides. In BepiPred (Larsen et al., 2006) and propensity scale based methods (Karplus and Schulz. 1985; Emini et al., 1985; Parker et al., 1986; Pellequer et al., 1991; Saha and Raghava, 2004) , the training examples are windows of five or seven amino acids labeled according to whether the amino acid at the center of the window is included in a linear B-cell epitope or not. Here, we evaluated BCPred on several data sets consisting of fixed length peptides with lengths ranging from 12 to 30 amino acids with incremental step equal to 2. Our results suggest that amino acid neighbors of the B-cell epitope carry some useful information that can help the classifier to discriminate better between epitopes and non-epitopes. This is especially interesting in light of the observation that adding a single amino acid to a linear B-cell epitope may affect binding to the antibody.",
+            "cite_spans": [
+                {
+                    "start": 441,
+                    "end": 465,
+                    "text": "Saha and Raghava (2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 664,
+                    "end": 685,
+                    "text": "(Larsen et al., 2006)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 721,
+                    "end": 747,
+                    "text": "(Karplus and Schulz. 1985;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 748,
+                    "end": 767,
+                    "text": "Emini et al., 1985;",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 768,
+                    "end": 788,
+                    "text": "Parker et al., 1986;",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 789,
+                    "end": 812,
+                    "text": "Pellequer et al., 1991;",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 813,
+                    "end": 836,
+                    "text": "Saha and Raghava, 2004)",
+                    "ref_id": "BIBREF44"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "A similar situation arises in predicting the major histocompatibility complex class II (MHC-II) binding peptides. The length of MHC-II binding peptides typically varies from 11 to 30 amino acids in length. Most of the currently available MHC-II binding peptide prediction methods focus on identifying a putative 9-mer binding core region. Therefore, classifiers are trained using 9-mer peptides instead of variable length ones. Recently, two methods (Cui et al., 2006; Salomon and Flower, 2006) for predicting variable length MHC-II peptides have been proposed. Both methods use the entire sequences of MHC-II binding peptides (as opposed to only the 9-mer cores) for training MHC-II binding peptide predictors. The first method (Cui et al., 2006 ) maps a variable length peptide into a fixed length feature vector obtained from sequence-derived structural and physicochemical properties of the peptide. The second method (Salomon and Flower, 2006) uses the local alignment (LA) kernel that we used in this study. It would be interesting to apply these methods to the problem of learning to identify variable length linear B-cell epitopes. Our ongoing work aims at exploring the application of string kernels for learning from flexible length linear B-cell epitopes.",
+            "cite_spans": [
+                {
+                    "start": 450,
+                    "end": 468,
+                    "text": "(Cui et al., 2006;",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 469,
+                    "end": 494,
+                    "text": "Salomon and Flower, 2006)",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 729,
+                    "end": 746,
+                    "text": "(Cui et al., 2006",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 922,
+                    "end": 948,
+                    "text": "(Salomon and Flower, 2006)",
+                    "ref_id": "BIBREF49"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "In light of the significant room for improvement in performance of B-cell epitope prediction methods reported in the literature, it is important to understand the strengths and limitations of different methods through direct comparisons on standard benchmark data sets. Hence, we compared the BCPred method using the subsequence kernel-based SVM developed in this paper with two published methods: AAP and ABCPred (Saha and Raghava, 2006b) . In our experiments using the Saha and Raghava (2006b) 16-mer peptide data set (containing approximately 700 B-cell epitopes and 700 non-epitope peptides) on which ABCPred had the best reported performance of 66%, both BCPred and AAP outperformed ABCPred, based on fivefold cross-validation. However, when the classifiers were tested on a separate blind test set instead, no significant difference was observed in their performance. Careful examination of the ABCPred 16-mer data set revealed that the data set has a high degree of sequence redundancy among the epitope peptides, leading to overly optimistic estimates of performance in some cases.",
+            "cite_spans": [
+                {
+                    "start": 414,
+                    "end": 439,
+                    "text": "(Saha and Raghava, 2006b)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 471,
+                    "end": 495,
+                    "text": "Saha and Raghava (2006b)",
+                    "ref_id": "BIBREF46"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Our demonstration that the only publicly available data set of linear B-cell epitopes (Saha and Raghava, 2006a) is, in fact, highly redundant (with almost 25% of individual 16-mer epitopes having at least one other epitope with >80% sequence identity) is significant. We showed that the redundancy in such a data set can be reflected in overly-optimistic performance estimates, especially for certain types of machine learning classifiers. Consequently, using such a data set can also lead to false conclusions when directly comparing different prediction methods. Therefore, it is very important to evaluate and compare different linear B-cell epitope prediction methods on data sets that are truly non-redundant or homology-reduced with respect to their constituent epitope sequences, i.e., in which the level of pair-wise sequence identity shared between individual epitopes is known. Towards this goal, we have made our homology-reduced data set of linear B-cell epitopes (with <80% sequence identity) publicly available as a benchmarking data set for comparing existing and future linear B-cell epitope prediction methods.",
+            "cite_spans": [
+                {
+                    "start": 86,
+                    "end": 111,
+                    "text": "(Saha and Raghava, 2006a)",
+                    "ref_id": "BIBREF45"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Based on the results of this study, we developed BCPREDS, an online web server for predicting linear B-cell epitopes using either the BCPred method, which implements the subsequence kernel introduced in this paper, or the AAP method of Chen et al. (2007) . A case study in which BCPREDS was used to predict linear B-cell epitopes in the RBD of the SARS-CoV S protein demonstrates the potential value of this server in guiding clinical investigations.",
+            "cite_spans": [
+                {
+                    "start": 236,
+                    "end": 254,
+                    "text": "Chen et al. (2007)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Work in progress is aimed at further development and empirical comparisons of different methods for B-cell epitope prediction, in particular, addressing the more challenging problem of predicting discontinuous or conformational B-cell epitopes.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DISCUSSION"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Predictive estimation of protein linear epitopes by using the program PEOPLE",
+            "authors": [
+                {
+                    "first": "Alix",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Vaccine",
+            "volume": "18",
+            "issn": "",
+            "pages": "311--314",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "The SWISS-PROT protein sequence database and its supplement TrEMBL in 2000",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bairoch",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Apweiler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Nucleic Acids Res",
+            "volume": "28",
+            "issn": "",
+            "pages": "45--48",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Assessing the accuracy of prediction algorithms for classification: An overview",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Baldi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Brunak",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Chauvin",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Andersen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Nielsen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Bioinformatics",
+            "volume": "16",
+            "issn": "",
+            "pages": "412--424",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Continuous and discontinuous protein antigenic determinants",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Barlow",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "Thornton",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Nature",
+            "volume": "322",
+            "issn": "",
+            "pages": "747--748",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Architecture of the SARS coronavirus prefusion spike",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Beniac",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Andonov",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Grudeski",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Booth",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Nat. Struct. Mol. Biol",
+            "volume": "13",
+            "issn": "",
+            "pages": "751--752",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Supervised identification of allergen-representative peptides for in silico detection of potentially allergenic proteins",
+            "authors": [
+                {
+                    "first": "\u00c5",
+                    "middle": [],
+                    "last": "Bj\u00f6 Rklund",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Soeria-Atmadja",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Zorzet",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Hammerling",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Gustafsson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Bioinformatics",
+            "volume": "21",
+            "issn": "",
+            "pages": "39--50",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Benchmarking B cell epitope prediction: underperformance of existing methods",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Blythe",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Flower",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Prot. Sci",
+            "volume": "14",
+            "issn": "",
+            "pages": "246--248",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Predicting protein subcellular locations using hierarchical ensemble of Bayesian classifiers based on Markov chains",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bulashevska",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Eils",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinform",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Prediction of linear B-cell epitopes using amino acid pair antigenicity scale",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Chou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Amino Acids",
+            "volume": "33",
+            "issn": "",
+            "pages": "423--428",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Planar languages and learnability. International Colloquium on Grammatical Inference (ICGI06)",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Clark",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Florencio",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Watkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Serayet",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "MHC-BPS: MHC-binder prediction server for identifying peptides of flexible lengths from sequence-derived physicochemical properties",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Cui",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Immunogenetics",
+            "volume": "58",
+            "issn": "",
+            "pages": "607--613",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Statistical comparisons of classifiers over multiple data sets",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Dem\u0161ar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Mach. Learn. Res",
+            "volume": "7",
+            "issn": "",
+            "pages": "1--30",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "The secret life of ACE2 as a receptor for the SARS virus",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dimitrov",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Cell",
+            "volume": "115",
+            "issn": "",
+            "pages": "652--653",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Identification of a novel coronavirus in patients with severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Drosten",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Gunther",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Preiser",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Van Der Werf",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Brodt",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Becker",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Rabenau",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Panning",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Kolesnikova",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Fouchier",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Berger",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Burguiere",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Cinatl",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Eickmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Escriou",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Grywna",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Kramme",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Manuguerra",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Muller",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Rickerts",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sturmer",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Vieth",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Klenk",
+                    "suffix": ""
+                },
+                {
+                    "first": "Adme",
+                    "middle": [],
+                    "last": "Osterhaus",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Schmitz",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Doerr",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "N. Engl. J. Med. V",
+            "volume": "348",
+            "issn": "",
+            "pages": "1967--1976",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Induction of hepatitis A virus-neutralizing antibody by a virus-specific synthetic peptide",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Emini",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hughes",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Perlow",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Boger",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "J. Virol",
+            "volume": "55",
+            "issn": "",
+            "pages": "836--839",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Statistical Methods and Scientific Inference",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Fisher",
+                    "suffix": ""
+                }
+            ],
+            "year": 1973,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Immunoinformatics: Predicting Immunogenicity in silico",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Flower",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Koch's postulates fulfilled for SARS virus",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Fouchier",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kuiken",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Schutten",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Van Amerongen",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Van Doornum",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Van Den Hoogen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Peiris",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "St\u00f6 Hr",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Osterhaus",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nature",
+            "volume": "423",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "A comparison of alternative tests of significance for the problem of m rankings",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Friedman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1940,
+            "venue": "Ann. Math. Stat",
+            "volume": "11",
+            "issn": "",
+            "pages": "86--92",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Towards a consensus on datasets and evaluation metrics for developing B-cell epitope prediction tools",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Greenbaum",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Andersen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Blythe",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Bui",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Cachau",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Crowe",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Davies",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kolaskar",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Lund",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Morrison",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Mumey",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Ofran",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pellequer",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Pinilla",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Ponomarenko",
+                    "suffix": ""
+                },
+                {
+                    "first": "Gps",
+                    "middle": [],
+                    "last": "Raghava",
+                    "suffix": ""
+                },
+                {
+                    "first": "Mhv",
+                    "middle": [],
+                    "last": "Van Regenmortel",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Roggen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Sette",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Schlessinger",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sollner",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Zand",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Peters",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. Mol. Recognit",
+            "volume": "20",
+            "issn": "",
+            "pages": "75--82",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Convolution kernels on discrete structures",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Haussler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Prediction of chain flexibility in proteins: a tool for the selection of peptide antigen",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Karplus",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Schulz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Naturwiss",
+            "volume": "72",
+            "issn": "",
+            "pages": "21--213",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "A novel coronavirus associated with severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ksiazek",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Erdman",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Goldsmith",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Zaki",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Peret",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Emery",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Tong",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Urbani",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Comer",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Rollin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Dowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ling",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Humphrey",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Shieh",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Guarner",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Paddock",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rota",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Fields",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Derisi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Cox",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hughes",
+                    "suffix": ""
+                },
+                {
+                    "first": "Le",
+                    "middle": [],
+                    "last": "Duc",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Bellini",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Sars Working",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Group",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "N. Engl. J. Med",
+            "volume": "348",
+            "issn": "",
+            "pages": "1953--1966",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Characterisation of a protective linear B cell epitope against feline parvoviruses",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Langeveld",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Martinez Torrecuadrada",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Boshuizen",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Meloen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Ignacio",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Vaccine",
+            "volume": "19",
+            "issn": "",
+            "pages": "2352--2360",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Improved method for predicting linear B-cell epitopes",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Larsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Lund",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Nielsen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Immun. Res",
+            "volume": "2",
+            "issn": "2",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Mismatch string kernels for discriminative protein classification",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Leslie",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Eskin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Cohen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Weston",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Noble",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Bioinformatics",
+            "volume": "20",
+            "issn": "",
+            "pages": "467--476",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "The spectrum kernel: a string kernel for SVM protein classification",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Leslie",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Eskin",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Noble",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proc. Pacific Sympos. Biocomput",
+            "volume": "7",
+            "issn": "",
+            "pages": "566--575",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Tolerating some redundancy significantly speeds up clustering of large protein databases",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Jaroszewski",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Godzik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Bioinformatics",
+            "volume": "18",
+            "issn": "",
+            "pages": "77--82",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Angiotensin-converting enzyme 2 is a functional receptor for the SARS coronavirus",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Moore",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Vasilieva",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sui",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Berne",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Somasundaran",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sullivan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Luzuriaga",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Greenough",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Choe",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Farzan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nature",
+            "volume": "426",
+            "issn": "",
+            "pages": "450--454",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Identification of synthetic vaccine candidates against SARS CoV infection",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lien",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Shih",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tsai",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Leng",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Chou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Chong",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Biochem. Biophys. Res. Commun",
+            "volume": "358",
+            "issn": "",
+            "pages": "716--721",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Text classification using string kernels",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Lodhi",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Saunders",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Shawe-Taylor",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Cristianini",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Watkins",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "J. Mach. Learn. Res",
+            "volume": "2",
+            "issn": "",
+            "pages": "419--444",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Applied Linear Statistical Models",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Neter",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wasserman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kutner",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "BEPITOPE: predicting the location of continuous epitopes and patterns in proteins",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Odorico",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pellequer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. Mol. Recognit",
+            "volume": "16",
+            "issn": "",
+            "pages": "20--22",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "New hydrophilicity scale derived from high-performance liquid chromatography peptide retention data: Correlation of predicted surface residues with antigenicity and x-ray-derived accessible sites",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Parker",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Guo",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hodges",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "Biochemistry",
+            "volume": "25",
+            "issn": "",
+            "pages": "5425--5432",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Coronavirus as a possible cause of severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Peiris",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lai",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Poon",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Guan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Yam",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Nicholls",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yee",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Yan",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Cheung",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Tsang",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Tung",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ng",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Yuen",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "The Lancet",
+            "volume": "361",
+            "issn": "",
+            "pages": "1319--1325",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "PREDITOP: a program for antigenicity prediction",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pellequer",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Westhof",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "J. Mol. Graph",
+            "volume": "11",
+            "issn": "",
+            "pages": "204--210",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Predicting location of continuous epitopes in proteins from their primary structures",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pellequer",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Westhof",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Van Regenmortel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Meth. Enzymol",
+            "volume": "203",
+            "issn": "",
+            "pages": "176--201",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Correlation between the location of antigenic sites and the prediction of turns in proteins",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pellequer",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Westhof",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Van Regenmortel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1993,
+            "venue": "Immunol. Lett",
+            "volume": "36",
+            "issn": "",
+            "pages": "83--99",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Fast Training of Support Vector Machines using Sequential Minimal Optimization",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Platt",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Structure of severe acute respiratory syndrome coronavirus receptor-binding domain complexed with neutralizing antibody",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Prabakaran",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Gan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Choudhry",
+                    "suffix": ""
+                },
+                {
+                    "first": "Xiao",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ji",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Dimitrov",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Biol. Chem",
+            "volume": "281",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Protein Structure Prediction using String Kernels. Defense Technical Information Center",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Rangwala",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Deronne",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Karypis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Bcipep: a database of B-cell epitopes",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Saha",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bhasin",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Raghava",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "BMC Genomics",
+            "volume": "6",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "BcePred: prediction of continuous B-cell epitopes in antigenic sequences using physico-chemical properties",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Saha",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Raghava",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Lect. Notes Comput. Sci",
+            "volume": "3239",
+            "issn": "",
+            "pages": "197--204",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "ABCPred benchmarking datasets",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Saha",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Raghava",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Prediction of continuous B-cell epitopes in an antigen using recurrent neural network",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Saha",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Raghava",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proteins",
+            "volume": "65",
+            "issn": "",
+            "pages": "40--48",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Protein homology detection using string alignment kernels",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Saigo",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Vert",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ueda",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Akutsu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Bioinformatics",
+            "volume": "20",
+            "issn": "",
+            "pages": "1682--1689",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "Identification and characterization of the putative fusion peptide of the severe acute respiratory syndrome-associated coronavirus spike protein",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Sainz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Rausch",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Gallaher",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Garry",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Wimley",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Virology",
+            "volume": "79",
+            "issn": "",
+            "pages": "7195--7206",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Predicting class II MHC-peptide binding: a kernel based approach using similarity scores",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Salomon",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Flower",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "BMC Bioinform",
+            "volume": "7",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "Lambda pruning: an approximation of the string subsequence kernel",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Seewald",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Kleedorfer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Osterreichisches Forschungsinstitut fur Artificial Intelligence",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Machine learning approaches for prediction of linear B-cell epitopes on proteins",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "S\u00f6 Llner",
+                    "suffix": ""
+                },
+                {
+                    "first": "Mayer",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Mol. Recognit",
+            "volume": "19",
+            "issn": "",
+            "pages": "200--208",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Potent neutralization of severe acute respiratory syndrome (SARS) coronavirus by a human mAb to S1 protein that blocks receptor association",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sui",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Murakami",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Tamin",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Matthews",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Moore",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Tallarico",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Olurinde",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Choe",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Bellini",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Farzan",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Marasco",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Proc. Natl Acad. Sci",
+            "volume": "101",
+            "issn": "",
+            "pages": "2536--2541",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "The Nature of Statistical Learning Theory",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Vapnik",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Production and use of antibodies against synthetic peptides",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Walter",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "J. Immunol. Meth",
+            "volume": "88",
+            "issn": "",
+            "pages": "149--161",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Data Mining: Practical Machine Learning Tools and Techniques",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Witten",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Frank",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Comparing kernels for predicting protein binding sites from amino acid sequence",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Olson",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Dobbs",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Honavar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "International Joint Conference on Neural Networks (IJCNN06)",
+            "volume": "",
+            "issn": "",
+            "pages": "1612--1616",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "The spike protein of severe acute respiratory syndrome (SARS) is cleaved in virus infected Vero-E6 cells",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Shang",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Hai",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Shen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ji",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "Di",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Tian",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Gan",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "Q"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Dai",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Xie",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "Pei",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Sun",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Cell Res",
+            "volume": "14",
+            "issn": "",
+            "pages": "400--406",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "Prediction of protein subcellular localization",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Lu",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hwang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Proteins",
+            "volume": "64",
+            "issn": "",
+            "pages": "643--651",
+            "other_ids": {}
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "Application of string kernels in protein sequence classification",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Zaki",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Deris",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Illias",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Appl. Bioinform",
+            "volume": "4",
+            "issn": "",
+            "pages": "45--52",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "ROC curves for different prediction methods on BCP20 homology-reduced data set. BCPred method denotes K sub \u00f04;0:5\u00de . The BCPred ROC curve dominates all other ROC curves for any user-selected threshold corresponding to specificity in the range of 100 to 20%.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "algorithm. For the string www.interscience.wiley.com/journal/jmr Copyright # 2008 John Wiley & Sons, Ltd. J. Mol. Recognit. (2008)",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Performance of different methods on our BCP20 homology-reduced data set using fivefold cross-validation. BCPred method denotes K sub",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "AUC values for different methods evaluated on homology-reduced data sets. For each data set, the rank of each classifier is shown in parentheses",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF4": {
+            "text": "Performance of BCPred on homology-reduced data",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF5": {
+            "text": "Performance comparison of BCPred, AAP, and ABCPred. The three classifiers were trained using ABCP16 data set and evaluated using SBT16 blind test set",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF6": {
+            "text": "B-cell epitopes previously identified in the RBD of SARS-CoV S protein Figure 3. BCPREDS server predictions of epitopes within the RBD of SARS-CoV S protein, made using BCPred (top) and AAP (bottom). Experimentally identified epitopes are underlined. ''E'' indicates that the corresponding amino acid residue lies in a predicted linear B-cell epitope. www.interscience.wiley.com/journal/jmr Copyright # 2008 John Wiley & Sons, Ltd. J. Mol. Recognit. (2008)",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We thank the anonymous reviewers for their comments and suggestions, Dr. Janez Dem\u0161ar for discussing the applicability of non-parametric tests, Dr. Douglas Bonett for suggesting the Bonferroni adjustment test. This research was supported in part by a doctoral fellowship from the Egyptian Government to Yasser El-Manzalawy and a grant from the National Institutes of Health (GM066387) to Vasant Honavar and Drena Dobbs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        }
+    ]
+}

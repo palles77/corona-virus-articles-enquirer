@@ -1,0 +1,3246 @@
+{
+    "paper_id": "dd99ca56519f7ac0d7f46ce7ecebe953f4b557c5",
+    "metadata": {
+        "title": "Nonparametric survival analysis of infectious disease data Summary",
+        "authors": [
+            {
+                "first": "Eben",
+                "middle": [],
+                "last": "Kenah",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Florida",
+                    "location": {
+                        "settlement": "Gainesville",
+                        "region": "Florida",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "a summary of the evolution of infectiousness over time. When who-infects-whom is observed, the Nelson-Aalen estimator produces an unbiased estimate of the cumulative hazard function of the contact interval distribution. When who-infects-whom is not observed, we use an EM algorithm to average the Nelson-Aalen estimates from all possible combinations of who-infected-whom consistent with the observed data. This converges to a nonparametric maximum likelihood estimate of the cumulative hazard function that we call the marginal Nelson-Aalen estimate. We study the behavior of these methods in simulations and use them to analyze household surveillance data from the 2009 influenza A(H1N1) pandemic.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Infectious diseases remain one of the greatest threats to human health and commerce, and the analysis of infectious disease data is among the most important but neglected applications of statistics. Current statistical methods for infectious disease data fall into two categories: chainbinomial models and generation interval models. In a chain binomial model, the transmission of disease is modeled as a discrete-time process. Methods based on generation intervals use continuous time, but they model the transmission of disease as a process that creates a population of infected individuals rather than a process of spread through an existing susceptible population. In this paper, we propose nonparametric statistical methods that model the spread of disease through an existing population in continuous time. These methods are a nonparametric counterpart to those of Kenah (2011) .",
+            "cite_spans": [
+                {
+                    "start": 871,
+                    "end": 883,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "If person i infects person j, the generation interval is the time between the infection of i and the infection of j. The serial interval, which is often used as a proxy for the generation interval, is the time between symptom onset in i and symptom onset in j. Data from several recent and historical epidemics, including the 1918 in uenza (Mills et al., 2004) , severe acute respiratory syndrome (Lipsitch et al., 2003; Wallinga and Teunis, 2004) , pandemic in uenza McBryde et al., 2009; Yang et al., 2009) , and avian in uenza (Ferguson et al., 2005 (Ferguson et al., , 2006 , have been analyzed using methods based on generation or serial interval distributions. These methods are based on the Lotka-Euler equation (Wallinga and Lipsitch, 2007; Roberts and Heesterbeek, 2007) or on a branching-process approximation to the early spread of disease (Wallinga and Teunis, 2004; White and Pagano, 2008) . In both of these approaches, infected people are the offspring of their infectors and the generation interval is the age at which the infector gives birth. Uninfected people and person-time are accounted for indirectly (in the Lotka-Euler equation) or not at all (in the branching process approximation).",
+            "cite_spans": [
+                {
+                    "start": 340,
+                    "end": 360,
+                    "text": "(Mills et al., 2004)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 397,
+                    "end": 420,
+                    "text": "(Lipsitch et al., 2003;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 421,
+                    "end": 447,
+                    "text": "Wallinga and Teunis, 2004)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 468,
+                    "end": 489,
+                    "text": "McBryde et al., 2009;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 490,
+                    "end": 508,
+                    "text": "Yang et al., 2009)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 530,
+                    "end": 552,
+                    "text": "(Ferguson et al., 2005",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 553,
+                    "end": 577,
+                    "text": "(Ferguson et al., , 2006",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 719,
+                    "end": 748,
+                    "text": "(Wallinga and Lipsitch, 2007;",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 749,
+                    "end": 779,
+                    "text": "Roberts and Heesterbeek, 2007)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 851,
+                    "end": 878,
+                    "text": "(Wallinga and Teunis, 2004;",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 879,
+                    "end": 902,
+                    "text": "White and Pagano, 2008)",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Although generation and serial interval distributions are often considered characteristic features of an infectious disease (Fine, 2003) , these distributions change systematically over the course of an epidemic as susceptibles are exposed to an increasing number of infectives (Svensson, 2007; Kenah et al., 2008) . Given that i infected j, i must have infected j before anyone else. Generation and serial intervals contract because of this competition among infectives to infect the remaining susceptibles. When transmission is rapid within households or schools, generation and serial interval contraction can occur even when the global prevalence of infection is low. Statistical methods based on generation or serial interval distributions fail to account for competing risks of infection from multiple sources.",
+            "cite_spans": [
+                {
+                    "start": 124,
+                    "end": 136,
+                    "text": "(Fine, 2003)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 278,
+                    "end": 294,
+                    "text": "(Svensson, 2007;",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 295,
+                    "end": 314,
+                    "text": "Kenah et al., 2008)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "If there is no rapid transmission within small groups, the generation interval distribution is stable very early in an epidemic, when most new infections have been exposed to only one infective. However, the assumption that generation intervals are independent and identicallydistributed (iid) severely constrains the underlying epidemic model. Consider a model with only two people, i and j. Upon infection, there is a constant hazard \u03bb of infectious contact. The infectious period is with probability p or with probability q = 1 -p. If person i is infected and person j is susceptible, the generation interval X has the probability density function (pdf) where 1 S equals one if S is true and zero otherwise. Now suppose i can transmit infection to a second susceptible k, and assume that transmission between j and k cannot occur (to avoid generation interval contraction). The generation interval Y from i to k has the pdf g(y). However, the joint pdf of X and Y is because the infectious period of i is either or , not both. X and Y are independent if and only if p = 0 or q = 0. A similar result holds for the latent period from infection to the onset of infectiousness. Suppose i has infectious period \u03b9 and becomes infectious immediately with probability p or after a latent period \u03b5 > 0 with probability q = 1 -p. Then X and Y each have the pdf but their joint pdf is Again, X and Y are independent if and only if p = 0 or q = 0. In general, statistical methods based on iid generation intervals implicitly require constant latent and infectious periods. When serial intervals are used as a proxy for generation intervals, a constant incubation period (from infection to symptom onset) is also required.",
+            "cite_spans": [
+                {
+                    "start": 651,
+                    "end": 656,
+                    "text": "(pdf)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Much of the trouble with generation and serial intervals is caused by conditioning on the transmission of infection. Kenah (2011) outlined an alternative analysis of epidemic data based on contact intervals. The contact interval \u03c4 ij from an infectious person i to a susceptible person j is the time from the onset of infectiousness in i to the first infectious contact from i to j, where we define infectious contact as a contact sufficient to infect a susceptible individual. It will be right-censored if j is infected by someone other than i or if i stops being infectious before making infectious contact with j. This censoring is handled using methods adapted from survival analysis. The distribution of \u03c4 ij provides a concise summary of the evolution of infectiousness over time in person i because its hazard function equals the hazard of infectious contact from i to j while i is infectious. Likelihoods written in terms of contact intervals improve on likelihoods based on generation or serial intervals by using information contributed by uninfected person-time and accounting for exposure to multiple infectives. They improve on chain-binomial models by allowing the use of continuous time, which more accurately re ects the data-generating mechanism underlying infectious disease data. This paper outlines the nonparametric survival analysis of epidemic data based on contact intervals. The rest of Section 1 defines the general stochastic Susceptible-Exposed-Infectious-Removed (SEIR) model, outlines assumptions about the censoring and observation processes, and discusses the application of these methods to Susceptible-Infectious-Removed (SIR) models. Section 2 outlines the Nelson-Aalen and marginal Nelson-Aalen estimators for infectious disease data. Section 2.1 shows that the Nelson-Aalen estimator produces an unbiased estimate of the cumulative hazard function of the contact interval distribution when who-infects-whom is observed. Section 2.2 describes an expectation-maximization (EM) algorithm that can produce a nonparametric maximum likelihood estimate (MLE) of this cumulative hazard function when who-infects-whom is not observed. Section 3 explores the performance of these estimators in simulations, and Section 4 uses them to analyze household surveillance data from the 2009 in uenza A(H1N1) pandemic. Section 5 discusses the limitations, advantages, and future development of these methods.",
+            "cite_spans": [
+                {
+                    "start": 117,
+                    "end": 129,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Consider a closed population of n individuals assigned indices 1,. . .,n. Each individual is in one of four possible states: susceptible (S), exposed (E), infectious (I), or removed (R). Person i moves from S to E at his or her infection time t i , with t i = \u221e if i is never infected. After infection, i has a latent period of length \u03b5 i during which he or she is infected but not infectious. At i's infectiousness onset time t i + \u03b5 i , i moves from E to I, beginning an infectious period of length . At his or her removal time , i moves from I to R. Once in R, i can no longer infect others or be infected. The latent period is a nonnegative random variable, the infectious period is a strictly positive random variable, and both have nite mean and variance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic SEIR model"
+        },
+        {
+            "text": "After becoming infectious at time t i +\u03b5 i , person i makes infectious contact with j \u2260 i at time , where the infectious contact interval is a strictly positive random variable with if infectious contact never occurs. We define infectious contact to be sufficient to cause infection in a susceptible person, so t j \u2264 t ij . Since infectious contact must occur while i is infectious or never, .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic SEIR model"
+        },
+        {
+            "text": "For each ordered pair ij, let C ij = 1 if infectious contact1from i to j is possible and C ij = 0 otherwise. We assume that the infectious contact interval is generated as follows: A contact interval \u03c4 ij is drawn from a distribution with hazard function \u03bb ij (\u03c4). If and C ij = 1, then . Otherwise, . In this paper, we assume that the contact intervals in all ordered pairs ij are independent and identically distributed (iid) with nite mean and variance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Stochastic SEIR model"
+        },
+        {
+            "text": "An epidemic begins with one or more persons infected from outside the population, which we call imported infections. Imported infections can also occur while an epidemic is ongoing. To avoid modeling the process of infection from outside the population, we assume the set of imported infections is known. Following Wallinga and Teunis (2004) , let v j denote the index of the person who infected person j, with v j = 0 for imported infections and v j = \u221e if j is not infected before the end of observation. The transmission network is the directed network with an edge from v j to j for each infected j. It can be represented by a vector v = (v 1 ,...,v n ). When who-infects-whom is not observed, let denote the set of all i who might have infected j, which we call the infectious set of j. Let denote the set of all possible v consistent with the observed data. can be generated by choosing a for each infected j.",
+            "cite_spans": [
+                {
+                    "start": 315,
+                    "end": 341,
+                    "text": "Wallinga and Teunis (2004)",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Stochastic SEIR model"
+        },
+        {
+            "text": "Throughout this paper, we assume that we can observe \u03c4 ij only if j is infected by i at time t i + \u03b5 i + \u03c4 ij . C ij indicates whether infectious contact from i to j is possible, so \u03c4 ij can be observed only if C ij = 1. Three processes can right-censor \u03c4 ij : a. Let indicate whether i remains infectious at infectiousness age \u03c4. Then i makes infectious contact with j at infectiousness age \u03c4 ij only if . Since is independent of \u03c4 ij , independently censors \u03c4 ij .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Censoring and observation"
+        },
+        {
+            "text": "b. Let indicate whether j remains susceptible when i reaches infectiousness age \u03c4. Then j can be infected by i at infectiousness age \u03c4 ij only if . Since \u03c4 ij is unaffected by infectious contact with j by infectives other than i, independently censors \u03c4 ij .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Censoring and observation"
+        },
+        {
+            "text": "c. Assume that infection in j can be observed until a time T j chosen independently of \u03c4 ij , and let . Then infectious contact from i to j at infectiousness age \u03c4 ij can be observed only if , and independently censors \u03c4 ij .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Censoring and observation"
+        },
+        {
+            "text": "Since , , and are left-continuous,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Censoring and observation"
+        },
+        {
+            "text": "is a left-continuous process that indicates the risk of an observed infectious contact from i to j. Since , , and independently censor \u03c4 ij , so does Y ij (\u03c4). Some independence assumptions made for , , and can be relaxed without destroying the independent censoring of \u03c4 ij ; see Appendix A.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Censoring and observation"
+        },
+        {
+            "text": "The purpose of the latent period in SEIR model is to allow a random waiting time before the beginning of infectiousness. Biologically, this corresponds to a period during which the infection is establishing itself in its host but unable to jump to another host. The methods of this paper also apply to Susceptible-Infectious-Removed (SIR) models, which have no latent period. The equations in this paper can be adapted to an SIR model by setting \u03b5 i = 0 for all i.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SIR models"
+        },
+        {
+            "text": "In particular, the infectiousness age of i at time t becomes t t i .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SIR models"
+        },
+        {
+            "text": "An SEIR model with a fixed latent period \u03b5 can be rewritten as an SIR model with \u03bb 0 (\u03c4) = 0 for \u03c4 \u2208 (0, \u03b5]. If the latent period is assumed to be fixed but unknown, using an SIR model instead of an SEIR model removes the need to observe the latent period in infected individuals. When the latent period varies between individuals, the SEIR model cannot be rewritten as an SIR model with a single function \u03bb 0 (\u03c4) describing the evolution of infectiousness over time.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SIR models"
+        },
+        {
+            "text": "In this sense, the SEIR model is more general than the SIR model. In practice, SIR models may be biologically plausible for many infectious diseases.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SIR models"
+        },
+        {
+            "text": "In this section, we extend the Nelson-Aalen estimator (Altshuler, 1970; Nelson, 1972; Aalen, 1978) to get two nonparametric estimators of the cumulative hazard function of the contact interval distribution. We assume that the contact interval distribution is continuous with the hazard function \u03bb 0 (\u03c4) and the cumulative hazard function (2) We call \u03c4 the infectiousness age. By the de nition of the contact interval, \u03bb 0 (\u03c4) is the hazard of infectious contact from an infective i at infectiousness age \u03c4 to any given j such that C ij = 1. The hazard of infectious contact is a familiar idea in infectious disease epidemiology. The contact interval distribution is simply the distribution defined by this hazard function. This change of perspective makes survival analysis a natural framework for the analysis of infectious disease data.",
+            "cite_spans": [
+                {
+                    "start": 54,
+                    "end": 71,
+                    "text": "(Altshuler, 1970;",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 72,
+                    "end": 85,
+                    "text": "Nelson, 1972;",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 86,
+                    "end": 98,
+                    "text": "Aalen, 1978)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 338,
+                    "end": 341,
+                    "text": "(2)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "To derive parametric estimators of the contact interval distribution, Kenah (2011) used counting processes and martingales defined in absolute time. To derive nonparametric estimators, we use counting processes and martingales defined in infectiousness age. Whereas absolute-time processes are defined for all ordered pairs ij, infectiousness-age processes are defined only for those ij in which t i < \u221e. This change of time scale is allowed because the distribution of the contact interval \u03c4 ij does not depend on the infection time t i of i.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "In Section 2.1, we show that the Nelson-Aalen estimator generates an unbiased estimate of \u039b 0 (\u03c4) when who-infects-whom is observed. When who-infects-whom is not observed, we average the Nelson-Aalen estimates from all to get a marginal Nelson-Aalen estimator, which we describe in Section 2.2. Since the probability of each is unknown, we use an EM algorithm (Dempster et al., 1977) to iteratively reweight each possible v, obtaining a sequence of marginal Nelson-Aalen estimates that converges to a nonparametric MLE of \u039b 0 (\u03c4). This method adapts easily to a situation where who-infects-whom is partially observed. In Section 2.3, we derive approximate estimators for mass-action SEIR models.",
+            "cite_spans": [
+                {
+                    "start": 360,
+                    "end": 383,
+                    "text": "(Dempster et al., 1977)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Methods"
+        },
+        {
+            "text": "First, suppose there is no censoring, so we observe the contact interval in each ordered pair ij after the onset of infectiousness in i. Then is a counting process with a jump of size one at \u03c4 ij , and (4) is a zero-mean martingale. In the presence of censoring, we have the observed counting process (5) and the counting-process martingale (6) The combined observations of all ij for a fixed j give us the counting process (7) which has a jump of size one at \u03c4 = t j -t v j -\u03b5 v j if j is infected. Since it is a sum of zero-mean martingales,",
+            "cite_spans": [
+                {
+                    "start": 301,
+                    "end": 304,
+                    "text": "(5)",
+                    "ref_id": null
+                },
+                {
+                    "start": 341,
+                    "end": 344,
+                    "text": "(6)",
+                    "ref_id": null
+                },
+                {
+                    "start": 424,
+                    "end": 427,
+                    "text": "(7)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": "is a zero-mean martingale, where (9) is the number of infectives who could made an observed infectious contact with j at infectiousness age \u03c4. The combined observations of all j give us the counting process (10) which counts the number of observed infectious contacts occurring at infectiousness age \u2264 \u03c4.",
+            "cite_spans": [
+                {
+                    "start": 33,
+                    "end": 36,
+                    "text": "(9)",
+                    "ref_id": null
+                },
+                {
+                    "start": 207,
+                    "end": 211,
+                    "text": "(10)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": "Since it is a sum of zero-mean martingales,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": "is a zero-mean martingale, where (12) is the total number of contact intervals of length \u2265\u03c4 that were observed. Note that Y (\u03c4) is leftcontinuous and monotonically decreasing, as are Y ij (\u03c4) and Y .j (\u03c4).",
+            "cite_spans": [
+                {
+                    "start": 33,
+                    "end": 37,
+                    "text": "(12)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": "We are now ready to show that the standard Nelson-Aalen estimator produces an unbiased estimate of \u039b 0 (\u03c4). The Nelson-Aalen estimate of \u039b 0 (\u03c4) is (13) Let , and let . Then (14) is a zero-mean martingale. Therefore, is an unbiased estimate of \u039b 0 (\u03c4) for . In addition to being unbiased, maximizes the log likelihood (15) over all step functions \u039b(\u03c4) and is asymptotically efficient (Van der Vaart, 1998). For",
+            "cite_spans": [
+                {
+                    "start": 148,
+                    "end": 152,
+                    "text": "(13)",
+                    "ref_id": null
+                },
+                {
+                    "start": 318,
+                    "end": 322,
+                    "text": "(15)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": ", an unbiased estimate of is (16) which is the optional variation process of (14). Using the martingale central limit theorem and a log transformation, we get the approximate pointwise 1 -\u03b1 confidence limits (17) where \u03a6 is the cumulative distribution function of the standard normal distribution. This confidence interval is valid for \u03c4 at which Y (\u03c4) is large; see Appendix B.",
+            "cite_spans": [
+                {
+                    "start": 29,
+                    "end": 33,
+                    "text": "(16)",
+                    "ref_id": null
+                },
+                {
+                    "start": 208,
+                    "end": 212,
+                    "text": "(17)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": "A Kaplan-Meier estimate (Kaplan and Meier, 1958) of the survival function of the contact interval distribution can be obtained from the increments of the Nelson-Aalen estimate using the product integral (Kalbfleisch and Prentice, 2002; Aalen et al., 2009): (18) with the approximate pointwise 1 -\u03b1 log confidence limits (19) ",
+            "cite_spans": [
+                {
+                    "start": 24,
+                    "end": 48,
+                    "text": "(Kaplan and Meier, 1958)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 203,
+                    "end": 235,
+                    "text": "(Kalbfleisch and Prentice, 2002;",
+                    "ref_id": null
+                },
+                {
+                    "start": 236,
+                    "end": 261,
+                    "text": "Aalen et al., 2009): (18)",
+                    "ref_id": null
+                },
+                {
+                    "start": 320,
+                    "end": 324,
+                    "text": "(19)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is observed"
+        },
+        {
+            "text": "Now suppose that we can observe infection but not who-infects-whom. We cannot calculate the Nelson-Aalen estimate because we do not know which contact intervals end in infectious contact and which are censored. However, (20) by the law of iterated expectation, so we can still obtain an unbiased estimate of \u039b 0 (\u03c4). Let denote the value of that we would have calculated had we observed the transmission network v. Then (21) is an unbiased estimate of \u039b 0 (\u03c4) for . This is the marginal Nelson-Aalen estimator.",
+            "cite_spans": [
+                {
+                    "start": 220,
+                    "end": 224,
+                    "text": "(20)",
+                    "ref_id": null
+                },
+                {
+                    "start": 420,
+                    "end": 424,
+                    "text": "(21)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "For each , we can calculate Pr(v|observed data) if we know \u03bb 0 (\u03c4) (Kenah et al., 2008) .",
+            "cite_spans": [
+                {
+                    "start": 67,
+                    "end": 87,
+                    "text": "(Kenah et al., 2008)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "Given that j is infected at time t j , the probability that j was infected by person i is p ij (\u03bb 0 ), where",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "For any hazard function \u03bb(\u03c4), the probability of a transmission network v = (v 1 ,...,v n ) given the observed data and \u03bb is (23) so the infector of each infected j can be chosen independently of all v i , i \u2260 j. Equations (22) and (23) assume a continuous contact interval distribution, which ensures that simultaneous infectious contacts have probability zero.",
+            "cite_spans": [
+                {
+                    "start": 125,
+                    "end": 129,
+                    "text": "(23)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "A marginal Nelson-Aalen estimate can be calculated using a known or estimated \u03bb(\u03c4). We outline this calculation and then use it as the basis of an EM algorithm that converges to a nonparametric MLE of \u039b 0 (\u03c4). Let (24) be the cadlag (right-continuous with left-hand limits) step function with a jump of size p ij (\u03bb) at \u03c4 = t j -t i -\u03b5 i for each . Now let (25) By equations (21) through (23), the marginal Nelson-Aalen estimate given \u03bb(\u03c4) is (26) If \u03bb(\u03c4) = \u03bb 0 (\u03c4), this is an unbiased estimate of \u039b0(\u03c4) for each . Though it would be pointless to calculate if we knew \u03bb 0 (\u03c4), equation (26) can be used in the following EM algorithm:",
+            "cite_spans": [
+                {
+                    "start": 214,
+                    "end": 218,
+                    "text": "(24)",
+                    "ref_id": null
+                },
+                {
+                    "start": 357,
+                    "end": 361,
+                    "text": "(25)",
+                    "ref_id": null
+                },
+                {
+                    "start": 443,
+                    "end": 447,
+                    "text": "(26)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "a. Begin with an initial \u03bb (0) (\u03c4), which could be a constant (equivalent to assuming exponential contact intervals) or a parametric estimate. Calculate an initial marginal",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "Nelson-Aalen estimate. . Set k = 0. e. Repeat the smoothing step (b), the E-step (c) and the M-step (d) until the sequence converges.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "The limit of this sequence is the marginal Nelson-Aalen estimate .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "To show that this is an EM algorithm, we must prove that increases the expected log likelihood given \u03bb (k) (\u03c4). Averaging the log likelihood from equation (15) over all using the infector probabilities p ij (\u03bb (k) ), we get (27) Differentiating with respect to d\u039b(t j -t i -\u03b5 i ), we find that is maximized by (28) exactly as in . Therefore, maximizes the expected log likelihood given",
+            "cite_spans": [
+                {
+                    "start": 224,
+                    "end": 228,
+                    "text": "(27)",
+                    "ref_id": null
+                },
+                {
+                    "start": 310,
+                    "end": 314,
+                    "text": "(28)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": ". At convergence, we have equality. In this sense, the EM algorithm converges to a self-consistent nonparametric estimate of \u039b 0 (\u03c4).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "The variance of can be estimated using the conditional variance formula.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "Conditioning on the transmission network v, we get (29) where is the Nelson-Aalen estimate from equation (13) and is the variance estimate from equation (16) that we would have calculated had we observed the transmission network v. Let denote the hazard function estimate corresponding to , and let . The first term of equation (29) reduces to (30) Appendix C shows that the second term reduces to (31) where . Therefore,",
+            "cite_spans": [
+                {
+                    "start": 51,
+                    "end": 55,
+                    "text": "(29)",
+                    "ref_id": null
+                },
+                {
+                    "start": 344,
+                    "end": 348,
+                    "text": "(30)",
+                    "ref_id": null
+                },
+                {
+                    "start": 398,
+                    "end": 402,
+                    "text": "(31)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "Using the martingale central limit theorem and a log transformation, we get the approximate pointwise 1 -\u03b1 confidence limits (33) This confidence interval is valid for \u03c4 where Y(\u03c4) is large. Since Y(\u03c4) does not depend on whoinfected-whom, the martingale central limit theorem should hold for under conditions very similar to those required for the Nelson-Aalen estimate ; see Appendix B.",
+            "cite_spans": [
+                {
+                    "start": 125,
+                    "end": 129,
+                    "text": "(33)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "A marginal Kaplan-Meier estimator of the contact interval survival function can be obtained from the increments of the marginal Nelson-Aalen estimator using the product integral (Kalbfleisch and Prentice, 2002; Aalen et al., 2009): (34) with the approximate pointwise 1 -\u03b1 log confidence limits (35) 2.2.1. Partially-observed transmission networks-Suppose we observe the infectors of a subset of all infected persons. For each j with an observed v j , let \u00d1 .j (\u03c4) = N vjj (\u03c4). Taking for these j, equations (21) through (26) define a marginal Nelson-Aalen estimator that takes this additional information into account. With these changes, equations (32) and (33) can be used to get confidence intervals.",
+            "cite_spans": [
+                {
+                    "start": 178,
+                    "end": 210,
+                    "text": "(Kalbfleisch and Prentice, 2002;",
+                    "ref_id": null
+                },
+                {
+                    "start": 211,
+                    "end": 236,
+                    "text": "Aalen et al., 2009): (34)",
+                    "ref_id": null
+                },
+                {
+                    "start": 295,
+                    "end": 299,
+                    "text": "(35)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Nonparametric estimation when who-infects-whom is not observed"
+        },
+        {
+            "text": "the EM algorithm is nontrivial. In general, the increments of . cannot be used directly as \u03bb (k+1) (\u03c4). To see this, consider an infected person j. For each , let denote the estimated probability that i infected j in the k th iteration of the EM algorithm, with denoting the initial estimate. After the first iteration, we get . After k iterations,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimating the hazard function-Obtaining"
+        },
+        {
+            "text": "Since Y(\u03c4) is decreasing in \u03c4, the EM algorithm would converge to a marginal Nelson-Aalen estimate where the with the longest \u03c4 ij is assigned probability one of being v j . This problem arises because equation (22) assumes a continuous contact interval distribution. Since the contact interval distribution is continuous, the intervals between the increments are used of contain information about \u03bb(\u03c4) that is ignored if these increments are used directly as an estimate of \u03bb(\u03c4). Therefore, obtaining \u03bb (k+1) (\u03c4) from requires some form of smoothing. The algorithm depends on the smoothed estimate of \u03bb(\u03c4) only to calculate the probabilities p ij in equation (22), so it is not highly sensitive to the smoothing method used. In our experience, cubic smoothing splines and kernel smoothers produce nearly identical results.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Estimating the hazard function-Obtaining"
+        },
+        {
+            "text": "In a mass-action model, C ij = 1 for all ordered pairs ij but the hazard of infectious contact is inversely proportional to the population size n. If \u039b n (\u03c4) is the cumulative hazard function of the contact interval distribution in a population of size n, then (37) where we call \u039b * (\u03c4) the normalized cumulative hazard function of the contact interval distribution. With knowledge of n, the methods of the previous two sections could be used to estimate \u039b n (\u03c4) and \u039b * (\u03c4). In Kenah (2011), it was shown that the full parametric likelihoods for mass-action SEIR models can be approximated by likelihoods that depend only on data about infected individuals. Here, we derive approximate nonparametric estimates of \u039b * (\u03c4) that depend only on data about infected individuals. For a fixed number m of infections, these approximations become exact in the limit as n \u2192 \u221e. Thus, they can be used to analyze data from the early stages of an epidemic, when .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "Until now, we have assumed that each ordered pair ij is under observation as long as infection in j can be observed. Since everyone can infect everyone else in a mass-action model, it is simplest to assume that the entire population remains under observation until a time T . Then depends only on i, so let (38) Since C ij = 1 for all ij,",
+            "cite_spans": [
+                {
+                    "start": 307,
+                    "end": 311,
+                    "text": "(38)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "by equations (1), (9), and (12). Let denote the number of infectives who remain infectious and under observation at infectiousness age \u03c4. Then (40) for all because for all i.",
+            "cite_spans": [
+                {
+                    "start": 143,
+                    "end": 147,
+                    "text": "(40)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "Let be the Nelson-Aalen estimate of \u039b(\u03c4) obtained in a population of size n when whoinfects-whom is observed, and let (41) Since we assume , Y u) > 0 if and only if Y * (u) > 0. Therefore,",
+            "cite_spans": [
+                {
+                    "start": 118,
+                    "end": 122,
+                    "text": "(41)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "so for a fixed m as n \u2192 \u221e . Since is a consistent estimator of \u039b n (\u03c4), this impiles that is a consistent estimator of \u039b * (\u03c4), where we take limits first as n \u2192 \u221e and then as m \u2192 \u221e. Similarly,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "is a consistent estimate of the variance of . Using the martingale central limit theorem and a log transformation, we get the asymptotic 1 -\u03b1 confidence limits (44) This confidence interval is valid for \u03c4 such that Y * (\u03c4) is large. A Kaplan-Meier estimate can be obtained from the increments of using the product integral, and log confidence limits can be obtained using the multiplier in equation (44).",
+            "cite_spans": [
+                {
+                    "start": 160,
+                    "end": 164,
+                    "text": "(44)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "When who-infects-whom is not observed, we have the approximate marginal Since the probabilities p ij in equation (22) where . The asymptotic 1 -\u03b1 confidence limits are (47) This confidence interval is valid for \u03c4 such that Y * (\u03c4) is large. A marginal Kaplan-Meier estimate can be obtained from the increments of using a product integral, and log confidence limits can be obtained using the multiplier in equation (47).",
+            "cite_spans": [
+                {
+                    "start": 168,
+                    "end": 172,
+                    "text": "(47)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Approximate Nelson-Aalen estimates for mass-action SEIR models"
+        },
+        {
+            "text": "To evaluate the performance of the methods from Section 2, we conducted simulations of network-based and mass-action epidemics. In each simulation, we used data on the first 1,000 infections from an epidemic in a population of 100,000 to calculate the Nelson-Aalen and marginal Nelson-Aalen estimates of \u039b 0 (\u03c4) and the Kaplan-Meier and marginal Kaplan-Meier estimates of the corresponding survival function. For each of these estimators, we looked at whether the confidence interval contained the true value of the estimated function at the 5 th , 10 th , 25 th , 50 th , 75 th , 90 th , and 95 th percentiles of all possible (i.e., censored and uncensored) contact intervals. After 1,000 simulations, we calculated the coverage probability for each estimator at each quantile. For each coverage probability, we calculated an exact 95% confidence interval.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Simulations"
+        },
+        {
+            "text": "All models had a latent period of zero and an exponential infectious period with mean one. The smoothing step of the EM algorithm was done via an inverse-variance weighted cubic smoothing spline with a smoothing parameter chosen by generalized cross-validation (Wegman and Wright, 1983) . Convergence of the EM algorithm was monitored by calculating the mean of absolute value of the differences between the current and previous marginal Nelson-Aalen estimates at the 5 th , 10 th , 15 th ,. . . , 85 th , 90 th , and 95 th percentiles of all possible contact intervals. We call this the L1 difference. All EM algorithms began by assigning equal probability to all possible transmission networks, which is equivalent to assuming an exponential contact interval distribution. We ran the algorithm for a minimum of 5 iterations, and it was continued until an L1 difference less than a speci ed tolerance was achieved or the 50 th iteration was completed.",
+            "cite_spans": [
+                {
+                    "start": 261,
+                    "end": 286,
+                    "text": "(Wegman and Wright, 1983)",
+                    "ref_id": "BIBREF38"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Simulations"
+        },
+        {
+            "text": "All epidemic models were written in Python (www.python.org) using the NumPy and SciPy packages (www.scipy.org). For network-based models, our contact networks were generated using the NetworkX package (networkx.lanl.gov). Statistical analysis was conducted in R (www.r-project.org) via the RPy2 package (rpy.sourceforge.net). The code for the models and estimators is available as Online Supplementary Information.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Simulations"
+        },
+        {
+            "text": "In all network-based simulations, the contact network was a Watts-Strogatz small-world network (Watts and Strogatz, 1998) , which mimics the high clustering and low diameter of real human contact networks. Starting with a ring of 100,000 nodes, each node was connected to its 10 nearest neighbors. Each edge was then rewired to a randomly chosen node with probability .1, so 34.9% of nodes are connected only to their ten nearest neighbors, 38.7% have one long-distance edge, 19.4% have two, 5.7% have three, and 1.3% have four or more. Since this network structure gave us high clustering, infected nodes typically had several possible infectors. A new contact network was built for each simulation, so the results do not re ect the idiosyncrasies of any particular network realization.",
+            "cite_spans": [
+                {
+                    "start": 95,
+                    "end": 121,
+                    "text": "(Watts and Strogatz, 1998)",
+                    "ref_id": "BIBREF37"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Network-based simulations"
+        },
+        {
+            "text": "We used Weibull(.5, 1), exponential(1), and Weibull(2, 1) contact interval distributions, where Weibull(s; r) denotes a Weibull distribution with shape parameter s and rate parameter r. The corresponding cumulative hazard functions are:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network-based simulations"
+        },
+        {
+            "text": "Note that the exponential(1) distribution is the same as the Weibull(1, 1) distribution. The hazard of infectious contact decreases throughout the infectious period in the Weibull(.5, 1) case, remains constant in the exponential(1) case, and increases in the Weibull(2, 1) case.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network-based simulations"
+        },
+        {
+            "text": "The L1 tolerance for the EM algorithm was set to .0005. This was approximately the minimum tolerance consistently achieved by the EM algorithm before the L1 differences became a seemingly chaotic sequence of small numbers.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network-based simulations"
+        },
+        {
+            "text": "The EM algorithm for the marginal Nelson-Aalen estimate converged easily in all simulations. For models with exponential(1) contact intervals, the desired tolerance was achieved within 5 iterations for all models. For Weibull(.5, 1) contact intervals, the maximum number of iterations was 6. For the Weibull(2, 1) contact intervals, the maximum was 8. Table  1 shows the coverage probabilities and exact 95% confidence intervals for the Nelson-Aalen, marginal Nelson-Aalen, Kaplan-Meier, and marginal Kaplan-Meier estimators in models with Weibull(.5, 1) and Weibull(2, 1) contact interval distributions. Coverage probabilities for the Nelson-Aalen and Kaplan-Meier estimators were close to .95 across the range of available data for both models. Coverage probabilities for the marginal Nelson-Aalen and Kaplan-Meier estimators were slightly lower but above .90 in all cases. Coverage probabilities for the model with exponential contact intervals were above .93 for all estimators and data quantiles (not shown). Figures 1 and 2 show good agreement between the estimated and true cumulative hazard and survival functions of the contact interval distribution across the range of available data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 352,
+                    "end": 360,
+                    "text": "Table  1",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 1014,
+                    "end": 1029,
+                    "text": "Figures 1 and 2",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "For mass-action models, we used Weibull(.5, 5), exponential(2), and Weibull(2, 1) normalized contact interval distributions. The corresponding cumulative hazard functions are:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mass-action simulations"
+        },
+        {
+            "text": "In a mass-action model, a Weibull(.5, 1) distribution for the normalized contact interval distribution produces R 0 = .89, so no epidemics occur. Changing the rate parameter to 5 produces R 0 = 1.98, which is very close to the R 0 = 2 of the other two models. The hazard of infectious contact decreases throughout the infectious period in the Weibull(.5, 5) case, remains constant in the exponential(1) case, and increases in the Weibull(2, 1) case.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mass-action simulations"
+        },
+        {
+            "text": "The L1 tolerance for the EM algorithm was set to .005. This was approximately the minimum tolerance consistently achieved by the EM algorithm before the L1 differences became a chaotic sequence of small numbers.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Mass-action simulations"
+        },
+        {
+            "text": "The EM algorithm for the marginal Nelson-Aalen estimate took longer to converge for mass-action models than for network-based models, despite the greater tolerance. For models with exponential contact intervals, the maximum number of iterations was 19. For Weibull(2, 1) contact intervals, the maximum was 29. For Weibull(.5, 5) contact intervals, the maximum was 32. Table 2 shows coverage probabilities and exact 95% confidence intervals for the Nelson-Aalen, marginal Nelson-Aalen, Kaplan-Meier, and marginal Kaplan-Meier estimators in models with Weibull(.5, 5) and Weibull(2, 1) normalized contact interval distributions. Coverage probabilities for the Nelson-Aalen and Kaplan-Meier estimators were close to .95 across the range of available data for both models. In contrast, the marginal Nelson-Aalen and Kaplan-Meier estimators were spectacular failures. Figures 3 and 4 show good agreement between the estimated and true survival and cumulative hazard functions when who-infectswhom is observed (left) but poor agreement when who-infects-whom is not observed (right).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 368,
+                    "end": 375,
+                    "text": "Table 2",
+                    "ref_id": "TABREF3"
+                },
+                {
+                    "start": 863,
+                    "end": 878,
+                    "text": "Figures 3 and 4",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "The number of possible infectors for each infection is much larger in a mass-action model than in a network-based model. This could cause problems for the EM algorithm in several ways. It is possible that the EM algorithm works but converges very slowly. Slow convergence may be overwhelmed by numerical instability, or the iterations may have been stopped prematurely. It is also possible that the asymptotic approximation to the EM algorithm is not itself an EM algorithm. Whatever the reason, the marginal Nelson-Aalen estimator does not work for massaction models. Fortunately, the approximate parametric likelihoods for mass-action models in Kenah (2011) work well even when who-infects-whom is not observed.",
+            "cite_spans": [
+                {
+                    "start": 647,
+                    "end": 659,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "In this section, we use the marginal Nelson-Aalen estimator to analyze pandemic in uenza A (H1N1) (pH1N1) surveillance data collected by the Los Angeles County Department of Public Health between April 22 and May 19, 2009. The data was collected according to the following protocol a. Individuals who presented to healthcare providers or the county health department with acute febrile respiratory illness (AFRI, defined as fever \u2265100\u00b0F plus cough, sore throat, or runny nose) had nasopharyngeal swabs and aspirates tested for pandemic in uenza A(H1N1). Those who tested positive are the index cases.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data analysis: Pandemic influenza A(H1N1) in Los Angeles County, 2009"
+        },
+        {
+            "text": "b. The index cases were interviewed by telephone and asked to report AFRI episodes among household contacts, including dates of illness onset. Additional AFRI episodes among household contacts were ascertained during follow-up interviews 14 days after the illness onset of the index case. All cases of AFRI in the household after 10 days prior to symptom onset in the index case were assumed to be pH1N1 cases. The earliest pH1N1 case in each household is the primary case; this is usually (but not always) the index case.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data analysis: Pandemic influenza A(H1N1) in Los Angeles County, 2009"
+        },
+        {
+            "text": "There were 58 households with a total of 299 members. In these households, there were 62 primary cases (four households had co-primary cases) and 35 secondary cases. In 51 of the 58 households, the index case was a primary case. This is a good example of household surveillance data from the early stages of an epidemic.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Data analysis: Pandemic influenza A(H1N1) in Los Angeles County, 2009"
+        },
+        {
+            "text": "As in the simulations, our goal is to estimate the cumulative hazard function of the contact interval distribution. We compare the marginal Nelson-Aalen estimate with parametric estimates obtained using the methods from Kenah (2011) . We use the corresponding marginal Kaplan-Meier estimate to estimate the probability that an infected person makes infectious contact with a given household member during his or her infectious period, which we call the household infectious contact probability.",
+            "cite_spans": [
+                {
+                    "start": 220,
+                    "end": 232,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Data analysis: Pandemic influenza A(H1N1) in Los Angeles County, 2009"
+        },
+        {
+            "text": "Our natural history assumptions are adapted from Yang et al. (2009) . In the primary analysis, we assumed an incubation period of 2 days, a latent period of 0 days, and an infectious period of 6 days. This means that a person i with onset of symptoms on day is infected on day , has onset of infectiousness on day t i , and recovers from infectiousness on day t i + 6. In discrete time, the first day on which i is able to infect other persons is the day after his or her onset of infectiousness, which is under our assumptions. If day 0 is the infection time, then we have the first secondary transmissions on day 1, the onset of symptoms on day 2, and removal on day 6. In a sensitivity analysis, we vary the incubation period from 1 day to 3 days, the infectious period from 5 days to 7 days, and the latent period from 0 days to 1 day. Figure 5 shows the marginal Nelson-Aalen estimate of the cumulative hazard function of the contact interval distribution, along with approximate 95% confidence limits and parametric estimates assuming exponential and Weibull contact interval distributions. A cumulative hazard estimate assuming a gamma contact interval distribution (not shown) was almost exactly the same as that assuming a Weibull distribution.",
+            "cite_spans": [
+                {
+                    "start": 49,
+                    "end": 67,
+                    "text": "Yang et al. (2009)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 840,
+                    "end": 848,
+                    "text": "Figure 5",
+                    "ref_id": null
+                }
+            ],
+            "section": "Data analysis: Pandemic influenza A(H1N1) in Los Angeles County, 2009"
+        },
+        {
+            "text": "The exponential, Weibull, and marginal Nelson-Aalen point estimates of the cumulative hazard at 6 days post-infection are .0687, .0692, and .0729, respectively. The corresponding survival probabilities are .9334, .9331, and .9296. Thus, all three estimates indicate a household infectious contact probability of .07 over the course of the infectious period. The approximate 95% confidence interval for the marginal Nelson-Aalen estimate is (.0503, .1056) . The corresponding 95% confidence interval for the marginal Kaplan-Meier estimate of the survival probability is (.8997, .9509). Therefore, our nonparametric estimate of the household infectious contact probability is .07 (.05, .10).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 440,
+                    "end": 454,
+                    "text": "(.0503, .1056)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "While the nonparametric and parametric estimates agree on the household infectious contact probability, they differ in their estimates of distribution of infectiousness over time. The exponential estimate inherently predicts a constant hazard of infectious contact over the entire infectious period. The Weibull estimate also predicts little variation in the hazard of infectious contact over the infectious period, with slightly lower infectiousness near the beginning and slightly higher infectiousness near the end. The marginal Nelson-Aalen curve has much larger jumps on days 1, 2, and 3 following infection than on days 5 and 6, which places the highest infectiousness on the day prior to, the day of, and the day after the onset of symptoms. According to this estimate, only 12% of infectious contacts occur > 2 days after the onset of symptoms and only 6% occur > 3 days after symptom onset. Figure 6 shows the results of a sensitivity analysis in which we vary the assumed (a) incubation period, (b) latent period, and (c) infectious period. In panel (d), we vary all three of these intervals simultaneously to generate the greatest possible variation. The results are insensitive to the incubation period and infectious period but sensitive to the latent period. However, there is good evidence that little or no transmission occurs two or more days prior to the onset of symptoms (Donnelly et al., 2011) .",
+            "cite_spans": [
+                {
+                    "start": 1391,
+                    "end": 1414,
+                    "text": "(Donnelly et al., 2011)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 900,
+                    "end": 908,
+                    "text": "Figure 6",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "Our nonparametric estimate of .07 (.05, .10) for the household infectious contact probability is similar to the .06 (.03, .11) estimated using data collected by Public Health{Seattle and King County during . This estimate was obtained using a chain-binomial model to estimate the probability of infectious contact with a given household member on each day of the infectious period and then calculating the probability that infectious contact occurs at least once, making it directly comparable with our estimate.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Previous pH1N1 household data analyses"
+        },
+        {
+            "text": "It is more difficult to compare our estimated household infectious contact probability with estimates of the household secondary attack rate (SAR), which are usually obtained by calculating the proportion of all susceptible members of study households who have the onset of a given set of symptoms within a given time period relative to symptom onset in the index case. Among these estimates for pH1N1 are: .145 (.129, .164) for in uenza-like illness (ILI) within 7 days after the index case symptom onset (Carcione et al., 2011) , .13 for acute respiratory infection (ARI) and .9 for ILI within 1-9 days after the index case symptom onset (Morgan et al., 2010) , .113 (.088, .137) for ILI up to 23 days after index case symptom onset (France et al., 2010) , and .13 for ARI and .10 for ILI 7 days before or after the index case symptom onset . We did the following simulations to see if our estimated household infectious contact probability of .07 is consistent with these estimates: a. For each of the 58 households in the LA data, we simulated an epidemic using its observed number of index cases and a household infectious contact probability of . 07.",
+            "cite_spans": [
+                {
+                    "start": 506,
+                    "end": 529,
+                    "text": "(Carcione et al., 2011)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 640,
+                    "end": 661,
+                    "text": "(Morgan et al., 2010)",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 735,
+                    "end": 756,
+                    "text": "(France et al., 2010)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Previous pH1N1 household data analyses"
+        },
+        {
+            "text": "b. After the epidemics in all households completed, we calculated the proportion of all household contacts who were infected.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Previous pH1N1 household data analyses"
+        },
+        {
+            "text": "Repeating this 10,000 times, we got a mean household SAR of .12 with a bootstrap percentile 95% confidence interval of (.06, .19), which places us solidly within the range of previous household SAR estimates.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Previous pH1N1 household data analyses"
+        },
+        {
+            "text": "Our nonparametric estimate of the distribution of infectiousness over time is consistent with estimates of the serial interval distribution for pH1N1 by Donnelly et al. (2011) , who found high infectiousness on days 0, 1, and 2 following symptom onset with only 18% of transmission occurring > 2 days after the onset of symptoms and only 5% occurring > 3 days after symptom onset. A similar pattern of high infectiousness early in the infectious period was found by Cauchemez et al. (2009) , who also used a serial interval distribution. Though theoretical and practical problems with the serial interval distribution were noted in Section 1, the similarity between our results and those of Donnelly et al. (2011) and Cauchemez et al. (2009) suggests that the marginal Nelson-Aalen estimate captured an important feature of pH1N1 transmission that was missed by the parametric contact interval distribution estimates.",
+            "cite_spans": [
+                {
+                    "start": 153,
+                    "end": 175,
+                    "text": "Donnelly et al. (2011)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 466,
+                    "end": 489,
+                    "text": "Cauchemez et al. (2009)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 691,
+                    "end": 713,
+                    "text": "Donnelly et al. (2011)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 718,
+                    "end": 741,
+                    "text": "Cauchemez et al. (2009)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Previous pH1N1 household data analyses"
+        },
+        {
+            "text": "The nonparametric estimators proposed in Section 2 have many of the same limitations as the parametric estimators in Kenah (2011) and some of their own. These include:",
+            "cite_spans": [
+                {
+                    "start": 117,
+                    "end": 129,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "a. Several technical issues need further exploration. A more rigorous theoretical analysis of convergence and efficiency of the marginal Nelson-Aalen estimator, including the smoothing step, is needed. Convergence criteria need to be more carefully examined, and confidence intervals for small samples need to be developed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "We assumed that the contact interval distribution is identically distributed for all ordered pairs ij such that C ij = 1, which is unrealistic. For instance, age was found to have an effect on pH1N1 transmission in most of the papers cited in Section 4 France et al., 2010; Morgan et al., 2010; Carcione et al., 2011; , and hazards of infectious contact between household members seem to depend on the size of the household . The effects of covariates on the transmission of disease is a central concern of infectious disease epidemiology that we have not addressed here.",
+            "cite_spans": [
+                {
+                    "start": 253,
+                    "end": 273,
+                    "text": "France et al., 2010;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 274,
+                    "end": 294,
+                    "text": "Morgan et al., 2010;",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 295,
+                    "end": 317,
+                    "text": "Carcione et al., 2011;",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "b."
+        },
+        {
+            "text": "c. We have assumed that contact intervals are independent of infectious periods, which is unrealistic. Both are affected by the interaction between the host and the pathogen.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "b."
+        },
+        {
+            "text": "We have assumed that infection times, infectiousness onset times, and removal times are observed, which is unrealistic. Usually, only symptom onset times are observed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "In the analysis of the Los Angeles County household data, we were forced to assume constant latent, incubation, and infectious periods because our data included only symptom onset times. The implicit assumption of constant latent, incubation, and infectious periods in methods based on generation and serial intervals was one of our main criticisms in Section 1. The data analysis in Section 4 merely made these same assumptions explicit.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "e. The SEIR framework is limited to acute, immunizing infectious diseases that spread person-to-person, so our methods do not apply directly to tuberculosis, HIV/AIDS, foodborne and waterborne diseases, pneumococcal and meningococcal diseases, and other infectious diseases of major public health importance.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "Nonetheless, survival analysis based on contact intervals has important theoretical and practical advantages over methods based on generation or serial intervals, including greater flexibility in the underlying transmission model, greater clarity about data requirements and analytical assumptions, the use of information contributed by uninfected person-time, and validity throughout the course of an epidemic. The theory and methods of survival analysis offer many possibilities for overcoming the limitations listed above.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "The asymptotic analysis required to address limitation (a) is complicated by the smoothing step. In simulations, the performance of the marginal Nelson-Aalen estimator did not appear sensitive to the smoothing method. However, a smoother designed speci cally for hazard functions, such as that of M\u00fcller and Wang (1994) , may improve performance. Another technical limitation is that the variance estimates based on equation (29) treat the estimated transmission network probabilities as known, ignoring a component of the variance that may be important in small samples. These and other technical issues need to be resolved with more rigorous theoretical analysis and further simulation studies.",
+            "cite_spans": [
+                {
+                    "start": 297,
+                    "end": 319,
+                    "text": "M\u00fcller and Wang (1994)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "Limitation (b) can be addressed by extending the marginal Nelson-Aalen estimate into a semiparametric regression model for the effects of covariates on the hazard of infectious contact. Suppose the hazard of infectious contact from person i to person j at infectiousness age \u03c4 of i is (54) where \u03b2 is a parameter vector and X ij is a vector of infectiousness covariates for i, susceptibility covariates for j, and pairwise covariates for ij. The methods of Section 2 could be adapted to nonparametrically estimate \u03bb 0 (\u03c4) by adding a step to the EM algorithm that maximized the expected log likelihood over \u03b2. This would yield a semiparametric estimator of the effects of covariates on infectiousness and susceptibility that is similar in spirit to the Cox regression model (Cox, 1972) . In infectious disease epidemiology, these covariate effects are usually a higher priority than the distribution of infectiousness over time, so the marginal Nelson-Aalen estimator may nd its most important applications behind the scenes of this regression model.",
+            "cite_spans": [
+                {
+                    "start": 285,
+                    "end": 289,
+                    "text": "(54)",
+                    "ref_id": null
+                },
+                {
+                    "start": 774,
+                    "end": 785,
+                    "text": "(Cox, 1972)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "Limitation (c) could be addressed in two ways. The simplest would be to identify a covariate process X(\u03c4) such that and are independent given X(\u03c4 -). This covariate could be incorporated into the semiparametric regression model mentioned above. If such covariates do not exist or are not observable, multivariate survival methods could be used to estimate the joint distribution of the contact interval and the infectious period.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "The missing data problems mentioned in limitation (d) are acknowledged, not created, by using contact intervals instead of generation or serial intervals. One of the most important advantages of the statistical framework proposed in this paper is that it allows a rigorous discussion of the missing-data problems that plague infectious disease epidemiology. Unobserved infection, infectiousness onset, and removal times could be handled using a semiparametric Bayesian framework (Sinha and Dey, 1997) or a pro le sampler (Lee et al., 2005) . A semiparametric Bayesian approach would use a prior process instead of a marginal Nelson-Aalen estimator. A pro le sampler would take advantage of the fact that the marginal Nelson-Aalen estimate is an efficient numerical method of obtaining a likelihood maximized over all contact interval distributions for a given set of infection, infectiousness onset, and removal times.",
+            "cite_spans": [
+                {
+                    "start": 479,
+                    "end": 500,
+                    "text": "(Sinha and Dey, 1997)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 521,
+                    "end": 539,
+                    "text": "(Lee et al., 2005)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "Limitation (e) could be addressed by allowing individuals to experience multiple infections or infections of different types (e.g., new infection, carriage, relapse). As noted in Appendix A, complex infectiousness and susceptibility processes are allowed as long as independent censoring of contact intervals by the infectiousness, susceptibility, and observation processes remains valid.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "By reformulating the analysis of infectious disease data in terms of survival analysis based on contact intervals, the methods proposed here and in Kenah (2011) point the way to more practical and rigorous statistical methods for infectious disease epidemiology. Each of the ingredients of this approach have been applied to infectious diseases before: counting processes and martingales by Becker (1989) and Rhodes et al. (1996) , the EM algorithm by Becker (1997) , and summation over possible transmission networks by Wallinga and Teunis (2004) . The marginal Nelson-Aalen estimator combines these in a novel and useful way. In a separate paper, we will show that these methods reproduce classical chain-binomial models (see Rampey et al., 1992) for epidemics in discrete time.",
+            "cite_spans": [
+                {
+                    "start": 148,
+                    "end": 160,
+                    "text": "Kenah (2011)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 391,
+                    "end": 404,
+                    "text": "Becker (1989)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 409,
+                    "end": 429,
+                    "text": "Rhodes et al. (1996)",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 452,
+                    "end": 465,
+                    "text": "Becker (1997)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 521,
+                    "end": 547,
+                    "text": "Wallinga and Teunis (2004)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 728,
+                    "end": 748,
+                    "text": "Rampey et al., 1992)",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "d."
+        },
+        {
+            "text": "This work bene ted greatly from the comments of M. Elizabeth Halloran, Ira M. Longini, Jr., Yang Yang, Jonathan D. Sugimoto, and participants ",
+            "cite_spans": [
+                {
+                    "start": 92,
+                    "end": 141,
+                    "text": "Yang Yang, Jonathan D. Sugimoto, and participants",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Acknowledgments"
+        },
+        {
+            "text": "In Section 2, we avoided technical discussion of the history (increasing family of \u03b1-fields) underlying the counting processes and martingales, which is essential to defining independent censoring of \u03c4 ij by , , and . A good introduction to these concepts is given in Chapter of Aalen et al. (2009) .",
+            "cite_spans": [
+                {
+                    "start": 279,
+                    "end": 298,
+                    "text": "Aalen et al. (2009)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "A. Independent censoring by infectiousness, susceptibility, and observation"
+        },
+        {
+            "text": "First, we define the uncensored history generated by all contact intervals. Let denote the history generated by for all ij such that C ij = 1 and i became infectious. Informally, this means that contains the value of for all u \u2208 [0, \u03c4] and all ij in which an infectious contact interval would have been observed in the absence of censoring. The intensity process of with respect to is (55) where is the uncensored history just before infectiousness age \u03c4. The first equality is valid for models in which the contact interval distribution can depend on ij. The second equality assumes that the contact interval hazard function is \u03bb 0 (\u03c4) for all ij, as in Section 2.",
+            "cite_spans": [
+                {
+                    "start": 385,
+                    "end": 389,
+                    "text": "(55)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "A. Independent censoring by infectiousness, susceptibility, and observation"
+        },
+        {
+            "text": "Next, we define the history generated by both the contact interval and censoring processes. Let be the history generated by , , , and . Then contains the values of , , and for all u \u2208 [0, \u03c4] and all ij in which an infectious contact interval would have been observed in the absence of censoring. The intensity process of with respect to is (56) Censoring of \u03c4 ij by , , and is indepedendent if (57) for all \u03c4 and all ij in which an infectious contact interval could have been observed in the absence of censoring. Informally, this means that the censoring processes up to infectiousness age \u03c4 contain no further information about \u03c4 ij given that \u03c4 ij \u2265 \u03c4.",
+            "cite_spans": [
+                {
+                    "start": 340,
+                    "end": 344,
+                    "text": "(56)",
+                    "ref_id": null
+                },
+                {
+                    "start": 394,
+                    "end": 398,
+                    "text": "(57)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "A. Independent censoring by infectiousness, susceptibility, and observation"
+        },
+        {
+            "text": "The independence assumptions made in Section 1.2 were a simple way of guaranteeing independent censoring of \u03c4 ij . These assumptions can be relaxed as long as equation (57) is not violated. For example, the observation process can be defined more flexibly than it was in Section 2.1. Let the infectiousness age of i at which we stop observing the pair ij, so . When who-infects-whom is observed, can be any stopping time with respect to a history generated by , , and other processes that independently censor \u03c4 ij . This flexibility extends to the marginal Nelson-Aalen estimator as long as for all i that might have infected j. Without this, we cannot assign probabilities to the possible using an estimate of \u039b 0 (\u03c4). This condition is satisfied by the in Section 2.1, but other observation processes are possible.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "A. Independent censoring by infectiousness, susceptibility, and observation"
+        },
+        {
+            "text": "Here, we use the version of the martingale central limit theorem given in Aalen et al. (2009) . Let Y (m) (\u03c4) denote the Y\u03c4) calculated from observations of m ordered pairs ij in which transmission might have taken place, and let be the corresponding Nelson-Aalen estimate. Then (58) is a zero-mean martingale for each m. The predictable variation process for E (m) (\u03c4) is (59) For \u03b5 > 0, let be a martingale that contains all jumps of E (m) (\u03c4) of size > \u03b5. Since all jumps in M(\u03c4) have size one,",
+            "cite_spans": [
+                {
+                    "start": 74,
+                    "end": 93,
+                    "text": "Aalen et al. (2009)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 279,
+                    "end": 283,
+                    "text": "(58)",
+                    "ref_id": null
+                },
+                {
+                    "start": 373,
+                    "end": 377,
+                    "text": "(59)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "B. Martingale central limit theorem"
+        },
+        {
+            "text": "and its predictable variation process is (61) By the martingale central limit theorem, E (m) (\u03c4) will converge in distribution to a mean-zero Gaussian martingale if the following two conditions are satisfied:",
+            "cite_spans": [
+                {
+                    "start": 41,
+                    "end": 45,
+                    "text": "(61)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "B. Martingale central limit theorem"
+        },
+        {
+            "text": "a. for all as m \u2192 \u221e, where V(\u03c4) is a strictly increasing continuous function with V(0) = 0",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "B. Martingale central limit theorem"
+        },
+        {
+            "text": "for all and all \u03b5 > 0 as m \u2192 \u221e.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "b."
+        },
+        {
+            "text": "Both conditions will be satisfied if (62) where \u0232(\u03c4) is a strictly positive function. Then E (m) (\u03c4) converges in distribution to the meanzero martingale (63) where W is a Wiener process. Rates of convergence other than are possible. If m -2\u03b1 Y (m) (\u03c4) converges to a positive deterministic function, then converges to a mean-zero Gaussian martingale.",
+            "cite_spans": [
+                {
+                    "start": 37,
+                    "end": 41,
+                    "text": "(62)",
+                    "ref_id": null
+                },
+                {
+                    "start": 154,
+                    "end": 158,
+                    "text": "(63)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "b."
+        },
+        {
+            "text": "For asymptotic normality, it does not matter whether we observe many pairs ij from the same epidemic or from multiple epidemics. The approximate confidence intervals from Section 2 can be used for data from a single large epidemic, as in Section 3, or from a large household surveillance study, as in Section 4.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "b."
+        },
+        {
+            "text": "Since Y(\u03c4) is not affected by who-infected-whom, the martingale central limit theorem should hold for the marginal Nelson-Aalen estimate under conditions very similar to those given above. However, a rigorous asymptotic analysis or is complicated by fact that we need the smoothed hazard to approach the true hazard as m -\u221e.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "b."
+        },
+        {
+            "text": "By de nition,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "C. Variance of \u039b^v(\u03c4)"
+        },
+        {
+            "text": ". Since each person has only one infector for any realization of v and the infectors of different individuals can be chosen independently,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "For the second term of equation (64), we get (67) Therefore, (68) which is equivalent to equation (31). Estimates of the cumulative hazard function (top) and survival function (bottom) for networkbased models with a Weibull(.5, 1) contact interval distribution, when who-infects-whom is observed (left) and unobserved (right). The true cumulative hazard and survival functions are indicated with dashed lines. The point clouds are point estimates at the 5 th , 10 th , 25 th , 50 th , 75 th , 90 th , and 95 th percentiles of all possible contact intervals in each of 1,000 simulations. The point clouds for the 5 th and 10 th percentiles and the 90 th and 95 th percentiles run together, leaving five separate clouds. Estimates of the cumulative hazard function (top) and survival function (bottom) for networkbased models with a Weibull(2, 1) contact interval distribution, when who-infects-whom is observed (left) and unobserved (right). The true cumulative hazard and survival functions are indicated with dashed lines. The point clouds are point estimates at the 5 th , 10 th , 25 th , 50 th , 75 th , 90 th , and 95 th percentiles of all possible contact intervals in each of 1,000 simulations. The point clouds for the 5 th and 10 th percentiles run together, leaving six separate clouds. Estimates of the cumulative hazard function (top) and survival function (bottom) for massaction models with a Weibull(.5, 5) normalized contact interval distribution using the methods from Section 2.3, when who-infects-whom is observed (left) and unobserved (right). The true cumulative hazard and survival functions are indicated with dashed lines. The point clouds are point estimates at the 5 th , 10 th , 25 th , 50 th , 75 th , 90 th , and 95 th percentiles of the possible contact intervals in each of 1,000 simulations. The point clouds for the 5 th and 10 th percentiles and the 90 th and 95 th percentiles run together, leaving five separate clouds. Estimates of the cumulative hazard function (top) and survival function (bottom) for massaction models with a Weibull(2, 1) normalized contact interval distribution using the methods from Section 2.3, when who-infects-whom is observed (left) and unobserved (right). The true cumulative hazard function (top) and survival function (bottom) are indicated with dashed lines. The point clouds are point estimates at the 5 th , 10 th , 25 th , 50 th , 75 th , 90 th , and 95 th percentiles of the possible contact intervals in each of 1,000 simulations. The point clouds for the 5 th and 10 th percentiles run together, leaving six separate clouds.",
+            "cite_spans": [
+                {
+                    "start": 61,
+                    "end": 65,
+                    "text": "(68)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Let"
+        },
+        {
+            "text": "A marginal Nelson-Aalen estimate of the contact interval cumulative hazard function based on the Los Angeles County household data. For comparison, we have parametric estimates of the cumulative hazard function assuming exponential and Weibull contact interval distributions. The assumed latent period for all analyses was 2 days, so symptom onset occurs on day 2 after the onset of infectiousness. Note the large jumps on days 1, 2, and 3 following the onset of infectiousness and the small jumps on days 5 and 6. Sensitivity analyses for the nonparametric analysis of the LA county household data. There is little sensitivity to the assumed incubation and infectious periods. There is greater sensitivity to the assumed latent period, but there is good evidence for transmission on the day prior to symptom onset and little evidence of significant transmission \u22652 days prior to symptom onset Donnelly et al., 2011) . ",
+            "cite_spans": [
+                {
+                    "start": 894,
+                    "end": 916,
+                    "text": "Donnelly et al., 2011)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fig. 5."
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Nonparametric inference for a family of counting processes",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Aalen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1978,
+            "venue": "Annals of Statistics",
+            "volume": "6",
+            "issn": "",
+            "pages": "701--726",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Survival and Event History Analysis: A Process Point of View",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Aalen",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Borgan",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Gjessing",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Statistics for Biology and Health",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Theory for the measurement of competing risks in animal experiments",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Altshuler",
+                    "suffix": ""
+                }
+            ],
+            "year": 1970,
+            "venue": "Mathematical Biosciences",
+            "volume": "6",
+            "issn": "",
+            "pages": "1--11",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Analysis of Infectious Disease Data. Chapman & Hall/CRC",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Monographs on Statistics and Applied Probability",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Uses of the EM algorithm in the analysis of data on HIV/AIDS and other diseases",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Statistical Methods in Medical Research",
+            "volume": "6",
+            "issn": "",
+            "pages": "24--37",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Secondary attack rate of pandemic influenza A(H1N1) 2009 in Western Australia",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Carcione",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Giele",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Goggin",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Kwan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Dowse",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Mak",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Effler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Eurosurveillance",
+            "volume": "16",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Household transmission of 2009 pandemic influenza A(H1N1) virus in the United States",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Reed",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Ghani",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Kent",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Finelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "New England Journal of Medicine",
+            "volume": "361",
+            "issn": "",
+            "pages": "2619--2627",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Regression models and life-tables",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Cox",
+                    "suffix": ""
+                }
+            ],
+            "year": 1972,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "34",
+            "issn": "",
+            "pages": "187--220",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Maximum likelihood from incomplete data via the EM algorithm",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Dempster",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Laird",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Rubin",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "Journal of the Royal Statistical Society, Series B",
+            "volume": "39",
+            "issn": "",
+            "pages": "1--38",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Serial intervals and the temporal distribution of secondary infections within households of 2009 pandemic influenza A(H1N1): implications for influenza control recommendations",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Donnelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Finelli",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Olsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Doshi",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jackson",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Kennedy",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Kamimoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Marchbanks",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Morgan",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Patel",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Swerdlow",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "the PH1N1 Household Investigations Working Group",
+            "volume": "52",
+            "issn": "",
+            "pages": "123--130",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Strategies for containing an emerging influenza pandemic in Southeast Asia",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                },
+                {
+                    "first": "Dat",
+                    "middle": [],
+                    "last": "Cummings",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Riley",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Meeyai",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Iamsirithaworn",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Burke",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Nature",
+            "volume": "437",
+            "issn": "",
+            "pages": "209--214",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Strategies for mitigating an influenza pandemic",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                },
+                {
+                    "first": "Dat",
+                    "middle": [],
+                    "last": "Cummings",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Cajka",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Cooley",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Burke",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Nature",
+            "volume": "442",
+            "issn": "",
+            "pages": "448--452",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "The interval between successive cases of an infectious disease",
+            "authors": [
+                {
+                    "first": "Pem",
+                    "middle": [],
+                    "last": "Fine",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "American Journal of Epidemiology",
+            "volume": "158",
+            "issn": "",
+            "pages": "1039--1047",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Household transmission of 2009 influenza A(H1N1) virus after a school-based outbreak",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "France",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jackson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Schrag",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lynch",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Zimmerman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Biggerstaff",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hadler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Journal of Infectious Diseases",
+            "volume": "201",
+            "issn": "",
+            "pages": "984--992",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Pandemic potential of a strain of influenza A (H1N1): Early ndings",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Donelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Hanage",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Van Kerkhove",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Hollingsworth",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Griffin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Baggaley",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Jenkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Lyons",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Jombart",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hinsley",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Grassly",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Balloux",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Ghani",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Science",
+            "volume": "324",
+            "issn": "",
+            "pages": "1557--1561",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "The Statistical Analysis of Failure Time Data",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Kalbfleisch",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Prentice",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Nonparametric estimation from incomplete observations",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Kaplan",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Meier",
+                    "suffix": ""
+                }
+            ],
+            "year": 1958,
+            "venue": "Journal of the American Statistical Association",
+            "volume": "53",
+            "issn": "",
+            "pages": "457--481",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Contact intervals, survival analysis of epidemic data, and estimation of R 0",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Kenah",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Biostatistics",
+            "volume": "12",
+            "issn": "",
+            "pages": "548--566",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Generation interval contraction and epidemic data analysis",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Kenah",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Robins",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Mathematical Biosciences",
+            "volume": "213",
+            "issn": "",
+            "pages": "71--79",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "The profile sampler",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Kosorok",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Fine",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Journal of the American Statistical Association",
+            "volume": "100",
+            "issn": "",
+            "pages": "960--969",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Transmission dynamics and control of severe acute respiratory syndrome",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Cohen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Cooper",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Robins",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "James",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gopalakrishna",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Chew",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Tan",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Samore",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Fisman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Murray",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "300",
+            "issn": "",
+            "pages": "1966--1970",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Early transmission characteristics of influenza A(H1N1)v in Australia: Victorian State",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Mcbryde",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Bergeri",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Van Gemert",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Rotty",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Headley",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Simpson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Lester",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Hellard",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Fielding",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Eurosurveillance",
+            "volume": "14",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Transmissibility of 1918 pandemic influenza",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Mills",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Robins",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nature",
+            "volume": "432",
+            "issn": "",
+            "pages": "904--906",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Household transmission of pandemic (H1N1)",
+            "authors": [
+                {
+                    "first": "O",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Morgan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Parks",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Shim",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Blevins",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Lucas",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Sanchez",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Walea",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Loustalot",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Duffy",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Shim",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Guerra",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Guerra",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Mills",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Verani",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Alsip",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lindstrom",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Shu",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Emery",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Cohen",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Menon",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Fry",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Dawood",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Fonseca",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Olsen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Emerging Infectious Diseases",
+            "volume": "16",
+            "issn": "",
+            "pages": "631--637",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Hazard rate estimation under random censoring with varying kernels and bandwidth",
+            "authors": [
+                {
+                    "first": "H-G",
+                    "middle": [],
+                    "last": "M\u00fcller",
+                    "suffix": ""
+                },
+                {
+                    "first": "J-L",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Biometrics",
+            "volume": "50",
+            "issn": "",
+            "pages": "61--76",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Theory and applications of hazard plotting for censored failure data",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Nelson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1972,
+            "venue": "Technometrics",
+            "volume": "14",
+            "issn": "",
+            "pages": "945--966",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "A discrete-time model for the statistical analysis of infectious disease incidence data",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Rampey",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Haber",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Monto",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Biometrics",
+            "volume": "48",
+            "issn": "",
+            "pages": "117--128",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Counting process models for infectious disease data: Distinguishing exposure to infection from susceptibility",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Rhodes",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Journal of the Royal Statistical Society B",
+            "volume": "58",
+            "issn": "",
+            "pages": "751--762",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Model-consistent estimation of the basic reproduction number from the incidence of an emerging infection",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Roberts",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jap",
+                    "middle": [],
+                    "last": "Heesterbeek",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Journal of Mathematical Biology",
+            "volume": "55",
+            "issn": "",
+            "pages": "803--816",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Semiparametric Bayesian analysis of survival data",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sinha",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Dey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Journal of the American Statistical Association",
+            "volume": "92",
+            "issn": "",
+            "pages": "1195--1211",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "The effect of age on transmission of 2009 pandemic influenza A(H1N1) in a camp and associated households",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Sugimoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Borse",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Ta",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Stockman",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Fischer",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Duchin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Epidemiology",
+            "volume": "22",
+            "issn": "",
+            "pages": "180--187",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Accounting for unobserved immunity and asymptomatic infection in the early household transmission of the pandemic influenza A (H1N1)",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Sugimoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Dean",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Oiulfstad",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Bagwell",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Mascola",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Bancroft",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jr",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "A note on generation times in epidemic models",
+            "authors": [
+                {
+                    "first": "\u00c5",
+                    "middle": [],
+                    "last": "Svensson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Mathematical Biosciences",
+            "volume": "208",
+            "issn": "",
+            "pages": "300--311",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "How generation intervals shape the relationship between growth rates and reproductive numbers",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Proceedings of the Royal Society B",
+            "volume": "274",
+            "issn": "",
+            "pages": "599--604",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Different epidemic curves for severe acute respiratory syndrome reveal similar impacts of control measures",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Teunis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "American Journal of Epidemiology",
+            "volume": "160",
+            "issn": "",
+            "pages": "509--516",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Collective dynamics of 'small-world' networks",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Strogatz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Nature",
+            "volume": "393",
+            "issn": "",
+            "pages": "440--442",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Splines in statistics",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Wegman",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Wright",
+                    "suffix": ""
+                }
+            ],
+            "year": 1983,
+            "venue": "Journal of the American Statistical Association",
+            "volume": "78",
+            "issn": "",
+            "pages": "351--365",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "A likelihood-based method for real-time estimate of the serial interval and reproductive number of an epidemic",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "White",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Pagano",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Statistics in Medicine",
+            "volume": "27",
+            "issn": "",
+            "pages": "2999--3016",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "The transmissibility and control of pandemic influenza A(H1N1) virus",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sugimoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Basta",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Chao",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Matrajt",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Potter",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Kenah",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Science",
+            "volume": "326",
+            "issn": "",
+            "pages": "729--733",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "919) 25 .957 (.943, .969) .947 (.931, .960)",
+            "authors": [],
+            "year": null,
+            "venue": "962) .946 (.930, .959) .960 (.946, .971) .903 (.883, .921) 10 .954 (.939, .966) .952 (.937, .964) .963 (.949, .974)",
+            "volume": "901",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Meier marginal KM 5 .949 (.933, .962) .946 (.930, .959) .960 (.946, .971) .903 (.883, .921) 10 .954 (.939, .966) .952 (.937, .964) .964 (.951, .975)",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Kaplan-Meier",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Kaplan",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "901",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF1": {
+            "text": "in the Dhaka University Statistics Department Alumni Association International Conference on the Theory and Application of Statistics (December 26{28, 2010 in Dhaka, Bangladesh), especially Md. Abu Yushuf Sharker of ICDDR,B. Brit Oiulfstad, Dee Ann Bagwell, Brandon Dean, Laurene Mascola, and Elizabeth Bancroft of the Los Angeles County Department of Public Health generously allowed the use of their data in Section 4. Office space, computing facilities, and administrative support were provided by the Fred Hutchinson Cancer Research Center. This research was supported by National Institute of General Medical Sciences (NIGMS) grant F32GM085945 and National Institute of Allergy and Infectious Diseases (NIAID) grant K99AI095302. The content is solely the responsibility of the author and does not necessarily represent the official views of NIGMS, NIAID, or the National Institutes of Health.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Fig. 1.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Fig. 2.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Fig. 3.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Fig. 4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "Fig. 6.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "depend on \u03bb(\u03c4) only up to a multiplicative constant,",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "95% confidence interval coverage probabilities in network-based simulations.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "95% confidence interval coverage probabilities for mass-action simulations.75 .933 (.916, .948) .842 (.818, .864) .963 (.949, .974) .001 (.000, .006) 90 .930 (.912, .945) .091 (.074, .111) .959 (.945, .970) .178 (.155, .203) 95 .941 (.925, .955) .035 (.024, .048) .938 (.921, .952) .004 (.001, .010)",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

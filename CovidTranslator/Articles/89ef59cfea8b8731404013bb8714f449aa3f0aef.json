@@ -1,0 +1,1925 @@
+{
+    "paper_id": "89ef59cfea8b8731404013bb8714f449aa3f0aef",
+    "metadata": {
+        "title": "A Network-based Analysis of the 1861 Hagelloch Measles Data HHS Public Access",
+        "authors": [
+            {
+                "first": "Chris",
+                "middle": [],
+                "last": "Groendyke",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Pennsylvania State University",
+                    "location": {
+                        "postCode": "16803",
+                        "settlement": "University Park",
+                        "region": "PA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "David",
+                "middle": [],
+                "last": "Welch",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Pennsylvania State University",
+                    "location": {
+                        "postCode": "16803",
+                        "settlement": "University Park",
+                        "region": "PA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "David",
+                "middle": [
+                    "R"
+                ],
+                "last": "Hunter",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Pennsylvania State University",
+                    "location": {
+                        "postCode": "16803",
+                        "settlement": "University Park",
+                        "region": "PA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Groendyke@rmu",
+                "middle": [],
+                "last": "Edu",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "In this article, we demonstrate a statistical method for fitting the parameters of a sophisticated network and epidemic model to disease data. The pattern of contacts between hosts is described by a class of dyadic independence Exponential-family Random Graph Models (ERGMs) while the transmission process that runs over the network is modeled as a stochastic Susceptible-Exposed-Infectious-Removed (SEIR) epidemic. We fit these models to very detailed data from the 1861 measles outbreak in Hagelloch, Germany. The network models include parameters for all recorded host covariates including age, sex, household and classroom membership and household location while the SEIR epidemic model has exponentially distributed transmission times with gamma distributed latent and infective periods. This approach allows us to make meaningful statements about the structure of the population-separate from the transmission process-as well as to provide estimates of various biological quantities of interest, such as the effective reproductive number, R. Using reversible jump Markov chain Monte Carlo, we produce samples from the joint posterior distribution of all the parameters of this model-the network, transmission tree, network parameters and SEIR parameters-and perform Bayesian model selection to find the best-fitting network model. We compare our results with those of previous analyses and show that the ERGM network model better fits the data than a Bernoulli network model previously used. We also provide a software package, written in R, that performs this type of analysis. (2008) and Groendyke et al. (2011) to deal with host covariate information. This means that known discrete or continuous properties of hosts, such as age, household, other group memberships and spatial distribution can be incorporated into an analysis and the relative importance to the spread of the disease of each of these properties quantified. Further, we show that a Bayesian model selection algorithm can be used to find the subset of covariates that best explains the contact structure within the population. Thus, for the first time, an explicit network model of plausible complexity can be estimated from disease data allowing us to more fully understand the mechanisms at play in the spread of epidemics through populations, and potentially offer better means of testing alternate strategies for containing these epidemics.",
+            "cite_spans": [
+                {
+                    "start": 1596,
+                    "end": 1619,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "In the remainder of this section, we introduce the Hagelloch measles data set and summarize previous analyses of these data. Section 2 describes the models and methods used in our analysis. Section 3 presents results including parameter estimates, model selection, estimates of the effective reproduction number and an assessment of the model fit. Section 4 concludes with a discussion.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Networks are now commonly used to model interactions between hosts that enable the spread of disease through a population. Estimating the parameters of these network models from data, however, remains a serious challenge. The focus of this paper is on fitting a plausible network model to real data to demonstrate that rigorous statistical methods can feasibly be used with this class of models. The data we fit here-from a measles outbreak in Germany in 1861-were very well documented (Pfeilsticker, 1863) and thus provide an ideal testing ground for new methods.",
+            "cite_spans": [
+                {
+                    "start": 486,
+                    "end": 506,
+                    "text": "(Pfeilsticker, 1863)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "There have been several previous analyses of this data set, with differing goals and utilizing various methods. Our analysis differs from most previous works in that we assume that the epidemic spreads across the edges of a contact network. Contacts here are assumed to be substantial enough to have a reasonable chance of transmitting the pathogen. We use the data to infer the properties of this contact network. These properties -the factors that influence the propensity of individuals to make infectious contacts with one another -are very important in the study of epidemiology, as the network structure is known to have a significant impact on both the spread of an epidemic (Meyers et al., 2005; Keeling and Eames, 2005; Read and Keeling, 2003; Wallinga et al., 1999; Anderson and May, 1991, Ch. 11-12) , as well as on the methods of containing the spread of these epidemics (Keeling et al., 2002; Ball et al., 1997; Becker and Utev, 1998; Hall and Becker, 2009) . As argued in Welch et al. (2011) , there is a lack of rigorous statistical work that fits network models to data; the present paper seeks to address that lack. class, household, age, gender, dates of symptom onset, and various other items. Oesterle (1992) later augmented these data by mapping the spatial coordinates of each affected household and also inferred, for each infected individual, the person who was the putative source of infection. 188 children aged fifteen and younger were susceptible to measles during the time of this epidemic and each of these individuals was indeed infected over the course of this outbreak. Part of this data set is displayed in Web Figure 1 . See Section 2 and Lawson and Leimich (2000) or Neal and Roberts (2004) for more detailed descriptions of this data set and population. Lawson and Leimich (2000) analyze these data using a proportional hazards model. They are interested in the spatial and temporal effects of transmission (and their interaction), and thus consider a spatio-temporal model. The authors use their model to estimate a parameter that measures the \"spatial scale of spread\" and find a weak spatio-temporal interaction in the data. Neal and Roberts (2004) analyze the Hagelloch measles data by using a stochastic epidemic model that describes the transmission rate between two individuals (one infectious and one susceptible) as a function of the individuals' covariates. In particular they consider the effect of belonging to the same household, attending the same school class, and the physical distance between the houses of the individuals. They seek to discover which factors are the most important in describing the transmission rate and use a reversible jump MCMC algorithm to choose among various models. Ultimately, they find that their full model (i.e., the model incorporating all of the effects mentioned above) best fits the data, and that there is very strong evidence that the classroom for younger children (6 -10 years old) played a strong role in enabling the spread of the epidemic. Britton et al. (2011) analyze these data by introducing a three-level mixing model (a generalization of the two-level mixing model of Ball et al. (1997) ) and an SEIR epidemic model. Their model assumes a three-level structure, with each (susceptible) individual belonging to a household, a group (school class in this case), and to the community as a whole. In their model, an individual may transmit the disease to any individual within their household, group, or community; the corresponding frequencies of infectious contact for each type of transmission are modeled by independent Poisson processes with varying rates. The authors produce estimates for the transmission rates in their model, and also derive estimates of a threshold parameter (defined in Ball et al. (1997) ) for this epidemic. They compare the log-likelihood of their model to those of two different two-level mixing models (one which eliminates household-level mixing and another that eliminates group-level mixing) and conclude that the three-level mixing model offers a substantially better fit to the data and that both the group and household effects were important in the spread of this disease. Groendyke et al. (2011) analyze these data by using a stochastic SEIR epidemic model to model the progression of the disease and an Erd\u0151s-R\u00e9nyi random graph model (Gilbert, 1959; Erd\u0151s and R\u00e9nyi, 1959) to describe the contact network in the population. While the authors were successful in estimating the parameters for their models, the Erd\u0151s-R\u00e9nyi model is likely an overly simple representation of the true interaction structure since it does not allow for the incorporation of the various factors that Neal and Roberts (2004) and Britton et al. (2011) found to be material in the transmission of this disease.",
+            "cite_spans": [
+                {
+                    "start": 682,
+                    "end": 703,
+                    "text": "(Meyers et al., 2005;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 704,
+                    "end": 728,
+                    "text": "Keeling and Eames, 2005;",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 729,
+                    "end": 752,
+                    "text": "Read and Keeling, 2003;",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 753,
+                    "end": 775,
+                    "text": "Wallinga et al., 1999;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 776,
+                    "end": 810,
+                    "text": "Anderson and May, 1991, Ch. 11-12)",
+                    "ref_id": null
+                },
+                {
+                    "start": 883,
+                    "end": 905,
+                    "text": "(Keeling et al., 2002;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 906,
+                    "end": 924,
+                    "text": "Ball et al., 1997;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 925,
+                    "end": 947,
+                    "text": "Becker and Utev, 1998;",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 948,
+                    "end": 970,
+                    "text": "Hall and Becker, 2009)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 986,
+                    "end": 1005,
+                    "text": "Welch et al. (2011)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 1213,
+                    "end": 1228,
+                    "text": "Oesterle (1992)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1674,
+                    "end": 1699,
+                    "text": "Lawson and Leimich (2000)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1703,
+                    "end": 1726,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1791,
+                    "end": 1816,
+                    "text": "Lawson and Leimich (2000)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 2165,
+                    "end": 2188,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 3035,
+                    "end": 3056,
+                    "text": "Britton et al. (2011)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 3169,
+                    "end": 3187,
+                    "text": "Ball et al. (1997)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 3795,
+                    "end": 3813,
+                    "text": "Ball et al. (1997)",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 4210,
+                    "end": 4233,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 4373,
+                    "end": 4388,
+                    "text": "(Gilbert, 1959;",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 4389,
+                    "end": 4411,
+                    "text": "Erd\u0151s and R\u00e9nyi, 1959)",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 4716,
+                    "end": 4739,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 4744,
+                    "end": 4765,
+                    "text": "Britton et al. (2011)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1645,
+                    "end": 1653,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "We use an undirected random graph model to describe the contact network in the population of susceptible individuals. The nodes of the graph, which are labelled 1, \u2026, N, correspond to the individuals, while the edges indicate the presence of a relationship sufficient to spread measles from one person to another. Note that not all forms of contact between individuals in the population will meet this criterion. We refer to a pair of nodes, i and j, i \u2260 j, as a dyad.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "The specific type of random graph model we consider for this analysis is one in which the probability of an edge between individuals i and j is given by p ij , where (1) X is a matrix of dyadic covariates, and \u03b7 = {\u03b7 s } is the corresponding vector of parameters. We assume that the existence or not of edges within distinct dyads are mutually independent so that Equation (1) fully specifies the probability distribution of the network. We denote a specific network by , an length vector of indicators of edges for the dyads in the network.",
+            "cite_spans": [
+                {
+                    "start": 166,
+                    "end": 169,
+                    "text": "(1)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "Most of the dyadic statistics we use for this analysis are binary in nature, taking a value of either 0 or 1, depending on whether the individuals in the dyad share a characteristic or not. We refer to these \"matching\" effects as homophily effects; they are also sometimes called \"assortativity\" effects, as in Cauchemez et al. (2011) . These include effects for household, classroom and gender homophily. Since preliminary analysis showed that the effects of being in the same classroom were likely to be different for classroom 1 than for classroom 2, we compute a separate statistic for each classroom. Similarly, we allow the gender homophily effect to vary according to whether the dyad consists of two males or two females. Two other dyadic statistics we consider are continuous in nature: absolute age difference between individuals (measured in units of 4 years) and the spatial distance (measured in units of 100 m) between the individuals' households. Finally, we also include a statistic whose value is 1 for every dyad, in order to measure the overall propensity of edge formation. This statistic is the analogue of the intercept term in a regression analysis. If we take X to consist of only the covariate whose value is 1 for every dyad, the resulting model is the Erd\u0151s-R\u00e9nyi model. Interaction terms could easily be included in this model framework by introducing covariates for each subgroup. For example, for a classroom/ gender interaction, we would include binary covariates for male/classroom 1, female/ classroom 1 and so on. Due to the sparsity of the data here, we do not consider interactions.",
+            "cite_spans": [
+                {
+                    "start": 311,
+                    "end": 334,
+                    "text": "Cauchemez et al. (2011)",
+                    "ref_id": "BIBREF7"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "These models belong to a class of random graph models known as ERGMs (Exponentialfamily Random Graph Models) or p* models (Wasserman and Pattison, 1996) , which have seen much use in the field of social network analysis. The particular type of model given in Equation (1) is a dyadic independence model, in that the probability that any dyad will contain an edge is solely a function of the characteristics of the two individuals comprising the dyad, and is unaffected by any other dyads.",
+            "cite_spans": [
+                {
+                    "start": 122,
+                    "end": 152,
+                    "text": "(Wasserman and Pattison, 1996)",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "While contains all of the potential edges that the disease might travel across, in actuality, the disease only traverses a subset of these edges. This subset of edges forms a directed transmission tree, which we denote by . The root of this tree is the initially infected individual, whose identity is generally unknown, though we will assume that we know it for the Hagelloch measles data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "To model each person's progression through the course of the disease, we use a stochastic SEIR (Susceptible-Exposed-Infectious-Removed) epidemic model that we describe briefly below (see Keeling and Rohani (2008) for a thorough description of this model). We assume that the population initially consists of one infectious individual, while the remainder of the population is susceptible. Susceptible individuals may only become exposed via contact with people in the infectious class with whom they share an edge in . The time taken to transmit the disease along a given edge is assumed to follow an exponential distribution with mean 1/\u03b2. We assume that exposed individuals remain in this category for a length of time described by a gamma random variable with mean k E \u03b8 E and variance , after which time they move to the infectious class. They remain infectious for a length of time described by a gamma random variable with mean k I \u03b8 I and variance , after which time they are removed and play no further part in the epidemic.",
+            "cite_spans": [
+                {
+                    "start": 187,
+                    "end": 212,
+                    "text": "Keeling and Rohani (2008)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "The primary data for our model consist of the times at which each individual entered the exposed, infectious, and removed states. For an individual j, these times are denoted E j , I j and R j , respectively; the sets of all such times are denoted E, I, and R, while the collective set of all times is denoted by T = (E, I, R). The Hagelloch measles data contain information that we can use to assign values to I and R, but we will have to infer E as part of our inferential procedure. Since all I and R times are assumed known in this dataset, statistical inference for the k I and \u03b8 I parameters is trivial and does not affect other parts of the analysis; however, this would no longer be true if not all of these times were observed, in which case the missing values would be treated as extra parameters. The times in the data are rounded to the nearest day but we treat them as exact; this assumption should introduce no systematic bias to our parameter estimates. Following Lawson and Leimich (2000) (also see Atkinson et al. (2011) ), we assume that each individual became infectious one day prior to the onset of the prodrome (the early, mildly symptomatic part of the disease) and that each individual entered the removed state three days after onset of rash (or at death, if sooner). We also remove one outlying data point from the data set as this individual's symptoms appeared nearly one month after the rest of the epidemic had subsided so its infection was probably contracted elsewhere; see Groendyke et al. (2011) for an analysis of the effects of this outlier.",
+            "cite_spans": [
+                {
+                    "start": 979,
+                    "end": 1004,
+                    "text": "Lawson and Leimich (2000)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 1015,
+                    "end": 1037,
+                    "text": "Atkinson et al. (2011)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1506,
+                    "end": 1529,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model, Notation, and Assumptions"
+        },
+        {
+            "text": "Following Britton and O'Neill (2002) , we treat and as extra parameters and estimate them along with the other model parameters in order to simplify the computational burden of updating the parameters in our MCMC algorithm. As in Groendyke et al. (2011) , the likelihood function, expressed in a form that exploits the simplicity of the model when we condition on and , is By the independence assumption explained earlier, the term f( |\u03b7) is simply a product of terms for all node pairs i < j, where p ij is given by Equation (1) and I ij is the indicator of a contact in between nodes i and j. The term f( | ) is simply a uniform distribution that makes all that are possible given a particular contact network equally likely. Finally, since T depends on \u03b7 only through , we may write the first term above as f(T|\u03b2, k E , \u03b8 E , k I , \u03b8 I , , ). As explained in Neal and Roberts (2005) and Groendyke et al. (2011) , this term factors into four separate pieces, which give the contributions due to (a) contacts over which the epidemic was transmitted (i.e., edges in ), (b) contacts over which epidemic was not transmitted ( \\ ), (c) transitions from exposed to infectious, and (d) transitions from infectious to removed. If m represents the total number of individuals who eventually become infected, we thus obtain f(T|\u03b2, k E , \u03b8 E , k I , \u03b8 I , , ) as the following product:",
+            "cite_spans": [
+                {
+                    "start": 10,
+                    "end": 36,
+                    "text": "Britton and O'Neill (2002)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 230,
+                    "end": 253,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 862,
+                    "end": 885,
+                    "text": "Neal and Roberts (2005)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 890,
+                    "end": 913,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "where equals the total \"infectious pressure,\" i.e., the total time spent by all infectious-susceptible pairs that share a contact, is the total time spent by all individuals in the exposed state, and is the total time spent in the infectious state.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "We use a Bayesian inferential approach, assigning independent prior distributions to the parameters. For the epidemic parameters governing the lengths of the exposed and infectious periods (k E , \u03b8 E , k I , \u03b8 I ), we assign uniform priors with hyperparameters governed by relevant known scientific information regarding measles: We assign \u03c0 k E ~ Uniform(8, 20), \u03c0 \u03b8 E ~ Uniform(0.25, 1), \u03c0 k I ~ Uniform(15, 25), and \u03c0 \u03b8 I ~ Uniform(0.25, 0.75). For \u03b2, we assign a uniform prior on (0, 4), encompassing the range of biologically plausible values; see below for further discussion. For the dyadic \u03b7 parameters governing the network, we assign independent normal prior distributions with means of 0 and standard deviations of 3. These priors are quite diffuse because the \u03b7 parameters are on the log-odds scale; experiments with more diffuse priors did not noticeably alter the resulting posteriors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "Inference is then based on the joint posterior distribution of the model parameters. In order to produce an approximate sample from this distribution, we use an MCMC algorithm similar to that described in Groendyke et al. (2011) . The parameters \u03b2, k E , \u03b8 E , k I , \u03b8 I , E, and are updated exactly as described in Groendyke et al. (2011) using random-walk Metropolis-Hastings updates or Gibbs sampling; as per the assumptions described earlier, for the Hagelloch measles data, we assume that all values of I are fixed and known. However, the more complicated ERGM network structure used here necessitates different procedures for updating \u03b7 and .",
+            "cite_spans": [
+                {
+                    "start": 205,
+                    "end": 228,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 316,
+                    "end": 339,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "We update \u03b7 using a Metropolis-Hastings step that proposes a new value for \u03b7 from a mutivariate normal distribution centered at the current value of \u03b7. The off-diagonal entries in the variance-covariance matrix of the proposal distribution are set to zero, while the diagonal entries are tuning parameters. We then accept the proposal according to the appropriate Hastings ratio.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "Because the ERGM we use here is a dyadic-independence model, we can update by considering each dyad separately. Thus, we cycle through each of the dyads, drawing from the appropriate full conditional distribution which, as a result of the ERGM network structure used here, will depend on \u03b7 and X. In Section 3, we describe a model selection procedure based on reversible jump Markov chain Monte Carlo (RJMCMC) to determine for which values of s the X {i,,j},s statistics should be kept in the model given in Equation (1) and which can be safely left out.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "We provide a software package named epinet for the R language (R Development Core Team, 2009); this software is publicly available on the Comprehensive R Archive Network (cran.r-project.org). The epinet package includes the Hagelloch dataset studied in this article, along with routines to perform the MCMC algorithm described here and various simulation and plotting functions. Through simulations studies and tests not reported here, this software has been shown to be able to successfully infer parameter values in many cases and is useful for data sets larger than the Hagelloch data analyzed here; see Groendyke et al. (2011) for further discussion of this software package.",
+            "cite_spans": [
+                {
+                    "start": 607,
+                    "end": 630,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "We ran the algorithm for 50,000,000 iterations and thinned every 500 iterations to reduce the autocorrelation between samples and reduce memory requirements. The result is 100,000 samples containing at least 2,000 approximately independent samples (as measured by the integrated autocorrelation time) for each model parameter.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Inferential and Computational Methods"
+        },
+        {
+            "text": "Here we examine the results of the analysis of the Hagelloch measles data, highlighting the differences between our analysis and that of Groendyke et al. (2011) , which used a similar inference approach, but employed a simpler Erd\u0151s-R\u00e9nyi network model. Figure 1 summarizes the posterior distributions of the parameters in the network model, \u03b7, via posterior means and 95% highest posterior density intervals. Each of these parameters can be interpreted as the incremental log-odds associated with a change of one unit in the corresponding covariate. We use the posterior distribution of these parameters along with Equation (1) to estimate the probability, p ij , of a contact existing between any two individuals i and j. For example, the model predicts that the posterior mean probability p ij of a contact between two individuals (X {i,,j},3 = \u22124.81), both female (X {i,j},5 = 1 and X {i,j},6 = 0), both in classroom 2 (X {i,j},2 = 0 and X {i,j},4 = 1), but not in the same household (X {I,j},1 = 0), whose ages differ by one year (X {i,j},7 = 0.25) and whose houses are 300 meters apart (X {i,j},8 = 3), satisfies , or p\u0302i j = 0.34. As only the marginal posteriors are presented in Figure 1 , the credible interval for any p ij cannot be read off directly, although it can be calculated from the MCMC output.",
+            "cite_spans": [
+                {
+                    "start": 137,
+                    "end": 160,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 254,
+                    "end": 262,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 1187,
+                    "end": 1195,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Network and epidemic parameter estimates"
+        },
+        {
+            "text": "There are a few notable features of these parameter estimates. First, the household and classroom effects are overwhelmingly strong; any two individuals who are in both the same household but no other relationship have a mean posterior estimate p\u00ee j = 0.93 (ignoring the House Distance and Age Difference terms), and that rises to p\u0302i j = 1.00 if they are also both in Classroom 1. (Classroom 1 corresponds to the classroom for younger children, whereas Classroom 2 is the classroom for the older group of children.) This is plausible considering the extremely contagious nature of measles. There is also a noticeable gender homophily effect, and furthermore, this effect appears to vary by gender, with females showing a stronger tendency to contact each other than males. There is also some evidence of an age effect; the posterior distribution for this coefficient falls largely below zero, indicating that increasing age differences result in decreasing odds of contact. The posterior distribution of the parameter related to spatial distance between houses is roughly symmetric and centered close to zero, indicating that the effect of this parameter is likely negligible.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Network and epidemic parameter estimates"
+        },
+        {
+            "text": "The estimated posterior distributions for the epidemic parameters k I , \u03b8 I , k E , and \u03b8 E are shown in Figure 2 . Based on these estimates, we find that the estimated mean length of the exposure period (k E \u00b7\u03b8 E ) falls in the range of 9 -12 days and the estimated mean length of the infectious period (k I \u00b7 \u03b8 I ) falls in the range of 7.5 -8.5 days; these values are in concordance with known scientific information regarding measles (Gough, 1977) .",
+            "cite_spans": [
+                {
+                    "start": 438,
+                    "end": 451,
+                    "text": "(Gough, 1977)",
+                    "ref_id": "BIBREF11"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 105,
+                    "end": 113,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Network and epidemic parameter estimates"
+        },
+        {
+            "text": "The posterior distribution of the network parameters (see Figure 1 for summaries of the marginal distributions of these parameters) indicates that most of the parameters in the model are very likely to be substantially different from zero, and hence that the corresponding covariates have significant effects on the network structure. There are a couple of parameters, however, that deserve further discussion. Recall that the Age Difference parameter corresponds to a statistic measuring the absolute value of the age difference between two children. The marginal posterior distribution for this parameter is largely negative, suggesting that children who are closer in age will tend to be more likely to be in contact than those with larger age differences. Compared to many of the other parameters, though, the effect of this parameter appears to be rather weak. This is likely due to the inclusion of the two Classroom effects in the model. As each classroom consists of children who are close in age, we might expect that much of the effect of age similarity would be captured in the Classroom effects. Indeed, when we leave the Age Difference parameter out of the model, the estimates for both of the Classroom parameters increase accordingly. Nonetheless, the fact that the majority of the marginal posterior distribution for this parameter is negative indicates that there may be some effect due to age difference beyond that which can be explained by the Classroom effects.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 58,
+                    "end": 66,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Model Selection"
+        },
+        {
+            "text": "We see a similar relationship between the House Distance and Household variables. The House Distance parameter is estimated to be very close to zero in the presence of the Household variable. However, when the Household variable is excluded from the model, the House Distance parameter is estimated to be substantially negative. Thus, House Distance essentially acts as a proxy for Household when the Household parameter is excluded.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model Selection"
+        },
+        {
+            "text": "To help determine whether either or both of these parameters belong in our model, we use a reversible jump MCMC algorithm to perform model selection among four candidate models. Model 1 contains parameters corresponding to all of the aforementioned factors: edges, household, classroom 1, classroom 2, house distance, male match, female match, and age difference. Model 2 contains all of these factors except for the house distance effect, model 3 contains all factors in model 1 except for age difference, and model 4 contains neither the house distance nor the age difference effect. Each of the four models is assigned a prior probability of 1/4. We implement the RJMCMC by augmenting our MCMC algorithm to include a modelswitching step in each sweep through the parameters. We move among the four candidate models by proposing model changes that add or remove one parameter, with the specific proposals depending on the current state of the model. In all model states, there are two possible other models that we could move to and we propose moving to each of these two alternative models with probability 0.5.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model Selection"
+        },
+        {
+            "text": "With the exception of the parameter being added or dropped from the model, the proposed parameter values are all set equal to the current parameter values. If we are proposing switching from a model without the age difference parameter to a model with this parameter, the proposed value of this parameter is drawn from a distribution. If we are proposing switching from a model without the house distance parameter to a model with this parameter, the proposed value of this parameter is drawn from a distribution. Each proposed switch from one model to another is evaluated according to the general procedure outlined by Green (1995) , though we omit the technical details here.",
+            "cite_spans": [
+                {
+                    "start": 621,
+                    "end": 633,
+                    "text": "Green (1995)",
+                    "ref_id": "BIBREF12"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model Selection"
+        },
+        {
+            "text": "The Markov chain produced by this RJMCMC algorithm spent the majority (approximately 70%) of its time in model 4. There was also considerable evidence (about 26% posterior probability) for model 3. Models 1 and 2 each received very little (less than 3%) support. Based on these results and the discussion above, we proceed with our analysis using model 4, which we believe to be the best and most parsimonious of the candidate models.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model Selection"
+        },
+        {
+            "text": "Since RJMCMC model selection procedures can be influenced by the prior distributions of the parameters being investigated (Richardson and Green, 1997) , we performed tests of the sensitivity of our model selection algorithm to the prior variances of the two parameters in question. We found that the procedure is relatively insensitive to the choice of priors, and that under a wide range of prior variances, model 4 is clearly favored.",
+            "cite_spans": [
+                {
+                    "start": 122,
+                    "end": 150,
+                    "text": "(Richardson and Green, 1997)",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Model Selection"
+        },
+        {
+            "text": "We can also use the posterior distributions of the network parameters to construct estimates of the degree distribution (where \"degree\" refers to the number of contacts for an individual in a network) for this population. To do this, we sampled from the joint posterior distribution of the \u03b7 parameters and used these sample values to construct simulated contact networks. The corresponding degree distributions of these networks are shown in Figure 3 . We can clearly see a distinct difference in the pattern of the degree distribution generated by the Erd\u0151s-R\u00e9nyi model, as opposed to model 4. Specifically, the Erd\u0151s-R\u00e9nyi model produces a roughly symmetric distribution of degrees, whereas model 4 produces a degree distribution that is noticeably right-skewed. This right-skewed shape more closely resembles the shape of most typical social networks (Wasserman and Faust, 1994) , indicating that the more general network model is likely to be a more realistic description of population interactions.",
+            "cite_spans": [
+                {
+                    "start": 855,
+                    "end": 882,
+                    "text": "(Wasserman and Faust, 1994)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 443,
+                    "end": 451,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Degree distribution"
+        },
+        {
+            "text": "One of the notable difficulties in using epidemic data to perform inference for the parameters in this model lies in separating the effects of the epidemic parameters from those of the network parameters. This problem was discussed in Britton and O'Neill (2002) and explored in Groendyke et al. (2011) . One method of assessing the severity of this problem is to examine the correlations in the joint posterior distribution; as in Groendyke et al. (2011) , we consider the correlation between log (p ij ) and log(\u03b2). For the Erd\u0151s-R\u00e9nyi model, in which, for all i, j, p ij = p, the correlation between log (p ij ) and log(\u03b2) is approximately \u22120.79, whereas for model 4, the posterior correlations between log (p ij ) and log(\u03b2) vary by dyad, but all fall between \u22120.31 and 0.05. In addition, Web Figure 2 shows the estimated posterior density for the parameter \u03b2 for both the Erd\u0151s-R\u00e9nyi model and model 4; clearly, the latter model yields a stronger signal for \u03b2, whereas in the Erd\u0151s-R\u00e9nyi model, the posterior distribution of \u03b2 is substantially influenced by the shape of its prior. Groendyke et al. (2011) similarly found that when using an Erd\u0151s-R\u00e9nyi model to analyze this data, the posterior distribution of \u03b2 was heavily influenced by its prior (a gamma distribution).",
+            "cite_spans": [
+                {
+                    "start": 235,
+                    "end": 261,
+                    "text": "Britton and O'Neill (2002)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 278,
+                    "end": 301,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 431,
+                    "end": 454,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1086,
+                    "end": 1109,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 796,
+                    "end": 804,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Distinguishing between contact and transmission"
+        },
+        {
+            "text": "In some cases, the transmission tree itself -the sub-network containing information about who infected whom -may be of interest. Within the MCMC sampling procedure, the transmission tree is treated like any other unknown parameter and is sampled at each iteration of the algorithm. One such sample is shown in Figure 4 . It is drawn in a style to display both temporal information (when individuals became exposed, infectious, etc.) and topological information (who infected whom). Inspection of the tree can be highly informative about the behavior of the epidemic. Here, for example, we see that individuals typically infected others as soon as they become infectious, suggesting that the virus is highly infectious and spread is limited by rapid exhaustion of susceptible contacts.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 310,
+                    "end": 318,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Transmission tree"
+        },
+        {
+            "text": "We caution, however, that this specific tree is just a single sample from the MCMC run and is not representative of the posterior distribution of transmission trees so must not be overinterpreted. An example of the great variability in the topology of sampled trees is seen by looking at the case of Host 176, labelled in Figure 4 . The tree shows this host causing 16 secondary infections, more than any other in the outbreak. Yet the posterior distribution of secondary infections caused by Host 176, shown in Web Figure 3 , indicates that there is little signal in the data for how many infections were caused by this host, with estimates ranging from 4 to 34. Oesterle (1992) , who empirically assigned secondary infections to individual hosts, assigned none to host 176. This is unsurprising given the data and the fitted model where, provided an edge is present in the contact network, the virus is equally likely to be transmitted over any edge from an infectious node to a susceptible one.",
+            "cite_spans": [
+                {
+                    "start": 664,
+                    "end": 679,
+                    "text": "Oesterle (1992)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 322,
+                    "end": 330,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 516,
+                    "end": 524,
+                    "text": "Figure 3",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Transmission tree"
+        },
+        {
+            "text": "In the study of epidemics, one of the quantities that is commonly of interest is the basic reproductive number, R 0 , defined as the mean number of secondary infections caused by a single infectious individual in a fully susceptible population (Keeling and Rohani, 2008; Anderson and May, 1991) . Here, we are working with a mixed population of immune adults and susceptible children so consider the effective reproduction number, R, which is the actual number of secondary cases per primary case (Wallinga and Teunis, 2004 ) and provides a lower bound for R 0 . R is largest at the beginning of the epidemic when depletion of susceptible individuals has had little impact. We use techniques for finding a mean estimate of R at the beginning of the epidemic by using methods for estimating R 0 in situations where a stochastic epidemic is assumed to spread over edges of a contact network that includes only susceptible individuals. Britton and O'Neill (2002) gives such a formula for a type of SIR epidemic and Erd\u0151s-R\u00e9nyi network model; Groendyke et al. (2011) slightly modify this formula for use with an SEIR epidemic model. While these formulas consider the mean degree of the contact network, they fail to take into account the shape of the degree distribution. Meyers (2007) describes an approach for calculating R 0 which depends on the first two moments of the degree distribution; Kenah (2011) discusses a similar formulation, originally proposed by Andersson (1998) , incorporating the distribution of the length of time spent by individuals in the infectious state in order to produce a formula for R 0 . Using this general framework, we can find an expression for the mean of R at the beginning of the outbreak corresponding to the network and epidemic models used here: (2) where D is the random variable describing the degree distribution for the individuals in the population. Using Equation (2) in conjunction with the joint posterior samples generated using our MCMC algorithm, we can approximate the posterior distribution of R. Doing so yields 95% posterior credible intervals of (6.2, 9.8) for the 18 .9) for model 4. Thus, model 4 yields a substantially higher estimate of R, though both estimates seem reasonable (Anderson and May (1991) gives estimates of R 0 for measles ranging between 5 and 18 for various outbreaks). For both models, the posterior distribution of R was roughly bell-shaped and symmetric.",
+            "cite_spans": [
+                {
+                    "start": 244,
+                    "end": 270,
+                    "text": "(Keeling and Rohani, 2008;",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 271,
+                    "end": 294,
+                    "text": "Anderson and May, 1991)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 497,
+                    "end": 523,
+                    "text": "(Wallinga and Teunis, 2004",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 933,
+                    "end": 959,
+                    "text": "Britton and O'Neill (2002)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1039,
+                    "end": 1062,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1268,
+                    "end": 1281,
+                    "text": "Meyers (2007)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1460,
+                    "end": 1476,
+                    "text": "Andersson (1998)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1784,
+                    "end": 1787,
+                    "text": "(2)",
+                    "ref_id": null
+                },
+                {
+                    "start": 2119,
+                    "end": 2121,
+                    "text": "18",
+                    "ref_id": null
+                },
+                {
+                    "start": 2236,
+                    "end": 2260,
+                    "text": "(Anderson and May (1991)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Reproduction number"
+        },
+        {
+            "text": "It is also interesting to further consider the posterior distribution of \u03b2 in terms of its relationship with R, as per Equation (2). Seeing \u03b8 I \u2248 0.4 and k I \u2248 20, the term involving \u03b2 disappears quickly as \u03b2 increases and is small for values of \u03b2 greater than about 0.5. The posterior density for \u03b2 (see Web Figure 2 ) has a large peak at approximately \u03b2 = 0.5, but it is nearly flat for the values of \u03b2 greater than 2. This implies that while the data indicate a strong signal for \u03b2, they are also unable to distinguish among the larger values of \u03b2. We might then expect epidemics with transmission rates of, say, \u03b2 = 2 and \u03b2 = 4 to look very similar, and simulation indicates that this is indeed the case.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 309,
+                    "end": 317,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Reproduction number"
+        },
+        {
+            "text": "We would also like to assess the quality of the network and epidemic models that we have employed here to describe the Hagelloch measles epidemic. To this end, we consider simulating 1,000 contact networks from our network models and corresponding posterior parameter samples, and then simulating epidemics over these networks, again using epidemic parameter values sampled from the joint posterior distributions produced by our MCMC algorithm. We then assess the model fit by comparing the simulated epidemics with the actual original data. In particular, we compare the number of individuals in the infectious state over time as the epidemic progresses through the population. Figure 5 shows the actual data as compared to the simulated epidemics for model 4 as well as the Erd\u0151s-R\u00e9nyi model. Overall, the simulated epidemics produced by model 4 appear to more closely match the original Hagelloch measles data than do those produced using the simpler Erd\u0151s-R\u00e9nyi model. The epidemics produced by the Erd\u0151s-R\u00e9nyi model spread through the population more slowly than did the actual outbreak. This is particularly noticeable at days 30-40 (where the simulated number of infectious individuals is fewer than those in the actual outbreak) as well as at days 50-60 (where the simulated number of infectious individuals is greater than those in the actual outbreak). In contrast, the more general ERGM matches the actual outbreak pattern much more closely, with the number of individuals in the infectious state rapidly increasing and then decreasing at roughly the same time points as in the actual outbreak. We believe that the main factor contributing to the ability to better match the actual outbreak pattern is the more complicated structure of the full network model -and the corresponding degree distribution pattern it produces. With the exception of \u03b2, the estimates of the epidemic model parameters were very similar between the two models; hence we believe that the difference in network structure is the primary contributor to the improved model fit. We hasten to point out, though, that there are clearly aspects of this epidemic that even our improved model fails to adequately capture. For instance, the bulk of the simulated epidemics peak (in terms of number of infectious individuals) slightly (perhaps 3 days) before the peak of the actual outbreak. Also, the maximum number of infectious individuals in the actual outbreak is somewhat greater than that produced by the simulated epidemics.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 679,
+                    "end": 687,
+                    "text": "Figure 5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Assessing model fit"
+        },
+        {
+            "text": "It is also interesting to consider simulating the impact of containment strategies on the severity and rapidity of the epidemic. In particular, we consider the idea of shutting down the schools in order to try to contain the spread of the disease. This approach is perhaps overly simplistic, as the contact patterns of children outside of school would be modified, and probably increased, after a school closure (see, for example, Eames et al. (2011) ), yet we include it to demonstrate the ease with which control strategies can be modeled and tested within the framework we present here. As above, we simulate epidemics using parameter values sampled from the posterior distribution, but we set the \u03b7 parameters corresponding to Classroom 1 and Classroom 2 both equal to zero. Examining the resulting simulated outbreaks, a couple of observations can be made. First, this containment strategy does little to diminish the ultimate size of the outbreak. The left panel of Figure 6 shows a histogram of the number of individuals infected in the simulated outbreaks. While the outbreaks simulated under the containment strategy do indeed tend to be smaller, the difference is very small. (In fact, in both the presence and absence of the containment strategy, the epidemic affects almost all of the 187 susceptible individuals in virtually all of the simulations.) The right panel of Figure 6 gives a histogram showing the day on which the infectious group reaches its maximum size; we use this as a measure of the speed of the outbreak. We can see that the epidemic does spread considerably less rapidly in the presence of the containment strategy. These histograms indicate that this containment strategy, while only minimally effective in diminishing the ultimate size of the epidemic, is indeed able to significantly slow down the progression of the disease through the population.",
+            "cite_spans": [
+                {
+                    "start": 431,
+                    "end": 450,
+                    "text": "Eames et al. (2011)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 972,
+                    "end": 980,
+                    "text": "Figure 6",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1382,
+                    "end": 1390,
+                    "text": "Figure 6",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Assessing model fit"
+        },
+        {
+            "text": "While the problem of inferring the structure of a contact network using only epidemic data is a challenging one, our results suggest that it is indeed possible to utilize this type of data in order to make meaningful statements regarding which characteristics have significant influences on the propensity of individuals to make infectious contacts with one another.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "In this paper, we have extended previous work Britton and O'Neill (2002) ; Ray and Marzouk (2008) ; Groendyke et al. (2011) by considering a more general ERGM to describe the contact network in a population. This more flexible framework makes it possible to incorporate any number of nodal and dyadic covariates, any of which may be categorical or quantitative in nature. We have shown that we can not only distinguish the (biological) effects of the epidemic from the (sociological) effects of the population interactions, but we can also make meaningful statements regarding the contact structure of the population in question and which factors have substantial impacts on this structure. We demonstrated our procedure by analyzing a very rich data set describing a measles outbreak in the town of Hagelloch, Germany in 1861. The results of this analysis also suggest that this approach has the potential to provide more thorough information regarding population structure than has previously been considered.",
+            "cite_spans": [
+                {
+                    "start": 46,
+                    "end": 72,
+                    "text": "Britton and O'Neill (2002)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 75,
+                    "end": 97,
+                    "text": "Ray and Marzouk (2008)",
+                    "ref_id": null
+                },
+                {
+                    "start": 100,
+                    "end": 123,
+                    "text": "Groendyke et al. (2011)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "We find that the results of our analysis of the Hagelloch measles data are broadly consistent with those of Neal and Roberts (2004) and Britton et al. (2011) . Direct comparisons between these models is difficult, since the model structures used in the various analyses are quite different: Neal and Roberts (2004) used the covariates to model the transmission rate, Britton et al. (2011) used the household and classroom structures to define the levels in their three-level mixing model, and the present analysis uses the covariate information to model the network structure. We can nonetheless at least make some qualitative comparisons among the three sets of results.",
+            "cite_spans": [
+                {
+                    "start": 108,
+                    "end": 131,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 136,
+                    "end": 157,
+                    "text": "Britton et al. (2011)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 291,
+                    "end": 314,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 367,
+                    "end": 388,
+                    "text": "Britton et al. (2011)",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Our analysis suggests that the Household and Classroom effects are the most substantial factors governing the network structure. Neal and Roberts (2004) and Britton et al. (2011) similarly found that these were likely significant factors in the spread of this disease; all three analyses find that the Classroom 1 effect was more substantial than the corresponding Classroom 2 effect. Our analysis found that the Gender homophily factors also appear to affect the propensity of edge formation, while the evidence for the effect of age difference was much weaker; the other two analyses of these data did not include these factors in their model. Neal and Roberts (2004) finds a significant spatial effect in the transmission rate for this outbreak; they use three different forms for the spatial effect in their model and note that their results are robust to the choice of spatial model form. In the present analysis, other than the increase in infectious contact due to intra-household relationships, which we found to be the strongest effect, there does not appear to be much of a spatial effect in the data. Britton et al. (2011) did not include a spatial effect in their model. The choice of which model a researcher fits to data is largely down to what question the researcher wishes to answer. We believe there are many cases where it is of interest to separate the contact process from the transmission process as we have done here. Whereas the network model considered here is much more general than those previously utilized for this type of inference, it could nonetheless be extended in several ways. Much social networks literature recommends using a dyadic dependence model rather than the independence model we use here to capture effects such as clustering; however, we believe that the large number of covariates our independence model takes into account likely already captures clustering due to matching on these attributes, though in the absence of such covariate information it may be necessary to model clustering explicitly using a dyadic dependence model. It may also be useful in some cases to consider a more sophisticated model for the transmission rate than the simple model used here, which assumes that the transmission rate is constant, across both time and individuals. One might consider a rate that is a function of the length of time that an individual has been infected, since for many diseases, the level of infectiousness is known to vary throughout the infectious period. Further, we assumed that the infectious period began one day before the onset of prodromes and finished 3 days after the onset of rash. In work not reported here, we reanalysed the data with a longer infectious period, finishing 5 days after the appearance of rash, as in Lawson and Leimich (2000) . This change does not greatly affect parameter estimates (except for k I and \u03b8 I ) but it changes the shape of the observed epidemic curves of the type shown in Figure  5 , suggesting that this lag period could be estimated directly from the data.",
+            "cite_spans": [
+                {
+                    "start": 129,
+                    "end": 152,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 157,
+                    "end": 178,
+                    "text": "Britton et al. (2011)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 646,
+                    "end": 669,
+                    "text": "Neal and Roberts (2004)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1112,
+                    "end": 1133,
+                    "text": "Britton et al. (2011)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 2783,
+                    "end": 2808,
+                    "text": "Lawson and Leimich (2000)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 2971,
+                    "end": 2980,
+                    "text": "Figure  5",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "We might also consider applying this type of inferential approach to data sets that are larger and more diverse than those that have been previously studied. While previous studies that have statistically inferred network model parameters using epidemic outbreak data have mostly considered smaller and complete data sets (Britton and O'Neill, 2002; Ray and Marzouk, 2008) , this approach is indeed viable for larger epidemics; our software easily allows for analysis of data sets containing up to 1,000 infected individuals.",
+            "cite_spans": [
+                {
+                    "start": 322,
+                    "end": 349,
+                    "text": "(Britton and O'Neill, 2002;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 350,
+                    "end": 372,
+                    "text": "Ray and Marzouk, 2008)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Most data sets in epidemiology are very incomplete, containing only a small fraction of the total infected population and having an unknown number of susceptible individuals to start with. In theory, missing data can be dealt with using our method by simply imputing the missing infections and times. In practice, large numbers of missing infections would drastically slow down the mixing of the MCMC algorithm and render the method unusable. While we aim to extend the software to deal with small numbers of missing infections soon, working with larger numbers will require a more nuanced approach. Our approach does allow the possibility of incorporating different types of data into the analysis. Groendyke et al. (2011) and Welch et al. (2011) discuss potential methods for and benefits from including additional forms of data.",
+            "cite_spans": [
+                {
+                    "start": 700,
+                    "end": 727,
+                    "text": "Groendyke et al. (2011) and",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 728,
+                    "end": 747,
+                    "text": "Welch et al. (2011)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Refer to Web version on PubMed Central for supplementary material. The points show the posterior mean while the lines show the 95% highest posterior density interval for each parameter. The House Distance and Age Difference parameters correspond to continuous statistics measured in units of 100 metres and 4 years, respectively. All of these network parameters have normal priors with means of 0 and standard deviations of 3. The primary model discussed in Section 3, model 4, excludes the House Distance and Age Difference parameters (see Section 3.2). Summaries of simulated epidemic outbreaks in the absence (darker bars) and presence (lighter bars) of the school closing containment strategy. 1,000 simulations were run for both cases. The left panel shows the distribution of outbreak sizes, i.e., number of individuals who were ultimately infected during the course of the epidemic. The right panel shows the distribution of the time (measured in days since the beginning of the outbreak) that the infectious group reaches its maximal size. Groendyke et al. Page 22 Biometrics. Author manuscript; available in PMC 2015 August 31.",
+            "cite_spans": [
+                {
+                    "start": 1048,
+                    "end": 1072,
+                    "text": "Groendyke et al. Page 22",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Supplementary Material"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Infectious diseases of humans",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "May",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Limit theorems for a random graph epidemic model",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Andersson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Annals of Applied Probability",
+            "volume": "8",
+            "issn": "",
+            "pages": "1331--1349",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Epidemiology and Prevention of Vaccine-Preventable Diseases",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Atkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wolfe",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hamborsky",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Epidemics with two levels of mixing",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Ball",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Mollison",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Scalia-Tomba",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "The Annals of Applied Probability",
+            "volume": "7",
+            "issn": "",
+            "pages": "46--89",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "The effect of community structure on the immunity coverage required to prevent epidemics",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Becker",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Utev",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "Mathematical Biosciences",
+            "volume": "147",
+            "issn": "",
+            "pages": "23--39",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Inference for epidemics with three levels of mixing: methodology and application to a measles outbreak",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Kypraios",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Neill",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Scandinavian Journal of Statistics",
+            "volume": "38",
+            "issn": "",
+            "pages": "578--599",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Bayesian Inference for Stochastic Epidemics in Populations with Random Social Structure",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                },
+                {
+                    "first": "O",
+                    "middle": [],
+                    "last": "Neill",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Scandinavian Journal of Statistics",
+            "volume": "29",
+            "issn": "",
+            "pages": "375--390",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Swerdlow D. and the Pennsylvania H1N1 working group. Role of social networks in shaping disease transmission during a community outbreak of 2009 H1N1 pandemic influenza",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bhattarai",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Marchbanks",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Fagan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ostroff",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Proceedings of the National Academy of Sciences",
+            "volume": "108",
+            "issn": "",
+            "pages": "2825--2830",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "The impact of school holidays on the social mixing patterns of school children",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Eames",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Tilston",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Edmunds",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Epidemics",
+            "volume": "3",
+            "issn": "",
+            "pages": "103--108",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "On random graphs",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Erd\u0151s",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "R\u00e9nyi",
+                    "suffix": ""
+                }
+            ],
+            "year": 1959,
+            "venue": "Publicationes Mathematicae",
+            "volume": "6",
+            "issn": "",
+            "pages": "290--297",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Random graphs",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Gilbert",
+                    "suffix": ""
+                }
+            ],
+            "year": 1959,
+            "venue": "The Annals of Mathematical Statistics",
+            "volume": "30",
+            "issn": "",
+            "pages": "1141--1144",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "The estimation of latent and infectious periods",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Gough",
+                    "suffix": ""
+                }
+            ],
+            "year": 1977,
+            "venue": "Biometrika",
+            "volume": "64",
+            "issn": "",
+            "pages": "559--565",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Reversible jump Markov chain Monte Carlo computation and Bayesian model determination",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Green",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Biometrika",
+            "volume": "82",
+            "issn": "",
+            "pages": "711--732",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Bayesian inference for contact networks given epidemic data",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Groendyke",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Welch",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hunter",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Scandinavian Journal of Statistics",
+            "volume": "38",
+            "issn": "",
+            "pages": "600--616",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Preventing epidemics in a community of households",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Hall",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Epidemiology and Infection",
+            "volume": "117",
+            "issn": "",
+            "pages": "443--455",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Networks and epidemic models",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Keeling",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Eames",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Journal of the Royal Society Interface",
+            "volume": "2",
+            "issn": "",
+            "pages": "295--307",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Modeling infectious diseases in humans and animals",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Keeling",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rohani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Clinical Infectious Diseases",
+            "volume": "47",
+            "issn": "",
+            "pages": "864--866",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Modelling vaccination strategies against foot-and-mouth disease",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Keeling",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Woolhouse",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "May",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Davies",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Grenfell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Nature",
+            "volume": "421",
+            "issn": "",
+            "pages": "136--142",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Contact intervals, survival analysis of epidemic data, and estimation of R0",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Kenah",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Biostatistics",
+            "volume": "12",
+            "issn": "",
+            "pages": "548--566",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Approaches to the space-time modelling of infectious disease behaviour",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Lawson",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Leimich",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "IMA Journal of Mathematics Applied in Medicine and Biology",
+            "volume": "17",
+            "issn": "",
+            "pages": "1--13",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Contact network epidemiology: Bond percolation applied to infectious disease prediction and control",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Meyers",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Bulletin of the American Mathematical Society",
+            "volume": "44",
+            "issn": "",
+            "pages": "63--86",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Network theory and SARS: predicting outbreak diversity",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Meyers",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Pourbohloul",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Newman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Skowronski",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Brunham",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Journal of Theoretical Biology",
+            "volume": "232",
+            "issn": "",
+            "pages": "71--81",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Statistical inference and model selection for the 1861 Hagelloch measles epidemic",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Neal",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Roberts",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Biostatistics",
+            "volume": "5",
+            "issn": "",
+            "pages": "249--261",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "A case study in non-centering for data augmentation: Stochastic epidemics",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Neal",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Roberts",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Statistics and Computing",
+            "volume": "15",
+            "issn": "",
+            "pages": "315--327",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "T\u00fcbingen: Eberhard-Karls Universit\u00e4t; 1992. Statistiche Reanalyse einer Masernepidemie 1861",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Oesterle",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Hagelloch",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Thesis",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Eberhard-Karls Universit\u00e4t; 1863. Beitr\u00e4ge zur Pathologie der Masern mit besonderer Ber\u00fccksichtigung der statistischen",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Pfeilsticker",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Verh\u00e4ltnisse",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "T\u00fcbingen",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "R: A Language and Environment for Statistical Computing",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Development Core",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Team",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "A Bayesian method for inferring transmission chains in a partially observed epidemic",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ray",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Marzouk",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proceedings of the Joint Statistical Meetings: Conference Held in",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Disease evolution on networks: the role of contact structure",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Read",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Keeling",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Proceedings of the Royal Society of London. Series B: Biological Sciences",
+            "volume": "270",
+            "issn": "",
+            "pages": "699--708",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "On bayesian analysis of mixtures with an unknown number of components",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Richardson",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Green",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Journal of the Royal Statistical Society. Series B (Methodological)",
+            "volume": "59",
+            "issn": "",
+            "pages": "731--792",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Perspective: human contact patterns and the spread of airborne infectious diseases",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Edmunds",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kretzschmar",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "TRENDS in Microbiology",
+            "volume": "7",
+            "issn": "",
+            "pages": "372--377",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Different epidemic curves for severe acute respiratory syndrome reveal similar impacts of control measures",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wallinga",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Teunis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "American Journal of Epidemiology",
+            "volume": "160",
+            "issn": "",
+            "pages": "509--516",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Social network analysis: Methods and applications",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wasserman",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Faust",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Logit models and logistic regressions for social networks: I. An introduction to Markov graphs and p*",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Wasserman",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Pattison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Psychometrika",
+            "volume": "61",
+            "issn": "",
+            "pages": "401--425",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Statistical inference to advance network models in epidemiology",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Welch",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bansal",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hunter",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Epidemics",
+            "volume": "3",
+            "issn": "",
+            "pages": "38--45",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Figure 1.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Degree distributions for contact networks simulated from the posterior distribution of the network model parameters for (a) model 4 and (b) the Erd\u0151s-R\u00e9nyi model.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Figure 4.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Number of individuals in the infectious state over time for the (a) ERGM model 4 and (b) Erd\u0151s-R\u00e9nyi model. In each case, the actual Hagelloch measles outbreak data are given by the bold line (red in the electronic version), whereas simulated data are shown in multiple thin lines, with boxplots summaries shown at each 5 day time increment. This figure appears in color in the electronic version of this article. Author manuscript; available in PMC 2015 August 31.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Figure 6.",
+            "latex": null,
+            "type": "figure"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work is supported by NIH grant R01-GM083603-01. The authors also thank the editors and two anonymous reviewers for their suggestions, which improved the quality of the article.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        },
+        {
+            "text": "An example of a sampled transmission tree. The infection was introduced to the population at time zero. The horizontal lines represent exposed or infected hosts with a tick mark demarcating the transition from exposed to infectious (infectious hosts shown red in electronic version). The vertical lines show who infected whom. Thus, the branching points of the tree are infection events while the leaves of the tree are removal/recovery points. Host 176, labelled here at the leaf associated with its recovery time, is highlighted here as it is discussed in the text. This figure appears in color in the electronic version of this article. Groendyke et al. Page 20Biometrics. Author manuscript; available in PMC 2015 August 31.",
+            "cite_spans": [
+                {
+                    "start": 640,
+                    "end": 656,
+                    "text": "Groendyke et al.",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "annex"
+        }
+    ]
+}

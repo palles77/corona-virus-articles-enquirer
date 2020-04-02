@@ -1,0 +1,1509 @@
+{
+    "paper_id": "0b5a9e838882e27e57572bdec11ce6fb1915a72b",
+    "metadata": {
+        "title": "A Likelihood Based Method for Real Time Estimation of the Serial Interval and Reproductive Number of an Epidemic A Likelihood Based Method for Real Time Estimation of the Serial Interval and Reproductive Number of an Epidemic",
+        "authors": [
+            {
+                "first": "Laura",
+                "middle": [
+                    "Forsberg"
+                ],
+                "last": "White",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Marcello",
+                "middle": [],
+                "last": "Pagano",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Harvard University",
+                    "location": {
+                        "postCode": "02118, 02115",
+                        "region": "MA, MA",
+                        "country": "U., U.S.A"
+                    }
+                },
+                "email": "pagano@hsph.harvard.edu"
+            },
+            {
+                "first": "S",
+                "middle": [
+                    "A"
+                ],
+                "last": "",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "We present a method for the simultaneous estimation of the basic reproductive number, R 0 , and the serial interval for infectious disease epidemics, using readily available surveillance data. These estimates can be obtained in real time to inform an appropriate public health response to the outbreak. We show how this methodology, in its most simple case, is related to a branching process and describe similarities between the two that allow us to draw parallels which enable us to determine the theoretical properties of our estimators. We provide * email: lfwhite@bu.edu 1 Hosted by The Berkeley Electronic Press simulation results that illustrate the efficacy of the method for estimating R 0 and the serial interval, in real time. Finally we implement our proposed method with data from three infectious disease outbreaks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Infectious diseases seem to be an endemic condition in the world. The emergence of new pathogens, the persistence of mutating diseases, such as influenza, and the threat of bioterrorist events motivate the need for ever-improving statistical methods for the rapid understanding of emerging disease outbreaks as they happen.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The goal of these methods should be to supply public health officials with tools to understand the epidemiology of an epidemic in real time with data that is readily available. A more accurate understanding of the epidemiological parameters of a disease increases the likelihood of a more effective public health response, such as better control measures, and accurate information being disseminated to the public. There are two epidemiological parameters of an outbreak that can be used to characterize the disease: the basic reproductive number, R 0 , and the serial (or generation) interval; the latter defined as the time between a primary case and a secondary case developing symptoms (Fraser et al., 2004; Bauch et al., 2005) .",
+            "cite_spans": [
+                {
+                    "start": 690,
+                    "end": 711,
+                    "text": "(Fraser et al., 2004;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 712,
+                    "end": 731,
+                    "text": "Bauch et al., 2005)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "For instance, many argue that the reason that Sever Acute Respiratory Syndrome (SARS) was controlled was not just due to the change in seasons, but also the relatively long serial interval (estimated mean of 8.4 days and standard deviation of 3.8 days) and reasonable R 0 ( R 0 = 2.2 \u2212 3.6) (Lipsitch et al., 2003; Wallinga and Teunis, 2004; Riley et al., 2003) . By comparison, influenza has an average serial interval of between two and four days (Longini et al., 2004) with an estimated R 0 similar to that of SARS (Mills et al., 2004) . The short serial interval of influenza necessitates more aggressive strategies for control, including the development of a vaccine.",
+            "cite_spans": [
+                {
+                    "start": 291,
+                    "end": 314,
+                    "text": "(Lipsitch et al., 2003;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 315,
+                    "end": 341,
+                    "text": "Wallinga and Teunis, 2004;",
+                    "ref_id": null
+                },
+                {
+                    "start": 342,
+                    "end": 361,
+                    "text": "Riley et al., 2003)",
+                    "ref_id": null
+                },
+                {
+                    "start": 449,
+                    "end": 471,
+                    "text": "(Longini et al., 2004)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 518,
+                    "end": 538,
+                    "text": "(Mills et al., 2004)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Mathematicians, epidemiologists and statisticians have developed an array of useful approaches for understanding and analyzing infectious disease dynamics.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Many of these methods consider a multistate model formulation, the simplest of these being the Susceptible-Infected-Recovered (SIR) model. Differential equations are commonly used to deterministically model the transitions between these states (Anderson and May, 1991) . These models are useful in informing policymakers and determining effective strategies for managing and containing infectious diseases and have been widely used (see Hethcote, 2000 for examples).",
+            "cite_spans": [
+                {
+                    "start": 244,
+                    "end": 268,
+                    "text": "(Anderson and May, 1991)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 437,
+                    "end": 451,
+                    "text": "Hethcote, 2000",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "These models have the advantage of being relatively simple to evaluate computationally. However, infectious disease epidemics are stochastic in nature and thus a deterministic model will likely fail to capture this dimension. Further, these models fail to provide any estimates of error, giving only one final answer for the behavior of the epidemic. Trapman (2006) describes some unusual results that these models can give.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Stochastic modeling of infectious diseases is an area that has received much attention. We do not attempt to give a comprehensive overview of this, but rather refer the interested reader to Anderson and Britton (2000) and Becker and Britton (1999) and references therein. Perhaps the most simple of these methods is the Reed Frost model which is appropriate for analyzing data from small epidemics, particularly from small group data, such as a household. This model rapidly becomes complicated as the size of the epidemic increases, restricting its utility to small outbreaks. More general modeling approaches exist that allow for larger populations, and inhomogeneous populations. These more general models can be generally used to estimate the final size of an epidemic and R 0 . Becker (1989) , Rida (1991) and Shao (1999) describe some approaches to these models. Becker (1976) and Ball and Donnelly (1995) describe how the initial period of a stochastic SIR model can be estimated by a branching process. Branching processes have been widely studied and their theory is well developed (see Guttorp, 1991 and references therein) . Estimation of R 0 is relatively simple with a branching process and one can also obtain estimates of the final size of the epidemic, as well as the probability of observing a major epidemic (defined as an epidemic that does not die out on its own). To implement this method one needs to know the mean of the serial interval, or have an epidemic with a long incubation time, which leads to clearly clustered data that can then be grouped into",
+            "cite_spans": [
+                {
+                    "start": 190,
+                    "end": 217,
+                    "text": "Anderson and Britton (2000)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 222,
+                    "end": 247,
+                    "text": "Becker and Britton (1999)",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 783,
+                    "end": 796,
+                    "text": "Becker (1989)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 799,
+                    "end": 810,
+                    "text": "Rida (1991)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 815,
+                    "end": 826,
+                    "text": "Shao (1999)",
+                    "ref_id": null
+                },
+                {
+                    "start": 869,
+                    "end": 882,
+                    "text": "Becker (1976)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 887,
+                    "end": 911,
+                    "text": "Ball and Donnelly (1995)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1096,
+                    "end": 1133,
+                    "text": "Guttorp, 1991 and references therein)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "generations. An attractive feature of this method is that only daily incidence data is required and estimation can be performed at any stage of the epidemic, using data for completely, observed generations.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "A novel and very innovative technique for estimating R 0 was developed by Wallinga and Teunis (2004) . As with the branching process estimator, their method requires information on the number of new cases each day for the entire epidemic, and knowledge of the serial interval. Using ideas from network theory, the authors derive an estimator for R t , the effective reproductive number for each day, that performs well. Their method assumes that there is no immigration into the system and thus that all cases can be traced back to the index case(s). provide a modification of this method that allows real-time estimation of R 0 using Bayesian techniques to augment the data. Additionally, have recently described a Bayesian method that uses a small subset of contact tracing data and daily case counts to determine the efficacy of the interventions by observing posterior probabilities of R 0 < 1. The serial interval is not estimated, but no information on it is required, except that provided by the contact tracing data.",
+            "cite_spans": [
+                {
+                    "start": 74,
+                    "end": 100,
+                    "text": "Wallinga and Teunis (2004)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In what follows we describe a novel method for the real-time estimation of R 0 and simultaneously the serial interval during the initial explosive phase of the epidemic (though the methodology can be extended more generally), using simple surveillance data. Traditionally the serial interval has only been estimated through detailed, time-consuming and expensive contact tracing. We describe an estimator that uses information on the number of cases observed each day;",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "information that is much more readily available than is contact tracing. In some cases prior information on the serial interval may exist and interest may focus only on estimating R 0 . We begin by considering this particular case. Estimating just R 0 seems risky as the estimation can go awry if the serial interval is misspecified.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "So we next introduce a method that simultaneously estimates both, R 0 and the serial interval. These methods are simple to implement and seem to perform well, as we show with simulated and real data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Assume that the data we have available is the periodic incidence, N = {N t }, t = 0, . . . , T , with t indexing some time unit and N t , the number of new cases at time t. Without loss of generality, we assume that t is indexing days, however this method is applicable to any discrete time unit. We consider that a typical infectious disease outbreak can be characterized by a two step process: we first have the basic reproductive number, R 0 , the average number of secondary cases produced by a single infected in a population of susceptible individuals. We then consider the serial interval, the distribution of the time between a primary case developing symptoms and a case, that she or he infects, becoming ill. This interval is a function of the incubation distribution and distribution of infectiousness which are not readily observed. Note that the distribution of the serial interval can be linked to the incubation distribution (see Kuk and Ma, 2005) , which is also sometimes used to characterize an outbreak. As a possible model, suppose that the number of secondary cases produced by an infected individual follows a Poisson distribution, with expected value R 0 , and that the serial interval is described by a multinomial distribution. We assume that primary cases always appear with symptoms before their secondary cases, that there is no movement in and out of the system of infected cases, and that an outbreak behaves in the following manner: Let N 0 individuals be the cases that initially show at the outset of the epidemic. Each of these cases independently generates secondary cases according to a Poisson distribution with mean R 0 . Let X 0 represent the total number of cases produced by the initial N 0 cases, then X 0 \u223c P ois(N 0 R 0 ). We then allow these X 0 cases to present over the subsequent k days according to a multinomial distribution. In general we use the notation where N i represents the total number of cases on day i, X ij represents the number of cases that present on day j, which were generated by the N i cases, and X i denotes the total number of cases produced by primary cases on day i (i.e. X i = j X ij ). If k, the maximal length of the serial interval, is assumed to be three, for example, then we can illustrate this with the following schema:",
+            "cite_spans": [
+                {
+                    "start": 945,
+                    "end": 962,
+                    "text": "Kuk and Ma, 2005)",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Likelihood"
+        },
+        {
+            "text": "Note that this schema does not give any indication of the time at which the infection interaction occurred, but only depicts the time at which cases become symptomatic. We do not observe the X ij , if we did we could easily estimate R 0 and the probability vector, p of the multinomial distribution. If we could observe the X ij , we might construct their likelihood as follows",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Likelihood"
+        },
+        {
+            "text": "This configuration assumes independence in transmission events. We rearrange the terms in this likelihood such that the future X i,T +l (l > 0) can be properly normalized and summed out as Poisson random variables. Arranging the rest of the terms allows us to sum out the remaining unobserved X ij as binomial and multinomial random variables. To illustrate how this is done, consider, without loss of generality, the case where k = 3 and T = 3.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Likelihood"
+        },
+        {
+            "text": "First, we use the fact that X 02 = N 2 \u2212 X 12 and X 13 = N 3 \u2212 X 03 \u2212 X 23 and substitute for these terms. Performing this substitution and rearranging the terms leaves us with the following likelihood:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Likelihood"
+        },
+        {
+            "text": "The final three terms of this likelihood are not observed, so we normalize and sum over the X ij , j > 3. The likelihood becomes:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Likelihood"
+        },
+        {
+            "text": "We normalize the final two terms to be binomial and multinomial distribution functions, respectively. Summing over the X ij leaves us with the likelihood in terms of the observed N t , a thinned Poisson:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Likelihood"
+        },
+        {
+            "text": "N t\u2212j p j . Because of its clean and familiar form, we can simply use maximum likelihood techniques to estimate R 0 and the p j , j = 1, . . . , k. We need to specify k with the constraint that k < T . We have found that the specification of k has a trivial impact on the results if k is sufficiently large (see Figure 2 ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 312,
+                    "end": 320,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Likelihood"
+        },
+        {
+            "text": "Consider when we know the serial interval. There are situations when the disease of interest might be of known etiology and the serial interval is known with some accuracy. This could occur, for example, in an analysis performed after an outbreak when contact tracing has already been performed, or in an outbreak of a disease with preexisting estimates of the serial interval. In such cases, interest focuses on the estimation of R 0 only. The method of Wallinga and Teunis (2004) is well-suited to post epidemic analysis. However, if we are interested in the estimation of R 0 while the epidemic is still occurring, we would need to use the modification proposed by .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Unfortunately, this method is complicated to implement. The branching process estimator can also be used in this case, but timeliness might be compromised since only complete generational counts can be used. In what follows, we describe another real time estimator for R 0 that is simple to implement. First we show how this can be derived as a maximum likelihood estimator from the likelihood in (1).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "We show how this estimator relates to a branching process estimator and describe results pertinent to our application. Then we show the relationship between the Bayesian posterior mode and the MLE and describe the properties of a Bayesian estimator.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "From (1) we obtain the score equation,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "N t\u2212j p j . Setting this to zero and solving for R 0 yields the following estimator (MLE),",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "This estimator can be compared to the branching process estimator of the offspring mean. Branching processes would either assume that the serial interval is a degenerative distribution with a mean of one, or that we can clump the data into generations based on prior knowledge of the serial interval or obvious clustering in the data (plausible for diseases with a long incubation distribution). For instance if the mean of the serial interval is \u00b5 days, then the vector of daily case counts, N = {N 1 , N 2 , . . . , N T }, can be grouped into generations as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "In this case, N * would be used to estimate R 0 as:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "(3)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Therefore both (2) and (3) require some information on the serial interval, however one can argue that (3) requires less information; in fact, if one knows the mean of the serial interval distribution the data can theoretically be clustered into generations with only this information. To implement this method of estimation with confidence, one would want to have some contact tracing information, accurate information on the incubation distribution or serial interval, or a disease (such as smallpox) with a long serial interval in a small population where data is clearly clustered (see Becker, 1989 chapter 9 for an example).",
+            "cite_spans": [
+                {
+                    "start": 590,
+                    "end": 602,
+                    "text": "Becker, 1989",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "(2) requires complete specification of the serial interval.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "The close connection between (2) and (3) is advantageous in better understanding (2). Branching process theory provides information on the probability of extinction, or experiencing a nonexplosive epidemic which can be applied in this setting. For instance, if R 0 < 1, the epidemic will die out with probability one, providing a goal for containment strategies. Following the methods described by Harris (1963) , the probability of extinction, p e , for our model is given by the smallest root of the equation:",
+            "cite_spans": [
+                {
+                    "start": 398,
+                    "end": 411,
+                    "text": "Harris (1963)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "If N 0 is greater than one, the probability of extinction becomes p e N 0 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Branching process theory on the asymptotic properties of the process and estimators has been well developed (see, for instance Guttorp, 1991 and references therein). The asymptotic results of consistency and normality of (3) are conditional on the explosion set, which we define as an outbreak that does not terminate by chance, but continues to grow in the absence of interventions and population constraints. These properties are described as having N 0 , T \u2192 \u221e. Therefore, it is reasonable to assume that (2) will be at least approximately normal conditional on the explosion set. Simulation results support this and, in fact, seem to show that convergence is much quicker to the log normal distribution, indicating a tendency toward a skewed distribution. In reality, asymptotic properties have limited utility for us since convergence is slow (Hall and Heyde, 1980 ) and we will likely (or at least hopefully) never meet the asymptotic conditions in real life applications, due to population size constraints, natural immunity, and public health measures.",
+            "cite_spans": [
+                {
+                    "start": 127,
+                    "end": 140,
+                    "text": "Guttorp, 1991",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 848,
+                    "end": 869,
+                    "text": "(Hall and Heyde, 1980",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "However the asymptotic conditions do serve to justify the estimator as being reasonable.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Bayesian inference provides us with a different, but related estimator to (2).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Suppose we have a (conjugate) prior to the Poisson likelihood of a Gamma with shape and rate parameters given by \u03ba and \u03bd, respectively. Then the posterior density for R 0 is a Gamma density with shape and rate parameters \u03ba ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Therefore, with probability q(R 0 N 0 ) the posterior distribution of R 0 will approach a Normal distribution with mean \u03ba p (T )/\u03bd p (T ) and variance \u03ba p (T )/\u03bd 2 p (T ). This implies that the posterior distribution of R 0 approaches a Normal distribution as the epidemic grows. From this, we can assume that R 0 also tends to a Normal distribution, conditional on the epidemic growing.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval known"
+        },
+        {
+            "text": "Problems can arise when we make incorrect assumptions about the serial interval, and as a result if one does not have a good estimate of the serial interval distribution, the estimator of R 0 may not be reliable.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "In this section we extend the method described in Section 2.2.1 to estimate both R 0 and the serial interval. We explore some of the complexities that may arise when one attempts to estimate both R 0 and the serial interval, but overall the proposed method performs well.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "Consider the likelihood described in (1). We can use maximum likelihood techniques to estimate R 0 and the p j , j = 1, . . . , k simultaneously. For the sake of parsimony, we can model the p j and thus reduce the dimensionality of the parameter space. For example we can utilize a two parameter Gamma distribution which will provide a rich family with sufficient flexibility to model a large number of infectious disease data sets. This leads to the estimation of only three parameters, R 0 , \u03b1, and \u03b2; the last two being the shape and rate parameters of the Gamma,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "respectively. Therefore we model the p j as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "This formulation means that we are discretizing the Gamma distribution and, since k is finite, truncating it, as well. We normalize the p j to ensure that they sum to one and represent a density. Therefore if k is not selected to be large enough, the p j may not follow a Gamma distribution even approximately. This would tend to have a greater impact when estimating with a small amount of data where k is necessarily set to be lower than the maximal probable serial interval. We also note that the choice of the limits of integration in (6) are general and one could use any reasonable choice of limits, depending on the disease and available data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "One can also consider a Bayesian approach to this problem. There is no conjugate prior and in general analytic solutions for the posterior modes for the parameters of interest do not exist. Use of computationally intensive Markov Chain",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "Monte Carlo methods are necessary to perform this analysis. In what follows, we use a maximum likelihood approach as it is much easier to implement in practice and we can show it to be reliable, especially with the data sets we have examined.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial interval unknown"
+        },
+        {
+            "text": "We now present results from a simulation study. For this we consider four Gamma distributed serial intervals with the following means and variances: (1) 2.97 and 0.98, (2) 3.00 and 9.18, (3) 8.00 and 16.00, and (4) 8.00 and 16.00 (referred to hereafter as Cases 1-4). We allow R 0 to be 0.9, 1.25 and 2.00. We simulate 1000 datasets for each of these 12 scenarios. The simulated datasets contain 100 days of data, except when R 0 = 2.00 and the serial interval is from either Case 1 or 2, where we simulated 50 days worth of data. When R 0 = 0.9 we begin each simulation with 100 cases. When R 0 is larger than one, we begin each simulation with two index cases. To be consistent with branching process theory, we only analyze those simulations that do not die out before 50 (when R 0 = 2 and the serial interval is short) and 100 (in all other cases) days. We maximize the likelihood using a Nelder Mead optimizing routine. We report the median and interquartile range (IQR) in presenting simulation results, due to the skewed distributions of the parameters described in section 2.2.1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Simulation Study"
+        },
+        {
+            "text": "We first assume that the serial interval is known. For these simulations we only consider serial interval cases 1 and 2.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Serial Interval Known"
+        },
+        {
+            "text": "In Table 1 we compare our method to that of Wallinga and Tuenis (WT estimator) and the simple branching process estimator. It should be clearly stated that the data used in this analysis does not completely match the assumptions of Wallinga and Tuenis, since it does not represent a completed outbreak. However we feel it is worthwhile to see how they perform as a real time estimator. In Table   1 the impact of not meeting this assumption is minimal for R 0 small, but becomes more dramatic as R 0 increases to 2.00. All methods perform well when the serial interval is correctly specified. We note that when the serial interval is incorrectly assumed (the non-bolded entries) the estimates become biased. Specifically for the MLE and branching process estimator when the serial interval is assumed too long we observe that we overestimate R 0 , as intuition would prescribe. When the serial interval is assumed too small we tend to be negatively biased. The bias pattern for the WT estimator is not clear. The branching process estimator closely follows the MLE estimator due to the similarity in their form. In fact, we see here that knowing the full distribution of the serial interval offers little advantage over only knowing the mean of the serial interval, when the data is simulated as above, indicating that R 0 can be well estimated without knowledge of the second moment of the serial interval. If the serial interval is misspecified, this method is more sensitive, as it cannot draw on other information about the serial interval that might offset the misspecification of the mean. Additionally, when the true mean of the serial interval is not an integer, it is more difficult to implement the branching process method and one must either round the mean of the serial interval or somehow redistribute the data.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 3,
+                    "end": 10,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                },
+                {
+                    "start": 389,
+                    "end": 398,
+                    "text": "Table   1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Serial Interval Known"
+        },
+        {
+            "text": "[ We estimate the serial interval and R 0 for all 12 data sets described above. In Table 2 the method performs very well in the estimation of both R 0 and the serial interval parameters. We note the impact of the final epidemic size and find that when R 0 = 1.25 there appears to be a stronger correlation between the overall parameter estimates and the final epidemic size. Figure 1 more clearly shows the impact of the final epidemic size on the final parameter estimates. Here we notice that as the number of cases increase, the parameters tend to provide more accurate estimation of the true parameters. The number of epidemics that go to zero cases prior to the end of the simulation are also shown. These values can be predicted from branching process theory using the probability of extinction, p e .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 83,
+                    "end": 90,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 375,
+                    "end": 383,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Serial Interval Known"
+        },
+        {
+            "text": "In the case when R 0 = 0.9, we note that there are a large number of such epidemics, however in this case, we do not exclude the extinct epidemics in the estimation procedure, but rather truncate the vector of cases such that the final number of cases is nonzero. Further, we note that the estimates we obtain here are strikingly accurate and, in general, have small IQRs. It is possible that this is related to branching process asymptotic theory, which is based on the initial number of cases, N 0 \u2192 \u221e. We note that when R 0 = 1.25, and we allow N 0 = 10, the estimates improve slightly over the cases when N 0 = 2. In this case, it is unclear if the improved estimate is due to the larger final size of the epidemic of the larger number of initial cases (as these two values are confounded). To control for this somewhat, we performed another set of simulations where we simulated data until a previously fixed final epidemic size was achieved, rather than just for a certain number of days. In this case, we observed slightly improved results in those cases where the the final epidemic size was small in Table 2 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1109,
+                    "end": 1116,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Serial Interval Known"
+        },
+        {
+            "text": "[ Table 2 Further, the method appears to perform well for estimating the serial interval.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 2,
+                    "end": 9,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Serial Interval Known"
+        },
+        {
+            "text": "[ Figure 2 about here.]",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 2,
+                    "end": 10,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Serial Interval Known"
+        },
+        {
+            "text": "The numerical optimization routines utilized to maximize the likelihood function require starting values. In general, we have found that the estimates are not very sensitive to the starting values, however we both provide a method for obtaining reasonable starting values, as well as a further description of the uniqueness and existence of solutions to this problem. We describe this for the simple case when k = 2 and we use a multinomial distribution for the serial interval, but the result is generalizable.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "in the formulation of a Poisson regression model as,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": ". Then we can find the ordinary least squares solution for \u03b8 as the solution to",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "This estimator ignores the covariance between successive N t 's. Assuming that N \u22121 = 0, this can be expressed as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "Therefore, a unique solution for \u03b8 exists if Z Z is nonsingular. The determinant of this matrix is",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "By the Cauchy-Schwartz inequality,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "with equality achieved only when the N t = \u03b1N t\u22121 for all t = 0, . . . , T ; in other words, all the N t = 0. It should also be noted that T must be at least two. In general, for this to hold, T \u2265 k.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "Therefore we can consider the ordinary least squares solutions as starting values for the numerical optimizer of the likelihood. Parenthetically, this also shows that the serial interval and the reproductive number are not confounded.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Starting Values"
+        },
+        {
+            "text": "We now illustrate the utility of this method in real time estimation. In Figure   3 we compare the Bayesian estimates to those estimates obtained from the MLE when the serial interval is known. Here we show the real time MLE and the Bayesian posterior mode with and without an informative prior. We see that the two estimates closely mimic one another and that the impact of the informative prior diminishes rapidly. Additionally the estimates quickly converge to the true value.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 73,
+                    "end": 83,
+                    "text": "Figure   3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Real Time Analysis"
+        },
+        {
+            "text": "[ Figure 3 about here.] Figure 4 gives the real times estimates when the serial interval is estimated for a single epidemic for R 0 = 2.0 and each of the four serial interval cases.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 2,
+                    "end": 10,
+                    "text": "Figure 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 24,
+                    "end": 32,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Real Time Analysis"
+        },
+        {
+            "text": "Adding the complexity of estimating the serial interval clearly leads to more aberrant events in the real-time estimates, however the estimates still converge to their true values, though the rate at which they do so for these simulations appears to be slow. Interestingly, when R 0 < 1 and N 0 = 100, we observe that the real time simulations converge rapidly to their true values and are exceptionally stable once they reach the true parameter values.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Real Time Analysis"
+        },
+        {
+            "text": "[ Figure 4 about here.]",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 2,
+                    "end": 10,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF5"
+                }
+            ],
+            "section": "Real Time Analysis"
+        },
+        {
+            "text": "We now show the utility of this method by considering data from three infectious disease outbreaks. We consider three datasets. The first is from an Ebola outbreak in 1995 in Congo with 289 cases over the course of 129 days. Chowell et al. in humans is characterized by a relatively short incubation time (typically estimated to be around three days) and R 0 that has been estimated to be between just greater than one to over two.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Example"
+        },
+        {
+            "text": "We have described that this method is best suiting for estimating the initial phase of an epidemic and have not described techniques for implementing this method over an entire outbreak that dies out. Therefore, we limit our analysis of these data to the initial portion of the epidemic when it is still growing to illustrate the ability that we have to attain rapid estimates of the parameters of interest. Thus we consider the first 58 days of data for the Ebola outbreak, the first 25 days of the H7N7 Avian Influenza outbreak and the first 20 days of the Swine Flu outbreak. Table 3 provides results when we use all of the data during the \"growth\" phase of the epidemic. The estimate of R 0 for Ebola is strikingly similar to those given by Chowell et al. (2004) . Additionally we note the relatively long serial interval that is consistent with the previously described incubation distribution. The estimates for both Influenza outbreaks also appear to be consistent with previous results for Influenza having relatively short serial intervals (\u03bc = 2.95 and 1.40 days) and values for R 0 that exceed one (R 0 = 1.17 and 1.13). We note, however, that the estimated interquartile ranges are very high for Ebola and Avian Influenza. This is likely explained by a number of factors. These outbreaks started with a much smaller number of cases (one and five) compared to the swine flu epidemic which started with nine. We have discussed that the asymptotic properties are dependent on having a large number of initial cases. This also might be a reflection of the bootstrapping technique which we utilize. We simulated 1000 datasets using the estimated parameters and then consider the variability in these estimates.",
+            "cite_spans": [
+                {
+                    "start": 745,
+                    "end": 766,
+                    "text": "Chowell et al. (2004)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 579,
+                    "end": 586,
+                    "text": "Table 3",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Example"
+        },
+        {
+            "text": "The small number of initial cases and small R 0 leads to many of these epidemics being extremely small and dying out, thus leaving us with limited information to estimate the interquartile range. Finally, this could also be a reflection of the difficulty involved in estimating the serial interval.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Example"
+        },
+        {
+            "text": "[ Table 3 about here.]",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 2,
+                    "end": 9,
+                    "text": "Table 3",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Example"
+        },
+        {
+            "text": "In this paper, we describe a likelihood-based method for the estimation of the basic reproductive number and the serial interval using simple surveillance data.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The likelihood of the observed counts of disease is an evolving Poisson. From this likelihood, we can derive maximum likelihood estimates. We have shown that when the serial interval is known, the MLE is equivalent to the posterior mode obtained by using an 'uninformative' Gamma prior distribution. Thus the posterior distribution of R 0 can be approximated by a Normal distribution. In practice we have seen through simulation results that this is often more accurately approximated by a Log Normal distribution since our simulations have not yet converged to the asymptotic case. Further we have illustrated how this method can be extended to incorporate estimation of the serial interval in real-time, requiring virtually no prior information on the epidemiological parameters of the infectious agent. These estimation techniques are simple to implement and require minimal amounts of prior information.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "While the results thus far are promising, there are certain caveats that must be noted. First, the dependencies in the data and the explosive nature of the process make many traditional statistical inference tools inapplicable. We have shown that in a simple scenario, this is a branching process and under certain asymptotic conditions, normality and consistency hold. However, in general these properties are likely not attainable. This is not of great concern because in practice we are unlikely to attain asymptotic conditions, making such statements of little practical use except as guides. Therefore we turn to Bayesian methods and simulations to explain and understand the small sample properties of the estimators. In this case, we observe that the estimators do not appear to be normally distributed and have heavy tails, but perform well in estimating the behavior of the system.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "The theory of branching processes provides useful tools to understand inference with epidemic data. One of these is the determination of the probability of an epidemic dying out. In practice we do not typically take note of epidemics that do not exceed a certain threshold. Undoubtedly there are cases where a pathogen exists in a population among only a few individuals and fails to start a noticeable epidemic. We have described the probability of such events occurring and the impact of this on obtaining global estimates of the epidemiological characteristics of a pathogen. The estimates presented are based on conditioning on the event that an epidemic occurs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "While our estimator is similar to the branching process estimator, we note that the unique derivation of our estimator allows for much greater flexibility and opportunity than the branching process estimator. We have shown that our proposed MLE estimator slightly outperforms the branching process estimator (see Table   1 ), but have also shown how this formulation allows us to estimate the serial interval and describe the disease dynamics in detail beyond the first moment of the serial interval distribution.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 313,
+                    "end": 322,
+                    "text": "Table   1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "Estimation of the serial interval poses challenges. We observe that longer serial intervals are more challenging to estimate and, of course, require a longer period of observation. However, the method proposed here performs well and provides at least an accurate qualitative picture of an epidemic. Implicit in the calculations is the assumption that the distribution of the serial interval is Gamma.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "Our simulations did not test the impact of this assumption and it is possible, even with this very rich family of shapes, there might be pathogens that do not follow one of these shapes, for instance a bimodal distribution. If this is suspected, Table 2 . Case 2 and 3 refer to the serial interval used in the simulations and are described in the text. . Real-time estimates for the parameters when R 0 = 2. Analysis began ten days after the start of the epidemic. Each row in the figure presents the estimates obtained for a single simulation from the corresponding serial interval case (1-4), as described in the text. the final column shows the epidemic curve for the simulation used in that row.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 246,
+                    "end": 253,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discussion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Stochastic epidemic models and their statistical analysis",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Infectious diseases of humans: dynamics and control",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "May",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Strong approximations for epidemic models",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Ball",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Donnelly",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Stochastic Processes and their Applications",
+            "volume": "55",
+            "issn": "",
+            "pages": "1--21",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Dynamically modeling SARS and other newly emerging respiratory illnesses",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Bauch",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lloyd-Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Coffee",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Galvani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Epidemiology",
+            "volume": "16",
+            "issn": "",
+            "pages": "791--801",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Estimation for an epidemic model",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1976,
+            "venue": "Biometrics",
+            "volume": "362",
+            "issn": "",
+            "pages": "769--777",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Analysis of Infectious Disease Data",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Becker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Statistical studies of infectious disease incidence",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Becker",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Britton",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Journal of the Royal Statistical Society B",
+            "volume": "61",
+            "issn": "",
+            "pages": "287--307",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "The epidemiology of ebola hemorraghic fever in zaire",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Breman",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Piot",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Johnson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1976,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Real-time estimation in early detection of SARS",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "P.-Y",
+                    "middle": [],
+                    "last": "Boelle",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Donelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ferguson",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Thomas",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hedley",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A.-J",
+                    "middle": [],
+                    "last": "Valleron",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Emerging Infectious Diseases",
+            "volume": "12",
+            "issn": "",
+            "pages": "110--113",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Estimation in real time the efficacy of measures to control emerging communicable diseases",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Cauchemez",
+                    "suffix": ""
+                },
+                {
+                    "first": "P.-Y",
+                    "middle": [],
+                    "last": "Boelle",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Thomas",
+                    "suffix": ""
+                },
+                {
+                    "first": "A.-J",
+                    "middle": [],
+                    "last": "Valleron",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "American Journal of Epidemiology",
+            "volume": "164",
+            "issn": "",
+            "pages": "591--597",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "The basic reproductive number of ebola and the effects of public health measures: the cases of Congo and Uganda",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Chowell",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Hengartner",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Castillo-Chavez",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Fenimore",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Hyman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Journal of Theoretical Biology",
+            "volume": "229",
+            "issn": "",
+            "pages": "119--126",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Factors that make an infectious disease outbreak controllable",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Fraser",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Riley",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Ferguson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "PNAS",
+            "volume": "101",
+            "issn": "",
+            "pages": "6146--6151",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Statistical Inference for Branching Processes",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Guttorp",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Martingale Limit Theory and Its Application",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Hall",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Heyde",
+                    "suffix": ""
+                }
+            ],
+            "year": 1980,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "The Theory of Branching Processes",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Harris",
+                    "suffix": ""
+                }
+            ],
+            "year": 1963,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "The mathematics of infectious diseases",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Hethcote",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "SIAM Review",
+            "volume": "42",
+            "issn": "",
+            "pages": "599--653",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "The estimation of SARS incubation distribution from serial interval data using a convolution likelihood",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kuk",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Statistics in Medicine",
+            "volume": "24",
+            "issn": "",
+            "pages": "2525--2537",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Transmission dynamics and control of Severe Acute Respiratory Syndrome",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Cohen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Cooper",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Robins",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "James",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gopalakrishna",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Samore",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fisman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Murray",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "300",
+            "issn": "",
+            "pages": "1966--1970",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Containing pandemic influenza with antiviral agents",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Longini",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Halloran",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Nizam",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "American Journal of Epidemiology",
+            "volume": "159",
+            "issn": "",
+            "pages": "623--633",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Transmissibility of 1918 influenza pandemic",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Mills",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Robins",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Lipsitch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Nature",
+            "volume": "432",
+            "issn": "",
+            "pages": "904--906",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Asymptotic properties of some estimators for the infection rate in the general stochastic epidemic model",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Rida",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Journal of the Royal Statistical Society. Series B (Methodological)",
+            "volume": "53",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "noninformative prior, where \u03ba = 1 and \u03bd 0, leads to the quasi-equivalence between the MLE and the Bayesian posterior mode. In cases where the etiology of the infectious agent is known, an informative prior is sensible and provides greater information earlier in the epidemic. Then as the number of new cases accumulate (i.e. as \u03ba p (T ) and \u03bd p (T ) become larger) the prior becomes less important and the MLE and the posterior mode estimator become equivalent. Thus",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "illustrates estimates of the serial interval obtained when R 0 = 2 for varying k, the maximal length of the serial interval. We note that the value of k does not appear to have a large impact on the estimates of the serial interval.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "estimate R 0 for this outbreak to be 1.83 (SD = 0.06) using a deterministic SEIR model and cite Breman et al. (1977)'s estimate of the incubation distribution to be 6.3 days with a range of 1 to 21 days. The other two datasets come from the Netherlands and are given in Van Den Broek and Heesterbeek (2006). The first contains daily incidence data for an H7N7 Avian influenza outbreak in 2003 with 239 cases in 69 days. The final dataset comes from a Swine Flu outbreak in 1995, with 427 cases over 57 days. Influenza",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "The log of the estimate of R 0 versus the final epidemic size. These estimates of R 0 are calculated when the serial interval is simultaneously being estimated and are equivalent to those shown in",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Estimated Gamma densities when R 0 = 2.0 and with k varying. The cases are the different serial interval Gamma densities described in the text. Case 1 has a mean of 2.97 and variance of 0.98. Case 2 has mean and variance 3.00 and 9.18, respectively. The mean and variance of case 3 are 8.00 and 16.00, while the mean and variance of case 4 are 8.00 and 36.00. Real time estimates of R 0 . The solid line traces the MLE estimate through time. The Bayesian posterior mode is shown. Finer dashed line represents estimating with an informative prior while the longer dashed line represents estimates with an uninformative prior. Case 2 and 3 are described in the text.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Figure 4. Real-time estimates for the parameters when R 0 = 2. Analysis began ten days after the start of the epidemic. Each row in the figure presents the estimates obtained for a single simulation from the corresponding serial interval case (1-4), as described in the text. the final column shows the epidemic curve for the simulation used in that row.",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "As shown inTable 1, misspecifying the serial interval can lead to inaccurate estimates of R 0 . Therefore, if the serial interval is unknown, or the existing estimate is known with little confidence, it would be desirable to estimate it. The likelihood-based method presented in Section 2.2.2 can be used for this purpose.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "is the length of the serial interval and \u03c4 is the minimal serial interval in essence shifting the density to the left by \u03c4 units. Additionally, incorporating limited contact tracing data, as did with their method, might lead to an increased ability to estimate the serial interval. This might be done via MCMC methods and the use of a prior distribution estimated from the contact traced data.We have assumed that secondary cases are generated according to a Poisson distribution (the so-called offspring distribution). While this may not be perfectly accurate for disease generation, since individuals or groups of people may have different characteristics that would lead them to generate cases at varying rates, we feel that this is a reasonable starting point. Further, this assumption can be relaxed through proper modeling of R 0 to account for factors that might lead to differential infection rates, including seasonality, day of the week, demographic variables, and a shrinking susceptible population. Additionally we have assumed homogenous mixing with this formulation, but again feel that there is adequate flexibility in the model to relax this assumption.Results from the simulation study and their interquartile ranges are based on1000 monte carlo simulations. Estimates are obtained using the MLE method, WT estimator and branching process estimator (BP). Estimates are the median of the 1000 simulations and the interquartile range (IQR) of the simulations is given in parenthesis. Case 2 and Case 3 have serial intervals that are gamma distributed with means 3.0 and 8.0, respectively and variances 9.18 and 16.0 respectively. Bolded entries indicate analysis done with the correct serial interval assumed. Estimates from the simulation study with their interquartile ranges are based on 1000 monte carlo simulations. Estimates shown are the median of the 1000 monte carlo simulations. The interquartile range (IQR) of the simulations is shown. The serial interval is Gamma distributed with mean and variance given by \u00b5 and \u03c3 2. The number of initial cases is denoted by N 0 . Simulations that go extinct (the number of cases goes to zero before the predetermined end of the simulation) are discarded. the number of these is given in the column Num. Extinct.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Estimates of R 0 and the serial interval obtained for data from outbreaks of Ebola in the Congo, Swine Flu and Avian Influenza in the Netherlands. Estimates are obtained by using the first 58 days for Ebola, 25 days for Avian Influenza and 20 days for the Swine Flu. The interquartile range is estimated using a bootstrap.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "The authors would like to thank Marc Lipsitch and Al Ozonoff for their helpful comments on this work.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        },
+        {
+            "text": "Riley, S., Fraser, C., Donnelly, C., Ghani, A., Abu-Raddad, L., Hedley, A., Leung, G., Ho, L., Lam, T., Thach, T., Chau, P., Chan, K., Lo, S., Leung, P., Tsang, T., Ho, W., Lee, K., Lau, E., Ferguson, N. and Anderson, R. (2003) . Transmission dynamics of the etiological agent of SARS in Hong Kong: Impact of public health interventions. Science 300, 1961 300, -1966 300, . Shao, Q. (1999 . Some properties of an estimator for the basic reproduction number of the general epidemic model. ",
+            "cite_spans": [
+                {
+                    "start": 208,
+                    "end": 227,
+                    "text": "Anderson, R. (2003)",
+                    "ref_id": null
+                },
+                {
+                    "start": 346,
+                    "end": 355,
+                    "text": "300, 1961",
+                    "ref_id": null
+                },
+                {
+                    "start": 356,
+                    "end": 366,
+                    "text": "300, -1966",
+                    "ref_id": null
+                },
+                {
+                    "start": 367,
+                    "end": 388,
+                    "text": "300, . Shao, Q. (1999",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "annex"
+        }
+    ]
+}
