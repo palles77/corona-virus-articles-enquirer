@@ -39,19 +39,19 @@ https://github.com/palles77/corona-virus-articles-enquirer/issues
 https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.1/CovidEnquirerSetup-1.0.0.2.exe
 2. Po uruchomieniu instalacji program „Covid Enquirer 1.0.0.2” zostanie uruchomiony automatycznie. Można go również uruchomić z ikony na pulpicie lub wpisując „Covid Enquirer” z panelu wyszukiwania w systemie Windows.
 Powinieneś zobaczyć następujący obraz:
-! [Ładowanie bazy danych] (https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerStartup.png)
+![Ładowanie bazy danych](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerStartup.png)
 3. Po kilku minutach oczekiwanie baza danych zakończy się ładowaniem (baza danych jest dość duża, ponieważ zawiera szczegóły dotyczące ponad 29 000 artykułów z całego świata - w języku angielskim).
 Obraz, który zobaczysz, będzie mniej więcej taki:
-! [Baza danych załadowana] (https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerLoaded.png)
+![Baza danych załadowana](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerLoaded.png)
 4. Określ kryteria wyszukiwania i naciśnij przycisk „Szukaj”. Podając więcej niż 1 słowo, program wyszuka artykuły zawierające wszystkie słowa.
 Przykładowy obraz kryteriów wyszukiwania „szczepionka przeciw wirusowi krowianki”
-! [Określanie kryteriów wyszukiwania] (https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerSearching.png)
+![Określanie kryteriów wyszukiwania](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerSearching.png)
 5. Po zakończeniu wyszukiwania zobaczysz listę artykułów w polu listy po lewej stronie. Zawiera posortowaną listę tytułów alfabetycznie. Aby zobaczyć treść artykułu wystarczy kliknąć tytuł, a zobaczysz prosty podgląd artykułów w formacie RTF.
 Przykładowy artykuł można zobaczyć poniżej:
-! [Podgląd wybranego aritcle] (https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/Images/CovidEnquirerSearchingResult.png)
+![Podgląd wybranego artykułu](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/Images/CovidEnquirerSearchingResult.png)
 6. Możesz przetłumaczyć wybrany artykuł za pomocą Google na swój język. Dostępne języki to: chiński, czeski, francuski, niemiecki, grecki, włoski, japoński, polski, portugalski,
  Rosyjski, hiszpański Pamiętaj, że tłumaczenie zajmuje kilka minut z powodu ograniczeń nałożonych przez Google na ich bezpłatną usługę tłumaczeniową. Jednak tłumaczenia są całkiem dobre z naukowego punktu widzenia.
-! [Podgląd wybranego aritcle] (https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/Images/CovidEnquirerTranslatedInPolish.png)
+![Tłumaczenie artykułu](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/Images/CovidEnquirerTranslatedInPolish.png)
 
 # Inne funkcjonalizacje
 Program oferuje także menu kontekstowe dla każdego z artykułów, które pozwala:

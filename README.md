@@ -54,7 +54,7 @@ The sample article can be seen below:
 ![Previewing selected aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerSearchingResult.png)
 6. You can translate a selected article using Google into your language. Available languages include: : Chinese, Czech, French, German, Greek, Italian, Japanese, Polish, Portuguese,
  Russian, Spanish. Note that translation takes a couple of minutes due to limitations imposed by Google on their free translation service. However the translations are actually pretty good from scientific point of view.
-![Previewing selected aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerTranslatedInPolish.png)
+![Translation of selected aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerTranslatedInPolish.png)
 
 # Other functionaliy
 The program also offers you a context menu for each of the articles which allows:
