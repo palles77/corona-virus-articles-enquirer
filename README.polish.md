@@ -55,11 +55,11 @@ Przykładowy artykuł można zobaczyć poniżej:
 
 # Inne funkcjonalizacje
 Program oferuje także menu kontekstowe dla każdego z artykułów, które pozwala:
-a) wyszukiwanie artykułu w Google poprzez uruchomienie przeglądarki z wyszukiwaniem skupia się na tytule bieżącego artykułu.
-b) zapisanie artykułu jako dokumentu Word.
-c) otwarcie artykułu w Word Pad.
-d) tłumaczenie artykułów.
-e) możliwość przesuwania paska podziału, aby zwiększyć pole listy. Możesz także dowolnie zmieniać rozmiar okna, dzięki czemu obszar do czytania może być większy lub mniejszy w zależności od życzeń użytkownika.
+* wyszukiwanie artykułu w Google poprzez uruchomienie przeglądarki z wyszukiwaniem skupia się na tytule bieżącego artykułu.
+* zapisanie artykułu jako dokumentu Word.
+* otwarcie artykułu w Word Pad.
+* tłumaczenie artykułów.
+* możliwość przesuwania paska podziału, aby zwiększyć pole listy. Możesz także dowolnie zmieniać rozmiar okna, dzięki czemu obszar do czytania może być większy lub mniejszy w zależności od życzeń użytkownika.
 
 # Dziękuję notatki
 Chciałbym podziękować za następujące projekty:

@@ -58,11 +58,11 @@ The sample article can be seen below:
 
 # Other functionaliy
 The program also offers you a context menu for each of the articles which allows:
-a) searching for the article in Google by starting up a browser with searching focues on the current article's title.
-b) saving an article as Word document.
-c) opening an article in a Word Pad.
-d) translating articles.
-e) ability to move the splitter bar to make the list box bigger. You can also freely resize the window, so that the area for reading can get bigger or smaller depending on the user's wishes.
+* Searching for the article in Google by starting up a browser with searching focues on the current article's title.
+* Saving an article as Word document.
+* Opening an article in a Word Pad.
+* Translating articles.
+* Ability to move the splitter bar to make the list box bigger. You can also freely resize the window, so that the area for reading can get bigger or smaller depending on the user's wishes.
 
 # Thank you notes
 I would like to thank to the following projects:
