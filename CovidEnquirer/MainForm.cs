@@ -14,7 +14,6 @@ namespace CovidEnquirer
 {
     public partial class MainForm : Form
     {
-
         #region Properties
 
         private List<Article> FoundArticles;
@@ -495,12 +494,6 @@ namespace CovidEnquirer
                     {
                         howManyWordsFound++;
                         continue;
-                    }
-
-                    var unzippedContent = Zipper.Unzip(article.ZippedContent);
-                    if (!wasWordFound && kmp.Search(unzippedContent.ToLower()))
-                    {
-                        howManyWordsFound++;
                     }
 
                     if (!wasWordFound)

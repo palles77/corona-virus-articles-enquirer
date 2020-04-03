@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
+using System.Windows.Forms;
 
 namespace CovidLib
 {
@@ -16,31 +17,38 @@ namespace CovidLib
             var targetBuilder = new StringBuilder();
             var translatedPart = String.Empty;
 
-            foreach (var line in sentencesToTranslate.Split('.'))
+            try
             {
-                if (sourceBuilder.ToString().Length + line.Length > 5000)
+                foreach (var line in sentencesToTranslate.Split('.'))
                 {
-                    translatedPart = TranslateInternal(sourceBuilder.ToString(), language);
-                    targetBuilder.Append(translatedPart);
+                    if (sourceBuilder.ToString().Length + line.Length > 5000)
+                    {
+                        translatedPart = TranslateInternal(sourceBuilder.ToString(), language);
+                        targetBuilder.Append(translatedPart);
 
-                    sourceBuilder.Clear();
+                        sourceBuilder.Clear();
+                    }
+
+                    sourceBuilder.Append(line);
                 }
 
-                sourceBuilder.Append(line);
+                translatedPart = TranslateInternal(sourceBuilder.ToString(), language);
+                targetBuilder.Append(translatedPart);
             }
-
-            translatedPart = TranslateInternal(sourceBuilder.ToString(), language);
-            targetBuilder.Append(translatedPart);
+            catch
+            {
+                MessageBox.Show("There was a problem with access to Google translate. Please try again later");
+            }
 
             return targetBuilder.ToString();
         }
 
         public static string TranslateInternal(string input, string language)
         {
-            var randomSeconds = new Random().Next(5);
-            while (randomSeconds < 2)
+            var randomSeconds = new Random().Next(10);
+            while (randomSeconds < 5)
             {
-                randomSeconds = new Random().Next(5);
+                randomSeconds = new Random().Next(10);
             }
             Thread.Sleep(randomSeconds * 1000);
 
@@ -80,6 +88,8 @@ namespace CovidLib
             { 
                 translation = translation.Substring(1); 
             };
+
+            httpClient.Dispose();
 
             // Return translation
             return translation;

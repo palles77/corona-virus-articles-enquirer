@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CovidLib
 {
@@ -13,23 +9,27 @@ namespace CovidLib
         public static byte[] Zip(string str)
         {
             var bytes = Encoding.UTF8.GetBytes(str);
+            byte[] result;
 
             using (var msi = new MemoryStream(bytes))
             {
                 using (var mso = new MemoryStream())
                 {
-                    using (var gs = new GZipStream(mso, CompressionMode.Compress))
+                    using (var gs = new GZipStream(mso, CompressionLevel.Optimal))
                     {
                         CopyTo(msi, gs);
                     }
 
-                    return mso.ToArray();
+                    result =  mso.ToArray();
                 }
             }
+
+            return result;
         }
 
         public static string Unzip(byte[] bytes)
         {
+            string result;
             using (var msi = new MemoryStream(bytes))
             {
                 using (var mso = new MemoryStream())
@@ -39,9 +39,11 @@ namespace CovidLib
                         CopyTo(gs, mso);
                     }
 
-                    return Encoding.UTF8.GetString(mso.ToArray());
+                    result = Encoding.UTF8.GetString(mso.ToArray());
                 }
             }
+
+            return result;
         }
 
         public static void CopyTo(Stream src, Stream dest)

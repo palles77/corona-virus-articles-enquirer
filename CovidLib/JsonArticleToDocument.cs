@@ -336,7 +336,6 @@ namespace CovidLib
             Article result = new Article();
             var title = "";
             var articleAbstractBuilder = new StringBuilder();
-            var contentBuilder = new StringBuilder();
             var zippedJson = Zipper.Zip(articleContent);
 
             try
@@ -355,14 +354,6 @@ namespace CovidLib
                         articleAbstractBuilder.AppendLine(articleAbstract["text"].ToString());
                     }
                 }
-
-                if (article["body_text"] != null && article["body_text"].Children().Count() > 0)
-                {
-                    foreach (var bodyText in article["body_text"].Children())
-                    {
-                        contentBuilder.AppendLine(bodyText["text"].ToString());
-                    }
-                }
             }
             catch
             { 
@@ -370,7 +361,6 @@ namespace CovidLib
 
             result.ZippedTitle = Zipper.Zip(title);
             result.ZippedAbstract = Zipper.Zip(articleAbstractBuilder.ToString());
-            result.ZippedContent = Zipper.Zip(contentBuilder.ToString());
             result.ZippedJson = zippedJson;
 
             return result;
