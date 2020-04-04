@@ -1,4 +1,6 @@
-﻿namespace CovidEnquirer
+﻿using CovidLib;
+
+namespace CovidEnquirer
 {
     partial class MainForm
     {
@@ -49,6 +51,7 @@
             this.ResultsSplitContainer = new System.Windows.Forms.SplitContainer();
             this.TranslateButton = new System.Windows.Forms.Button();
             this.LanguagesComboBox = new System.Windows.Forms.ComboBox();
+            this.TitleSearchTextBox = new DelayTypingTextBox();
             this.SearchResultsContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ResultsSplitContainer)).BeginInit();
             this.ResultsSplitContainer.Panel1.SuspendLayout();
@@ -134,11 +137,11 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 128);
+            this.label1.Location = new System.Drawing.Point(4, 101);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(82, 13);
+            this.label1.Size = new System.Drawing.Size(104, 13);
             this.label1.TabIndex = 4;
-            this.label1.Text = "Search Results:";
+            this.label1.Text = "Filter Search Results";
             // 
             // ArticleRichTextBox
             // 
@@ -158,20 +161,20 @@
             // 
             // GoogleButton
             // 
-            this.GoogleButton.Location = new System.Drawing.Point(268, 96);
+            this.GoogleButton.Location = new System.Drawing.Point(274, 96);
             this.GoogleButton.Name = "GoogleButton";
             this.GoogleButton.Size = new System.Drawing.Size(129, 23);
-            this.GoogleButton.TabIndex = 1;
+            this.GoogleButton.TabIndex = 2;
             this.GoogleButton.Text = "Google Selected Title";
             this.GoogleButton.UseVisualStyleBackColor = true;
             this.GoogleButton.Click += new System.EventHandler(this.GoogleButton_Click);
             // 
             // SaveArticleButton
             // 
-            this.SaveArticleButton.Location = new System.Drawing.Point(403, 96);
+            this.SaveArticleButton.Location = new System.Drawing.Point(409, 96);
             this.SaveArticleButton.Name = "SaveArticleButton";
-            this.SaveArticleButton.Size = new System.Drawing.Size(180, 23);
-            this.SaveArticleButton.TabIndex = 2;
+            this.SaveArticleButton.Size = new System.Drawing.Size(173, 23);
+            this.SaveArticleButton.TabIndex = 4;
             this.SaveArticleButton.Text = "Save Original Article As Word";
             this.SaveArticleButton.UseVisualStyleBackColor = true;
             this.SaveArticleButton.Click += new System.EventHandler(this.SaveArticleButton_Click);
@@ -181,7 +184,7 @@
             this.OpenArticleButton.Location = new System.Drawing.Point(588, 125);
             this.OpenArticleButton.Name = "OpenArticleButton";
             this.OpenArticleButton.Size = new System.Drawing.Size(212, 23);
-            this.OpenArticleButton.TabIndex = 5;
+            this.OpenArticleButton.TabIndex = 6;
             this.OpenArticleButton.Text = "Open Translated Article In WordPad";
             this.OpenArticleButton.UseVisualStyleBackColor = true;
             this.OpenArticleButton.Click += new System.EventHandler(this.OpenArticleButton_Click);
@@ -213,10 +216,10 @@
             // 
             // TranslateButton
             // 
-            this.TranslateButton.Location = new System.Drawing.Point(403, 125);
+            this.TranslateButton.Location = new System.Drawing.Point(409, 125);
             this.TranslateButton.Name = "TranslateButton";
-            this.TranslateButton.Size = new System.Drawing.Size(180, 23);
-            this.TranslateButton.TabIndex = 4;
+            this.TranslateButton.Size = new System.Drawing.Size(173, 23);
+            this.TranslateButton.TabIndex = 5;
             this.TranslateButton.Text = "Translate Using Google";
             this.TranslateButton.UseVisualStyleBackColor = true;
             this.TranslateButton.Click += new System.EventHandler(this.TranslateButton_Click);
@@ -224,10 +227,18 @@
             // LanguagesComboBox
             // 
             this.LanguagesComboBox.FormattingEnabled = true;
-            this.LanguagesComboBox.Location = new System.Drawing.Point(268, 125);
+            this.LanguagesComboBox.Location = new System.Drawing.Point(274, 125);
             this.LanguagesComboBox.Name = "LanguagesComboBox";
             this.LanguagesComboBox.Size = new System.Drawing.Size(129, 21);
             this.LanguagesComboBox.TabIndex = 3;
+            // 
+            // SearchResultsTextBox
+            // 
+            this.TitleSearchTextBox.Location = new System.Drawing.Point(7, 125);
+            this.TitleSearchTextBox.Name = "SearchResultsTextBox";
+            this.TitleSearchTextBox.Size = new System.Drawing.Size(263, 20);
+            this.TitleSearchTextBox.TabIndex = 1;
+            this.TitleSearchTextBox.DelayedTextChanged += new System.EventHandler(this.TitleSearchTextBox_TextChanged);
             // 
             // MainForm
             // 
@@ -235,6 +246,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(812, 561);
+            this.Controls.Add(this.TitleSearchTextBox);
             this.Controls.Add(this.LanguagesComboBox);
             this.Controls.Add(this.TranslateButton);
             this.Controls.Add(this.label1);
@@ -283,5 +295,6 @@
         private System.Windows.Forms.Button TranslateButton;
         private System.Windows.Forms.ComboBox LanguagesComboBox;
         private System.Windows.Forms.ToolStripMenuItem translateToolStripMenuItem;
+        private DelayTypingTextBox TitleSearchTextBox;
     }
 }

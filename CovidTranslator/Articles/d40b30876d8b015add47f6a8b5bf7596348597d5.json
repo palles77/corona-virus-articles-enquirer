@@ -1,0 +1,3002 @@
+{
+    "paper_id": "d40b30876d8b015add47f6a8b5bf7596348597d5",
+    "metadata": {
+        "title": "Modeling transient particle transport by fast fluid dynamics with the Markov chain method",
+        "authors": [
+            {
+                "first": "Wei",
+                "middle": [],
+                "last": "Liu",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Zhejiang University",
+                    "location": {
+                        "postCode": "314400",
+                        "settlement": "Haining",
+                        "country": "China"
+                    }
+                },
+                "email": "weiliu@intl.zju.edu.cn"
+            },
+            {
+                "first": "Ruoyu",
+                "middle": [],
+                "last": "You",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "The Hong Kong Polytechnic University",
+                    "location": {
+                        "postCode": "999077",
+                        "settlement": "Kowloon, Hong Kong",
+                        "country": "China"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Chun",
+                "middle": [],
+                "last": "Chen",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "The Chinese University of Hong Kong",
+                    "location": {
+                        "postCode": "999077",
+                        "settlement": "Shatin, Hong Kong",
+                        "region": "N.T",
+                        "country": "China"
+                    }
+                },
+                "email": "chunchen@mae.cuhk.edu.hkchunchen"
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Fast simulation tools for the prediction of transient particle transport are critical in designing the air distribution indoors to reduce the exposure to indoor particles and associated health risks. This investigation proposed a combined fast fluid dynamics (FFD) and Markov chain model for fast predicting transient particle transport indoors. The solver for FFD-Markov-chain model was programmed in OpenFOAM, an open-source CFD toolbox. This study used two cases from the literature to validate the developed model and found well agreement between the transient particle concentrations predicted by the FFD-Markov-chain model and the experimental data. This investigation further compared the FFD-Markov-chain model with the CFD-Eulerian model and CFD-Lagrangian model in terms of accuracy and efficiency. The accuracy of the FFD-Markov-chain model was similar to that of the other two models. For the two studied cases, the FFD-Markovchain model was 4.7 and 6.8 times faster, respectively, than the CFD-Eulerian model, and it was 137.4 and 53.3 times faster than the CFD-Lagrangian model in predicting the steady-state airflow and transient particle transport. Therefore, the FFD-Markov-chain model is able to greatly reduce the computing cost for predicting transient particle transport in indoor environments.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "computational fluid dynamics, indoor environment, Eulerian model, Lagrangian model, particle dispersion, aerosol dynamics Article History",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Exposure to outdoor particles has been linked to various adverse health effects, such as asthma (Pope et al. 2002) and shortened life expectancy (Pope et al. 2009 ). Although people stay indoors for most of their time (Klepeis et al. 2001) , particles that originate outdoors can enter indoor environments through natural ventilation, mechanical ventilation, and infiltration (Chen and Zhao 2011; Chen et al. 2011ab, 2012a Lee et al. 2017; Shi et al. 2017 ). In addition to particles from the outdoor environment, there are many indoor particle sources, such as cigarette smoking (Patino and Siegel 2018) , cooking (Singer et al. 2017; Zhao and Zhao 2018) , human activity (You et al. 2013; Lai et al. 2017) , and chemical reactions (Chen et al. 2012c; Yao and Zhao 2017) . Furthermore, particles exhaled by an infected person can result in the transmission of many airborne infectious diseases indoors, including influenza (Moser et al. 1979) , tuberculosis (Menzies et al. 2000) , measles (Bloch et al. 1985) , and SARS (Yu et al. 2004; Chen et al. 2011c) . In most cases, the particle concentration distribution indoors is non-uniform, and the transport process is transient in nature. Therefore, it is crucial to correctly simulate the transient particle transport in indoor environments that further facilitate the design of indoor airflow, and finally reduce health risks.",
+            "cite_spans": [
+                {
+                    "start": 96,
+                    "end": 114,
+                    "text": "(Pope et al. 2002)",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 145,
+                    "end": 162,
+                    "text": "(Pope et al. 2009",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 218,
+                    "end": 239,
+                    "text": "(Klepeis et al. 2001)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 376,
+                    "end": 396,
+                    "text": "(Chen and Zhao 2011;",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 397,
+                    "end": 422,
+                    "text": "Chen et al. 2011ab, 2012a",
+                    "ref_id": null
+                },
+                {
+                    "start": 423,
+                    "end": 439,
+                    "text": "Lee et al. 2017;",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 440,
+                    "end": 455,
+                    "text": "Shi et al. 2017",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 580,
+                    "end": 604,
+                    "text": "(Patino and Siegel 2018)",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 615,
+                    "end": 635,
+                    "text": "(Singer et al. 2017;",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 636,
+                    "end": 655,
+                    "text": "Zhao and Zhao 2018)",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 673,
+                    "end": 690,
+                    "text": "(You et al. 2013;",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 691,
+                    "end": 707,
+                    "text": "Lai et al. 2017)",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 733,
+                    "end": 752,
+                    "text": "(Chen et al. 2012c;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 753,
+                    "end": 771,
+                    "text": "Yao and Zhao 2017)",
+                    "ref_id": "BIBREF50"
+                },
+                {
+                    "start": 924,
+                    "end": 943,
+                    "text": "(Moser et al. 1979)",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 959,
+                    "end": 980,
+                    "text": "(Menzies et al. 2000)",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 991,
+                    "end": 1010,
+                    "text": "(Bloch et al. 1985)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 1022,
+                    "end": 1038,
+                    "text": "(Yu et al. 2004;",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 1039,
+                    "end": 1057,
+                    "text": "Chen et al. 2011c)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "With the development of computational hardware, computational fluid dynamics (CFD) is getting more and more popular tools for simulating indoor airflow and particle transport. For indoor airflow modeling, several studies have systematically evaluated the accuracy and robustness of various turbulence models (Chen 1995; ;",
+            "cite_spans": [
+                {
+                    "start": 308,
+                    "end": 319,
+                    "text": "(Chen 1995;",
+                    "ref_id": "BIBREF22"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "List of symbols C source (n\u00b7\u0394t) source particle concentration at time n\u00b7\u0394t F i i-th component of the body forces g i gravitational component in the x i (i = 1,2,3) direction m number of time steps N i (t) number of particles in cell i at time t p n , p n+1 air pressure at the previous and current time steps P i,i probability of a particle's staying in cell i P nb,i probability of a particle's moving from a neighboring cell to cell i P i,nb probability of a particle's moving out from cell i Wang and Chen 2009 ). All these studies came to the same conclusion, that the RNG k-\u03b5 model is the most robust turbulence model for indoor airflow simulations. For modelling the particle transport, researchers and engineers traditionally used the Eulerian model and Lagrangian model Zhao et al. 2008; Wang et al. 2012; Chen et al. 2013 ). The Eulerian model solves the scalar governing equation to obtain the particle concentration distribution (e.g. Zhao et al. 2009; Seepana and Lai 2012; Li et al. 2012; Chen et al. 2014ab, 2018 , while the Lagrangian model predicts the particle trajectories to reflect the particle movements (e.g. Chao and Wan 2006; Chen et al. , 2015a Zhang and Li 2012) . However, both methods are computational demanding for particle transport calculations. For example, Wang et al. (2012) found that calculating the transient particle concentration distributions in a simple room took more than 60 hours when using the two models. Therefore, it is crucial to develop faster simulation models to facilitate the prediction of transient particle transport indoors. Since both airflow and particle modeling are time consuming, it is worthwhile to accelerate the computing for both aspects. For airflow modeling, the use of fast fluid dynamics (FFD) has been proven to reduce the computing cost in comparison with CFD (Zuo and Chen 2009; Jin et al. 2013; Liu et al. 2016 Liu et al. , 2017 Liu and Chen 2018) . FFD solves the Navier-Stokes equations with a time-advancement and pressure projection method. For example, Liu et al. (2017) reported that FFD saved the computing cost of airflow prediction by 20 times when compared with CFD, with comparable accuracy. For particle modeling, the recently developed Markov chain model does not require iterations in each time step when solving the particle transport equations and was proved to be much more efficient than the Eulerian and Lagrangian models (Chen et al. 2014c; Chen et al. 2015bc; Fontanini et al. 2015 Fontanini et al. , 2017 Mei et al. 2017; Mei and Gong 2018) . For instance, Chen et al. (2015b) applied the Markov chain model to calculate inter-person particle transport indoors and the method was more than 6 times faster than the traditional models. Although FFD and the Markov chain model can accelerate the airflow and transient particle transport calculations, respectively, the combined effects on accuracy and computing cost are unknown. Therefore, this study developed a combined FFD and Markov chain model and evaluated the model in terms of accuracy and computing cost.",
+            "cite_spans": [
+                {
+                    "start": 25,
+                    "end": 31,
+                    "text": "(n\u00b7\u0394t)",
+                    "ref_id": null
+                },
+                {
+                    "start": 495,
+                    "end": 513,
+                    "text": "Wang and Chen 2009",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 778,
+                    "end": 795,
+                    "text": "Zhao et al. 2008;",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 796,
+                    "end": 813,
+                    "text": "Wang et al. 2012;",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 814,
+                    "end": 830,
+                    "text": "Chen et al. 2013",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 946,
+                    "end": 963,
+                    "text": "Zhao et al. 2009;",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 964,
+                    "end": 985,
+                    "text": "Seepana and Lai 2012;",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 986,
+                    "end": 1001,
+                    "text": "Li et al. 2012;",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 1002,
+                    "end": 1026,
+                    "text": "Chen et al. 2014ab, 2018",
+                    "ref_id": null
+                },
+                {
+                    "start": 1131,
+                    "end": 1149,
+                    "text": "Chao and Wan 2006;",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1150,
+                    "end": 1169,
+                    "text": "Chen et al. , 2015a",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1170,
+                    "end": 1188,
+                    "text": "Zhang and Li 2012)",
+                    "ref_id": "BIBREF56"
+                },
+                {
+                    "start": 1291,
+                    "end": 1309,
+                    "text": "Wang et al. (2012)",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 1834,
+                    "end": 1853,
+                    "text": "(Zuo and Chen 2009;",
+                    "ref_id": "BIBREF60"
+                },
+                {
+                    "start": 1854,
+                    "end": 1870,
+                    "text": "Jin et al. 2013;",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 1871,
+                    "end": 1886,
+                    "text": "Liu et al. 2016",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 1887,
+                    "end": 1904,
+                    "text": "Liu et al. , 2017",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 1905,
+                    "end": 1923,
+                    "text": "Liu and Chen 2018)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 2034,
+                    "end": 2051,
+                    "text": "Liu et al. (2017)",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 2417,
+                    "end": 2436,
+                    "text": "(Chen et al. 2014c;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 2437,
+                    "end": 2456,
+                    "text": "Chen et al. 2015bc;",
+                    "ref_id": null
+                },
+                {
+                    "start": 2457,
+                    "end": 2478,
+                    "text": "Fontanini et al. 2015",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 2479,
+                    "end": 2502,
+                    "text": "Fontanini et al. , 2017",
+                    "ref_id": "BIBREF24"
+                },
+                {
+                    "start": 2503,
+                    "end": 2519,
+                    "text": "Mei et al. 2017;",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 2520,
+                    "end": 2538,
+                    "text": "Mei and Gong 2018)",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 2555,
+                    "end": 2574,
+                    "text": "Chen et al. (2015b)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "This study considered the time-dependent Navier-Stokes equations for incompressible viscous indoor airflow:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "A standard incremental pressure-correction (SIPC) scheme (Goda 1979; Guermond et al. 2006) , which is one of the available velocity-component coupled-projection methods, was applied to solve Eqs. (1) and (2). The SIPC scheme splits Eq. (2) into the following two equations:",
+            "cite_spans": [
+                {
+                    "start": 57,
+                    "end": 68,
+                    "text": "(Goda 1979;",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 69,
+                    "end": 90,
+                    "text": "Guermond et al. 2006)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "The pressure projection method (Pan et al. 2016 ) substitutes Eq. (4) into Eq. (1) to produce:",
+            "cite_spans": [
+                {
+                    "start": 31,
+                    "end": 47,
+                    "text": "(Pan et al. 2016",
+                    "ref_id": "BIBREF41"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "The SIPC scheme first solves Eq. (3), which considers the advection and diffusion terms implicitly and the pressure and source terms explicitly. With the solved intermediate velocity i U * , the SIPC scheme then solves Eq. (5) to obtain the pressure p n+1 . Finally, the SIPC makes a correction to the air velocity using Eq. (4):",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "To predict the transport of energy, the corresponding scalar transport equation must be solved:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "Since Eq. (7) is a linear partial differential equation, this study solved it iteratively with implicit schemes:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "With the solution of Eq. (8), FFD adopts the Boussinesq approximation (Boussinesq 1903) to simulate the buoyancy effect in the indoor airflow:",
+            "cite_spans": [
+                {
+                    "start": 70,
+                    "end": 87,
+                    "text": "(Boussinesq 1903)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "This study applied the renormalization group (RNG) k-\u03b5 model, which is one of the best Reynolds-averaged Navier-Stokes (RANS) turbulence models for predicting the indoor airflow Blocken 2018) , to simulate the turbulence. Again, since the equations for k and \u03b5 are both scalar equations, they are solved in the same way with Eq. (7). The corresponding wall function in OpenFOAM (Jasak et al. 2007 ) was adopted for neat wall treatment. This investigation applied the second order upwind scheme to discretize the convection terms. The CFD simulations adopted the same numerical setup, except used the SIMPLE algorithm to couple the air pressure and velocity.",
+            "cite_spans": [
+                {
+                    "start": 178,
+                    "end": 191,
+                    "text": "Blocken 2018)",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 378,
+                    "end": 396,
+                    "text": "(Jasak et al. 2007",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Fast fluid dynamics for airflow and turbulence"
+        },
+        {
+            "text": "The Markov chain model calculates the number of particles in a given grid cell (represented by the subscript i) at the subsequent time (t + \u0394t) on the basis of the Markov chain scheme (Chen et al. 2015b) :",
+            "cite_spans": [
+                {
+                    "start": 184,
+                    "end": 203,
+                    "text": "(Chen et al. 2015b)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "Here, P i,i and P nb,i are called transition probabilities.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "On the basis of the particle mass balance equation, after a certain time interval \u0394t, the probability of particle's remaining in the current cell can be calculated by (Chen et al. 2015b ",
+            "cite_spans": [
+                {
+                    "start": 167,
+                    "end": 185,
+                    "text": "(Chen et al. 2015b",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "Thus, the total probability of a particle moving out from the current cell i is:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "For a specific neighboring cell j, the probability P i,j was calculated with the airflow rate moving from cell i to cell j:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "Q i,nb was the sum of the mean airflow rate (Q mean,i,nb ) and the turbulent fluctuating airflow rate (Q fluctuating,i,nb ). The readers can refer to Chen et al. (2015b) for the calculation details. Please note that in Eq. (10), P nb,i is used instead of P i,nb . Equation (10) also shows that the Markov chain model calculates the number of particles explicitly in each time step, and thus the method can be very fast. The particle number concentration in each cell is:",
+            "cite_spans": [
+                {
+                    "start": 150,
+                    "end": 169,
+                    "text": "Chen et al. (2015b)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "This Markov chain model does not consider the inertial effects of the particles, it is supposed to work well for particles with a diameter smaller than 3 \uf06dm (Chen et al. 2015b) . Furthermore, when there is a constant particle source, to reduce the computing cost, the superimposition method can be used to reduce the computing time (Gupta et al. 2011 ). The superimposition method first calculates the particle concentrations C MC (t) by the Markov chain model for a pulse source (duration of one time step \u0394t) with particle concentration of 1 #/m 3 . Then if the real source is constant, the superimposition method divides the source concentration into numbers of pulse sources with duration of one time step (\u0394t). The actual particle concentration can then be calculated by (Gupta et al. 2011) :",
+            "cite_spans": [
+                {
+                    "start": 157,
+                    "end": 176,
+                    "text": "(Chen et al. 2015b)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 332,
+                    "end": 350,
+                    "text": "(Gupta et al. 2011",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 776,
+                    "end": 795,
+                    "text": "(Gupta et al. 2011)",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Markov chain model for transient particle transport"
+        },
+        {
+            "text": "This study implemented the FFD for predicting air distribution and the Markov chain model for predicting particle transport in OpenFOAM (Jasak et al. 2007) , an open-source CFD toolbox. Figure 1 shows the solution flow chart, where \u03c4 is the room time constant (s). The developed solver first conducts FFD simulation for 2\u03c4 to obtain a steady-state airflow, and then it calculates the transition probabilities, which are further used to calculate the number of particles at each time step. ",
+            "cite_spans": [
+                {
+                    "start": 136,
+                    "end": 155,
+                    "text": "(Jasak et al. 2007)",
+                    "ref_id": "BIBREF28"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 186,
+                    "end": 194,
+                    "text": "Figure 1",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Implementation in OpenFOAM"
+        },
+        {
+            "text": "To validate the accuracy of the developed FFD-Markovchain model, this study applied the model to predict the transient particle transport in two cases (Zhang et al. 2009; Bolster and Linden 2009 ) and compared the predicted results with the experimental data. Besides, to test the efficiency of the FFD-Markov-chain model, this investigation compared its computing cost with the traditional CFD-Eulerian and CFD-Lagrangian models.",
+            "cite_spans": [
+                {
+                    "start": 151,
+                    "end": 170,
+                    "text": "(Zhang et al. 2009;",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 171,
+                    "end": 194,
+                    "text": "Bolster and Linden 2009",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Validation and evaluation"
+        },
+        {
+            "text": "The ventilated chamber in Case 1 is illustrated in The numerical simulation used a grid with 18,009 hexahedral cells according to the grid independence test by Chen et al. (2015b) . For the airflow calculation by FFD, a time step size (\u0394t) of 1 s was used. The room time constant was 135 s. Therefore, the physical flow time for FFD calculation was set at 270 s. For the Markov chain model, this study set \u0394t = 0.01 s (Chen et al. 2015b) . Note that the number of particles injected varied with time; therefore, this study calculated the C MC (t) and, further, the particle concentration C(t) by using the superimposition method (Eq. (15)). For the calculation of C MC (t), the physical flow time was set at 1,500 s, as all of the particles were removed from the room after 1,500 s. In this case, the impact of deposition was not considered according to Zhao et al. (2009) .",
+            "cite_spans": [
+                {
+                    "start": 160,
+                    "end": 179,
+                    "text": "Chen et al. (2015b)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 418,
+                    "end": 437,
+                    "text": "(Chen et al. 2015b)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 854,
+                    "end": 872,
+                    "text": "Zhao et al. (2009)",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case 1"
+        },
+        {
+            "text": "To validate the accuracy of the FFD-Markov-chain model, this investigation compares the predicted particle concentrations with the experimental data as shown in Fig. 3 . The FFD-Markov-chain model correctly predicted the strong initial peak and the relatively weak and delayed peak in particle concentrations at Point 1 and Point 2, respectively. However, as displayed in Fig. 3(b) , the FFD-Markov-chain model over-predicted the particle concentration after the peak in comparison with the experimental data. Interestingly, the over-prediction also occurred for the CFD-Eulerian and CFD-Lagrangian models (Chen et al. 2015c) , which are also included for comparison. Please note that the three sets of simulations adopted exactly the same boundary conditions. The accuracy of the FFD-Markov-chain model was comparable to that of the other two models. The discrepancies between the simulations and experiment may be partially attributed to heat dissipated by the particle counters and the corresponding convective flow.",
+            "cite_spans": [
+                {
+                    "start": 606,
+                    "end": 625,
+                    "text": "(Chen et al. 2015c)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 161,
+                    "end": 167,
+                    "text": "Fig. 3",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 372,
+                    "end": 381,
+                    "text": "Fig. 3(b)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "Case 1"
+        },
+        {
+            "text": "To quantitatively compare the accuracy of the FFD-Markov-chain model, this study calculated the normalized By replacing the C exp,i in the denominator by C CFD-Eulerian,i or C CFD-Lagrangian,i , this study also calculated the NRMSD between the predictions by FFD-Markov-chain model and that by the other two models. Table 1 lists the calculated NRMSD for the FFD-Markov-chain model, which confirms that the predictions by the FFD-Markov-chain model agreed well with the experimental data and that by the other two models.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 316,
+                    "end": 323,
+                    "text": "Table 1",
+                    "ref_id": "TABREF1"
+                }
+            ],
+            "section": "Case 1"
+        },
+        {
+            "text": "The chamber studied in Case 2 is illustrated in Fig. 4 (Bolster and Linden 2009) . The chamber had dimensions of 1.3 m \uf0b4 Fig. 4) .",
+            "cite_spans": [
+                {
+                    "start": 55,
+                    "end": 80,
+                    "text": "(Bolster and Linden 2009)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 48,
+                    "end": 54,
+                    "text": "Fig. 4",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 121,
+                    "end": 128,
+                    "text": "Fig. 4)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Case 2"
+        },
+        {
+            "text": "The numerical simulation used a grid with 53,740 hexahedral cells, according to the grid independence test by Chen et al. (2015b) . For FFD, this study again set \u0394t = 1 s, which was fine enough to capture the flow features. The room time constant was 400 s. Thus, the physical flow time for FFD calculation was set at 800 s. For the Markov chain model, this study set \u0394t = 0.01 s (Chen et al. 2015b ). The physical flow time was set at 1,000 s, which was sufficient for removal of all the particles from the room. Again, this investigation neglected the influences of particle deposition and resuspension for particles with a diameter of 2 \uf06dm (Zhao et al. 2009 ).",
+            "cite_spans": [
+                {
+                    "start": 110,
+                    "end": 129,
+                    "text": "Chen et al. (2015b)",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 380,
+                    "end": 398,
+                    "text": "(Chen et al. 2015b",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 643,
+                    "end": 660,
+                    "text": "(Zhao et al. 2009",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Case 2"
+        },
+        {
+            "text": "The normalized concentrations calculated from FFD-Markov-chain model were compared with the measured data for Point 1, Point 2, and Point 3 in Fig. 5 . The normalization used the particle concentration at the source. The comparisons at Points 4 and 5 were not presented because both predictions and experimental data exhibit almost zero particle concentrations there. In general, the predictions from the FFD-Markov-chain model matched well with the measured data at the three locations. At Points 1 and 3, the peaks in particle concentration occurred later than that at the 1.4 m location. The predictions by CFD-Eulerian and CFD-Lagrangian models (Chen et al. 2015c) were also provided as references. In general, the FFD-Markov-chain model had the similar performance with the CFD-Eulerian and CFD-Lagrangian models in terms of accuracy. The difference between the predictions and the experimental For Case 2, this study again calculated the NRMSD between the predictions by FFD-Markov-chain model and the experimental data and that by the other two models in Table 2 . The difference between the predictions by the FFD-Markov-chain model and the experimental data was acceptable. The differences between the predictions by the three models were minor. ",
+            "cite_spans": [
+                {
+                    "start": 649,
+                    "end": 668,
+                    "text": "(Chen et al. 2015c)",
+                    "ref_id": "BIBREF20"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 143,
+                    "end": 149,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1062,
+                    "end": 1069,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Case 2"
+        },
+        {
+            "text": "In addition to accuracy, computing efficiency is another crucial factor. Note that all the calculations were performed using the same computer under the same conditions. Figure 6 compares the total computing time of the FFD-Markov-chain model with the times required by the CFD-Eulerian and CFD-Lagrangian models. For the first case, the FFD-Markov-chain model took 3.6 min, while the CFD-Eulerian and CFD-Lagrangian models took 20.7 and 501.5 min, respectively. For the second case, the FFD-Markov-chain model took 10.7 min, while the CFD-Eulerian and CFD-Lagrangian models took 83.2 and 578.7 min, respectively. Namely, for the two studied cases, the FFD-Markov-chain model was more than 4 times faster than the CFD-Eulerian model; and more than 50 times faster than the CFD-Lagrangian model. The computing times for the airflow and particle transport calculations were listed in Table 3 . For the airflow calculations, FFD was 5.9 and 12.0 times faster, respectively, than CFD for the first and second cases. For particle transport, the Markov chain model was 4.6 times faster than the Eulerian model for both cases, and 149.7 and 70.7 times faster, respectively, than the Lagrangian model for the first and second cases. In terms of absolute contribution to computing-time saving, the Markov chain model contributed more than FFD, as the transient particle transport calculations required more time than the airflow calculations. In general, the FFD-Markov-chain model took significantly less computing time than the traditional CFD-Eulerian and CFD-Lagrangian models. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 170,
+                    "end": 178,
+                    "text": "Figure 6",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 882,
+                    "end": 889,
+                    "text": "Table 3",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "Computing cost"
+        },
+        {
+            "text": "Several limitations of the FFD-Markov-chain model were identified for further improvement. As to the FFD, this investigation applied the RNG k-\u03b5 model to simulate the turbulence. For simulating more complicated flow such as indoor airflow in an aircraft cabin or outdoor airflow, large-eddy simulation (LES) would be a good choice. However, the integration of LES into FFD has not yet been achieved, and its performance in terms of accuracy and efficiency is unknown. In regard to the Markov chain model, the current version is not able to account for particle deposition, sedimentation, resuspension, and coagulation, etc. If the model is to be applied to more complex indoor environments, these influencing factors should be considered. The implementation of additional functions in the Markov chain model would allow it to compete with the well-developed Eulerian and Lagrangian models.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "This study considered only steady-state airflow, and the time devoted to predicting the airflow was only a small portion of the time spent on predicting the particle transport. Although the FFD model was found to be 7 and 13 times faster, respectively, than the two CFD models, FFD did little to reduce the absolute computing time. However, our next step will be to consider transient indoor airflow, where the computing time for predicting airflow will be comparable to that for predicting particle transport. In that case, the contribution of FFD in improving computation efficiency is expected to be more significant.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "This investigation proposed a combined FFD and Markov chain model for calculating transient particle transport indoors. The FFD-Markov-chain model was implemented in OpenFOAM, an open-source CFD toolbox. The proposed model was validated using the experimental data from the literature. Besides, the computing cost of the proposed model was compared with that of the CFD-Eulerian and CFD-Lagrangian models. The results lead to the following conclusions: 1) The FFD-Markov-chain model can predict transient particle transport in indoor environments with well agreement with experimental data and traditional numerical models. 2) For the two studied cases, the FFD-Markov-chain model was more than 4 times faster than the CFD-Eulerian model; and more than 50 times faster than the CFD-Lagrangian model. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusions"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Measles outbreak in a pediatric practice: Airborne transmission in an office setting",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Bloch",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Orenstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Ewing",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Spain",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Mallison",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Herrmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hinman",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Pediatrics",
+            "volume": "75",
+            "issn": "",
+            "pages": "676--683",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "LES over RANS in building simulation for outdoor and indoor applications: A foregone conclusion? Building Simulation",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Blocken",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "",
+            "volume": "11",
+            "issn": "",
+            "pages": "821--870",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Particle transport in low-energy ventilation systems. Part 2: Transients and experiments",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Bolster",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Linden",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Indoor Air",
+            "volume": "19",
+            "issn": "",
+            "pages": "130--144",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Th\u00e9orie analytique de la chaleur: mise en harmonie avec la thermodynamique et avec la th\u00e9orie m\u00e9canique de la lumi\u00e8re",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Boussinesq",
+                    "suffix": ""
+                }
+            ],
+            "year": 1903,
+            "venue": "",
+            "volume": "2",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "A study of the dispersion of expiratory aerosols in unidirectional downward and ceiling-return type airflows using a multiphase approach",
+            "authors": [
+                {
+                    "first": "Cyh",
+                    "middle": [],
+                    "last": "Chao",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Wan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Indoor Air",
+            "volume": "16",
+            "issn": "",
+            "pages": "296--312",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Some questions on dispersion of human exhaled droplets in ventilation room: answers from numerical investigation",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Indoor Air",
+            "volume": "20",
+            "issn": "",
+            "pages": "95--111",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "The effectiveness of an air cleaner in controlling droplet/aerosol particle dispersion emitted from a patient's mouth in the indoor environment of dental clinics",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Cui",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Dong",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "An",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Ouyang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Journal of The Royal Society Interface",
+            "volume": "7",
+            "issn": "",
+            "pages": "1105--1118",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "Review of relationship between indoor and outdoor particles: I/O ratio, infiltration factor and penetration factor",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Atmospheric Environment",
+            "volume": "45",
+            "issn": "",
+            "pages": "275--288",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Preventing the entry of outdoor particles with the indoor positive pressure control method: Analysis of influencing factors and cost",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Building and Environment",
+            "volume": "46",
+            "issn": "",
+            "pages": "1167--1173",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Impact of two-way air flow due to temperature difference on preventing the entry of outdoor particles using indoor positive pressure control method",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Journal of Hazardous Materials",
+            "volume": "186",
+            "issn": "",
+            "pages": "1290--1299",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Role of two-way airflow owing to temperature difference in severe acute respiratory syndrome transmission: Revisiting the largest nosocomial severe acute respiratory syndrome outbreak in Hong Kong",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Journal of The Royal Society Interface",
+            "volume": "8",
+            "issn": "",
+            "pages": "699--710",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "A methodology for predicting particle penetration factor through cracks of windows and doors for actual engineering application",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Building and Environment",
+            "volume": "47",
+            "issn": "",
+            "pages": "339--348",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Indoor exposure to \"outdoor PM10\": Assessing its influence on the relationship between PM10 and short-term mortality in US cities",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Weschler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Epidemiology",
+            "volume": "23",
+            "issn": "",
+            "pages": "870--878",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Assessing the influence of indoor exposure to \"outdoor ozone\" on the relationship between ozone and short-term mortality in US communities",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Weschler",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Environmental Health Perspectives",
+            "volume": "120",
+            "issn": "",
+            "pages": "235--240",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "A hybrid model for investigating transient particle transport in enclosed environments",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Pei",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Building and Environment",
+            "volume": "62",
+            "issn": "",
+            "pages": "45--54",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Systematic study of person-to-person contaminant transport in mechanically ventilated spaces (RP-1458)",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Qu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "HVAC&R Research",
+            "volume": "20",
+            "issn": "",
+            "pages": "80--91",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Simplified models for exhaled airflow from a cough with the mouth covered",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Indoor Air",
+            "volume": "24",
+            "issn": "",
+            "pages": "580--591",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Predicting transient particle transport in enclosed environments with the combined computational fluid dynamics and Markov chain method",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Long",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Indoor Air",
+            "volume": "24",
+            "issn": "",
+            "pages": "81--92",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Accelerating the Lagrangian method for modeling transient particle transport in indoor environments",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Aerosol Science and Technology",
+            "volume": "49",
+            "issn": "",
+            "pages": "351--361",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "A Markov chain model for predicting transient particle transport in enclosed environments",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Building and Environment",
+            "volume": "90",
+            "issn": "",
+            "pages": "30--36",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Comparing the Markov chain model with the Eulerian and Lagrangian models for indoor transient particle transport simulations",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Aerosol Science and Technology",
+            "volume": "49",
+            "issn": "",
+            "pages": "857--871",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "A simple method for differentiating direct and indirect exposure to exhaled contaminants in mechanically ventilated rooms",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Lai",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Building Simulation",
+            "volume": "11",
+            "issn": "",
+            "pages": "1039--1051",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Comparison of different k-\u03b5 models for indoor air flow computations",
+            "authors": [
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Numerical Heat Transfer",
+            "volume": "28",
+            "issn": "",
+            "pages": "353--369",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Constructing Markov matrices for real-time transient contaminant transport analysis for indoor environments",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Fontanini",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vaidya",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ganapathysubramanian",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Building and Environment",
+            "volume": "94",
+            "issn": "",
+            "pages": "68--81",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Contaminant transport at large Courant numbers using Markov matrices",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Fontanini",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Vaidya",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Passalacqua",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Ganapathysubramanian",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Building and Environment",
+            "volume": "112",
+            "issn": "",
+            "pages": "1--16",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "A multistep technique with implicit difference schemes for calculating two-or three-dimensional cavity flows",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Goda",
+                    "suffix": ""
+                }
+            ],
+            "year": 1979,
+            "venue": "Journal of Computational Physics",
+            "volume": "30",
+            "issn": "",
+            "pages": "76--95",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "An overview of projection methods for incompressible flows",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Guermond",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Minev",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Shen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Computer Methods in Applied Mechanics and Engineering",
+            "volume": "195",
+            "issn": "",
+            "pages": "6011--6045",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Inhalation of expiratory droplets in aircraft cabins",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Gupta",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Indoor Air",
+            "volume": "21",
+            "issn": "",
+            "pages": "341--350",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "OpenFOAM: A C++ library for complex physics simulations",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Jasak",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Jemcov",
+                    "suffix": ""
+                },
+                {
+                    "first": "\u017d",
+                    "middle": [],
+                    "last": "Tukovi\u0107",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Proceedings of the International Workshop on Coupled Methods in Numerical Dynamics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Simulating natural ventilation in and around buildings by fast fluid dynamics",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Jin",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zuo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Numerical Heat Transfer, Part A: Applications",
+            "volume": "64",
+            "issn": "",
+            "pages": "273--289",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "The National Human Activity Pattern Survey (NHAPS): A resource for assessing exposure to environmental pollutants",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Klepeis",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Nelson",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Ott",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Robinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Tsang",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Switzer",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Behar",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Hern",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Engelmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Journal of Exposure Science and Environmental Epidemiology",
+            "volume": "11",
+            "issn": "",
+            "pages": "231--252",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Experimental study of the effect of shoes on particle resuspension from indoor flooring materials",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Lai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Tian",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Tsoi",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Ferro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Building and Environment",
+            "volume": "118",
+            "issn": "",
+            "pages": "251--258",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Multi-zone simulation of outdoor particle penetration and transport in a multi-story building",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Yee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Kang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Yeo",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Kim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Building Simulation",
+            "volume": "10",
+            "issn": "",
+            "pages": "525--534",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Co-occupant's exposure of expiratory droplets-Effects of mouth coverings",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Niu",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Gao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "HVAC&R Research",
+            "volume": "18",
+            "issn": "",
+            "pages": "575--587",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Implementation of a fast fluid dynamics model in OpenFOAM for simulating indoor airflow",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jin",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "You",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Numerical Heat Transfer, Part A: Applications",
+            "volume": "69",
+            "issn": "",
+            "pages": "748--762",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Development of a fast fluid dynamics-based adjoint method for the inverse design of indoor environments",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "You",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Journal of Building Performance Simulation",
+            "volume": "10",
+            "issn": "",
+            "pages": "326--343",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Development of adaptive coarse grid generation methods for fast fluid dynamics in simulating indoor air flow",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Journal of Building Performance Simulation",
+            "volume": "11",
+            "issn": "",
+            "pages": "470--484",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "A grid-merging operation to accelerate the Markov chain model in predicting steady-state and transient transmission of airborne particles",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gong",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Su",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Peng",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Xie",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Building and Environment",
+            "volume": "122",
+            "issn": "",
+            "pages": "82--93",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Predicting airborne particle deposition by a modified Markov chain model for fast estimation of potential contaminant spread",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Mei",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Atmospheric Environment",
+            "volume": "185",
+            "issn": "",
+            "pages": "137--146",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Hospital ventilation and risk for tuberculous infection in Canadian health care workers",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Menzies",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Fanning",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Yuan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Fitzgerald",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Annals of Internal Medicine",
+            "volume": "133",
+            "issn": "",
+            "pages": "779--789",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "An outbreak of influenza aboard a commercial airliner",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Moser",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Bender",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Margolis",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Noble",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Kendal",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Ritter",
+                    "suffix": ""
+                }
+            ],
+            "year": 1979,
+            "venue": "American Journal of Epidemiology",
+            "volume": "110",
+            "issn": "",
+            "pages": "1--6",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Analysis of velocity-components decoupled projection method for the incompressible Navier-Stokes equations",
+            "authors": [
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Pan",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Choi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Computers & Mathematics with Applications",
+            "volume": "71",
+            "issn": "",
+            "pages": "1722--1743",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Indoor environmental quality in social housing: A literature review",
+            "authors": [
+                {
+                    "first": "Edl",
+                    "middle": [],
+                    "last": "Patino",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Siegel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Building and Environment",
+            "volume": "131",
+            "issn": "",
+            "pages": "231--241",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Lung cancer, cardiopulmonary mortality, and long-term exposure to fine particulate air pollution",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Pope",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Burnett",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Thun",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Calle",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Krewski",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Ito",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Thurston",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "JAMA",
+            "volume": "287",
+            "issn": "",
+            "pages": "1132--1141",
+            "other_ids": {}
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Fine-particulate air pollution and life expectancy in the United States",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Pope",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ezzati",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Dockery",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "The New England Journal of Medicine",
+            "volume": "360",
+            "issn": "",
+            "pages": "376--386",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Experimental and numerical investigation of interpersonal exposure of sneezing in a full-scale chamber",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Seepana",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ack",
+                    "middle": [],
+                    "last": "Lai",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Aerosol Science and Technology",
+            "volume": "46",
+            "issn": "",
+            "pages": "485--493",
+            "other_ids": {}
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "A method for assessing the performance of nanofiber films coated on window screens in reducing residential exposures to PM2.5 of outdoor origin in Beijing",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Shi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Bian",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Indoor Air",
+            "volume": "27",
+            "issn": "",
+            "pages": "1190--1200",
+            "other_ids": {}
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "Pollutant concentrations and emission rates from natural gas cooking burners without and with range hood exhaust in nine California homes",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Singer",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "Z"
+                    ],
+                    "last": "Pass",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Delp",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Lorenzetti",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Maddalena",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Building and Environment",
+            "volume": "122",
+            "issn": "",
+            "pages": "215--229",
+            "other_ids": {}
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "Assessment of various turbulence models for transitional flows in an enclosed environment (RP-1271)",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "HVAC&R Research",
+            "volume": "15",
+            "issn": "",
+            "pages": "1099--1119",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Advanced turbulence models for predicting particle transport in enclosed environments",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "C-H",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Building and Environment",
+            "volume": "47",
+            "issn": "",
+            "pages": "40--49",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "SOA in newly decorated residential buildings. Building and Environment",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Yao",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "",
+            "volume": "111",
+            "issn": "",
+            "pages": "132--139",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Measuring the short-term emission rates of particles in the \"personal cloud\" with different clothes and activity intensities in a sealed chamber",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "You",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Cui",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Aerosol and Air Quality Research",
+            "volume": "13",
+            "issn": "",
+            "pages": "911--921",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Evidence of airborne transmission of the severe acute respiratory syndrome virus",
+            "authors": [
+                {
+                    "first": "I",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Tam",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ho",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "The New England Journal of Medicine",
+            "volume": "350",
+            "issn": "",
+            "pages": "1731--1739",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Comparison of the Eulerian and Lagrangian methods for predicting particle transport in enclosed spaces",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Atmospheric Environment",
+            "volume": "41",
+            "issn": "",
+            "pages": "5236--5248",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Evaluation of various turbulence models in predicting airflow and turbulence in enclosed environments by CFD: Part 2-Comparison with experimental data from literature",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "HVAC&R Research",
+            "volume": "13",
+            "issn": "",
+            "pages": "871--886",
+            "other_ids": {}
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Transient response of particle distribution in a chamber to transient particle injection. Particle & Particle Systems Characterization",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Eckels",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Nadella",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Sun",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "26",
+            "issn": "",
+            "pages": "199--209",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Dispersion of coughed droplets in a fullyoccupied high-speed rail cabin",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Building and Environment",
+            "volume": "47",
+            "issn": "",
+            "pages": "58--66",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Particle dispersion and deposition in ventilated rooms: Testing and evaluation of different Eulerian and Lagrangian models",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Liu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Building and Environment",
+            "volume": "43",
+            "issn": "",
+            "pages": "388--397",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "Modeling of ultrafine particle dispersion in indoor environments with an improved drift flux model",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Journal of Aerosol Science",
+            "volume": "40",
+            "issn": "",
+            "pages": "29--43",
+            "other_ids": {}
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "Emissions of air pollutants from Chinese cooking: A literature review",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Building Simulation",
+            "volume": "11",
+            "issn": "",
+            "pages": "977--995",
+            "other_ids": {}
+        },
+        "BIBREF60": {
+            "ref_id": "b60",
+            "title": "Real-time or faster-than-real-time simulation of airflow in buildings",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Zuo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Q",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Indoor Air",
+            "volume": "19",
+            "issn": "",
+            "pages": "33--44",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "Solution flow chart of the combined FFD and Markov chain model",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Zhang et al. 2009). The size of the chamber was 4 m \uf0b4 2.4 m \uf0b4 2.1 m (x \uf0b4 y \uf0b4 z). There was an inlet with the size of 0.3 m \uf0b4 0.3 m (y \uf0b4 z) located 0.3 m below the ceiling on the left wall. An outlet with the same size was located 0.3 m Layout of the isothermal ventilated chamber and the plane z=1.05 m(Zhang et al. 2009) above the floor on the right wall. Air was supplied with velocity of (\u22120.82, \u22120.15, 0) m/s. The experiment injected particles with a diameter of 1 \uf06dm (density 1000 kg/m 3 ) through the inlet. The experiment measured the transient particle concentrations at two locations: Point 1 (3, 1.8, 1.05) m and Point 2 (3, 0.9, 1.05) m (black dots inFig. 2).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "Comparison of the particle concentration at (a) Point 1, (b) Point 2 from calculations and experiment root-mean-square deviation (NRMSD) between the numerical predictions and experimental data by:",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Layout of the non-isothermal ventilated chamber and the plane x = 0.65 m(Bolster and Linden 2009) 1.8 m \uf0b4 2.6 m (x \uf0b4 y \uf0b4 z). Linear supply air inlets were installed on the floor along the walls. The width of the inlets was only 2.5 cm. The supply air conditions were 0.08 m/s and 293 K. Two outlets (0.2 m \uf0b4 0.2 m each) were located in the ceiling. In the center of the floor, there was a box with dimensions of 0.2 m \uf0b4 0.22 m \uf0b4 0.2 m (x \uf0b4 y \uf0b4 z). The box was heated at 65 W to simulate a heat source. Right above the box, the experiment injected particles with a diameter of 2 \uf06dm (density 1000 kg/m 3 ) for 328 s. At the same time, the experiment measured the transient particle concentrations at five locations:",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "Comparison of the particle concentrations as function of time with the measured data at (a) Point 1, (b) Point 2, and (c) Point 3 data may be attributed to the errors in predicting the strong natural convection produced by the heated box.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Comparison of the computing time for the three models",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF1": {
+            "text": "Normalized root-mean-square deviations (NRMSD) for FFD-Markov-chain model in Case 1",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Normalized root-mean-square deviations (NRMSD) for FFD-Markov-chain model in Case 2",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "Computing time for airflow and particle transport calculations",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "This work was partially supported by the project #RNE-p1-18 of the Shun Hing Institute of Advanced Engineering, The Chinese University of Hong Kong, and the National Natural Science Foundation of China (No. 51808487).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Acknowledgements"
+        }
+    ]
+}

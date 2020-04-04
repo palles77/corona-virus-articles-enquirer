@@ -331,7 +331,7 @@ namespace CovidLib
             wordProcessingDocument.Dispose();
         }
 
-        public static Article GetArticle(string articleContent)
+        public static Article GetArticle(string articleContent, string zippedArticleSet)
         {
             Article result = new Article();
             var title = "";
@@ -361,7 +361,7 @@ namespace CovidLib
 
             result.ZippedTitle = Zipper.Zip(title);
             result.ZippedAbstract = Zipper.Zip(articleAbstractBuilder.ToString());
-            result.ZippedJson = zippedJson;
+            result.ZippedArchiveSetFileName = Zipper.Zip(zippedArticleSet);
 
             return result;
         }

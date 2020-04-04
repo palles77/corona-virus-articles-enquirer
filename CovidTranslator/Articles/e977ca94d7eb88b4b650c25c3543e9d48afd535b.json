@@ -1,0 +1,1921 @@
+{
+    "paper_id": "e977ca94d7eb88b4b650c25c3543e9d48afd535b",
+    "metadata": {
+        "title": "Predicting social response to infectious disease outbreaks from internet-based news streams",
+        "authors": [
+            {
+                "first": "Shannon",
+                "middle": [
+                    "M"
+                ],
+                "last": "Fast",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Louis",
+                "middle": [],
+                "last": "Kim",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Emily",
+                "middle": [
+                    "L"
+                ],
+                "last": "Cohn",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Harvard Medical School",
+                    "location": {
+                        "settlement": "Boston",
+                        "region": "MA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Sumiko",
+                "middle": [
+                    "R"
+                ],
+                "last": "Mekaru",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Harvard Medical School",
+                    "location": {
+                        "settlement": "Boston",
+                        "region": "MA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "John",
+                "middle": [
+                    "S"
+                ],
+                "last": "Brownstein",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "Harvard Medical School",
+                    "location": {
+                        "settlement": "Boston",
+                        "region": "MA",
+                        "country": "USA"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Natasha",
+                "middle": [],
+                "last": "Markuzon",
+                "suffix": "",
+                "affiliation": {},
+                "email": "nmarkuzon@draper.com"
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Infectious disease outbreaks often have consequences beyond human health, including concern among the population, economic instability, and sometimes violence. A warning system capable of anticipating social disruptions resulting from disease outbreaks is urgently needed to help decision makers prepare appropriately. We designed a system that operates in near real-time to identify and predict social response. Over 150,000 Internet-based news articles related to outbreaks of 16 diseases in 72 countries and territories were provided by HealthMap. These articles were automatically tagged with indicators of the disease activity and population reaction. An anomaly detection algorithm was implemented on the population reaction indicators to identify periods of unusually severe social response. Then a model was developed to predict the probability of these periods of unusually severe social response occurring in the coming week, 2 and 3 weeks. This model exhibited remarkably strong performance for diseases with substantial media coverage. For country-disease pairs with a median of 20 or more articles per year, the onset of social response in the next week was correctly predicted over 60% of the time, and 87% of weeks were correctly predicted. Performance was weaker for diseases with little media coverage, and, for these diseases, the main utility of our system is in identifying social response when it occurs, rather than predicting when it will happen in the future. Overall, the developed near real-time prediction approach is a promising step toward developing predictive models to inform responders of the likely social consequences of disease spread. This research was funded by Defense Threat Reduction Agency (www.dtra.mil) contact HDTRA1-12-C-0061.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Despite progress in the fight against infectious diseases, they remain a persistent threat to global health, claiming approximately 9.5 million lives annually (Lozano et al. 2012) . Moreover, the consequences of disease outbreaks extend beyond human health. Societal strain-ranging from anxiety and economic effects (Cheng 2004) to riots, violence, or flight (Kinsman 2012 )-frequently accompanies the outbreak of severe infectious disease. These social responses may ultimately impact national security and can limit responders' ability to combat the disease, as recently observed with the Ebola epidemic in West Africa (International Federation of Red Cross and Red Crescent Societies 2015). A warning system capable of anticipating the social consequences of epidemics will benefit decision makers and relief workers, helping them to allocate resources and respond appropriately. In this work, we present such a warning system and demonstrate its utility for predicting social response to disease outbreaks around the world.",
+            "cite_spans": [
+                {
+                    "start": 159,
+                    "end": 179,
+                    "text": "(Lozano et al. 2012)",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 316,
+                    "end": 328,
+                    "text": "(Cheng 2004)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 359,
+                    "end": 372,
+                    "text": "(Kinsman 2012",
+                    "ref_id": "BIBREF16"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "As social media and Internet news data are becoming increasingly prevalent, forecasting of social phenomena using these data has become an area of great interest. Social media and news data streams have been used to predict targets ranging from election results (Gayo-Avello 2013) and financial markets (Bollen et al. 2011; Schumaker and Chen 2009) to urban crime (Gerber 2014 ) and civil unrest (Montgomery et al. 2012; D'Orazio and Yonamine 2015) . Prominent systems, such as the Integrated Crisis Early Warning System (ICEWS) (O'Brien 2010), the Global Database of Events, Location, and Tone (GDELT) (Racette et al. 2014) , Early Model Based Event Recognition Based on Surrogates (EMBERS) (Doyle et al. 2014) , and Recorded Future (Truv\u00e9 2013) , harvest data streams from international, regional and local news sources, as well as social media and Internet forums, in order to forecast major political instability events, society-level behavior, and cyber threats. In the field of public health, several systems, including the Global Public Health Intelligence Network (GPHIN) (Mykhalovskiy and Weir 2006) , HealthMap (Brownstein et al. 2008) , ProMED-mail (Woodall 2001) , and Biocaster (Collier et al. 2008) , have been developed to facilitate outbreak detection and monitoring. These systems monitor data streams for diseasespecific events. Social reactions are frequently discussed in news streams covering disease outbreaks, and predicting the occurrence of social response that might disrupt response efforts is a natural next step for global disease monitoring systems.",
+            "cite_spans": [
+                {
+                    "start": 303,
+                    "end": 323,
+                    "text": "(Bollen et al. 2011;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 324,
+                    "end": 348,
+                    "text": "Schumaker and Chen 2009)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 364,
+                    "end": 376,
+                    "text": "(Gerber 2014",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 396,
+                    "end": 420,
+                    "text": "(Montgomery et al. 2012;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 421,
+                    "end": 448,
+                    "text": "D'Orazio and Yonamine 2015)",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 603,
+                    "end": 624,
+                    "text": "(Racette et al. 2014)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 692,
+                    "end": 711,
+                    "text": "(Doyle et al. 2014)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 734,
+                    "end": 746,
+                    "text": "(Truv\u00e9 2013)",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 1080,
+                    "end": 1108,
+                    "text": "(Mykhalovskiy and Weir 2006)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 1121,
+                    "end": 1145,
+                    "text": "(Brownstein et al. 2008)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 1160,
+                    "end": 1174,
+                    "text": "(Woodall 2001)",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 1191,
+                    "end": 1212,
+                    "text": "(Collier et al. 2008)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Social response to disease outbreaks is a relatively new area of interest for research, with studies primarily focusing on local events. Research has been conducted on the type, timing, and cause of social response for specific disease outbreaks (Sherlaw and Raude 2013; Lau et al. 2010) , including the 2003 SARS outbreak in Hong Kong (Cheng 2004 ) and the 2000-2001 Ebola outbreak in Uganda (Kinsman 2012) . Analysis of infectious disease outbreaks with and without social response has revealed that severe social response occurs most frequently when pathogens are clinically severe or are novel to local experts (Fast et al. 2015; McGrath 1991) , and that countries with low per-capita health expenditure and high levels of armed conflict and child mortality may be particularly susceptible (Vaisman et al. 2014 ).",
+            "cite_spans": [
+                {
+                    "start": 246,
+                    "end": 270,
+                    "text": "(Sherlaw and Raude 2013;",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 271,
+                    "end": 287,
+                    "text": "Lau et al. 2010)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 336,
+                    "end": 347,
+                    "text": "(Cheng 2004",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 393,
+                    "end": 407,
+                    "text": "(Kinsman 2012)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 615,
+                    "end": 633,
+                    "text": "(Fast et al. 2015;",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 634,
+                    "end": 647,
+                    "text": "McGrath 1991)",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 794,
+                    "end": 814,
+                    "text": "(Vaisman et al. 2014",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "In the current work, we extend these efforts, laying the groundwork for a near real-time warning system for social response. The method provides forecasts of the social response for the coming 1, 2, and 3 weeks. The model's primary data source was a collection of Internet-based news articles from the HealthMap historical database and daily data stream. HealthMap (Brownstein et al. 2008) , in operation since 2006, aggregates epidemic intelligence from multiple data sources, including news, social media, crowdsourced intelligence, and formal reports to identify health events, often prior to formal investigations. It has been shown that information derived from Internet-based news sources provides early and accurate information for disease detection and analysis of spread (Wilson and Brownstein 2009 ), but the utility of such information for predicting social response has yet to be determined. In this work, we show that Internet-based news sources can used as the basis for a near realtime warning system for social response, especially for country-disease pairs with extensive Internet-based news media coverage. We used over 150,000 internet-based news articles provided by HealthMap, covering 16 diseases in 72 countries and territories around the globe, to validate our models' performance.",
+            "cite_spans": [
+                {
+                    "start": 365,
+                    "end": 389,
+                    "text": "(Brownstein et al. 2008)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 780,
+                    "end": 807,
+                    "text": "(Wilson and Brownstein 2009",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our primary objective was to forecast social response in response to the spread of infectious disease. Our method consisted of three primary steps: (1) data acquisition and indicator extraction, (2) social response target development, and (3) social response forecasting. The data acquisition and indicator extraction step consisted of the collection of Internet-based news articles describing disease outbreaks around the world and automated tagging of these articles with indicators of the disease activity and social response. This process is described in Sect. 2.1. In Sect. 2.2 we explain how the social response indicator counts were translated into a target for prediction of future social response. This target was created by identifying periods of unusually severe social response based on the weekly aggregated social response indicator counts. The volume of Internet-based news reporting varies dramatically between countries and diseases, so the raw counts of the indicators were unsuitable for use as a target. Instead, we needed to create a target by comparing against baseline behavior. For example, in China 42% of weeks had at least one indicator of social response to avian influenza; 27% of weeks had over five indicators. Therefore, for China a couple mentions of social response to avian influenza per week may be considered normal behavior. In Zimbabwe, only 3% of weeks had one or more indicators of social response to cholera, making just one mention of social response an unusual event. We used a Bayesian network to compare each week's social response profile with a baseline for the country and disease. Then, we used a statistical process control algorithm to identify periods of time that were sufficiently unusual to be considered periods of social response. This approach was derived from approaches developed for rapid disease outbreak detection (Buckeridge et al. 2005; Wong et al. 2003) . Outbreak detection algorithms take as an input syndromic surveillance data and output whether a disease outbreak is taking place. Our algorithm takes the social response indicator time series as an input and outputs whether an outbreak of social response is taking place. Finally, in Sect. 2.3 we describe the method developed for forecasting future social response. The entire approach is outlined in Fig. 1 .",
+            "cite_spans": [
+                {
+                    "start": 1878,
+                    "end": 1902,
+                    "text": "(Buckeridge et al. 2005;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 1903,
+                    "end": 1920,
+                    "text": "Wong et al. 2003)",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 2325,
+                    "end": 2331,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Methods"
+        },
+        {
+            "text": "HealthMap collects a continuous stream of near real-time information on disease outbreaks, including Internet-based news articles and government reports. Over 150,000 such free-text documents, collected between 2006 and 2015, were used for modeling. These documents a b c Fig. 1 Overview of methods. a First, news articles were automatically collected and tagged with indicators of disease activity and social response. b Next, an anomaly detection approach was used to identify periods of time with unusually severe social response profiles. These periods were used as targets for social response forecasting. c Finally, the occurrence of unusually severe social response was forecast for the coming week, 2 and 3 weeks described breaking news events for 16 diseases 1 and 72 countries and territories. 2 The documents were automatically cleaned and, when necessary, translated into English. 3 We have developed a natural language processing approach to automatically tag the documents with indicators describing the spread of the disease (4 indicators), the perceived severity of the disease (3 indicators), the preventative measures taken (7 indicators), and the social response (6 indicators; Affective Social Response: Population Fear, Officials Fear; Economic Social Response: Economy Affected, Tourism Affected; Behavioral Social Response: Violence, and Healthcare Worker Protest). These indicators were created by searching within each sentence of the text for combinations of words or phrases describing the events of interest. Eventually, these indicators could be expanded to not include current events of interest, but also events expected to occur in the future according to the news sources. The indicator counts were aggregated by week for each country and disease.",
+            "cite_spans": [
+                {
+                    "start": 893,
+                    "end": 894,
+                    "text": "3",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 272,
+                    "end": 278,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Data"
+        },
+        {
+            "text": "Bayesian network describing relationships between country, disease, and social response indicator counts. All social response indicator counts were dependent upon the country and the disease. We allowed relationships between social response indicator counts (e.g. the count for Violence depends upon the count for Population Fear) to be learned, but did not require such relationships. The pictured network is the Bayesian network in the case where no relationships were learned among the social response indicator counts",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Fig. 2"
+        },
+        {
+            "text": "We used a Bayesian network to calculate the joint probability of a social response profile (the vector of social response indicator counts), given prior profiles for the same country and disease. Since Bayesian networks allow for aggregation of many types of signals, they are a popular method for anomaly detection (Buckeridge et al. 2005; Mascaro et al. 2014; Rashidi et al. 2011 ). In the developed Bayesian network, all social response indicator counts were dependent upon the country and disease. Dependencies in the network between social responses (e.g. the count for Violence depends upon the count for Population Fear) could be learned, but were not required to be present. The structure of the network was learned using a hill-climbing greedy search, with the Bayesian Information Criterion as the score. In order to train the network, we required that at least 2 years of news articles be collected for each country-disease pair. Figure 2 depicts the Bayesian network, with all required dependencies. Let c i jkt be the observed indicator count for social response indicator k 4 in country i for disease j during week t. Let x i jkt be a discretized version of the indicator counts:",
+            "cite_spans": [
+                {
+                    "start": 316,
+                    "end": 340,
+                    "text": "(Buckeridge et al. 2005;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 341,
+                    "end": 361,
+                    "text": "Mascaro et al. 2014;",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 362,
+                    "end": 381,
+                    "text": "Rashidi et al. 2011",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 941,
+                    "end": 949,
+                    "text": "Figure 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "otherwise.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "(1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "The splits used to discretize the social response indicator counts were selected empirically based on analysis of data. For 99.3% of weeks, no articles indicating Population Fear were collected; 0.6% of weeks had 1 article, 0.1% had between 2 and 5 articles, 0.02% had between Let X kt be a random variable following the baseline distribution of social response indicator k, learned by the Bayesian network trained on weeks 1 through t \u2212 1. Then, for each week t, country i, and disease j, we used likelihood weighting to calculate the probability of observing a social response profile as or more severe than the one observed during week t:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "The probabilities were translated into anomaly scores (Mascaro et al. 2014) :",
+            "cite_spans": [
+                {
+                    "start": 54,
+                    "end": 75,
+                    "text": "(Mascaro et al. 2014)",
+                    "ref_id": "BIBREF19"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "High anomaly scores indicate weeks with abnormally severe social response profiles, compared with previous weeks. For example, a week with a probability of 5% would have an anomaly score of 2.8. A week with a probability of 80% would have an anomaly score of 0.2. The next step was to identify multi-week periods of unusually severe social response, using the weekly anomaly scores, A i jt . For this task, we used the exponentially weighted moving average (EWMA) (Roberts 1959 ) of the anomaly scores. Alternative approaches to finding statistical breakpoints in social media data have been proposed (Servi 2013) . Nevertheless, researchers have found that EWMA is a \"simple and robust\" method for outbreak identification based on surveillance of sparse syndromic data (Buckeridge et al. 2005) , and, continuing the analogy of social response to disease, it is reasonable to expect that EWMA would provide good performance on a sparse data stream of social response anomaly scores. The EWMA, Z i jt , is the weighted average of all previous anomaly scores and is defined as follows:",
+            "cite_spans": [
+                {
+                    "start": 464,
+                    "end": 477,
+                    "text": "(Roberts 1959",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 601,
+                    "end": 613,
+                    "text": "(Servi 2013)",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 770,
+                    "end": 794,
+                    "text": "(Buckeridge et al. 2005)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "where \u03bb \u2208 (0, 1). Since 2 years (104 weeks) of news articles were collected before the anomaly scores were calculated, the EWMA was started on the 105th week, and Z i j104 = 0. We defined a binary indicator for the presence of unusually severe social response, which was 1 when the EWMA of the anomaly scores exceeded the upper control limit (UC L i jt ) and 0 otherwise:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "In Sect. 2.3, we introduce models to predict the probability that S i jt = 1 in the coming 1, 2, and 3 weeks. The upper control limit for an EWMA control chart is defined as follows (Montgomery 2009 ):",
+            "cite_spans": [
+                {
+                    "start": 182,
+                    "end": 198,
+                    "text": "(Montgomery 2009",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "with width of the control limit, L > 0, in-control mean,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "In the standard implementation of EWMA, both the upper control limit and EWMA are reset after the EWMA passes the control limit. We found that S i jt was most reasonable when these values were not reset. The EWMA parameter, L, was set to 3 based on the recommendation of Montgomery (2009) . The parameter, \u03bb, was tuned by visually inspecting the S i jt indicators for several values. The tuning process used data from 30 countries. Prediction results for these countries are presented in Online Resource 2. The selected value, \u03bb = 0.25, produced results for S i jt that corresponded well with analyst opinion. Figure 3 shows the social response indicator counts, the exponentially weighted moving average, and the social response binary indicator for dengue fever outbreaks in India. Figures depicting several other countries and diseases can be found in Online Resource 1.",
+            "cite_spans": [
+                {
+                    "start": 271,
+                    "end": 288,
+                    "text": "Montgomery (2009)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 610,
+                    "end": 618,
+                    "text": "Figure 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "Our approach to defining the binary social response indicator has a number of advantages. First, especially for country-disease pairs with high volumes of Internet-based media attention, the social response indicator is robust to errors in the automatic tagging of the social response indicators. A single incorrect indicator will typically be insufficient to produce an anomaly score that is high enough to cause the EWMA to cross the control limit. While data cleaning could be used to limit the effect of incorrect indicators, it also risks accidental removal of true indicators. We believe that EWMA is a more conservative approach, and is more suitable to our particular problem. A second advantage is that the social response indicator is comparable across countries and diseases, since it is defined relative to a baseline for the country and disease, removing the effect of differing volumes of media coverage. Finally, the social response indicator is interpretable. A value of 1 always indicates that an unusually severe social response signal has been observed.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Identifying unusually severe periods of social response"
+        },
+        {
+            "text": "Now, we introduce the approach to forecasting unusually severe social response the coming 1, 2, and 3 weeks (see Fig. 1c ). The news articles were transformed and structured into time-series, cross-section data with a binary dependent variable (BTSCS). This type of data structure has been previously studied (Beck et al. 1998) , with the key observation that BTSCS data are grouped duration data. Therefore, it is essential to predict the timing of (1) the transition from a state of no social response to a state of social response, and (2) the transition from a state of social response to a state of no social response. Note that transition from a state of no social response to a state of social response is a rare event, and most frequently our models predict that no transition will take place. Also, note that the signal indicating a transition from a state of no social response into a state of social response is likely different from the signal indicating a continuation of social response once it has already begun. It has been suggested that separate models should be built to predict the transitions into and out of a binary state (Beck et al. 2001; Jackman 2000) , and we adopted that suggestion here for our binary social response indicator.",
+            "cite_spans": [
+                {
+                    "start": 309,
+                    "end": 327,
+                    "text": "(Beck et al. 1998)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1145,
+                    "end": 1163,
+                    "text": "(Beck et al. 2001;",
+                    "ref_id": "BIBREF1"
+                },
+                {
+                    "start": 1164,
+                    "end": 1177,
+                    "text": "Jackman 2000)",
+                    "ref_id": "BIBREF15"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 113,
+                    "end": 120,
+                    "text": "Fig. 1c",
+                    "ref_id": null
+                }
+            ],
+            "section": "Prediction of future social response"
+        },
+        {
+            "text": "Because we were interested in forecasting social response over time horizons longer than 1 week, we defined a target, Y w i jt , indicating the occurrence of social response for disease j in country i in the w weeks following week t:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Target definition"
+        },
+        {
+            "text": "Note that Y 1 i jt = S i j (t+1) , but in general Y w i jt is not equivalent to S i j (t+w) .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Target definition"
+        },
+        {
+            "text": "We built two models: Model 0 \u2192 1 and Model 1 \u2192 0. Model 0 \u2192 1 predicted the transition from a period of no social response into a period of social response [i.e. Model 0 \u2192 1 estimates P(Y w i jt = 1 | S i jt = 0)], and Model 1 \u2192 0 predicted whether the period of Table 1 .",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 263,
+                    "end": 270,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Transition models"
+        },
+        {
+            "text": "During periods with no social response (S i jt = 0), we used Model 0 \u2192 1 to anticipate the onset of social response. Following social response onset (S i jt = 1), we used Model 1 \u2192 0 to predict the end of social response. The Model 0 \u2192 1 training set consisted of all observations from weeks 105 though t \u2212 w. The Model 1 \u2192 0 training set consisted only of observations from weeks 105 through t \u2212 w that occurred within a period of social response (i.e. the observation from country i, disease j, and time t 0 would be included if t 0 \u2264 t \u2212 w and S i jt 0 = 1). 5 The training data was kept separate from the testing data by training the model on weeks 105 through t \u2212 w and testing on week t for all t > 105.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Transition models"
+        },
+        {
+            "text": "Since transitions from periods of no social response to periods of social response were extremely rare events, 6 the Synthetic Minority Oversampling Technique (SMOTE) (Chawla et al. 2002) was used on the Model 0 \u2192 1 training set to increase the prevalence of the target to 20%. Edited nearest-neighbors (ENN) (Wilson 1972) was then used to remove examples that were misclassified by two of three nearest-neighbors. The combination of SMOTE and ENN has been shown to be effective for a number of prediction problems involving imbalanced data (Batista et al. 2004) . For both Model 0 \u2192 1 and Model 1 \u2192 0, features that had near-zero variance in the training data were removed. Finally, a random forest with 100 trees was trained (Breiman 2001) , and a prediction was generated for Y w i jt . Since the sequence of features is of interest in this problem, Hidden Markov Models could be considered as an alternative classifier (Rabiner and Juang 1986) .",
+            "cite_spans": [
+                {
+                    "start": 167,
+                    "end": 187,
+                    "text": "(Chawla et al. 2002)",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 309,
+                    "end": 322,
+                    "text": "(Wilson 1972)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 541,
+                    "end": 562,
+                    "text": "(Batista et al. 2004)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 727,
+                    "end": 741,
+                    "text": "(Breiman 2001)",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 923,
+                    "end": 947,
+                    "text": "(Rabiner and Juang 1986)",
+                    "ref_id": "BIBREF25"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Transition models"
+        },
+        {
+            "text": "The model performance was evaluated on historical data for each of three time horizons: next week, next 2 weeks, and next 3 weeks. For each country-disease pair, 2 years of training Table 2 Overall performance of the social response prediction models. Model performance was evaluated based on six metrics: accuracy, sensitivity, sensitivity looking only at weeks with articles in the preceding 3 weeks, sensitivity looking only at weeks with articles in the preceding week, specificity, and precision. Model 0 \u2192 1 predicted the onset of periods of social response, while Model 1 \u2192 0 predicted the end of such periods data were observed before the first target was predicted for model performance evaluation.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 182,
+                    "end": 189,
+                    "text": "Table 2",
+                    "ref_id": null
+                }
+            ],
+            "section": "Results"
+        },
+        {
+            "text": "In the results, we show how performance is affected by the length of the prediction window (1, 2, or 3 weeks) and by the volume of news articles published for the country-disease pair.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "Online Resource 2 provides additional summarized prediction results, including results for the model features and results for the set of 30 countries that were used for initial model construction and tuning.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Results"
+        },
+        {
+            "text": "We used several metrics to evaluate the performance of our model: accuracy, sensitivity, specificity, and precision. 7 In addition, we evaluated models' sensitivity looking only at weeks with social response that had at least one news article published in the prior one or prior 3 weeks. The two additional sensitivity metrics were used because a large percentage of weeks with social response, 48%, had no articles on the disease in the preceding 3 weeks. Because there were no articles in the preceding weeks, those targets were essentially impossible to predict using data from news articles. Therefore, we wanted to assess our model's sensitivity excluding such weeks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model performance metrics"
+        },
+        {
+            "text": "The developed models achieved good performance for country-disease pairs with substantial media coverage, and fair performance for country-disease pairs with little coverage. Table 2 shows both Model 0 \u2192 1 and Model 1 \u2192 0 performance aggregated for all country-a b Fig. 3 Identification of periods of unusually severe social response for dengue fever outbreaks in India. a The social response indicator counts are shown by social response type. Overall, the peaks in social response indicator counts align well with the binary social response indicator, S i jt . b The exponentially weighted moving average of the anomaly scores (Z i jt ) is shown along with the upper control limit (UC L i jt ). The binary social response indicator is 1 when the exponentially weighted moving average surpasses the control limit disease pairs. Model 0 \u2192 1 exhibited 46% sensitivity in predicting the onset of a social response period in the next week for weeks with at least one articles in the preceding 3 weeks. Model predictions over longer time horizons were slightly less sensitive, but substantially more precise. Model 0 \u2192 1's relatively low precision for the target Y 1 i jt appears to result largely from premature prediction of social response. Twenty-four percent of Model 0 \u2192 1 false positive predictions for Y 1 i jt occurred in the 6 weeks prior to the onset of a period of social response. In these cases, the model likely detected indications that the situation was worsening, but predicted that the transition into a period of social response would take place sooner than actually occurred. Model 1 \u2192 0 consistently predicted the end of periods of social response for all time horizons, with over 74% specificity and over 90% accuracy. Figure 4 shows the predictions for social response in the next 2 weeks for dengue fever outbreaks in India. During no social response periods, the model predicted a low probability of social response in the next 2 weeks. As the onset of a period of social response was approached, the predicted probability of social response increased. As the period of social response ended, the predicted probabilities fell. Additional figures depicting results for other countries and diseases can be found in Online Resource 3.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 175,
+                    "end": 182,
+                    "text": "Table 2",
+                    "ref_id": null
+                },
+                {
+                    "start": 265,
+                    "end": 271,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1738,
+                    "end": 1746,
+                    "text": "Figure 4",
+                    "ref_id": null
+                }
+            ],
+            "section": "Model performance"
+        },
+        {
+            "text": "The performance of the model varied depending upon the quantity of Internet-based news reporting for the country-disease pair. Table 3 compares the Model 0 \u2192 1 performance for country-disease pairs that had a median of 20 or more articles per year in our data 8 with performance for pairs that had median of fewer than 20 articles per year. The model performance was greatly improved with higher media volume. For country-disease pairs Table 3 Comparison of performance for predicting the onset of social response (Model 0 \u2192 1) for countrydisease pairs with a median of 20 or more news articles per year and those with fewer articles per year. Model performance was evaluated based on six metrics: accuracy, sensitivity, sensitivity looking only at weeks with articles in the preceding 3 weeks, sensitivity looking only at weeks with articles in the preceding week, specificity, and precision. Model sensitivity and precision were dramatically higher for the country-disease pairs with a median of 20 or more articles per year, than for the pairs with fewer articles per year Accuracy Sensitivity Specificity Precision",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 127,
+                    "end": 134,
+                    "text": "Table 3",
+                    "ref_id": null
+                },
+                {
+                    "start": 436,
+                    "end": 443,
+                    "text": "Table 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Model performance"
+        },
+        {
+            "text": "All weeks Weeks with one or more articles in prior 3 weeks",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model performance"
+        },
+        {
+            "text": "Weeks with one or more articles in prior week",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model performance"
+        },
+        {
+            "text": "Next with a median of 20 or more articles per year, the onset of social response in the next week was correctly predicted over 60% of the time (67% of the time among events with articles in the past week). The overall accuracy of the model was over 83% for each of the three time horizons. High accuracy (over 98% for all three time horizons) was achieved for country-disease pairs with a median of less than 20 articles per year, but the model was not successful at predicting the onset of social response, with only 12% sensitivity for Model 0 \u2192 1 in predicting the occurrence of social response in the next week. Sensitivity was much higher, 31%, when looking only at weeks with one or more articles published in the prior week, suggesting that lack of articles in the weeks preceding the onset of social response contributes to the low sensitivity of Model 0 \u2192 1 for country-disease pairs with median news coverage below 20 articles per week. Model 1 \u2192 0 performance for different volumes of news media coverage is shown in Online Resource 3.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Model performance"
+        },
+        {
+            "text": "The presented results confirm that information derived from Internet-based news sources not only provides early and accurate information for disease detection and analysis of spread, but can also be successfully used for detecting and predicting social response associated with detected disease. The developed models predicting the onset of social response and monitoring its progress and subsequent decline achieved good performance for diseases that receive substantial media attention in the country in which they are spreading. For countrydisease pairs with a median of more than 20 articles per year in our data, the onset of social response in the next week was correctly predicted over 60% of the time. Sensitivity was higher still, 67%, when looking only at social response events with news articles published in the prior week. The continuation of periods of social response was predicted with over a b Fig. 4 Predicted probability of unusually severe social response in the next 2 weeks for dengue fever outbreaks in India. a The social response indicator counts are shown by social response type. Periods during which social response was occurring (S i jt = 1) are shaded in grey. b The predicted probability of social response in the next 2 weeks (P(Y 2 i jt = 1)) is shown. The predictions are colored according to whether an incorrect (false positive or false negative; red) or correct (true positive or true negative; black) prediction was made. Overall, the predictions exhibit the desired behavior-low probability of social response in the next 2 weeks was predicted during no social response periods, and, as a social response period were approached, the predicted probability increased. (Color figure online) 95% success for all time horizons. Their end was also predicted consistently, with over 74% success for all time horizons. Compared with predictions for social response in the coming week, predictions for social response in the coming 2 and 3 weeks were slightly less sensitive (39% for the next 3 weeks vs. 36% for the next week), but substantially more precise (22% for the next 3 weeks vs. 15% for the next week). Thus, in practice, predictions over relatively long time horizons may be most useful.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 912,
+                    "end": 918,
+                    "text": "Fig. 4",
+                    "ref_id": null
+                },
+                {
+                    "start": 1706,
+                    "end": 1727,
+                    "text": "(Color figure online)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Discussion"
+        },
+        {
+            "text": "Country-disease pairs that received little media attention were not good candidates for predicting the onset of future social response. Internet-based news reporting on these pairs often does not begin until after social response has already started. For country-disease pairs with a median of less than 20 articles per year, 58% of weeks with social response had no articles about the disease in the prior 3 weeks; 85% had three or fewer articles. For such diseases, the main utility of our system is in identifying social response when it occurs, rather than predicting when it will happen in the future. There are several reasons why a disease would receive little media attention in a country prior to an outbreak. One reason is that the country has a relatively undeveloped online news reporting system, and few articles are published about any type of disease transmission. Other possible reasons are that the disease is perceived as benign and not newsworthy, or that government censorship suppresses reporting. In these cases, it is possible that alternative data sources 9 could be used to supplement data from Internet-based news media to improve prediction of future social response. Another reason why a disease would receive little reporting prior to an outbreak is that the disease is newly introduced into the country. In our data, the emergence of a new disease in a country is frequently associated with social response. There is little that can be done to improve prediction of the onset of this social response, because forecasting the exact timing of the introduction of a disease into a country is beyond the ability of current biosurveillance techniques.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        },
+        {
+            "text": "In summary, we have developed an approach for anticipating social response to infectious disease spread in near real-time, and have evaluated it using outbreaks of 16 different diseases in 72 locations around the world. We have demonstrated that Internet-based news can serve as a good data source for predicting social reaction to disease spread, when there is sufficient news coverage of the disease. In general, our system is most effective for countries with active Internet-news reporting systems and for diseases that receive frequent coverageavian influenza, cholera, dengue fever, influenza, malaria, measles, and polio. By identifying ongoing social response and alerting decision makers and biosurveillance experts to probable social response in the near future, this warning system will provide responders with the information needed to better combat both the disease spread itself and its detrimental social consequences.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Discussion"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "A study of the behavior of several methods for balancing machine learning training data",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "E A"
+                    ],
+                    "last": "Batista",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Prati",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Monard",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "ACM SIGKDD Explorations Newsletter",
+            "volume": "6",
+            "issn": "1",
+            "pages": "20--29",
+            "other_ids": {
+                "DOI": [
+                    "10.1145/1007730.1007735"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Alternative models of dynamics in binary timeseries-cross-section models: The example of state failure",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Beck",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Epstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jackman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "&amp; O&apos;halloran",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Taking time seriously: Time-series-cross-section analysis with a binary dependent variable",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Beck",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Katz",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Tucker",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "American Journal of Political Science",
+            "volume": "42",
+            "issn": "4",
+            "pages": "1260--1288",
+            "other_ids": {
+                "DOI": [
+                    "10.2307/2991857"
+                ]
+            }
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Twitter mood predicts the stock market",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Bollen",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Mao",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Zeng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Journal of Computational Science",
+            "volume": "2",
+            "issn": "1",
+            "pages": "1--8",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Random forests",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Breiman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Machine Learning",
+            "volume": "45",
+            "issn": "",
+            "pages": "5--32",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Surveillance Sans Fronti\u00e8res: Internetbased emerging infectious disease intelligence and the HealthMap project",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Brownstein",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Freifeld",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Reis",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Mandl",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "PLoS Med",
+            "volume": "5",
+            "issn": "7",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/journal.pmed.0050151"
+                ]
+            }
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Algorithms for rapid outbreak detection: A research synthesis",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Buckeridge",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Burkom",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Campbell",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Hogan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Moore",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Journal of Biomedical Informatics",
+            "volume": "38",
+            "issn": "2",
+            "pages": "99--113",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "SMOTE: Synthetic minority oversampling technique",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Chawla",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Bowyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Hall",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Kegelmeyer",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Journal of Artificial Intelligence Research",
+            "volume": "16",
+            "issn": "1",
+            "pages": "321--357",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "To be paranoid is the standard? Panic responses to SARS outbreak in the Hong Kong Special Administrative Region",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Asian Perspective",
+            "volume": "28",
+            "issn": "1",
+            "pages": "67--98",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Biocaster: Detecting public health rumors with a web-based text mining system",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Collier",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Doan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Kawazoe",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Goodwin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Conway",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Tateno",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Bioinformatics",
+            "volume": "24",
+            "issn": "24",
+            "pages": "2940--2941",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/bioinformatics/btn534"
+                ]
+            }
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Kickoff to conflict: A sequence analysis of intra-state conflictpreceding event structures",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "D&apos;orazio",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Yonamine",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PLoS ONE",
+            "volume": "10",
+            "issn": "5",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/journal.pone.0122472"
+                ]
+            }
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Forecasting significant societal events using the EMBERS streaming predictive analytics system",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Doyle",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Katz",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Summers",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Ackermann",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Zavorin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Big Data",
+            "volume": "2",
+            "issn": "",
+            "pages": "185--195",
+            "other_ids": {
+                "DOI": [
+                    "10.1089/big.2014.0046"
+                ]
+            }
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Modelling the propagation of social response during a disease outbreak",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Fast",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Gonz\u00e1lez",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Markuzon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Journal of The Royal Society Interface",
+            "volume": "12",
+            "issn": "104",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1098/rsif.2014.1105"
+                ]
+            }
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "A meta-analysis of state-of-the-art electoral prediction from Twitter data",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Gayo-Avello",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Social Science Computer Review",
+            "volume": "",
+            "issn": "6",
+            "pages": "649--679",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "International Federation of Red Cross and Red Crescent Societies (2015) Red Cross Red Crescent denounces countinued violence against volunteers working to stop the spread of Ebola",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Gerber",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Decision Support Systems",
+            "volume": "61",
+            "issn": "",
+            "pages": "115--125",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "In and out of war and peace: Transitional models of international conflict",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Jackman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "A time of fear\": Local, national, and international responses to a large Ebola outbreak in Uganda",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kinsman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Globalization and Health",
+            "volume": "8",
+            "issn": "",
+            "pages": "15--15",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Avoidance behaviors and negative psychological responses in the general population in the initial stage of the H1N1 pandemic in Hong Kong",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "T F"
+                    ],
+                    "last": "Lau",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Griffiths",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Choi",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Tsui",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "BMC Infectious Diseases",
+            "volume": "10",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1186/1471-2334-10-139"
+                ]
+            }
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Global and regional mortality from 235 causes of death for 20 age groups in 1990 and 2010: A systematic analysis for the global burden of disease study",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lozano",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Naghavi",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Foreman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Shibuya",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Aboyans",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Lancet",
+            "volume": "380",
+            "issn": "9859",
+            "pages": "2095--2128",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/S0140-6736(12)61728-0"
+                ]
+            }
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Anomaly detection in vessel tracks using Bayesian networks",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Mascaro",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Nicholso",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Korb",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "International Journal of Approximate Reasoning",
+            "volume": "55",
+            "issn": "1",
+            "pages": "84--98",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Biological impact of social disruption resulting from epidemic disease",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Mcgrath",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "American Journal of Physical Anthropology",
+            "volume": "84",
+            "issn": "4",
+            "pages": "407--419",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/ajpa.1330840405"
+                ]
+            }
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Introduction to Statistical Quality Control",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Montgomery",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Improving predictions using ensemble bayesian model averaging",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Montgomery",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Hollenbach",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Ward",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Political Analysis",
+            "volume": "20",
+            "issn": "3",
+            "pages": "271--291",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "The global public health intelligence network and early warning outbreak detection: A Canadian contribution to global public health",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Mykhalovskiy",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Weir",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Canadian Journal of Public Health/Revue Canadienne de Sant\u00e9Publique",
+            "volume": "97",
+            "issn": "1",
+            "pages": "42--44",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Crisis early warning and decision support: Contemporary approaches and thoughts on future research",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "O&apos;brien",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "International Studies Review",
+            "volume": "12",
+            "issn": "1",
+            "pages": "87--104",
+            "other_ids": {
+                "DOI": [
+                    "10.1111/j.1468-2486.2009.00914.x"
+                ]
+            }
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "An introduction to hidden Markov models",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Rabiner",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Juang",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "IEEE ASSP Magazine",
+            "volume": "3",
+            "issn": "1",
+            "pages": "4--16",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Improving situational awareness for humanitarian logistics through predictive modeling",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Racette",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Cunningham",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Heekin",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Lemley",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Mathieu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Systems and Information Engineering Design Symposium (SIEDS)",
+            "volume": "",
+            "issn": "",
+            "pages": "334--339",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Anomaly detection in categorical datasets using Bayesian networks",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Rashidi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Hashemi",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Hamzeh",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Artificial Intelligence and Computational Intelligence",
+            "volume": "7003",
+            "issn": "",
+            "pages": "610--619",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Control chart tests based on geometric moving averages",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Roberts",
+                    "suffix": ""
+                }
+            ],
+            "year": 1959,
+            "venue": "Technometrics",
+            "volume": "1",
+            "issn": "3",
+            "pages": "239--250",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Textual analysis of stock market prediction using breaking financial news: The AZFin text system",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Schumaker",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "ACM Transactions on Information Systems (TOIS)",
+            "volume": "27",
+            "issn": "",
+            "pages": "1--19",
+            "other_ids": {
+                "DOI": [
+                    "10.1145/1462198.1462204"
+                ]
+            }
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Analyzing social media data having discontinuous underlying dynamics",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Servi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Operations Research Letters",
+            "volume": "41",
+            "issn": "6",
+            "pages": "581--585",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Why the French did not choose to panic: A dynamic analysis of the public response to the influenza pandemic",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Sherlaw",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Raude",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Sociology of Health & Illness",
+            "volume": "35",
+            "issn": "2",
+            "pages": "332--344",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Big data for the future: Unlocking the predictive power of the web",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Truv\u00e9",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Predicting negative social response to disease outbreaks using biosurveillance and news data",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Vaisman",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Fast",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Cunha",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Postlethwaite",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Mekaru",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "2014 INFORMS Workshop on Data Mining and Analytics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Asymptotic properties of nearest neighbor rules using edited data",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wilson",
+                    "suffix": ""
+                }
+            ],
+            "year": 1972,
+            "venue": "IEEE Transactions on Systems, Man and Cybernetics",
+            "volume": "2",
+            "issn": "3",
+            "pages": "408--421",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Early detection of disease outbreaks using the internet",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Brownstein",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Canadian Medical Association Journal",
+            "volume": "180",
+            "issn": "8",
+            "pages": "829--831",
+            "other_ids": {
+                "DOI": [
+                    "10.1503/cmaj.1090215"
+                ]
+            }
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Bayesian network anomaly pattern detection for disease outbreaks",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Wong",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Moore",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Cooper",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Wagner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Proceedings of the Twentieth International Conference on Machine Learning",
+            "volume": "",
+            "issn": "",
+            "pages": "808--815",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Global surveillance of emerging diseases: The ProMED-mail perspective",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Woodall",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Cad Saude Publica",
+            "volume": "17",
+            "issn": "",
+            "pages": "147--154",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "TABREF0": {
+            "text": "Features of the social response transition models countries was used for parameter tuning and feature selection. We show results separately for this subset in Online Resource 2. The features included in the final models are listed in",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": []
+}

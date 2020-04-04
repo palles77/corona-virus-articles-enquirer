@@ -1,0 +1,2795 @@
+{
+    "paper_id": "623fb8ad6037966919e2feccfaf25068892779bb",
+    "metadata": {
+        "title": "Tracking Nosocomial Diseases at Individual Level with a Real-Time Indoor Positioning System",
+        "authors": [
+            {
+                "first": "Chun-Hung",
+                "middle": [],
+                "last": "Cheng",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Yong-Hong",
+                "middle": [],
+                "last": "Kuo",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "\u00b7",
+                "middle": [
+                    "Ziye"
+                ],
+                "last": "Zhou",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Our research is motivated by the rapidly-evolving outbreaks of rare and fatal infectious diseases, for example, the severe acute respiratory syndrome (SARS) and the Middle East respiratory syndrome. In many of these outbreaks, main transmission routes were healthcare facility-associated and through person-to-person contact. While a majority of existing work on modelling of the spread of infectious diseases focuses on transmission processes at a community level, we propose a new methodology to model the outbreaks of healthcare-associated infections (HAIs), which must be considered at an individual level. Our work also contributes to a novel aspect of integrating real-time positioning technologies into the tracking and modelling framework for effective HAI outbreak control and prompt responses. Our proposed solution methodology is developed based on three key components -time-varying contact network construction, individual-level transmission tracking and HAI parameter estimation -and aims to identify the hidden health state of each patient and worker within the healthcare facility. We conduct experiments with a four-month human tracking data set collected in a hospital, which bore a big nosocomial outbreak of the 2003 SARS in Hong Kong. The evaluation results demonstrate that our framework outperforms existing epidemic models for characterizing macro-level phenomena such as the number of infected people and epidemic threshold.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Nosocomial infections, or known as healthcare-associated infections (HAIs), are infections that are acquired in a healthcare setting, such as those caught during an inpatient hospital stay or developed among patients and healthcare staff within a healthcare facility. HAIs have become one of the greatest challenges in the modern world and a global threat to health security. Magill et al. [1] estimated that there were around 722,000 HAIs in U.S. acute care hospitals in 2011, and the [2] reported that around 75,000 patients deaths were related to HAIs. Among the different types of transmission routes of HAIs, the most important and common one is through person-to-person contact, or known as direct-contact transmission. Personto-person contact transmission takes place when there is a physical contact between an infected or colonized individual and a susceptible person such that diseasecausing microorganisms may be transfered. In many cases, due to the incubation period of the infectious disease or unawareness of the disease severity, the disease had already been spread through the hospital before the index patient was identified and quarantined.",
+            "cite_spans": [
+                {
+                    "start": 390,
+                    "end": 393,
+                    "text": "[1]",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 486,
+                    "end": 489,
+                    "text": "[2]",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "A striking example of recent HAI outbreaks through person-to-person contact transmission is the spread of 2013 Middle East respiratory syndrome coronavirus (MERS-CoV) in Saudi Arabia. Assiri et al. [3] reported that, of the 23 confirmed cases of MERS-CoV infection identified in eastern province of Saudi Arabia, 21 cases were acquired by person-to-person transmission in different healthcare facilities including hemodialysis units, intensive care units (ICUs), and in-patient units. In the incident, Patient A with symptoms of dizziness and diaphoresis was admitted to a hospital. No MERS-CoV test was performed and this patient was not suspected of carrying this deadly virus at the time of admission. Another patient, Patient C, was admitted on the next day to the room adjacent to Patient A to undergo hemodialysis. Later, MERS-CoV infection was confirmed in nine other patients who were receiving hemodialysis treatments in the same hospital, six of whom had overlapping time with Patient C undergoing hemodialysis. MERS-CoV infection also developed in a nurse administrator, who had once been present in the ICU where the treatment of Patient A was provided. From this incident, [3] concluded that personto-person transmission of MERS-CoV can be associated with considerable morbidity in healthcare facilities and suggested that surveillance and infection-control measures are crucial to a global public health response.",
+            "cite_spans": [
+                {
+                    "start": 198,
+                    "end": 201,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 1186,
+                    "end": 1189,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Another classic example of large HAI outbreaks is the 2003 severe acute respiratory syndrome (SARS) epidemic in Hong Kong. The 2003 SARS outbreak resulted in 8,096 confirmed cases and 774 deaths in total around the globe [4] , and 1755 confirmed cases and 299 deaths in Hong Kong alone (World Health Organization (WHO) 2003). The SARS outbreak began at the Prince of Wales Hospital (PWH) in Hong Kong. The index patient was admitted to PWH before WHO issued a high global alert about cases of this deadly pneumonia. Due to the unawareness of this previously unknown virus, the index patient was not treated as a carrier of a highly infectious and severe disease and SARS started to spread through the hospital among the patients, healthcare workers and visitors, resulting in at least 138 additional cases of SARS acquisition within the hospital (including at least 20 doctors, 34 nurses, 15 allied health workers, and 16 medical students) [5] . The disease was further spread to the community through the individuals leaving the hospital, e.g., leading to the outbreak in a housing estate Amoy Gardens with a total of 329 residents infected and 42 deaths [6], and became an epidemic threatening the world. During the outbreak, the governmental organizations (e.g., Department of Health and Hospital Authority) and public health workers put substantial efforts into contact tracing for effective infection control [6, 7] . It turns out that the contact tracing work was one of the key interventions that helped the Hong Kong Government successfully contained the SARS epidemic, e.g., through screening of symptoms and medical surveillance.",
+            "cite_spans": [
+                {
+                    "start": 221,
+                    "end": 224,
+                    "text": "[4]",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 940,
+                    "end": 943,
+                    "text": "[5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1414,
+                    "end": 1417,
+                    "text": "[6,",
+                    "ref_id": null
+                },
+                {
+                    "start": 1418,
+                    "end": 1420,
+                    "text": "7]",
+                    "ref_id": "BIBREF5"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The lesson learned from the 2003 SARS outbreak suggests that a rapid contact tracing is critical for effective quarantine and epidemic management in serious disease outbreaks in hospital settings. A traditional way of conducting contact tracing relies on interviewing. However, conducting interviews may be ineffective because the patient is generally very sick to recall and talk about the past activities and contacts. Another way is to interview the healthcare workers to reconstruct the patients' past activities. However, both ways cannot guarantee the information is exhaustive and accurate. More importantly, these procedures require lengthy investigations such that prompt isolations cannot be carried out to prevent the disease from spreading.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our research was motivated by a project initiated at PWH after the SARS outbreak in Hong Kong. The project objectives were to mitigate HAI risk and to support rapid contingency responses in case of severe infectious disease outbreak. Our research team investigated how advanced indoor positioning technologies can be applied to enhance the person-to-person contact traceability for prompt contact tracing, and developed a radio-frequency identification (RFID) system for tracking people's interactivities (including those among patients and ward staff) and tracing highrisk individuals when infectious disease outbreak occurs. A pilot study was carried out in two medical wards at PWH. Our research team developed an RFID-based realtime locating system for this application. Figure 1 shows a screen-shot of the real-time locating system. For the details Fig. 1 The RFID-based real-time locating system developed for tracking patient activities of the RFID hardwares, we refer the reader to [8] . It is worth mentioning that the rare experience that the hospital management and staff members of PWH had gone through during the 2003 SARS outbreak and their suggestions were crucial when developing this platform. While our pilot study was enabled by RFID, other indoor positioning technologies are also viable. In our application, RFID was adopted because it is a mature technology and can be deployed at a affordable cost.",
+            "cite_spans": [
+                {
+                    "start": 990,
+                    "end": 993,
+                    "text": "[8]",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 775,
+                    "end": 783,
+                    "text": "Figure 1",
+                    "ref_id": null
+                },
+                {
+                    "start": 854,
+                    "end": 860,
+                    "text": "Fig. 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Introduction"
+        },
+        {
+            "text": "A vision-based system is an alternative technology capturing events of person-to-person contacts and monitoring activities of healthcare workers (HCWs) and patients. It can accurately review whether two individuals have been in close contact. Also, most hospitals have installed visionbased systems in the waiting area such as lobbies, escalators, etc., for surveillance purpose. However, such systems may raise privacy issues when installed in wards. In particular, patients' and HCWs' privacy is always a primary concern in Hong Kong. It is unlikely that HCWs and patients would accept an environment putting them under constant visual recording. Thus, a sensing method appeared to be more receptive in this study.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "To mitigate the risk of HAIs, we characterize the contact patterns among the patients and healthcare workers, and study how an HAI is transmitted through person-toperson contact. From the on-site pilot project conducted at PWH, a large amount of positioning data of patients and healthcare workers were collected. This set of data provides the unique and necessary information to construct dynamic human networks to trace person-to-person contacts, and to develop a more comprehensive understanding of the ways individuals contact with each other in a healthcare environment. After the constructions of human networks within the healthcare facility, we investigate how an HAI is transmitted through person-to-person contact. This investigation requires the capability of tracking the transmission paths of HAIs at an individual level. In other words, we infer the health status of any person at any time and identify potential infected patients and healthcare workers.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our research is different from traditional epidemiology studies, which investigate the spread of infectious disease among people. Traditional epidemic models, for example, [9] [10] [11] , assume homogeneous human connection (i.e., all individuals in the population are the same) and model the spread of infectious diseases with ordinary differential equations. As suggested by [12] , individual differences should be considered when modelling the transmission and designing more effective strategies to reduce the propagation of disease. For HAIs, the assumption that all individuals are equally likely to be infected does not hold, and therefore estimates from community-based models can be inaccurate [13] . Due to the importance of considering individual interactions, some approaches have been proposed to capture the impacts of individual differences using heterogeneous networks, such as the percolation methods [14] and the non-linear dynamical system [15] . However, there is inadequate research on studying the problem of individual-level tracking of HAIs, where most existing methods can hardly be applied to identifying individual infection status. The novelty and uniqueness of our research are as follows. (1) The contact pattern of patients and healthcare workers in a healthcare facility differs from the contact pattern of people in a large region, for example, a city, studied by a majority of the existing epidemic research. A healthcare facility is a relatively closed community with a highly hierarchical and modular structure, leading to dense human connectivity. On the other hand, a city-level population is sparsely connected.",
+            "cite_spans": [
+                {
+                    "start": 172,
+                    "end": 175,
+                    "text": "[9]",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 176,
+                    "end": 180,
+                    "text": "[10]",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 181,
+                    "end": 185,
+                    "text": "[11]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 377,
+                    "end": 381,
+                    "text": "[12]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 703,
+                    "end": 707,
+                    "text": "[13]",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 918,
+                    "end": 922,
+                    "text": "[14]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 959,
+                    "end": 963,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "(2) We construct time-varying networks to represent dynamic human interaction in a hospital, while many existing models assume static networks that treat human contact unchanged over time. (3) Individual differences in a healthcare setting are related to the roles of individuals in a hospital. As an example, a nurse generally has more interactions with other people than a patient does. (4) We aim to track transmission of HAIs at an individual level that infers the hidden health status for any person at any time, while traditional epidemic models focus on macro-level phenomena such as the total number of infected individuals and epidemic thresholds.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "The recent advancement of real-time indoor positioning technologies has provided us with a precious opportunity to study the spread of infectious disease from a new perspective. Given the locational data of patients and healthcare workers in a healthcare institution collected continuously to the system, if an outbreak of an HAI occurs in the institution among patients and healthcare workers, our goal is to track transmission of the HAI at an individual level through person-to-person contact over time-varying contact networks. To achieve the goal, we propose a framework with three key components: time-varying network construction, individual-level transmission tracking and HAI parameter estimation. We realize individual-level transmission tracking with the assumption that all input parameters for the HAI model (HAI parameters) are known. Then we discuss our proposed parameter estimation procedure for effective transmission tracking in a more general setting. Our work leverages a previous RFID tracking study in which we collected locational data of patients and healthcare workers for four months in two medical wards at PWH.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Introduction"
+        },
+        {
+            "text": "Our research investigates the transmission of HAIs over time-varying human networks at an individual level. For an overview of the existing research on epidemic models, we refer the reader to [16] [17] [18] [19] [20] .",
+            "cite_spans": [
+                {
+                    "start": 192,
+                    "end": 196,
+                    "text": "[16]",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 197,
+                    "end": 201,
+                    "text": "[17]",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 202,
+                    "end": 206,
+                    "text": "[18]",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 207,
+                    "end": 211,
+                    "text": "[19]",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 212,
+                    "end": 216,
+                    "text": "[20]",
+                    "ref_id": "BIBREF18"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Literature review"
+        },
+        {
+            "text": "Traditional epidemic models such as the Susceptible-Infected-Recovered (SIR) model and the Susceptible-Infected-Susceptible (SIS) model are based on differential equations [9, 11] . Pairwise models proposed by [21] also belong to this class; in addition, they leverage the local network structure such as the number of pairs or triples to substitute the simple infection number in standard epidemic models. These differential equationbased models have been widely used for analyzing the spread of various types of transmissible diseases. For example, [22] studied the spread of sexually transmitted diseases and considered network heterogeneities in their differential equation-based model. They showed that their predictive scheme was more accurate than models that assume homogeneous networks. Percolation models utilize network degree distributions and epidemic dynamics to examine outcomes of disease outbreaks in the steady state. [14] showed that a large class of standard SIR models could be solved exactly with the use of percolation theory. This approach is more realistic than the traditional approach as it allows heterogeneous and correlated infectiveness times and transmission probabilities. Meyers et al. [23] applied percolation theory to reduce time-consuming calculations and derive different epidemic outcomes on a contact network for the city of Vancouver, British Columbia. Newman [24] and Karrer et al. [25] developed percolation models to study the transmission of two competing diseases based on probability generating functions. Volz [26] showed that SIR model can be represented by a system of ordinary differential equations with the use of probability generating functions. The result enables SIR dynamics to be modeled in random networks.",
+            "cite_spans": [
+                {
+                    "start": 172,
+                    "end": 175,
+                    "text": "[9,",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 176,
+                    "end": 179,
+                    "text": "11]",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 210,
+                    "end": 214,
+                    "text": "[21]",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 551,
+                    "end": 555,
+                    "text": "[22]",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 936,
+                    "end": 940,
+                    "text": "[14]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 1220,
+                    "end": 1224,
+                    "text": "[23]",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 1402,
+                    "end": 1406,
+                    "text": "[24]",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1425,
+                    "end": 1429,
+                    "text": "[25]",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 1559,
+                    "end": 1563,
+                    "text": "[26]",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Literature review"
+        },
+        {
+            "text": "Another popular class is probabilistic models. This type of models incorporates uncertainty when modeling the disease spreading process. Larson [27] studied the use of \"social distancing\" (e.g., closing of schools, mandated minimum physical distances between co-workers) to control influenza progression by reducing the frequency and intensity of daily human-to-human contacts. He considered heterogeneous populations, distinguished by high-activity and low-activity persons, in their probabilistic mixing model. Teytelman and Larson [28] considered heterogeneous population where the individuals are different regarding their social activities, pronenesses to infection, and pronenesses to shed virus and spread infection. These attributes determine the rate of human contacts per day and impact the probability that a susceptible individual becomes infected. Yaesoubi and Cohen [29] proposed a discrete-time Markov chain approach to modeling the transmission of diseases. Dynamic optimization techniques can be integrated into their model to aid real-time selection and modification of public health interventions. The studies mentioned above, however, focused on population-level epidemics, which differs from an infectious disease outbreak in a healthcare setting.",
+            "cite_spans": [
+                {
+                    "start": 144,
+                    "end": 148,
+                    "text": "[27]",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 534,
+                    "end": 538,
+                    "text": "[28]",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 880,
+                    "end": 884,
+                    "text": "[29]",
+                    "ref_id": "BIBREF27"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Literature review"
+        },
+        {
+            "text": "As suggested by [30] and [12] , human behaviors that might lead to transmission of disease differ significantly between individuals. Much research thus has been carried out to study human interaction pattern. The majority of work in this direction is the use of network analysis. For instance, [31] constructed a bipartite network to represent the connectivity of patients and caregivers in a psychiatric institution. Liljeros et al. [32] studied network properties such as transitivity, assortativity and variation based on a large database constructing from the contact records associated 295,108 inpatients over two years. They concluded that the risk and adverse consequences of epidemic outbreaks might be reduced if these network properties are taken into account when designing the intervention schemes. Ueno and Masuda [33] constructed a hierarchical and modular contact network from a hospital setting. They showed that healthcare workers are main transmitters of diseases and shall be vaccinated with a higher priority. Curtis et al. [34] modeled dynamic contact networks by deriving spatial distributions of healthcare workers and generating random walks to predict human movements in a hospital. Prakash et al. [15] constructed a time-varying network which follows an alternating connectivity behavior to model the day-night pattern of nurse shifts and derived a closed-form equation for the epidemic threshold with their network. In these studies, their main focuses were on the constructions of networks to capture the effects of human interactions on disease transmission. In our work, we construct timevarying dynamic human contact networks from real data and study how these networks can be leveraged for prediction of health status of each individual in a healthcare facility.",
+            "cite_spans": [
+                {
+                    "start": 16,
+                    "end": 20,
+                    "text": "[30]",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 25,
+                    "end": 29,
+                    "text": "[12]",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 294,
+                    "end": 298,
+                    "text": "[31]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 434,
+                    "end": 438,
+                    "text": "[32]",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 827,
+                    "end": 831,
+                    "text": "[33]",
+                    "ref_id": "BIBREF31"
+                },
+                {
+                    "start": 1044,
+                    "end": 1048,
+                    "text": "[34]",
+                    "ref_id": "BIBREF32"
+                },
+                {
+                    "start": 1223,
+                    "end": 1227,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Literature review"
+        },
+        {
+            "text": "Research on disease transmission in a healthcare setting is not adequately addressed in the existing literature. Meyers et al. [31] modelled the disease outbreak in a psychiatric institution, but their model did not utilize real-world human contact data and required some simplified assumptions, e.g., the connection degree of each object in the model follows a Poisson distribution. Prakash et al. [15] used a non-linear dynamical system to model the spread of infections in a time-varying network which takes into account the shifts of nurses in a hospital. Dong et al. [35] modeled nosocomial infections in an MIT college dormitory using graph-coupled hidden Markov models and solved the problem by Gibbs sampling. However, these studies either are limited to describing macro-level epidemic phenomena for HAIs, or did not attempt solutions to the individual-level transmission tracking problem.",
+            "cite_spans": [
+                {
+                    "start": 127,
+                    "end": 131,
+                    "text": "[31]",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 399,
+                    "end": 403,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 572,
+                    "end": 576,
+                    "text": "[35]",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Literature review"
+        },
+        {
+            "text": "Our research studies the transmission of HAIs at an individual level. We propose a modeling framework to describe the interactions between individuals with a dynamic human contact network and tracks infections over this network. Furthermore, we utilize real-time indoor locating technology for tracking the interactions between individuals and constructing their time-varying contact networks. For our modeling contributions, we develop coupled hidden Markov models to solve the problem. Our method captures the difference of the underlying human connectivity where existing epidemic models are unable to address and contributes to more accurate estimations for predicting macro-level outcomes of HAI outbreaks. Moreover, compared to the existing epidemic models, our proposed approach has the unique capability to estimate individual hidden health status and to infer HAI parameters for practical solutions.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Literature review"
+        },
+        {
+            "text": "In this section, we introduce the problem of individuallevel HAI tracking over dynamic human networks, and then provide an overview of the key components of our proposed solution framework.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Overview"
+        },
+        {
+            "text": "Many HAIs are acquired through person-to-person transmission. Our research aims to leverage the use of advanced indoor positioning technologies, such as RFID, for human tracking in healthcare facilities. The availability of the large amounts of locational data about the individuals within the facility, including patients and healthcare workers, enables us to develop a groundbreaking and effective approach to modeling the transmission of disease in a healthcare setting. It provides a new opportunity to characterize person-toperson contacts in a hospital environment and systematically study the transmission pattern of HAIs. More specifically, we aim to develop a modeling framework to track the transmission of HAIs among patients and healthcare workers over time-varying contact networks.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem definition"
+        },
+        {
+            "text": "Unlike traditional methods of contact tracing that involve manual processes such as interviewing, advanced positioning technologies collect time-stamped locations of tracked objects automatically and continuously for timely construction of contact networks. In the following, we introduce the terminologies and framework used for our approach.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Problem definition"
+        },
+        {
+            "text": "to constitute a contact if the distance between them is within a pre-specified distance threshold for a duration that is longer than a pre-specified time threshold. This definition establishes the foundation that we model the person-to-person transmission of HAIs. A person is considered to have been exposed to the disease if (i) he or she has had any face-to-face contact with an infectious patient, (ii) is in the same hospital room with an infectious patient for more than a certain amount of time, or (iii) is provided care by an infected healthcare worker [3] . With the definition of contact, we construct a person-to-person contact network, denoted by G = (V , E), with vertice set V consisting of individuals in the healthcare facility and edge set E representing the contact records between individuals, i.e., e ij \u2208 E indicating a contact between individual v i , v j \u2208 V . The concept of time-varying contact network can then be extended from the above setting:",
+            "cite_spans": [
+                {
+                    "start": 562,
+                    "end": 565,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Definition 1 (Contact) A pair of individuals is considered"
+        },
+        {
+            "text": "Definition 2 (Time-varying contact network) A timevarying contact network is a series of static contact networks indexed by time points, which is denoted by",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1 (Contact) A pair of individuals is considered"
+        },
+        {
+            "text": "where V t and E t are the sets of individuals and contacts at time t, respectively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1 (Contact) A pair of individuals is considered"
+        },
+        {
+            "text": "Without loss of generality, we can denote a time-varying contact network by G 0:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1 (Contact) A pair of individuals is considered"
+        },
+        {
+            "text": "can be viewed as an isolated vertex at time t in network G t . Thus for simplicity, we use G 0:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1 (Contact) A pair of individuals is considered"
+        },
+        {
+            "text": "in the rest of the paper. In the context of disease, the terms \"symptom\" and \"sign\" are both used to refer to an indication of a certain set of medical characteristics that can reflect the presence of a disease, such as runny nose, coughing and fever in a case of influenza. Technically, symptoms and signs are different; a symptom is a feature observed by the patient whereas a sign is observable by the others, e.g., physicians. For consistency, we use observation to represent a symptom or a sign. The presence of a disease, in general, is difficult to be identified without the use of medical diagnostic tests, and therefore, the actual health state of a patient is often hidden. We define the terms observation and health state used for our model as follows. Our objective is to infer the hidden health states of each person at different time points. Observations and networks are necessary to achieve this goal. Observations provide the essential information for diagnoses of an infection, while networks give the information the set of individuals an infected person has contacted. On the other hand, they also impose practical challenges on the accurate identification of hidden health states of a person. Observations can be misleading since the same observation may appear in different health states. The networking effect complicates the problem in the sense that the health state of a person not only is dependent on his/her medical history but also can be affected by other \"connected\" patients. The challenges motivate us to consider the following overall problem, and the three sub-problems required to tackle in our framework. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Definition 1 (Contact) A pair of individuals is considered"
+        },
+        {
+            "text": "We propose a three-stage solution framework, consisting of the approaches to solving the three respective subproblems, for tackling the overall problem. An overview of our solution framework is as follows.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Solution framework"
+        },
+        {
+            "text": "Stage1 (Time-varying contact network construction) Person-to-person transmission is the primary mode of transmission of HAIs. We define a distance threshold and a time threshold to utilize the time-stamped locations of individuals to construct the list of temporal-spatial co-occurrence events for the establishment of person-to-person contacts. Individuals are divided into multiple groups according to their roles and attributes, and contacts are labeled with four types. We first generate static hierarchical networks based on the types of contacts, and then construct a time-varying contact network. Stage2 (Individual-level transmission tracking) We formulate the problem of individual-level transmission tracking with network-based coupled HMMs, in which the SIS model describes the transmission dynamics of HAIs. HMMs are known to have the power to recover hidden pattern from observable information, and shown to be effective in inference of health states, e.g., [36, 37] . Solutions are obtained in three steps. First, we give basic solutions to a standard HMM by considering all individuals as a single vertex. Then we derive solutions at an individual level by factoring basic solutions according to SIS dynamics. Finally, we reduce the computational complexity of the solutions based on mean-field analysis to speed up computations for large-scale problems. Stage3 (HAI parameter estimation) The problem of HAI parameter estimation is formulated as Maximum Likelihood Estimation (MLE). An auxiliary function is introduced to transform the MLE problem to a computationally efficient optimization problem. By solving this optimization problem with Lagrangian multiplier method, we can obtain the Baum-Welch reestimate and recover the original HAI parameters from this reestimate. This learning method improves the estimation of HAI parameters iteratively. Table 1 summarizes the notation used throughout this paper.",
+            "cite_spans": [
+                {
+                    "start": 971,
+                    "end": 975,
+                    "text": "[36,",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 976,
+                    "end": 979,
+                    "text": "37]",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1866,
+                    "end": 1873,
+                    "text": "Table 1",
+                    "ref_id": "TABREF0"
+                }
+            ],
+            "section": "Solution framework"
+        },
+        {
+            "text": "We can establish a linkage between two persons in the contact network by utilizing the information about their temporal-spatial co-occurrence. First, movement trajectories of individuals, e.g. trajectories of person v i and person v j shown in Fig. 2a , are extracted from the time-stamped ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 244,
+                    "end": 251,
+                    "text": "Fig. 2a",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Contact establishment"
+        },
+        {
+            "text": "where D th is the distance threshold and T th is the time threshold.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Contact establishment"
+        },
+        {
+            "text": "A three-level hierarchical network is generated to represent the human connectivity in a hospital environment. Individuals are labeled with their role classes and divided into a patient group and a caregiver group. The patient group is further divided according to the ward where a patient is staying. Correspondingly, there are four types of contacts, namely, intra-ward contacts, inter-ward contacts, intra-type contacts and inter-type contacts. An example of a simple hierarchical contact network is shown in Fig. 3 . The bottom-level network consists of patients and they are linked according to intra-ward contacts; the middlelevel network consists of both patients and caregivers and they are linked with intra-type and inter-ward contacts; the top-level network consists of inter-type contacts between patient-caregiver pairs.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 512,
+                    "end": 518,
+                    "text": "Fig. 3",
+                    "ref_id": null
+                }
+            ],
+            "section": "Static hierarchical network generation"
+        },
+        {
+            "text": "A time-varying network can be represented as a series of static networks. We divide a continuous period into discrete time intervals and construct the time-varying contact network by combining the static networks constructed for each time period in sequence. In a hospital setting, it is common to divide a day into a daytime nighttime sessions [15] , because most healthcare workers have fixed shift times and human connectivity has dissimilar structures in the two sessions. Most healthcare facilities adopt a hierarchical and modular structure for the separation of wards and different roles of individuals. Interaction pattern differs between the intra-ward and inter-ward contacts or between the intratype and inter-type contacts. The time-varying hierarchical contact network naturally captures such characteristics in a hospital environment. Moreover, the hierarchical network is an extension of the bipartite patient-caregiver network in [31] . The bipartite patient-caregiver network assumes that only inter-type contacts exist, but does not consider contacts within the same individual group. Undoubtedly, it would be more practical to consider contacts among caregivers as they are the main transmitters of HAIs.",
+            "cite_spans": [
+                {
+                    "start": 345,
+                    "end": 349,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 946,
+                    "end": 950,
+                    "text": "[31]",
+                    "ref_id": "BIBREF29"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Time-varying contact network construction"
+        },
+        {
+            "text": "The classical SIS model formulates transmission dynamics of HAIs. There are two health states in the SIS model, namely, susceptible and infected. A person can be either susceptible or infected at one time. A susceptible person v i might get infected with an infection rate \u03c4 i due to a contact with an infectious patient. An infected patient v j gets recovered independently with a recovery rate \u03bc j , and turns from the infected state to the susceptible state immediately. Let health state x i t be a binary variable such that x i t = 1 and 0 respectively indicate that person v i is infected and suspectible at time t. Let N t (v i ) be the neighbor set of v i at time t, where a neighbor of v i is defined to be the set of adjacent vertices of v i on graph G t . In the SIS model, the transmission through person-to-person contact is determined by the following set of equations. ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Transmission dynamics"
+        },
+        {
+            "text": "The problem of individual-level transmission tracking is to identify the hidden health state of a person at any time, given the set of observations, parameters of the HAI model, and the contact networks. Suppose that the current time is t. Specifically, the problems of tracing, detection and prediction are respectively to infer the hidden state of an individual before, at and after time t, as illustrated in Fig. 5 . Formally, given the observation set O 0:t , the time-varying contact network G 0:t , and the parameter set \u03b8 of an HAI, We call the function f for detection if s = t, tracing if s < t, and prediction if s > t.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 411,
+                    "end": 417,
+                    "text": "Fig. 5",
+                    "ref_id": "FIGREF6"
+                }
+            ],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "We propose network-based coupled HMMs to tackle the individual-level transmission tracking problem. As shown in Fig. 6 , a standard HMM has two sequences of components: a sequence of hidden states of a Markov chain and a sequence of observations. An observation is dependent on its hidden state only, but not affected by other states and observations. HMMs have the power to reveal hidden pattern from observable information and have been widely applied in various fields such as speech recognition and social network analysis. The coupled HMMs incorporate several sub-HMMs together under a network structure, as illustrated in Fig. 7 . This connection creates the interdependence of the hidden states of multiple sub-HMMs. For example, the hidden state of HMM-2 at time t is not only determined by its own state at time t \u2212 1, but also affected by the hidden states of HMM-1 and HMM-3 at time t \u2212 1.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 112,
+                    "end": 118,
+                    "text": "Fig. 6",
+                    "ref_id": null
+                },
+                {
+                    "start": 628,
+                    "end": 634,
+                    "text": "Fig. 7",
+                    "ref_id": null
+                }
+            ],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "We propose a two-phase approach to deriving solutions from the coupled HMMs. First, the coupled HMMs are regarded as a standard HMM to give basic solutions to the problems of detection, tracing and prediction. In the standard HMM, all individuals are considered as single vertices such that the combined state X t is determined rather than individual x i t . The second phase is to derive solutions for individual-level transmission tracking based on factorization and mean-field analysis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "For each person v i , we denote the detection probability at time t by \u03c0 i t , the tracing probability at time s by \u03c0 i s|t , and the k-step ahead prediction probability at time t + k by \u03c0 i t+k|t . Correspondingly, \u03c0 t , \u03c0 s|t and \u03c0 t+k|t respectively denote the detection probability at time t, the tracing probability at time k and the k-step ahead prediction probability at time t + k. Let h t|t\u22121 = P (X t |X t\u22121 ) be the state transition probability and \u03c6 t = P (O t |X t ) be the observation probability. A standard HMM provides the detection, tracing and prediction probabilities in recursive forms by the following set of equations [38] , respectively:",
+            "cite_spans": [
+                {
+                    "start": 641,
+                    "end": 645,
+                    "text": "[38]",
+                    "ref_id": "BIBREF36"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "\u03c0 s|t = \u03c0 s \u03b2 s|t X t \u03c0 s \u03b2 s|t ,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "where \u03b2 s|t = X s+1 \u03b2 s+1|t \u03c6 s+1 h s+1|s can be computed with a backward approach. The basic solutions can be obtained by the analogies of detection, tracing and prediction to filtering, smoothing and prediction in a standard HMM.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "However, treating all individuals as a single vertex is incapable of tracking the health state of each individual. It is also impractical to apply the basic solutions directly due to the high computational complexity. For example, if we are to track the transmission of an SIS-type HAI among n individuals, the computational complexities for the detection and tracing procedures are respectively O(2 2n ) and O(2 n ). Thus, we propose an integrated approach of factorization and mean-field analysis to reducing the complexities.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection, tracing and prediction"
+        },
+        {
+            "text": "Since the basic solutions obtained from a standard HMM treat all individuals as a whole, we first factorize the basic solutions for individual-level detection, and then reduce the computational complexity using mean-field analysis. In this way, we can solve the individual-level detection problem and substantially improve the solvability for large-scale problems.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Detection"
+        },
+        {
+            "text": "where n is the number of sub-HMMs.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Assumption 1 (Independence assumption) The one-stepahead prediction probability of a sub-HMM is independent of those of other sub-HMMs, or formally"
+        },
+        {
+            "text": "The state transition probability h t|t\u22121 is determined by SIS dynamics. By Eqs. 5, 6, and 7, the individual states are conditionally independent, that is,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Assumption 1 (Independence assumption) The one-stepahead prediction probability of a sub-HMM is independent of those of other sub-HMMs, or formally"
+        },
+        {
+            "text": "and the basic solution to the detection problem can be factored in a product form",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 1 The solution to the problem of individual-level detection is given by"
+        },
+        {
+            "text": "Factorization of the basic solution gives the detection probability for each individual. The complexity is reduced to O(2 n ) after factorization, and the computational burden now becomes the calculation of individual-level onestep-ahead prediction probability \u03c0 i t|t\u22121 . We apply meanfield analysis for solving \u03c0 i t|t\u22121 to reduce the overall computational complexity further. The mean-field analysis studies the behavior of a large and complex system in view of simpler systems. Such system considers a large number of small individuals who interact with each other, where the effects of the other individuals on any given individual can be approximated by an averaged effect. With independence assumptions and decomposition, mean-field analysis reduces a multiple-body problem to a one-body problem.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 1 The solution to the problem of individual-level detection is given by"
+        },
+        {
+            "text": "Theorems 1 and 2 enable us to recursively calculate the one-step-ahead prediction and detection probabilities for each individual. The computational complexity is, therefore, reduced to O(n 2 ) by mean-field analysis.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "Algorithm 1 outlines the forward algorithm for solving individual-level detection. Let detection vec-",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": ", and \u03c1 i be the initial distribution of hidden states of individual v i . We initialize and calculate the detection probability for each individual at time 0. Then we recursively compute the one-step-ahead probability and the detection probability.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "The basic solution to the tracing problem in the standard HMM requires a backward computing procedure for \u03b2 s|t , s < t. The procedure introduced in Sub-section appears to be not applicable for tracing because \u03b2 s|t is not normalized. To derive the tracing probability at an individual level, we rewrite the basic solution based on the following formula [39, 40] : (1), (16) and the basic solution to the tracing problem can be factored in the following product form:",
+            "cite_spans": [
+                {
+                    "start": 354,
+                    "end": 358,
+                    "text": "[39,",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 359,
+                    "end": 362,
+                    "text": "40]",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 370,
+                    "end": 374,
+                    "text": "(16)",
+                    "ref_id": "BIBREF14"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Tracing"
+        },
+        {
+            "text": "where",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 3 The solution to the problem of individual-level tracing is provided by"
+        },
+        {
+            "text": "Algorithm 2 outlines the forward-backward algorithm for solving individual-level tracing. We first implement the forward algorithm to obtain the detection probability and the one-step-ahead probability. Then we set the tracing probability equal to the detection probability at time T . Thus, the tracing probability with time earlier than T can be computed recursively in a backward fashion.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 3 The solution to the problem of individual-level tracing is provided by"
+        },
+        {
+            "text": "We have provided the solution approach to the problem of one-step-ahead prediction in the previous sub-section. Trivially, we can solve the problem of s-step ahead prediction by substituting the one-step transition probability with the s-step transition probability. Here we introduce the pure prediction probability \u03c0 i t|0 (x). In pure prediction, no health observations are given, but the initial outbreak information is available. The health states of individuals are completely determined by the initial conditions and epidemic dynamics given by the SIS model. Intuitively, the effect of having no observation at all is equivalent to the setting that all individuals have the same observation at any time. Based on this intuition, we modify the computation for the detection probability \u03c0 i t (x) to derive \u03c0 i t|0 (x). We set the observation space to {0} and the observation probability \u03c6(\u00b7, 0) to one. By doing so, this tracking procedure becomes pure prediction. We calculate the tracking probability \u03c0 i t (x) under this condition, and we have \u03c0 i t|0 (x) = \u03c0 i t (x) with \u03c6(\u00b7, 0) = 1. Pure prediction is consistent with the nonlinear dynamical system (NLDS) discussed in [15] . The model reduces to NLDS when observable features of HAIs are unavailable. As observations provide useful information for more effective estimation of the health states, one-stepahead prediction is expected to give better performance than the NLDS or pure prediction.",
+            "cite_spans": [
+                {
+                    "start": 1181,
+                    "end": 1185,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Prediction"
+        },
+        {
+            "text": "In \"Individual-level transmission tracking\", we discussed our modeling framework on tracking HAI transmission under the assumption that all the required parameters -the infection rate, the recovery rate, the initial state distribution and the observation probability matrix -are given. In practice, however, the real values of these parameters are very likely not known exactly. In general, at the beginning of an outbreak, making an initial guess is the only possible option as no prior information is available. In this section we present an estimation method to refine the guess in a step-by-step manner, thus guaranteeing the practicality of our approach for real-world problems.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "be an HAI parameter configuration. The goal of HAI parameter estimation is to find the best \u03b8 that maximizes the likelihood function L(\u03b8 ) = P (O 0:T |\u03b8), \u03b8 * = arg max log L(\u03b8 ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "As analytical global optimal solutions are unlikely to exist, we use the Baum-Welch method [41, 42] Using Jensen's inequality, we obtain Q(\u03bb, \u03bb) .",
+            "cite_spans": [
+                {
+                    "start": 91,
+                    "end": 95,
+                    "text": "[41,",
+                    "ref_id": "BIBREF39"
+                },
+                {
+                    "start": 96,
+                    "end": 99,
+                    "text": "42]",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 137,
+                    "end": 144,
+                    "text": "Q(\u03bb, \u03bb)",
+                    "ref_id": null
+                }
+            ],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "The above fact suggests that the likelihood of \u03bb never exceeds the likelihood of \u03bb * and that computing a new estimate\u03bb by maximizing the auxiliary function Q(\u03bb,\u03bb) improves the likelihood. Thus, we can derive a maximum likelihood estimate by iteratively updating\u03bb until convergence. In this way, the original intractable optimization problem is reduced to maximizing the auxiliary function Q(\u03bb,\u03bb), which can be solved with a Lagrangian multiplier approach efficiently.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "Consider the following optimization problem max Q(\u03bb,\u03bb) = ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "where X is the value set of state vector X. By substituting",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "we can write the Lagrangian function as",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "log\u03c6(X t , F t )",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "where \u03b7, \u03b3 j and \u03c9 j are Lagrangian multipliers. The optimization problem thus becomes max L(\u03bb) = max{",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "log\u03c6(X t , F t )",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "which can be separated to three independent maximization problems. Solving each sub-problem, we hav\u0113",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "h(X, X ) = T \u22121 t=0 \u03c0 t,t+1|T (X, X )",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "where \u03c0 t,t+1|T (X, X ) = P (X t = X, X t+1 = X |O 0:T ) denotes the probability that the node is at state X at time t and at state X at time t + 1.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "As an example, we take the derivative ofh(X, X ) to obtain the solution to the maximization problem. By",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "By setting \u2202L 3 \u2202h(X,X ) = 0, we hav\u0113",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "\u03c0 t,t+1|T (X, X ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "By setting \u03c9 j = \u2212 T \u22121 t=0 \u03c0 t|T (X), the third constraint is satisfied, and Equality (20) holds.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "Note that\u03c1(X 0 ),\u03c6(X, F ) andh(X, X ) in Eqs. 18, 19 and 20 are the same with the Baum-Welch reestimate. Iteratively updating\u03bb in this manner keeps improving the estimate of \u03bb until it converges. The subsequent step to recover the original parameter configuration\u03b8 from\u03bb . As an example, we illustrate the recovery of SIS parameters \u03c4 i and \u03bc i .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "The probability \u03c0 t,t+1|T (X, X ) can be derived from the detection probability \u03c0 t (X), the tracing probability \u03c0 t+1|T (X ), the one-step-ahead prediction probability \u03c0 t+1|t (X ), and the transition probability h(X, X ) by the following formula \u03c0 t,t+1|T (X, X ) = \u03c0 t (X)h(X, X )\u03c0 t+1|T (X ) \u03c0 t+1|t (X ) , \u2200X, X \u2208 X .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": "Based on the above lemma, we can recover the SIS parameters \u03c4 i and \u03bc i , from h(X t , X t+1 ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": "Then we hav\u0113",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": ", and",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": "The proposed method provides an effective way to infer HAI parameters. Even if complete information on HAI parameters is not available initially, we can resort to this approach to improve estimation of the parameters with the updating observations and the tracked human contact networks. While theoretically the Baum-Welch reestimate converges to a local maximum, our computational experiments to be presented in \"Computational study\" show that our proposed approach has a good performance in the sense that the estimated values are close to the actual ones.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": "In this section, we carry out a computational study, based on a real-world healthcare setting and real-world human tracking data collected from the facility, for assessing the performance of our proposed solution framework and conducting a comparative analysis with other existing epidemic models.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Computational study"
+        },
+        {
+            "text": "We compare our proposed methods of individual-level transmission tracking approaches -detection (ILTT-DT), tracing (ILTT-TR), one-step-ahead prediction (ILTT-PD1) and pure prediction (ILTT-PD0) -with the following three baseline methods.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Baseline algorithms"
+        },
+        {
+            "text": "\u2022 Ordinary-differential-equation-based SIS model (ODE-SIS) assumes homogeneous populations. All individuals share the same infection rate \u03c4 and recovery rate \u03bc. The initial number of infected individuals I 0 is an input. The output is the number of infected individuals as a function of time determined by I (t) =",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Baseline algorithms"
+        },
+        {
+            "text": "is based on probability generating functions and considers disease spread over a heterogeneous network [14] . It requires network degree distributions as input and returns the number of infected individuals at steady state. \u2022 Non-linear dynamical system (NLDS) uses the probability of infection vector (p t ) to approximate the infection dynamics and model the evolution of epidemic outbreak over a time-varying network [15] . p t is determined by p t+1 = g(p t ), where the non-linear function g is defined by",
+            "cite_spans": [
+                {
+                    "start": 103,
+                    "end": 107,
+                    "text": "[14]",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 420,
+                    "end": 424,
+                    "text": "[15]",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Baseline algorithms"
+        },
+        {
+            "text": ". This approach requires an adjacency matrix A t to represent the timevarying network at time t.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Baseline algorithms"
+        },
+        {
+            "text": "We leveraged the RFID human tracking data collected from two medical wards at PWH, which suffered from a nosocomial outbreak the 2003 SARS, for conducting our computational experiments. The data consists of timestamped locations of 56 patients and 70 healthcare workers in two medical wards over a period of four months. Indoor locations of the tracked objects were recorded every 3 seconds with a spatial resolution of 0.5 meter. We set the time threshold T th = 30 minutes and the distance threshold D th = 1 meter. While these threshold distance and time were chosen to illustrate our idea, our algorithm allows the user to specify these threshold values. We also note that the threshold distance and time depend on the type of the HAI. We constructed static daytime networks and nighttime human contact networks for each time period based on the tracking data; a time-varying hierarchical contact network of 240 time periods was then obtained. We considered the nosocomial outbreak of the 2013 MERS-CoV in Saudi Arabia [3] for deriving practical HAI parameters. From April 1 to May 23, 2013, thirty-four individuals, including four healthcare workers, acquired MERS-CoV in three healthcare institutions. Fever, cough, shortness of breath and gastrointestinal symptoms were respectively observed in 20, 20, 11 and 8 individuals. As of June 12, 2013 a total of 15 deaths were related to the disease. We prioritized the observations fever, shortness of breath, gastrointestinal symptoms and cough, in a descending order of priority (from 4 to 1). If multiple observations were found at the same time period for an individual, we consider the individual is at the observation state of the highest priority. There were only two health states; each individual either is susceptible (state 0) or infected (state 1). Table 2 provides the health state-observation probability matrix. We include the observation state 0, which indicates that no symptom was found.",
+            "cite_spans": [
+                {
+                    "start": 1023,
+                    "end": 1026,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1813,
+                    "end": 1820,
+                    "text": "Table 2",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Setup of experiments"
+        },
+        {
+            "text": "In the experiments, we simulated the health states and observations based on the above setup.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Setup of experiments"
+        },
+        {
+            "text": "Most existing epidemic models focus on the macrolevel phenomena of epidemic thresholds and the infected population. Figure 8 shows the fraction of infections at the steady state for different values of \u03c4/\u03bc on three static networks of snapshots at different time periods, G 1 , G 41 and G 62 , respectively. G 1 and G 41 have the same degree distribution whereas G 62 differs from them and is more sparse. The mean degrees of three networks are 15, 15 and 4, respectively. Although G 1 and G 41 have the same degree distribution, the underlying networks are not equivalent. As we observe from Fig. 8a and b, the simulated threshold effects of G 1 and G 41 are different: the curves of G 1 \"take off\" at around \u03c4/\u03bc = 0.5 while the ones of G 41 \"take off\" at around \u03c4/\u03bc = 0.2. Percolation gives the same threshold, \u03c4/\u03bc = 0.4, for G 1 and G 41 because it considers only the degree distribution of a network but ignores other Fig. 8 Infections at steady state on static networks. ILTT-PD1, ODE-SIS and NLDS respectively denote individual-level transmission tracking with one-step-ahead prediction, ordinary-differential-equationbased SIS model, and non-linear dynamical system Fig. 9 Infected fraction time plot of static networks. ILTT-PD1, ODE-SIS and NLDS respectively denote individual-level transmission tracking with one-step-ahead prediction, ordinary-differentialequation-based SIS model, and non-linear dynamical system network properties. ODE-SIS gives the same threshold for three different networks because it assumes a homogeneous connection. NLDS captures the difference between the networks but deviates much from the simulation result. Our ILTT-PD1 predicts the thresholds to be 0.5, 0.2 and 1.2 for G 1 , G 41 and G 62 , respectively, which are more consistent with the simulated results compared with the other approaches. Figure 9 shows the plot of infection fraction at different time points resulting from the models for an HAI with infection rate \u03c4 = 0.4 and recovery rate \u03bc = 0.3. Since Percolation is not applicable for investigating transient states over time, we compare only ILTT-PD1, NLDS and ODE-SIS with the simulated result. The plots of infection fraction resulting from ILTT-PD1, NLDS and Simulation all increase rapidly at t = 3, whereas ODE-SIS increases at a significantly lower rate. As expected, ODE-SIS provides the same prediction for three networks because it does not capture the network structures. The simulated infection fraction at steady state ranges from 0.03 to 0.26. Our ILTT-PD1 provides a similar prediction to the simulated results (from 0.03 to 0.30), while NLDS has a significantly deviated prediction ranging from 0.33 to 0.54.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 116,
+                    "end": 124,
+                    "text": "Figure 8",
+                    "ref_id": null
+                },
+                {
+                    "start": 592,
+                    "end": 599,
+                    "text": "Fig. 8a",
+                    "ref_id": null
+                },
+                {
+                    "start": 921,
+                    "end": 927,
+                    "text": "Fig. 8",
+                    "ref_id": null
+                },
+                {
+                    "start": 1172,
+                    "end": 1178,
+                    "text": "Fig. 9",
+                    "ref_id": null
+                },
+                {
+                    "start": 1836,
+                    "end": 1844,
+                    "text": "Figure 9",
+                    "ref_id": null
+                }
+            ],
+            "section": "Marco-level phenomena of hospital outbreaks"
+        },
+        {
+            "text": "Among the baseline algorithms, only NLDS applies to time-varying networks. Figure 10 shows the comparison of NLDS, ILTT-PD1, ILTT-PD0 and simulated results on the time-varying network G 0:T . As shown in Fig. 10a , ILTT-PD1 predicts the \"take-off\" of the outbreak size at a threshold \u03c4/\u03bc = 0.4 while NLDS and ILTT-PD0 predict a lower threshold of 0.3. Figure 10b shows the plot of infection fractions above and below the threshold at different time points. Above the threshold the infection reaches a steady state much higher than the starting point, and below the threshold the infection decays and dies out. Note that ILTT-PD0 and NLDS give almost the same prediction in both figures. The reason is that our model reduces to NLDS when observations of HAIs are not available. Taking advantage of observable information improves the accuracy of prediction, which leads to a better performance of ILTT-PD1 than ILTT-PD0.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 75,
+                    "end": 84,
+                    "text": "Figure 10",
+                    "ref_id": "FIGREF10"
+                },
+                {
+                    "start": 204,
+                    "end": 212,
+                    "text": "Fig. 10a",
+                    "ref_id": "FIGREF10"
+                },
+                {
+                    "start": 352,
+                    "end": 362,
+                    "text": "Figure 10b",
+                    "ref_id": "FIGREF10"
+                }
+            ],
+            "section": "Marco-level phenomena of hospital outbreaks"
+        },
+        {
+            "text": "Our proposed method has the capability to track the transmission of HAIs at an individual level. In other words, it infers the hidden health state of any person at any time. In this subsection, we compare the identification results obtained from ILTT-PD1, ILTT-DT, ILTT-TR and NLDS with fixed infection rate \u03c4 = 0.03 and recovery rate \u03bc = 0.02. Outcomes resulting from ILTT-PD0 are identical to NLDS. Figure 11 shows the estimation of the illness evolution of person v 1 , who is the patient zero of an HAI. This person stayed infected (at state 1) until time period 103 and remains susceptible (at state 0) from that time onwards. ILTT-DT, ILTT-TR, ILTT-PD1 all capture the state transition close to time step 103 whereas NLDS gives a smooth curve with no The Receiver Operating Characteristic (ROC) curves in Fig. 12 exhibit a consistent trend with the results shown in Fig. 11 . We observe that ILTT-TR demonstrates an advantage over the other approaches and ILTT-DT performs slightly better than ILTT-PD1 whereas NLDS's performance is the worst. Their difference in performance is due to the fact that the approaches utilize different degrees of observable information. ILTT-TR makes use of all available observable information to obtain the estimation of the hidden Markov processes, while NLDS utilizes no observations at all. ILTT-PD1 and ILTT-DT both use past observations, but ILTT-DT performs slightly better because it also captures observable information at present.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 401,
+                    "end": 410,
+                    "text": "Figure 11",
+                    "ref_id": "FIGREF11"
+                },
+                {
+                    "start": 811,
+                    "end": 818,
+                    "text": "Fig. 12",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 872,
+                    "end": 879,
+                    "text": "Fig. 11",
+                    "ref_id": "FIGREF11"
+                }
+            ],
+            "section": "Individual-level transmission tracking"
+        },
+        {
+            "text": "When an HAI outbreak takes place, the healthcare organization conducts contact tracing to identify the index and NLDS respectively denote individual-level transmission tracking (ILTT) with detection, ILTT with tracing, ILTT with one-step-ahead prediction, and non-linear dynamical system case and construct epidemiological links with a manual approach. If this patient zero has had frequent contacts with the others, the transmission path can only be estimated based on experience [3, 5] . Our method provides an effective tool to construct the transmission network automatically and accurately. For example, if we consider a person as being infected if his/her tracing probability is greater than 0.5, we can draw a transmission map of the hospital outbreak for the first month, as shown in Fig. 13 . 27 individuals in total got infected in the first month. The patient zero v 1 transmitted the disease to 4 other individuals and patient v 3 is a \"super-spreader\" who infected 7 people. This transmission map is similar to the one reported in [3] , a real-world hospital outbreak of the MERS-CoV. ",
+            "cite_spans": [
+                {
+                    "start": 481,
+                    "end": 484,
+                    "text": "[3,",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 485,
+                    "end": 487,
+                    "text": "5]",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 1044,
+                    "end": 1047,
+                    "text": "[3]",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 792,
+                    "end": 799,
+                    "text": "Fig. 13",
+                    "ref_id": "FIGREF13"
+                }
+            ],
+            "section": "Individual-level transmission tracking"
+        },
+        {
+            "text": "In general, the exact values of HAI parameters were not known exactly. Existing models, which are highly sensitive to the precision of HAI parameters, might produce predictions much deviated from the actual situation if parameters are not determined correctly. Our solution framework is capable of refining the estimate of HAI parameters in a step-by-step manner based on available information of observable features and human contacts. As discussed in \"HAI parameter estimation\", our solution framework learns the infection rate \u03c4 i and the recovery rate \u03bc i for any individual v i . Without loss of generality, we set \u03c4 p and \u03bc p for the patient group, and \u03c4 c and \u03bc c for the caregiver group. The following experiment illustrates the estimation of parameters of SIS dynamics. Figure 14a and b show the estimation of infection rates and recovery rates for patients and caregivers. The dashed lines indicate true parameter values while the solid lines represent the estimated values at each step of estimation. In Fig. 14a , the true value of \u03c4 p is 0.3 and the estimate\u03c4 p converges to 0.32 after 6 runs using the proposed method. The true value of \u03c4 c is 0.03 and\u03c4 c reaches 0.01 after 4 runs. From Fig. 14b , we observe that\u03bc p and\u03bc c converge very quickly to their true values as well. Figure 14c and d show the average gap between an estimate and the true value for the observation matrix and Fig. 14 Estimation of HAI parameters. \u03c4 p and \u03bc p (\u03c4 c and \u03bc c ) respectively denote the estimated infection and recovery rates for patient (caregiver) groups. \u03c6 i and \u03c1 i respectively represent the estimated observation probability matrix and state distribution the initial state distribution. For an m \u00d7 n matrix B, we define the average gap as",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 779,
+                    "end": 789,
+                    "text": "Figure 14a",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1015,
+                    "end": 1023,
+                    "text": "Fig. 14a",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1202,
+                    "end": 1210,
+                    "text": "Fig. 14b",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1291,
+                    "end": 1301,
+                    "text": "Figure 14c",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1399,
+                    "end": 1406,
+                    "text": "Fig. 14",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "where\u0113 i,j is an estimate of element e i,j . In Fig. 14 (c) , three sets of estimated observation probability matrices are given with initial average gaps AveGap 0 (\u03c6 1 ) = 0.12, AveGap 0 (\u03c6 2 ) = 0.18, and AveGap 0 (\u03c6 3 ) = 0.31, respectively, where\u03c6 3 is generated randomly. Even though we start with these initial guesses with fairly large average gaps, they converge to zero after only a few iterations. In contrast, Fig. 14d shows that the performance of the inference method is sensitive to the initial guess of the initial state distribution \u03c1. As the initial guess deviates from the true value gradually from\u03c1 1 to\u03c1 3 , the gaps between the final estimates and the true value become larger. For\u03c1 3 , there are oscillations and the estimation converges rather slowly but the estimate is far away from the true value. This indicates the importance of an appropriate initial guess of the initial state distribution.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 48,
+                    "end": 59,
+                    "text": "Fig. 14 (c)",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 421,
+                    "end": 429,
+                    "text": "Fig. 14d",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "HAI parameter estimation"
+        },
+        {
+            "text": "In this work, we propose a solution methodology integrating the techniques of network epidemiology and coupled hidden Markov models to infer the health state of any person at any time in a healthcare setting. We utilize advanced real-time positioning technologies for tracing person-toperson contacts among individuals, including patients and healthcare workers, in the healthcare facility and construct a time-varying human contact network. We also develop the algorithms for transmission tracking of individuals, with a given set of HAI parameters. We finally propose an estimation procedure to infer unknown HAI parameters to tackle the practical problem that the parameters are not completely known.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "We conduct experiments based on four-month human tracking data collected from two medical wards at PWH, which suffered from the 2003 SARS nosocomial outbreak. Computational results show that our framework provides more accurate results for predicting macro-level phenomena such as the number of infected individuals and epidemic threshold, compared to existing epidemic models.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "The denominator of the basic solution (5) can be rewritten as ",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "The third equality follows from the Markov property. In coupled HMMs, observations are independent of each other and an observation is only affected by its own state. Thus we have",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "By Eqs. 5, 9, 23, 24 and 25, we have \u03c0 t = i=1 \u03c0 i t and \u03c0 i t = \u03c6 i t \u03c0 i t|t\u22121",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "x i t \u03c6 i t \u03c0 i t|t\u22121 .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conclusion"
+        },
+        {
+            "text": "Proof \u03c0 i t|t\u22121 (0) is the estimate that person v i is not infected at time t based on the information about the person-toperson contact history and features of all individuals by time t \u2212 1. We have \u03c0 i t|t\u22121 (0) = \u03c0 i t\u22121 (0) \u00b7 P (x i t = 0|x i t\u22121 = 0) +\u03c0 i t\u22121 (1) \u00b7 P (x i t = 0|x i t\u22121 = 1)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "According to the SIS dynamics, if x i t\u22121 = 1, x i t is independent of x j t\u22121 for all j = i. That is,",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "t\u22121 be a state vector excluding x i t\u22121 , or formally, X \u223ci t\u22121 = (x 1 t\u22121 , x 2 t\u22121 , ..., x i\u22121 t\u22121 , x i+1 t\u22121 , ..., x n t\u22121 ). Let",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "We apply the mean-field analysis approach to decompose the effect of X \u223ci t\u22121 on x i t into single average effects. A neighbor v j of v i is infected at time t \u2212 1 with probability \u03c0 j t\u22121 (1) , and is susceptible with probability \u03c0 j t\u22121 (0). The average effect of v j on v i for which v i stays susceptible is \u03c0 j t\u22121 (1) \u00b7 (1 \u2212 \u03c4 i ) + \u03c0 j t\u22121 (0) \u00b7 1. Thus we have",
+            "cite_spans": [
+                {
+                    "start": 189,
+                    "end": 192,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "and this completes the proof.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 2 The solution to the problem of individual-level one-step-ahead prediction is given by"
+        },
+        {
+            "text": "The solution to the problem of individual-level tracing is provided by \u03c0 i s|t (1) = \u03c0 i s|t (1) x i s+1 \u03c0 i s+1|t P (x i s+1 |x i s = 1) \u03c0 i s+1|s , \u03c0 i s|t (0) = 1 \u2212 \u03c0 i s|t (1) , and the basic solution to the tracing problem can be factored in the following product form:",
+            "cite_spans": [
+                {
+                    "start": 93,
+                    "end": 96,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 176,
+                    "end": 179,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Theorem 3"
+        },
+        {
+            "text": "where s \u2264 t, P (x i s+1 = 0|\u03c0 i s = 1) = \u03bc i , and P (x i s+1 = 1|\u03c0 i s = 1) = 1 \u2212 \u03bc i .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 3"
+        },
+        {
+            "text": "Proof We first prove the claim that \u03c0 s|t = i \u03c0 i s|t by backward induction. When s = t, this equality holds since \u03c0 s|t = \u03c0 t = i \u03c0 i t . Now suppose \u03c0 s+1|t = i \u03c0 i s+1|t for s \u2264 t \u2212 1. We have The second equality holds because X s+1 is a combination of x i s+1 . From the above equation and the tracing formula, we have \u03c0 s|t = i \u03c0 i s|t for s \u2264 t \u2212 1, and the claim holds. As h i s+1|s = P (x i s+1 |X s ), we aim to decompose the coupling variable X s . Note that an infected person is not affected by other individuals according to SIS dynamics. Thus we only need to consider the case of x i s = 1. We have \u03c0 i s|t (1) = \u03c0 i s|t (1) \u03c0 i s+1|t (0)P (x i s+1 = 0|x i s = 1) \u03c0 i s+1|s (0) + \u03c0 i s+1|t (1)P (x i s+1 = 1|x i s = 1) \u03c0 i s+1|s (1) , and it completes the proof.",
+            "cite_spans": [
+                {
+                    "start": 635,
+                    "end": 638,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 743,
+                    "end": 746,
+                    "text": "(1)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Theorem 3"
+        },
+        {
+            "text": "The probability \u03c0 t,t+1|T (X, X ) can be derived from the detection probability \u03c0 t (X), the tracing probability \u03c0 t+1|T (X ), the one-step-ahead prediction probability \u03c0 t+1|t (X ), and the transition probability h(X, X ) by the following formula \u03c0 t,t+1|T (X, X ) = \u03c0 t (X)h(X, X )\u03c0 t+1|T (X ) \u03c0 t+1|t (X ) , \u2200X, X \u2208 X .",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": "Proof Let \u03b1 t and \u03b2 t be the forward and backward variables respectively as in standard HMMs. Note that \u03b1 t+1 (X ) = \u03c6(X , O t+1 ) X \u03b1 t (X)h(X, X ), \u03c0 t (X) = \u03b1 t (X) X \u03b1 t (X)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": ", \u03c0 t|T (X) = \u03b1 t (X)\u03b2 t (X) X \u03b1 t (X)\u03b2 t (X)",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": ", \u03c0 t+1|t (X ) = X \u03c0 t (X)h t (X, X ).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        },
+        {
+            "text": "By the above relationships, we have \u03c0 t,t+1|T (X, X ) = \u03b1 t (X)h(X, X )\u03c6(X , O t+1 )\u03b2 t+1 (X ) X \u03b1 t+1 (X )\u03b2 t+1 (X ) = \u03b1 t (X)h(X, X )\u03c6(X , O t+1 )\u03c0 t+1|T (X ) \u03b1 t+1 (X ) = \u03b1 t (X)h(X, X )\u03c0 t+1|T (X ) X \u03b1 t (X)h(X, X ) = \u03c0 t (X)h(X, X )\u03c0 t+1|T (X ) \u03c0 t+1|T (X )",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Lemma 1"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Multistate point-prevalence survey of health care-associated infections",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Magill",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Bamberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Beldavs",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Dumyati",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kainer",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lynfield",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Maloney",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Mcallister-Hollod",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Nadle",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "N. Engl. J. Med",
+            "volume": "370",
+            "issn": "13",
+            "pages": "1198--1208",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "Centers for disease control and prevention. HAI data and statistics",
+            "authors": [],
+            "year": 2016,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "Hospital outbreak of Middle East respiratory syndrome coronavirus",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Assiri",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Mcgeer",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Perl",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Price",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Rabeeah",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Cummings",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Alabdullatif",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Assad",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Almulhim",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Makhdoom",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "N. Engl. J. Med",
+            "volume": "369",
+            "issn": "5",
+            "pages": "407--416",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Clinical progression and viral load in a community outbreak of coronavirus-associated SARS pneumonia: a prospective study",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "S M"
+                    ],
+                    "last": "Peiris",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Chu",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "C C"
+                    ],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [
+                        "F N"
+                    ],
+                    "last": "Hung",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "L M"
+                    ],
+                    "last": "Poon",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Law",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "S F"
+                    ],
+                    "last": "Tang",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "Y W"
+                    ],
+                    "last": "Hon",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Chan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Lancet",
+            "volume": "361",
+            "issn": "9371",
+            "pages": "1767--1772",
+            "other_ids": {}
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "A major outbreak of severe acute respiratory syndrome in Hong Kong",
+            "authors": [
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Hui",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Cameron",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Joynt",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ahuja",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yee",
+                    "middle": [],
+                    "last": "Yung",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Leung",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "To",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1986,
+            "venue": "SARS expert committee of Hong Kong SAR government. The SARS epidemic",
+            "volume": "348",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "The SARS epidemic in Hong Kong: what lessons have we learned?",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hung",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "J. R. Soc. Med",
+            "volume": "96",
+            "issn": "8",
+            "pages": "374--378",
+            "other_ids": {}
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "RFID Analytics for hospital ward management",
+            "authors": [
+                {
+                    "first": "C.-H",
+                    "middle": [],
+                    "last": "Cheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y.-H",
+                    "middle": [],
+                    "last": "Kuo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Flex. Serv. Manuf. J",
+            "volume": "28",
+            "issn": "4",
+            "pages": "593--616",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "A contribution to the mathematical theory of epidemics",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Kermack",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Mckendrick",
+                    "suffix": ""
+                }
+            ],
+            "year": 1927,
+            "venue": "Proceedings of the Royal Society of London A: Mathematical, Physical and Engineering Sciences",
+            "volume": "115",
+            "issn": "",
+            "pages": "700--721",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Infectious diseases of humans: dynamics and control",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "May",
+                    "suffix": ""
+                },
+                {
+                    "first": "Anderson",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Aust. J. Public Health",
+            "volume": "16",
+            "issn": "",
+            "pages": "208--212",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "The mathematics of infectious diseases",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Hethcote",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "SIAM Rev",
+            "volume": "42",
+            "issn": "4",
+            "pages": "599--653",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "The web of human sexual contacts",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Liljeros",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Edling",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "A N"
+                    ],
+                    "last": "Amaral",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Stanley",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "And\u00e5berg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Nature",
+            "volume": "411",
+            "issn": "6840",
+            "pages": "907--908",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Contact network epidemiology: Bond percolation applied to infectious disease prediction and control",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Meyers",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Bull. Am. Math. Soc",
+            "volume": "44",
+            "issn": "1",
+            "pages": "63--86",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Spread of epidemic disease on networks",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "E J"
+                    ],
+                    "last": "Newman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Phys. Rev. E",
+            "volume": "66",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Virus propagation on time-varying networks: Theory and immunization algorithms",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Prakash",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Tong",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Valler",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Faloutsos",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Faloutsos",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Machine Learning and Knowledge Discovery in Databases",
+            "volume": "",
+            "issn": "",
+            "pages": "99--114",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Networks and epidemic models",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Keeling",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "T D"
+                    ],
+                    "last": "Eames",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. R. Soc. Interface",
+            "volume": "2",
+            "issn": "4",
+            "pages": "295--307",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "The structure and dynamics of networks",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Newman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A.-L",
+                    "middle": [],
+                    "last": "Barabasi",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Modeling infectious diseases in humans and animals",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Keeling",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Rohani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Epidemic processes in complex networks",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Pastor-Satorras",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Castellano",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Mieghem",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Vespignani",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Rev. Mod. Phys",
+            "volume": "87",
+            "issn": "3",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Analysis and control of epidemics: A survey of spreading processes on complex networks",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Nowzari",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Preciado",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Pappas",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "IEEE Control. Syst",
+            "volume": "36",
+            "issn": "1",
+            "pages": "26--46",
+            "other_ids": {}
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "The effects of local spatial structure on epidemiological invasions",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Keeling",
+                    "suffix": ""
+                }
+            ],
+            "year": null,
+            "venue": "Proc. R. Soc. Lond. Ser. B Biol. Sci",
+            "volume": "266",
+            "issn": "",
+            "pages": "859--867",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Modeling dynamic and network heterogeneities in the spread of sexually transmitted diseases",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "T D"
+                    ],
+                    "last": "Eames",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Keeling",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Proc. Natl. Acad. Sci",
+            "volume": "99",
+            "issn": "20",
+            "pages": "13330--13335",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Network theory and SARS: predicting outbreak diversity",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Meyers",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Pourbohloul",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E J"
+                    ],
+                    "last": "Newman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Skowronski",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Brunham",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "J. Theor. Biol",
+            "volume": "232",
+            "issn": "1",
+            "pages": "71--81",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Threshold effects for two pathogens spreading on a network",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "E J"
+                    ],
+                    "last": "Newman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Phys. Rev. Lett",
+            "volume": "95",
+            "issn": "10",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Competing epidemics on complex networks",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Karrer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E J"
+                    ],
+                    "last": "Newman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Phys. Rev. E",
+            "volume": "84",
+            "issn": "3",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "SIR dynamics in random networks with heterogeneous connectivity",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Volz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Math. Biol",
+            "volume": "56",
+            "issn": "3",
+            "pages": "293--310",
+            "other_ids": {}
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Simple models of influenza progression within a heterogeneous population",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Larson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Oper. Res",
+            "volume": "55",
+            "issn": "3",
+            "pages": "399--412",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Modeling influenza progression within a continuous-attribute heterogeneous population",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Teytelman",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Larson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Eur. J. Oper. Res",
+            "volume": "220",
+            "issn": "1",
+            "pages": "238--250",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Generalized markov models of infectious disease spread: A novel framework for developing dynamic health policies",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Yaesoubi",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Cohen",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Eur. J. Oper. Res",
+            "volume": "215",
+            "issn": "3",
+            "pages": "679--687",
+            "other_ids": {}
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "When individual behaviour matters: homogeneous and network models in epidemiology",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bansal",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Grenfell",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Meyers",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "J. R. Soc. Interface",
+            "volume": "4",
+            "issn": "16",
+            "pages": "879--891",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "Applying network theory to epidemics: control measures for Mycoplasma pneumoniae outbreaks",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Meyers",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "E J"
+                    ],
+                    "last": "Newman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Martin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Schrag",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Emerg. Infect. Dis",
+            "volume": "9",
+            "issn": "2",
+            "pages": "204--210",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "The contact network of inpatients in a regional healthcare system. a longitudinal case study",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Liljeros",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Giesecke",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Holme",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Math. Popul. Stud",
+            "volume": "14",
+            "issn": "4",
+            "pages": "269--284",
+            "other_ids": {}
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Controlling nosocomial infection based on structure of hospital social networks",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Ueno",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Masuda",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "J. Theor. Biol",
+            "volume": "254",
+            "issn": "3",
+            "pages": "655--666",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "Modeling and estimating the spatial distribution of healthcare workers",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Curtis",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Hlady",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Pemmaraju",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Polgreen",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Segre",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 1st ACM International Health Informatics Symposium",
+            "volume": "",
+            "issn": "",
+            "pages": "287--296",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Graph-coupled HMMs for modeling the spread of infection",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Dong",
+                    "suffix": ""
+                },
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Pentl",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Heller",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Proceedings of the 30th International Conference on Machine Learning. Citeseer",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Health-state estimation and prognostics in machining processes",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Camci",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Chinnam",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "IEEE Trans. Autom. Sci. Eng",
+            "volume": "7",
+            "issn": "3",
+            "pages": "581--597",
+            "other_ids": {}
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A state-spacebased prognostic model for hidden and age-dependent nonlinear degradation process",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "X",
+                    "middle": [],
+                    "last": "Si",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Zou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "IEEE Trans. Autom. Sci. Eng",
+            "volume": "10",
+            "issn": "4",
+            "pages": "1072--1086",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "A tutorial on hidden Markov models and selected applications in speech recognition",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Lawrence",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "Proc. IEEE",
+            "volume": "77",
+            "issn": "2",
+            "pages": "257--286",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Non-Gaussian state-space modeling of nonstationary time series",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Kitagawa",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "J. Am. Stat. Assoc",
+            "volume": "82",
+            "issn": "400",
+            "pages": "1032--1041",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "On sequential Monte Carlo sampling methods for Bayesian filtering",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Doucet",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Godsill",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Andrieu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Stat. Comput",
+            "volume": "10",
+            "issn": "3",
+            "pages": "197--208",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "An inequality with applications to statistical estimation for probabilistic functions of Markov processes and to a model for ecology",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Baum",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Eagon",
+                    "suffix": ""
+                }
+            ],
+            "year": 1967,
+            "venue": "Bull. Am. Math. Soc",
+            "volume": "73",
+            "issn": "3",
+            "pages": "360--363",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "A maximization technique occurring in the statistical analysis of probabilistic functions of Markov chains",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Baum",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Petrie",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Soules",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Weiss",
+                    "suffix": ""
+                }
+            ],
+            "year": 1970,
+            "venue": "Ann. Math. Stat",
+            "volume": "",
+            "issn": "",
+            "pages": "164--171",
+            "other_ids": {}
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "observation is a feature that reflects the presence of a disease, which can be a symptom or a sign, or both. o i t denotes the observation of person v i at time t. The observation vector O t = (o 1 t , o 2 t , . . . , o n t ), n = |V | represents the collection of observations of all individuals at time t. Definition 4 (Health state) A health state denotes the (hidden) health status of an individual. A patient who is a host of an infectious disease can only be in one health state at a time. x i",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Given time-stamped locations of the individuals in a healthcare facility, if an HAI outbreak takes place through person-to-person contact, how can we track the transmission of the HAI over the human contact network at an individual level? Problem 1 (Time-varying contact network construction) Given time-stamped locations of the individuals in a healthcare facility, how do we establish contact between any pair of individuals and to construct a time-varying contact network G 0:T to characterize the human connection pattern? Problem 2 (Individual-level transmission tracking) Given (1) a time-varying contact network G 0:T of the individuals in a healthcare facility, (2) observation vectors O 0:T of these people, and (3) the transmission parameter set \u03b8 of the HAI, if an HAI outbreak takes place, how do we identify the hidden health state x i t for any person v i at any time t \u2265 0? Problem 3 (HAI parameter estimation) Given (1) a timevarying contact network G 0:T of the individuals in a healthcare facility, (2) observation vectors O 0:T of these people, and (3) a subset \u03b8 s of the HAI parameter set \u03b8 with \u03b8 s \u2282 \u03b8 , if an HAI outbreak takes place, how do we estimate the unknown parameter set \u03b8 \\ \u03b8 s ?",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "locational data captured from the indoor positioning infrastructure. The distance between person v i and person v j at any time is calculated; examples of the distances are represented by dashed lines in Fig. 2a. Let d ij (t) be a function of time t that measures the distance between persons",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "Establishments of contacts through movement trajectories of individuals. v i , D th , and t, respectively denote individual i, distance threshold, and time thresholdFig. 3 A simple example of static hierarchical contact networks",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "A simple example of the SIS dynamics. v i denotes individual i",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Equation 1 represents the case that a susceptible person v i remains susceptible at the next time period if all his/her infectious neighbors fail to transmit the infection to v i . Equation 2 indicates that a susceptible person gets infected if one or more of the infectious neighbors transmit the infection to him/her successfully. Equations 3 and 4 respectively state that an infected person recovers and remains infected independently. The SIS dynamics is shown in Fig. 4. The links between vertices represent the personto-person contacts. At time t, v 1 , v 2 and v 3 are infected while v 4 and v 5 are susceptible. At time t + 1, v 4 remains susceptible as the infected neighbors v 1 and v 3 both fail to transmit the disease to v 4 . v 5 gets infected because v 1 transmits the infection to v 5 successfully. v 2 recovers independently and becomes susceptible at time t + 1 , while v 1 and v 3 remain infected.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF6": {
+            "text": "The problems of detection, tracing and tracking. \u03c0 t and X t respectively denote the detection probability and state vector at time t the problem of individual-level transmission tracking is to determine a mapping function f : {O 0:t , G 0:t , \u03b8} \u2192 X s , \u2200s.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF7": {
+            "text": "A standard hidden Markov model. O t and X t respectively denote the observation vector and state vector at time t Coupled hidden Markov models. O t and X t respectively denote the observation vector and state vector at time t",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF8": {
+            "text": "to solve the problem. Let \u03bb = ({\u03c1(X)}, {h(X, X )}, {\u03c6(X, O)}). We first consider the coupled HMMs as a single HMM for estimating \u03bb, and then recover the original parameter set \u03b8 from \u03bb. We introduce the auxiliary function Q(\u03bb,\u03bb) = X 0:T P (X 0:T |O 0:T , \u03bb) log P (X 0:T , O 0:T |\u03bb).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF9": {
+            "text": "(X 0:T |O 0:T , \u03bb) log P (X 0:T , O 0:T |\u03bb)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF10": {
+            "text": "Macro-level prediction on time-varying network G 0:T . ILTT-PD1, ILTT-PD0 and NLDS respectively denote individual-level transmission tracking (ILTT) with one-step-ahead prediction, ILTT with pure prediction, and non-linear dynamical system clear indication of such change in state. ILTT-TR identifies hidden states with the highest accuracy, and the ILTT-DT performs better than ILTT-PD1.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF11": {
+            "text": "Tracking of the initial patient. ILTT-DT, ILTT-TR, ILTT-PD1",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF12": {
+            "text": "ROC curves. ILTT-DT, ILTT-TR, ILTT-PD1 and NLDS respectively denote individual-level transmission tracking (ILTT) with detection, ILTT with tracing, ILTT with one-step-ahead prediction, and non-linear dynamical system",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF13": {
+            "text": "Transmission map",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF14": {
+            "text": "O t |X t )P (X t |O 0:t\u22121 ) = Xt P (O t , X t |O 0:t\u22121 ) = P (O t |O 0:t\u22121 ).",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "NotationDefinition",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "Conflict of interests CH Cheng declares that he has no conflict of interest. YH Kuo declares that he has no conflict of interest. Z Zhou declares that he has no conflict of interest.Ethical Approval All procedures performed in studies involving human participants were in accordance with the ethical standards of the institutional and/or national research committee and with the 1964 Helsinki declaration and its later amendments or comparable ethical standards. This article does not contain any studies with animals performed by any of the authors.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Compliance with Ethical Standards"
+        },
+        {
+            "text": ", \u2200i and the basic solution to the detection problem can be factored in a product formProof By the definition of the one-step-ahead prediction probability, stated in Eq. 7, and the independence assumption, stated in Eq. 8, we have",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Theorem 1 The solution to the problem of individual-level detection is given by"
+        }
+    ]
+}

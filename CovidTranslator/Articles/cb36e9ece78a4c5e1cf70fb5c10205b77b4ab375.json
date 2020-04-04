@@ -1,0 +1,3524 @@
+{
+    "paper_id": "cb36e9ece78a4c5e1cf70fb5c10205b77b4ab375",
+    "metadata": {
+        "title": "Exploring the RNA-Recognition Mechanism Using Supervised Molecular Dynamics (SuMD) Simulations: Toward a Rational Design for Ribonucleic-Targeting Molecules?",
+        "authors": [
+            {
+                "first": "Kamil",
+                "middle": [],
+                "last": "Kuca",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Marco",
+                "middle": [],
+                "last": "Tutone",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Stefano",
+                "middle": [],
+                "last": "Moro",
+                "suffix": "",
+                "affiliation": {},
+                "email": "stefano.moro@unipd.it"
+            },
+            {
+                "first": "Maicol",
+                "middle": [],
+                "last": "Bissaro",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            },
+            {
+                "first": "Mattia",
+                "middle": [],
+                "last": "Sturlese",
+                "suffix": "",
+                "affiliation": {},
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Although proteins have represented the molecular target of choice in the development of new drug candidates, the pharmaceutical importance of ribonucleic acids has gradually been growing. The increasing availability of structural information has brought to light the existence of peculiar three-dimensional RNA arrangements, which can, contrary to initial expectations, be recognized and selectively modulated through small chemical entities or peptides. The application of classical computational methodologies, such as molecular docking, for the rational development of RNA-binding candidates is, however, complicated by the peculiarities characterizing these macromolecules, such as the marked conformational flexibility, the singular charges distribution, and the relevant role of solvent molecules. In this work, we have thus validated and extended the applicability domain of SuMD, an all-atoms molecular dynamics protocol that allows to accelerate the sampling of molecular recognition events on a nanosecond timescale, to ribonucleotide targets of pharmaceutical interest. In particular, we have proven the methodological ability by reproducing the binding mode of viral or prokaryotic ribonucleic complexes, as well as that of artificially engineered aptamers, with an impressive degree of accuracy.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "Ribonucleic acid (RNA) is a polymer whose biological importance has increased progressively over the last 50 years. Despite the central dogma of molecular biology considering this nucleic acid simply as a functional messenger between DNA genetic information storage and protein biosynthesis, RNA has recently been reappraised as an ancestral molecule of primary importance in the abiogenesis process. At the origin of life, RNA probably encompassed both an informational role, which progressively evolved toward involving the more stable and easily replicable DNA polymer, and a catalytic function, which was gradually flanked by more versatile proteins (Morris and Mattick, 2014) . The complexity hiding behind RNA's biological functions is intuitable by taking into consideration the human organism, which genetic heritage could quite entirely be transcribed into RNA, despite coding only in a minimal portion (about 3%) for proteins (Warner et al., 2018) . A great majority of these transcripts therefore remain untranslated, originating non-coding genomic portions. RNA revolution has thus shed light on the regulatory activity of this widely different class of macromolecules that, along with some proteins, cooperate to control and finely orchestrate the genome expression (Connelly et al., 2016) .",
+            "cite_spans": [
+                {
+                    "start": 654,
+                    "end": 680,
+                    "text": "(Morris and Mattick, 2014)",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 936,
+                    "end": 957,
+                    "text": "(Warner et al., 2018)",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 1279,
+                    "end": 1302,
+                    "text": "(Connelly et al., 2016)",
+                    "ref_id": "BIBREF8"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "RNA polymer lengths range from small hairpins composed of a few tens of nucleobases to long non-coding RNAs sequences (lncRNAs) that can reach up to a few thousands nucleotides (Connelly et al., 2016) . Differently from DNA, RNA usually exists as a single-stranded molecule that is not strictly limited by a Watson-Crick base pairing. In solution, ribonucleic acids explore a wide landscape of three-dimensional structures, characterizable by the presence of peculiar functional domains able to specifically recognize other nucleic acids, polypeptides, glyco-derivates, or cognates of small organic molecules (Draper, 1995; Cruz and Westhof, 2009; Salmon et al., 2014; Flynn et al., 2019) .",
+            "cite_spans": [
+                {
+                    "start": 177,
+                    "end": 200,
+                    "text": "(Connelly et al., 2016)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 609,
+                    "end": 623,
+                    "text": "(Draper, 1995;",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 624,
+                    "end": 647,
+                    "text": "Cruz and Westhof, 2009;",
+                    "ref_id": "BIBREF10"
+                },
+                {
+                    "start": 648,
+                    "end": 668,
+                    "text": "Salmon et al., 2014;",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 669,
+                    "end": 688,
+                    "text": "Flynn et al., 2019)",
+                    "ref_id": "BIBREF24"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "From a topological point of view, the tertiary and quaternary structures that distinguish ribonucleic acids from their deoxyribonucleic counterpart make them more similar to proteins, a consideration that has paved the way for an attempt to pharmacologically modulate their biological functions through the discovery of small molecules interacting with RNA (SMIRNA) (Sucheck and Wong, 2000; Connelly et al., 2016) . Interestingly, in recent research work, it has been estimated that pharmacologically modulating RNA would allow us to expanding-by more than an order of magnitude-the universe of targetable macromolecules, and this would thus considerably extend the portion of the druggable genome (Ecker and Griffey, 1999; Warner et al., 2018) . Although RNA has been historically considered as an \"undruggable\" pharmaceutical target, the discovery that many drugs of undeniable therapeutic importance, especially antibiotics, act at this level has attracted the interest of the scientific community, resulting in greater effort being made toward the development of new tools for this purpose (Donlic and Hargrove, 2018; Disney, 2019) . Furthermore, the orthogonality characterizing RNA homologous transcripts belonging to virus, prokaryote, and eukaryote genomes make RNA an interesting target for the purpose of achieving selectivity, especially in the field of anti-infectives compound development (Ecker and Griffey, 1999; Connelly et al., 2016) . All these aspects, therefore, make the discovery of SMIRNAs extremely intriguing. A first pioneering approach to rationally design new RNAtargeting compounds, simply starting from the knowledge of the oligonucleotide sequence of pathological interest, was developed by the Disney research group and was successfully applied to a plethora of expanded repeating RNAs that are known to cause microsatellite disorders (Velagapudi et al., 2014; Disney et al., 2016) . In addition, the quantitative structure-activity relationship (QSAR) model and chemical similarity search were initially exploited to in-silico identify or optimize new chemical probes targeting RNA . Since X-ray crystallography, NMR spectroscopy and, recently, Cryo-EM techniques have unveiled with an atomistic level of detail a multitude of three-dimensional RNA structures, the scientific community has begun to evaluate the applicability of structurebased drug design strategies (SBDD). These approaches, until now mainly validated on proteins targets, could enhance the rational design of SMIRNAs. Molecular docking represents one of the electives of in silico techniques, exploited both in the academic and industrial world, to accelerate the discovery and optimization of new drug candidates by evaluating the putative small molecules' binding mode and providing a way to perform a ranking of vast compound libraries. There are however many peculiarities of ribonucleic acids that affect both performance and accuracy of docking protocols, and this makes its application challenging. The polyanionic backbone of RNA determines a peculiar charge distribution on the polymer surface-quite different from the one characterizing proteins-to which the scoring functions were traditionally calibrated (Disney, 2019) . Furthermore, docking protocols do not explicitly consider the role of solvent during the molecular recognition process, whereas structural data have highlighted how water molecules can stabilize RNA-ligand complexes, often mediating hydrogen bonds networks (Fulle and Gohlke, 2009 ). However, the aspect that mostly affects RNA-docking accuracy is the flexibility and the dynamic behavior characterizing ribonucleic acids, which are usually neglected by docking algorithms, thus limiting the discovery of compounds targeting a narrow region of the conformational space (Hermann, 2002; Fulle and Gohlke, 2009; Disney et al., 2014) . An attempt to overcome these limitations was conducted by Stelzer et al., who performed a docking-based virtual screening on an RNA dynamic ensemble constructed by combining molecular dynamics simulations (MD) with NMR spectroscopy and reported the discovery of six molecules able to bind HIV-1 TAR with quite good affinity. MD simulations would represent a valuable computational tool with which to investigate different ligand-RNA recognition processes, fully considering both target flexibility and the solvent presence. Interestingly, molecular mechanics force fields (FF), such as AMBER or CHARMM, were revisited and refined during the last year to improve ribonucleotide simulation accuracy (P\u00e9rez et al., 2007; Denning et al., 2011) . Nevertheless, the use of MD is mostly limited to the fluctuation exploration in the post-docking procedure since ligand-target associations are rare events that can be sampled only through long-timescale computationally expensive simulations. An implementation of classical MD, called supervised molecular dynamics (SuMD), was recently developed in our research group. SuMD is able to speed up the exploration of the ligand-receptor recognition pathways on a nanosecond timescale through the implementation of a tabu-like supervision algorithm (Sabbadin and Moro, 2014) . The protocol was so far validated in different scenarios, including ion-protein, ligand-protein, and peptide-protein bound complexes, proving that it could reproduce the experimental determined final state with great geometric accuracy (Cuzzolin et al., 2016; Salmaso et al., 2017; Bissaro et al., 2019) .",
+            "cite_spans": [
+                {
+                    "start": 366,
+                    "end": 390,
+                    "text": "(Sucheck and Wong, 2000;",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 391,
+                    "end": 413,
+                    "text": "Connelly et al., 2016)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 698,
+                    "end": 723,
+                    "text": "(Ecker and Griffey, 1999;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 724,
+                    "end": 744,
+                    "text": "Warner et al., 2018)",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 1094,
+                    "end": 1121,
+                    "text": "(Donlic and Hargrove, 2018;",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 1122,
+                    "end": 1135,
+                    "text": "Disney, 2019)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 1402,
+                    "end": 1427,
+                    "text": "(Ecker and Griffey, 1999;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 1428,
+                    "end": 1450,
+                    "text": "Connelly et al., 2016)",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 1867,
+                    "end": 1892,
+                    "text": "(Velagapudi et al., 2014;",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 1893,
+                    "end": 1913,
+                    "text": "Disney et al., 2016)",
+                    "ref_id": "BIBREF16"
+                },
+                {
+                    "start": 3219,
+                    "end": 3233,
+                    "text": "(Disney, 2019)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 3493,
+                    "end": 3516,
+                    "text": "(Fulle and Gohlke, 2009",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 3805,
+                    "end": 3820,
+                    "text": "(Hermann, 2002;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 3821,
+                    "end": 3844,
+                    "text": "Fulle and Gohlke, 2009;",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 3845,
+                    "end": 3865,
+                    "text": "Disney et al., 2014)",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 4565,
+                    "end": 4585,
+                    "text": "(P\u00e9rez et al., 2007;",
+                    "ref_id": "BIBREF40"
+                },
+                {
+                    "start": 4586,
+                    "end": 4607,
+                    "text": "Denning et al., 2011)",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 5154,
+                    "end": 5179,
+                    "text": "(Sabbadin and Moro, 2014)",
+                    "ref_id": "BIBREF43"
+                },
+                {
+                    "start": 5418,
+                    "end": 5441,
+                    "text": "(Cuzzolin et al., 2016;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 5442,
+                    "end": 5463,
+                    "text": "Salmaso et al., 2017;",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 5464,
+                    "end": 5485,
+                    "text": "Bissaro et al., 2019)",
+                    "ref_id": "BIBREF6"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "In this work, SuMD simulations were applied for the first time to investigate the recognition mechanism involving ribonucleic acid macromolecules with the aim to extend the methodology applicability domain. This pilot study, which provided encouraging results, took into account a plethora of different ribonucleic complexes of pharmaceutical interest, the three-dimensional structures of which are known and available on the Protein Data Bank archive (Berman et al., 2000) . SuMD methodology proved its ability in describing, with a reduced computational effort, the whole process of ligand-RNA recognition (from the unbound to the bound state), independently by the target topological complexity. As far as we know, this represents the first attempt to overcome methodological limitations within molecular docking when applied to ribonucleic acids, describing binding events through an all-atoms MD-based approach. This study confirms the possible use of SuMD as an innovative computational tool that can accelerate the discovery of new drug candidates and with peculiar attention to SMIRNAs.",
+            "cite_spans": [
+                {
+                    "start": 452,
+                    "end": 473,
+                    "text": "(Berman et al., 2000)",
+                    "ref_id": "BIBREF4"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "MOE suite (Molecular Operating Environment, version 2018.0101) was used to perform most of the general molecular modeling operations, such as RNA and ligand preparation. All these operations have been performed on an 8 CPU (Intel R Xeon R CPU E5-1620 3.50 GHz) Linux workstation. Molecular dynamics (MD) simulations were performed with an ACEMD engine (Harvey et al., 2009 ) on a GPU cluster composed of 18 NVIDIA drivers whose models go from GTX 980 to Titan V. For all the simulations, the ff14SB force field with \u03c7 modification tuned for RNA (\u03c7OL3) was adopted to describe ribonucleic acids, while a general Amber force field (GAFF) was adopted to parameterize small organic molecules (Wang et al., 2006; Sprenger et al., 2015; Tan et al., 2018) .",
+            "cite_spans": [
+                {
+                    "start": 352,
+                    "end": 372,
+                    "text": "(Harvey et al., 2009",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 688,
+                    "end": 707,
+                    "text": "(Wang et al., 2006;",
+                    "ref_id": "BIBREF54"
+                },
+                {
+                    "start": 708,
+                    "end": 730,
+                    "text": "Sprenger et al., 2015;",
+                    "ref_id": "BIBREF47"
+                },
+                {
+                    "start": 731,
+                    "end": 748,
+                    "text": "Tan et al., 2018)",
+                    "ref_id": "BIBREF50"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Software Overview"
+        },
+        {
+            "text": "The three-dimensional coordinates of each RNA-SMIRNA complex investigated were retrieved from the RCSB PDB database and prepared for SuMD simulations as herein described (Cuzzolin et al., 2016) . For structures solved by NMR, which contain multiple conformations of the same complex, the one with the lowest potential energy (usually the first) was selected and then used. All complexes were then processed by means of an MOE protein structure preparation tool: missing atoms in nucleotide bases were built according to AMBER14 force field topology. Missing hydrogen atoms were added to X-Ray-derived complexes, and appropriate ionization states were assigned by Protonate-3D tool (Labute, 2009) . Ligand coordinates (both small molecules and peptides) were moved at least 30 \u00c5 away from RNA binding cleft, a distance bigger than the electrostatic cut-off term used in the simulation (9 \u00c5 with Amber force field) to avoid premature interaction during the initial phases of the SuMD simulations.",
+            "cite_spans": [
+                {
+                    "start": 170,
+                    "end": 193,
+                    "text": "(Cuzzolin et al., 2016)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 681,
+                    "end": 695,
+                    "text": "(Labute, 2009)",
+                    "ref_id": "BIBREF34"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Structures Preparation"
+        },
+        {
+            "text": "Each system investigated by means of SuMD contained an RNA target macromolecule, and the respective ligand, which was a SMIRNA or a peptide, moved far away from the binding site as previously described. The systems were explicitly solvated by a cubic water box with cell borders placed at least 15 \u00c5 away from any RNA/ligand atom, using TIP3P as a water model. To neutralize the total charge of each system, Na + /Cl \u2212 counterions were added to a final salt concentration of 0.154 M. The systems were energy minimized by 500 steps with the conjugate-gradient method, then 500,000 steps (1 ns) of NVT followed by 500,000 steps (1 ns) of NPT simulations were carried out, both using 2 fs as time step and applying harmonic positional constraints on RNA and ligand heavy atoms by a force constant of 1 kcal mol \u22121 \u00c5 \u22122 , gradually reducing with a scaling factor of 0.1. During this step, the temperature was maintained at 310 K by a Langevin thermostat with low dumping of 1 ps \u22121 and the pressure at 1 atm by a Berendsen barostat (Berendsen et al., 1984; Loncharich et al., 1992) . The M-SHAKE algorithm was applied to constrain the bond lengths involving hydrogen atoms. The particle-mesh Ewald (PME) method was exploited to calculate electrostatic interactions with a cubic spline interpolation and 1 \u00c5 grid spacing, and a 9.0 \u00c5 cutoff was applied for Lennard-Jones interactions (Essmann et al., 1995) .",
+            "cite_spans": [
+                {
+                    "start": 1028,
+                    "end": 1052,
+                    "text": "(Berendsen et al., 1984;",
+                    "ref_id": "BIBREF3"
+                },
+                {
+                    "start": 1053,
+                    "end": 1077,
+                    "text": "Loncharich et al., 1992)",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 1379,
+                    "end": 1401,
+                    "text": "(Essmann et al., 1995)",
+                    "ref_id": "BIBREF23"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Solvated System Setup and Equilibration"
+        },
+        {
+            "text": "Molecular dynamics simulations represent a well-validated computational tool that, through the numerical solution of the Newton equation of motion, makes it possible to describe the time-dependent evolution of a molecular system. Despite the impressive temporal resolution characterizing the technique, to capture pharmaceutically relevant events, such as the molecular recognition between a drug and its biological target, huge computational efforts are required. The SuMD protocol instead improves the efficiency with which a binding event is sampled, from a microsecond to a nanosecond timescale, by applying a tabu-like algorithm. In detail, short (600 ps long) unbiased MD trajectories are collected, and these monitor, during the entire simulation, the distance between the ligand center of mass with respect to the ribonucleic acid binding site; then, those distance points are fitted into a linear function. Only productive MD steps in which the computed slope is negative are maintained, thus indicating a ligand approach toward the RNA binding site. Otherwise, the simulation is restarted by randomly assigning the atomic velocities from the previous set of coordinates. The supervision algorithm controlled the sampling until the distance between the ligand and the ribonucleic binding site dropped below 5 \u00c5, at which point it was disabled, and a short classical MD simulation was performed, allowing the system to relax. For each case study, up to a maximum of 10 SuMD binding simulations were collected, of which only the best was thoroughly analyzed and discussed in the manuscript. A detailed report on SuMD protocol performance can be found in the Supplementary Material. The three-dimensional RNA structures investigated in this study, along with the nucleotides selected for the computation of the respective binding cleft center of mass, are reported in Figure 1 . In this implementation, the SuMD code is written in FIGURE 1 | The case studies selected for the SuMD methodological validation are herein summarized and subdivided into RNA of viral origin, prokaryotic origin, or artificially engineered aptamers. For each complex investigated, the three-dimensional structure is depicted, representing with a green color the reference ligand, together with the nucleobases selected to define the binding site position in the SuMD simulations. Finally, the chemical structures of each ligand are reported, along with the experimental datum of binding affinity. In the case of the peptide, the primary sequence is reported, highlighting the basic residues constituting the arginine reach motif (ARM) in a blue color.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 1874,
+                    "end": 1882,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Supervised Molecular Dynamics (SuMD) Simulations"
+        },
+        {
+            "text": "Python programming languages and exploits the ProDy python package to perform the geometrical ligand-target supervision process (Bakan et al., 2011) .",
+            "cite_spans": [
+                {
+                    "start": 128,
+                    "end": 148,
+                    "text": "(Bakan et al., 2011)",
+                    "ref_id": "BIBREF0"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Supervised Molecular Dynamics (SuMD) Simulations"
+        },
+        {
+            "text": "All the SuMD trajectories collected were analyzed by an inhouse tool written in tcl and python languages, as described in the original publication (Salmaso et al., 2017) . Briefly, the dimension of each trajectory was reduced, saving MD frames at a 20 ps interval; each trajectory was then superposed and aligned on the RNA phosphate atoms of the first frames and wrapped into an image of the system simulated under periodic boundary conditions. The geometric performance of SuMD methodology was evaluated, and it computed the ligand RMSD (Root mean square deviation) along with the entire simulation with respect to the experimental resolved three-dimensional complex. Furthermore, the RMSD of RNA structures were computed on the P atoms of the backbone and plotted over time, and these can be viewed in the Supplementary Figures S1-S6A. A ligand-RNA interaction energy estimation during the recognition process was calculated using an MMGBSA protocol, as implemented in AMBER 2014, and it plotted MMGBSA values over time (Miller et al., 2012) . The MMGBSA values were also arranged according to the distances between ligand and ribonucleic target mass centers in the Interaction Energy Landscape plots (Supplementary Figures S1-S6B) . Here, the distances between mass centers are reported on the x-axis, while the MMGBSA values are plotted on the y-axis, and these are rendered by a colorimetric scale going from blue to red for negative to positive energetic values. These graphs allow for the evaluation of the variation of the interaction energy profile at different ligand-RNA distances; this helps to individuate metastable binding states during the binding process. Furthermore, for each target investigated in this work, the nucleotides within a distance of 4 \u00c5 from the respective ligand atoms were dynamically selected to qualitatively and quantitatively evaluate the number of contacts during the entire binding process. The most contacted nucleotides were thus selected, to compute a per-nucleotide electrostatic and vdW interaction, and energy contribution, with the ribonucleic target. NAMD was used for post-processing computation of electrostatic interactions using an AMBER ff14SB force field. The cumulative electrostatic interactions were computed for the same target nucleotides by summing the energy values frame by frame along the trajectory, and the resulting graphs were reported to the lower-right of movies provided as Supplementary Videos 1-6. Representations of the molecular structures were prepared with VMD software (Humphrey et al., 1996) .",
+            "cite_spans": [
+                {
+                    "start": 147,
+                    "end": 169,
+                    "text": "(Salmaso et al., 2017)",
+                    "ref_id": "BIBREF44"
+                },
+                {
+                    "start": 1023,
+                    "end": 1044,
+                    "text": "(Miller et al., 2012)",
+                    "ref_id": "BIBREF37"
+                },
+                {
+                    "start": 2548,
+                    "end": 2571,
+                    "text": "(Humphrey et al., 1996)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1204,
+                    "end": 1234,
+                    "text": "(Supplementary Figures S1-S6B)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "SuMD Trajectory Analysis"
+        },
+        {
+            "text": "To investigate the SuMD applicability domain and accuracy in the context of ribonucleic acid molecular recognition, a retrospective validation approach was selected, and it stressed the computational methodology ability in geometrically reproducing experimental binding modes of SMIRNA or small folded peptides. The three-dimensional structures of six ligand-RNA complexes solved both through X-Ray and NMR spectroscopy were retrieved from the RCSB PDB database and prepared for subsequent SuMD simulations moving ligands far away from the ribonucleic binding clefts, as accurately described in materials and methods section. The RNA structures, reported in Figure 1 , were selected to span a vast plethora of pharmaceutically interesting ribonucleic targets, which vary between being of viral and bacterial origin, up to artificially engineered aptamers. Furthermore, the selected structures provide an overview of different peculiar three-dimensional RNA motifs, from a small stem-loop to a riboswitch characterized by a complex architecture. The results collected through SuMD simulations are then reported herein along with the geometric and interactives analysis performed. A summary of all the statistics regarding the simulation performances are reported in the Supplementary Information.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 658,
+                    "end": 666,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "RESULTS AND DISCUSSION"
+        },
+        {
+            "text": "The discovery and design of new antiviral compounds targeting viral proteins are complicated by the enormous variability affecting these macromolecules, an aspect representing the core of the drug resistance phenomenon. On the other hand, lncRNA regions belonging to viral genomes, being less affected by genetic mutations and having no counterpart in human organisms, are becoming attractive pharmaceutical targets. Aminoglycosides, antibacterial drugs known to inhibit protein synthesis acting at the level of the prokaryotic ribosome, have proven to be promiscuous molecules that are also able to bind lncRNA structural elements of viral genomes (Bernacchi et al., 2007) . This experimental evidence has paved the way for the discovery of drug-like small molecules able to inhibit the replication for a plethora of pathological viral diseases, such as human immunodeficiency virus (HIV), hepatitis C virus (HCV), severe respiratory syndrome coronavirus (SARS CoV), and influenza A virus (Hermann, 2016) .",
+            "cite_spans": [
+                {
+                    "start": 649,
+                    "end": 673,
+                    "text": "(Bernacchi et al., 2007)",
+                    "ref_id": "BIBREF5"
+                },
+                {
+                    "start": 990,
+                    "end": 1005,
+                    "text": "(Hermann, 2016)",
+                    "ref_id": "BIBREF31"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Targeting Viral RNAs (vRNAs)"
+        },
+        {
+            "text": "Influenza A represents a group of viruses differing from virulence and pathogenicity profiles that all belong to the Orthomyxoviridae family. The Influenza A genome comprises eight negative-sense single-stranded RNA segments (vRNA) encoding for 13 proteins (Coloma et al., 2009 ). The 5 \u2032 -end and 3 \u2032end terminal portions of each vRNA segment in the physiological condition fold together in a partial duplex, forming an arrangement called a promoter, which controls RNA-dependent RNA polymerase (RdRp) recognition and, thus, genome transcription and replication (Desselberger et al., 1980) . Since the promoter sequences are highly conserved among Influenza A viruses and marginally affected by genetic variation that can enhance the onset of drug resistance, they represent a promising pharmaceutical target. The Varani research group, exploiting an NMR-based fragments screening approach, has identified 6,7-dimethoxy-2-(1-piperazinyl)-4-quinazolinamine (DPQ) as a promising scaffold for antiviral drug development as it is able to bind the Influenza A promoter region with a low micromolar affinity (K d 50.5 \u00b1 9 \u00b5M) and is also able to inhibit the virus replication in a comparable range of concentration (Lee et al., 2014) . The SMIRNA binding mode was experimentally elucidated by means of NMR, as depicted in Figure 1 , confirming DPQ recognition within the RNA major groove at the (A-A)-U internal loop level.",
+            "cite_spans": [
+                {
+                    "start": 257,
+                    "end": 277,
+                    "text": "(Coloma et al., 2009",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 563,
+                    "end": 590,
+                    "text": "(Desselberger et al., 1980)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 1210,
+                    "end": 1228,
+                    "text": "(Lee et al., 2014)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1317,
+                    "end": 1325,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Influenza a Virus Promoter"
+        },
+        {
+            "text": "The SuMD algorithm was then applied to this first case study, in an attempt to investigate the entire DPQ binding mechanism, stressing at the same time the methodology accuracy in reproducing the experimental solved complex. A first interesting aspect is represented by the reduced time window of 30 ns required to sample a putative molecular recognition event between DPQ and its ribonucleic target (Supplementary Video 1). This result is quite impressive, especially if compared with classical MD simulations, which otherwise would require extensive computational efforts. At the end of the simulation, as depicted in the Figure 2 graph, the SMIRNA has converged both from a geometrical and interactive point of view toward the NMR structure binding mode. The low RMSD min value of 2.6 \u00c5, computed on DPQ heavy atoms, confirm, also in the case of nucleic acids, SuMD ability in predicting a reasonable binding hypothesis. This value must not be evaluated with excessive severity, having been calculated only with respect to one of the 16 conformations of the complex deposited on the PDB database. The solution NMR structure has indeed highlighted an important variability in the DPQ positioning within the RNA binding site, with an RMSD max , computed on ligand-heavy atoms of 1.4 \u00c5. Moreover, this approach makes it possible to peek at the entire molecular recognition process and to not focus merely on the final state. Figure 2C reports a time-dependent analysis performed on the nucleotides most frequently contacted during the simulation, reporting their cumulative contribution to binding, which is defined as the sum of each nucleotide electrostatic and van der Waals (vdW) interaction energy. It is encouraging to note how the nucleotides that computationally have shown a primary role in stabilizing the DPQ complex (A9-A11 and C21-G24) also correspond to those that have experimentally experienced the greatest chemical shift perturbations during NMR experiments. In addition, as reported in Figures 2B,C and on Supplementary Figure S1 , SuMD simulation allows us to decipher the different role played by aforementioned nucleotides, some of them (A9-A11) participating only during the early phases of SMIRNA recognition (until 10 ns) and the other (C21-G24) stabilizing the complex within the ribonucleic cleft (after 10 ns). These results appear even more interesting if we consider the high flexibility characterizing the small RNA duplex. Despite the reduced time window explored by SuMD methodology, the (E) Flexibility characterizing the RNA structure during DPQ binding event, binding clef dimension was monitored as the distance dynamically occurring between two key nucleotides (A8 and C21).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 624,
+                    "end": 632,
+                    "text": "Figure 2",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 1425,
+                    "end": 1434,
+                    "text": "Figure 2C",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 2005,
+                    "end": 2017,
+                    "text": "Figures 2B,C",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 2039,
+                    "end": 2048,
+                    "text": "Figure S1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Influenza a Virus Promoter"
+        },
+        {
+            "text": "structure has indeed shown a relevant RMSD max of 4.2 \u00c5 from the initial experimental coordinates (Figure 2D ). In detail, after a few ns of simulation, the promoter duplex in the ligandfree form folds back on itself, and only DPQ binding allows the structure to return to the experimental linear conformation ( Figure 2E) . The same behavior was coherently captured also by NMR experiments, which previously highlighted how the RNA helical axis curvature changes upon ligand binding, enlarging the dimension of the binding cleft (Lee et al., 2014) .",
+            "cite_spans": [
+                {
+                    "start": 530,
+                    "end": 548,
+                    "text": "(Lee et al., 2014)",
+                    "ref_id": "BIBREF35"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 98,
+                    "end": 108,
+                    "text": "(Figure 2D",
+                    "ref_id": "FIGREF0"
+                },
+                {
+                    "start": 312,
+                    "end": 322,
+                    "text": "Figure 2E)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "Influenza a Virus Promoter"
+        },
+        {
+            "text": "The human immunodeficiency virus of type 1 (HIV-1) is a retrovirus belonging to the Lentivirus family, and it is responsible for acquired immunodeficiency syndrome (AIDS). RNA-protein interactions play a fundamental role in controlling the HIV replication cycle and, consequently, virulence profile (Battiste et al., 1996) . HIV-1 Rev, in particular, is a small regulatory protein that drives the nuclear export of unspliced and partially spliced viral mRNAs transcripts. Rev protein mediated its function, recognizing a purine-rich bulge within stem-loop IIb of the Rev response element (RRE), a highly structured mRNA region within an env intron (DiMattia et al., 2010) . The minimal binding domain in the Rev protein is constituted by a short \u03b1-helix folded peptide, which contains an arginine-rich binding motif (ARM), a domain known to be important also for tat-TAR (trans-acting region) interactions in HIV. Harada et al., exploiting an in-vivo strategy, have identified a class of specific RNA-binding peptides able to target HIV-1 Rev-RRE complex. Specifically, RSG-1.2, an \u03b1-helical peptide of 22 amino acids, was selected among a combinatorial library and subsequently engineered, providing a 7-fold increase in binding affinity and a 15-fold increase in selectivity toward the ribonucleic target, further resulting in an in vivo ability to completely disrupt the RNA-Rev protein interaction (Harada et al., 1996 (Harada et al., , 1997 . The solution structure of an oligonucleotide portion derived from HIV-1 RRE-IIb stem domain in a complex with an RSG-1.2 peptide was solved through NMR, providing structural details about vRNA targeting by means of the small peptide (Gosser et al., 2001) . We have therefore chosen this case study to validate SuMD performance in one of the most complex methodological scenarios, namely the molecular recognition between two highly flexible partners: a small \u03b1-helix folded peptide and a portion of ribonucleic acid. In addition, the predominant electrostatic component that both characterizes the RNA polyanionic backbone and the small polycationic peptide, which contain six Arg residues, makes the prediction of the binding mode even more complex. Despite the unfavorable premises, a few tens of ns proved to be sufficient for the SuMD protocol to sample a binding hypothesis for the RSG-1.2 peptide. During the simulation, as observable on Supplementary Video 1, the peptide was accommodated with the correct orientation within the HIV-1 RRE-IIb major groove reaching, as reported in Figure 3A , an RMSD min value Superimposition between the experimental NMR complex (PDB ID 1G70, green-colored peptide) and the SuMD conformation with lowest RMSD along the trajectory (orange-colored peptide). The nucleotides surrounding the binding site, along with R residues belonging to ARM, are reported. (C) Dynamic total interaction energy (electrostatic + vdW) computed for most contacted RNA nucleobase. of 4.3 \u00c5, computed on C\u03b1 peptide atoms. Although the geometric accuracy is lower than the previous example, the SuMD simulation has allowed us to identify the main interactive hotspots stabilizing the complex. As hypothesized and confirmed by Figure 3C , the ARM motif plays a fundamental role in anchoring the RSG-1.2 peptide, with charged residue R 16, R17, and R18 mediating fork electrostatic interactions with the phosphate atoms of the ribonucleic backbone, in a coherent way with the experimentally solved structure. Furthermore, the analysis performed on the trajectory (Supplementary Figure S2) has highlighted the peculiar behavior of R14; its guanidinium side chain is deeply buried within the RNA groove, where, differently from the other charged residues, it stabilizes the peptide through a solvent-shielded hydrogen bond and vdW interactions, an aspect in great agreement with the experimental NMR data (Gosser et al., 2001) .",
+            "cite_spans": [
+                {
+                    "start": 299,
+                    "end": 322,
+                    "text": "(Battiste et al., 1996)",
+                    "ref_id": "BIBREF2"
+                },
+                {
+                    "start": 648,
+                    "end": 671,
+                    "text": "(DiMattia et al., 2010)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1402,
+                    "end": 1422,
+                    "text": "(Harada et al., 1996",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1423,
+                    "end": 1445,
+                    "text": "(Harada et al., , 1997",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 1681,
+                    "end": 1702,
+                    "text": "(Gosser et al., 2001)",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 3867,
+                    "end": 3888,
+                    "text": "(Gosser et al., 2001)",
+                    "ref_id": "BIBREF26"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 2536,
+                    "end": 2545,
+                    "text": "Figure 3A",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 3192,
+                    "end": 3201,
+                    "text": "Figure 3C",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 3542,
+                    "end": 3552,
+                    "text": "Figure S2)",
+                    "ref_id": "FIGREF0"
+                }
+            ],
+            "section": "HIV-1 Rev-RRE Complex"
+        },
+        {
+            "text": "In the last decades, the discovery that many aminoglycoside compounds clinically exploited to treat severe bacterial infections mediated their action by affecting the ribosome machinery confirmed the initial hypothesis of considering RNA, especially prokaryotic ones, as an appetible pharmaceutical target (Disney, 2019) . However, the drugs that target ribosomes represent an exception, rather than a model: the abundance of ribosome macromolecules in the cytoplasmic compartment means, therefore, that even modest drug-binding affinity could result in acceptable therapeutic efficacy (Warner et al., 2018) . Apart from ribosomes, a putative regulatory role of lncRNAs in bacterial systems has recently become increasingly clear. From a mechanistic point of view, it is possible to distinguish regulatory RNAs acting in trans, either by base-pairing with a complementary region in the target mRNA or by sequestration of an RNA-binding protein and regulatory sequences that, in contrast, are encoded as part of the mRNA for the gene they regulate, thus acting in cis (Sherwood and Henkin). Riboswitches, which are structured elements typically found in the 5 \u2032 untranslated regions (UTR) of mRNAs, represent an interesting example of the latter case (Tucker and Breaker, 2005) . These RNA elements, through an aptameric portion, directly sense a physiological signal (ions, cofactors, or metabolites) and transmit the information to the gene expression machinery via a signal-dependent RNA conformational change (Sherwood and Henkin, 2016) . The discovery that clinically approved antibacterial Roseflavin exerts part of its therapeutic action by binding the flavin mononucleotide (FMN) riboswitch, together with the increasing availability of structural data on riboswitches, has made these targets very interesting pharmaceutically (Pedrolli et al., 2012) .",
+            "cite_spans": [
+                {
+                    "start": 306,
+                    "end": 320,
+                    "text": "(Disney, 2019)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 586,
+                    "end": 607,
+                    "text": "(Warner et al., 2018)",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 1250,
+                    "end": 1276,
+                    "text": "(Tucker and Breaker, 2005)",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 1512,
+                    "end": 1539,
+                    "text": "(Sherwood and Henkin, 2016)",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 1834,
+                    "end": 1857,
+                    "text": "(Pedrolli et al., 2012)",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Targeting Prokaryotic RNAs"
+        },
+        {
+            "text": "S-adenosyl-(L)-methionine (SAM) is a fundamental cofactor that serves as the primary methyl group donor in a large set of biochemical reactions. In bacteria, SAM homeostasis is so important to the point that at least six classes of RNA riboswitch regulatory elements have since now been characterized (Weinberg et al., 2010) . Following SAM-mediated methylation, the by-product S-adenosyl-(L)-homocysteine (SAH) that is released, due to its high toxicity, must be readily degraded by SAH hydrolase (ahcY) enzymes. Recently, a new type of riboswitch was discovered, and it is able to sense and be responsible for the intracellular SAH concentration, upregulating the expression of ahcY enzymes in prokaryotes (Wang et al., 2008) . The aptameric portion of the SAH riboswitch recognizes its cognate ligand with a quite high binding affinity of 32 nM and, surprisingly, also provides a discrete selectivity profile toward the original cofactor SAM (1,000-fold lower affinity), ensuring a fine regulation of the SAM/SAH metabolic cycle. The high-resolution crystal structure of the SAH riboswitch aptameric domain in complex with its cognate ligand was recently solved, elucidating the molecular basis for SAH substrate specificity (Edwards et al., 2010) . This case study not only represents a pharmaceutical appealing prokaryotic RNA target but also provides the opportunity to stress the SuMD performance in a more complex binding site recognition, if compared to the simple duplex structures until now investigated. The SAH molecule indeed binds a small cleft located in the minor groove of the SAH riboswitch, which adopts an unusual \"LL-type\" pseudoknot conformation. Also, in this case, around 20 ns were sufficient for the SuMD protocol to sample a putative molecular recognition trajectory (Supplementary Video 3) . In detail, as reported in Figure 4 , after only a few nanoseconds, SAH reached the riboswitch binding cleft reproducing the crystallographic complex with a notable geometric accuracy (RMSD min 1.7 \u00c5). Then, the ligand conformation remained stable until the end of the simulation. From an interactive point of view, as reported in Figure 4C and also in Supplementary Figure S3 , the SuMD trajectory analysis correctly highlighted the stabilizing role played by nucleotide C16 and A29, among which the adenine core of SAH is intercalated, providing the greatest vdW interactions. In contrast, the electrostatic contribution to binding analysis has revealed a divergent situation. Indeed, nucleobase G15, mediating a hydrogen bond network with an SAH adenine scaffold, is responsible for a great stabilizing contribution, whereas nucleotide C46 has shown during the entire simulation an unexpected repulsive contribution. The reason for this can be found in the conformation sampled by SuMD for the SAH homocysteine terminal tail. As depicted by Figure 4B , the carboxylic moiety of the ligand spatially approaches the C46 pyrimidine carbonyl, whereas in the crystallographic structure (green representation), through a simple bond rotation, the interaction is instead mediated by the vicinal amino group. Curiously, the same research group also deposited on the PDB database a worst resolution structure of the complex under investigation (PDB ID 3NPN), reporting the same apparently energetic unfavored SAH conformation described by the SuMD protocol ( Figure 4B , circular window), thus validating the goodness of the sampling and the flexibility characterizing the ligand tail.",
+            "cite_spans": [
+                {
+                    "start": 301,
+                    "end": 324,
+                    "text": "(Weinberg et al., 2010)",
+                    "ref_id": "BIBREF59"
+                },
+                {
+                    "start": 708,
+                    "end": 727,
+                    "text": "(Wang et al., 2008)",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 1228,
+                    "end": 1250,
+                    "text": "(Edwards et al., 2010)",
+                    "ref_id": "BIBREF21"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1795,
+                    "end": 1818,
+                    "text": "(Supplementary Video 3)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1847,
+                    "end": 1855,
+                    "text": "Figure 4",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 2151,
+                    "end": 2160,
+                    "text": "Figure 4C",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 2187,
+                    "end": 2196,
+                    "text": "Figure S3",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 2864,
+                    "end": 2873,
+                    "text": "Figure 4B",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 3373,
+                    "end": 3382,
+                    "text": "Figure 4B",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "S-Adenosylhomocysteine Riboswitch"
+        },
+        {
+            "text": "Pre-queosine 1 (PreQ 1 ), or 7-aminomethyl-7-deazaguanine, is a metabolic intermediate in the synthetic pathway that, starting from guanosine-5 \u2032 -triphosphate (GTP) nucleotide, originates the hypermodified guanine derivate queuosine (Q). Q has been detected both in eubacteria and eukaryotic organisms where it occupies the anticodon wobble position of tRNAs specific for the amino acid asparagine, aspartate, histidine, and tyrosine (Roth et al., 2007) . Q modification has been related to an improvement in translation fidelity as well as bacterial pathogenicity. Interestingly, only prokaryotes can synthesize Q via a multistep reaction, whereas eukaryotes are obliged to assimilate the nucleoside through the diet (Eichhorn et al., 2014) . In bacteria like Bacillus subtilis (Bs) or Thermoanaerobacter tengcongenesis (Tt), the expression of genes responsible for Q biosynthesis is negatively modulated by the intermediate PreQ 1 intracellular concentration. PreQ 1, binding to a small aptameric RNA motif composed of 34 nucleotides determines the folding of the PreQ 1 riboswitch in an \"H-type\" pseudoknot structure in which more than half of the nucleobases engage in triplet or quartet interactions (Rieder et al., 2010; Jenkins et al., 2011) . The three-dimensional structure of the class I PreQ 1 riboswitch in complex with its cognate ligand was solved by X-ray crystallography (PDB ID 3Q50), and this allowed us to speculate about the quite impressive binding affinity characterizing this endogenous precursor (K d = 2 nM) (Edwards et al., 2010) . Even in this case, <40 ns of SuMD simulation proved to be sufficient in describing a binding event between the metabolic intermediate PreQ 1 and its related riboswitch (Supplementary Video 4) . As observable in Figure 5A , PreQ 1 recognition mainly articulates in three well-distinguishable phases. In the beginning, the ligand approaches the riboswitch binding site vestibule where it negotiates for about 15 ns the accommodation in the deep cleft before converging, with great geometric accuracy (RMSD min 1.3 \u00c5), toward the solved crystallographic conformation. This behavior has also been captured by the interaction energy graph (Supplementary Figure S4B) , highlighting the presence of two major sites visited during the recognition trajectory, i.e., the canonical binding cleft and the aforementioned external vestibular region, located about 10 \u00c5 apart. It is interesting to note the comparable interaction energy characterizing these two distal sites, which are distinguishable for their different degrees of solvent exposition. In addition, the dynamic interaction fingerprint reported in Figure 5C , elucidates the role played by the binding site nucleotides during recognition in a coherent way with respect to the results reported on the original publication. All the cases considered so far have confirmed the ability of SuMD to predict reasonable binding hypotheses for different ligands when exploiting as starting point the experimental structures of the ribonucleic targets in which each of these ligands were originally co-crystallized. From a pharmaceutical and applicative perspective, however, it is often required to rationalize the binding mode of compounds that are in most of the cases different from the ones now co-crystallized. It has thus become crucial to understand how the choice of the initial RNA target conformation could affect SuMD performance. The studies performed by the Schneekloth Jr. group in the attempt to experimentally asses the druggability profile of PreQ 1 -I riboswitch through synthetic organic molecules have then given us an opportunity to further explore this question. In a recent scientific work, it the discovery of HMJ was indeed reported; this is a dibenzofuran derivative that, despite the not obvious chemical similarity with PreQ 1 , exhibits a sub-micromolar affinity to the RNA target (K d = 0.5 \u00b5M) and the ability to induce premature transcriptional termination (Connelly et al., 2019) . The three-dimensional structure determination of the complex was, however, quite difficult and was achieved only by designing a hybrid riboswitch aptamer sequence in which the nucleobase A14, as well as the two vicinal ones, were removed (PDB ID 6E1U).",
+            "cite_spans": [
+                {
+                    "start": 435,
+                    "end": 454,
+                    "text": "(Roth et al., 2007)",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 719,
+                    "end": 742,
+                    "text": "(Eichhorn et al., 2014)",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 1206,
+                    "end": 1227,
+                    "text": "(Rieder et al., 2010;",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 1228,
+                    "end": 1249,
+                    "text": "Jenkins et al., 2011)",
+                    "ref_id": "BIBREF33"
+                },
+                {
+                    "start": 1534,
+                    "end": 1556,
+                    "text": "(Edwards et al., 2010)",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 3989,
+                    "end": 4012,
+                    "text": "(Connelly et al., 2019)",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 1727,
+                    "end": 1750,
+                    "text": "(Supplementary Video 4)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 1770,
+                    "end": 1779,
+                    "text": "Figure 5A",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 2193,
+                    "end": 2219,
+                    "text": "(Supplementary Figure S4B)",
+                    "ref_id": "FIGREF2"
+                },
+                {
+                    "start": 2658,
+                    "end": 2667,
+                    "text": "Figure 5C",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Pre-queuosine 1 Riboswitch"
+        },
+        {
+            "text": "Since this structure lacked a key binding site nucleotides, it represent a non-optimal starting point for a computational study; we therefore decided to investigate the HMJ binding mechanism, exploiting the high-quality riboswitch structure originally solved in the presence of PreQ 1 and then comparing the accuracy of the prediction with the experimental solved data. Encouragingly, even for such a system, the SuMD protocol has succeeded in sampling, in about 30 ns, an extremely accurate binding hypothesis for HMJ, whose RMSD min was computed with respect to reference structure (PDB ID 3Q50) and has reached the impressive value of 0.5 \u00c5 (Figure 6A,  Supplementary Video 5) . From the analysis of the trajectory, it was furthermore possible to confirm how the benzofuran ligand competes with PreQ 1 for the riboswitch binding site. As depicted by Figure 6C , and as is coherent with experimental evidence, HMJ makes a strong stabilizing interaction with the nucleobases G5, G11, and C16, which define the \"floor\" and the \"ceiling\" of the binding cleft where the aromatic core stacks, and nucleobase U6, C15, and A29, which shape instead the binding cavity borders. Moreover, the Interaction Energy Landscape (Supplementary Figure S5B) highlights a binding profile similar to the one previously described for the cognate ligand PreQ 1 , confirming the vestibular region's role in recruiting the riboswitch binding partners.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 644,
+                    "end": 679,
+                    "text": "(Figure 6A,  Supplementary Video 5)",
+                    "ref_id": "FIGREF3"
+                },
+                {
+                    "start": 853,
+                    "end": 862,
+                    "text": "Figure 6C",
+                    "ref_id": "FIGREF4"
+                },
+                {
+                    "start": 1214,
+                    "end": 1240,
+                    "text": "(Supplementary Figure S5B)",
+                    "ref_id": "FIGREF3"
+                }
+            ],
+            "section": "Pre-queuosine 1 Riboswitch"
+        },
+        {
+            "text": "The discovery, made in 1994, that the green fluorescent protein (GFP) from the jellyfish Aequorea victoria could be used as a marker for protein localization and expression has revolutionized molecular biology to the point that, in 2008, the discovery earned a Nobel prize (Swaminathan, 2009) . However, since a minimal portion of the human genome is translated into proteins while most of it is transcribed into RNA, being able to investigate the dynamic and spatial properties of the human transcriptome has become essential. As there are no known naturally fluorescent RNAs, a series of in vitro engineered ribonucleic tags able to fold into peculiar three-dimensional structures were selected (Trachman and Ferr\u00e9-D'Amar\u00e9, 2019) . These RNAs, through an aptameric domain, can bind fluorophore molecules, increasing their spectroscopic signal and hence allowing for the dynamic monitoring of nucleic acid expression and localization in cells. Most of the fluorophore RNA binding sites, despite the different overall architecture, have evolutionarily converged on G-quadruplex motifs, supporting their important role in enhancing the fluorescence phenomenon, in a similar way to how the \u03b2-barrel domains characterize GFPs (Warner et al., 2014) .",
+            "cite_spans": [
+                {
+                    "start": 273,
+                    "end": 292,
+                    "text": "(Swaminathan, 2009)",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 697,
+                    "end": 731,
+                    "text": "(Trachman and Ferr\u00e9-D'Amar\u00e9, 2019)",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 1223,
+                    "end": 1244,
+                    "text": "(Warner et al., 2014)",
+                    "ref_id": "BIBREF56"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Targeting Artificial RNA Aptamers Containing G-Quadruplex Motifs"
+        },
+        {
+            "text": "Corn is one recently developed RNA aptamer engineered in vitro to bind 3,5-difluoro-4-hydroxybenzylidene imidazolinone-2-oxime (DFHO), a fluorophore analogous of red fluorescent protein (RFP) (Warner et al., 2017) . Corn-DFHO differs from other similar RNA tags for its limited light-induced cytotoxicity, its minimal background fluorescence, and its increased photostability, thus representing a valuable imaging tool. Corn aptamer is characterized by an atypical threedimensional structure elucidated by X-ray crystallography and biophysical experiments. How it is observable in Figure 1 that two RNA segments join together in a quasi-symmetric homodimer structure (1:2 chromophore:RNA stoichiometry) at the interfaces where a single DFHO molecule is tightly bound (K d = 70 nM), stacking between two G-quadruplex planes stabilized by the presence of K + ions (Warner et al., 2017) .",
+            "cite_spans": [
+                {
+                    "start": 192,
+                    "end": 213,
+                    "text": "(Warner et al., 2017)",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 862,
+                    "end": 883,
+                    "text": "(Warner et al., 2017)",
+                    "ref_id": "BIBREF58"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 581,
+                    "end": 589,
+                    "text": "Figure 1",
+                    "ref_id": null
+                }
+            ],
+            "section": "Corn Aptamer"
+        },
+        {
+            "text": "Despite the lack of therapeutic application for this aptamer, which is instead more suitable for molecular biology studies, the investigation of such a complex binding site recognition can be considered as a proof of concept to validate G-quadruplex motif targeting through an SuMD approach. Nucleotide quartet structures, which presence have been extensively characterized in the telomeric terminal portion of eukaryotes chromosomes and within gene promoter regions, are indeed acquiring increasing attention, as they could represent promising pharmaceutical targets (Balasubramanian and Neidle, 2009) . As shown in Supplementary Video 6, SuMD methodology has produced a putative binding trajectory for DFHO in <30 ns, converging with an impressive geometrical accuracy toward the experimental solved complex (RMSD min 0.34 \u00c5) ( Figure 7A) . Moreover, the Dynamic Total Interaction Energy plot reported on Figure 7C , strongly retraces the interactive pattern already described on the original scientific work, highlighting the role played by nucleotide G12, G25 (first protomer), and g25 (second protomer) in circumscribing the sandwich cavity within which the aromatic chromophore stacks. Nucleobase A14 (first protomer) and a11 (second protomer) instead mediated a hydrogen bond network with oxime and imine moieties of the DFHO ligand, respectively. SuMD simulation has also illuminated how the entire binding process is not driven by the electrostatic contribution, as often it happens for SMIRNA, but is instead controlled by the vdW interactions (Supplementary Figure S6) . From this perspective, Corn aptamer represents an unusual, but potentially revolutionary case study, as it distorts an old paradigm that has now since affected the identification of putative RNA binders. DFHO has indeed demonstrated how even apolar or anionic molecules can target ribonucleic acids reaching a nanomolar binding affinity. This provides the opportunity to expand the chemical space explorable by SMIRNA beside that of the wellknown, but often problematic, polycationic compounds.",
+            "cite_spans": [
+                {
+                    "start": 568,
+                    "end": 602,
+                    "text": "(Balasubramanian and Neidle, 2009)",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 830,
+                    "end": 840,
+                    "text": "Figure 7A)",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 907,
+                    "end": 916,
+                    "text": "Figure 7C",
+                    "ref_id": "FIGREF5"
+                },
+                {
+                    "start": 1569,
+                    "end": 1579,
+                    "text": "Figure S6)",
+                    "ref_id": "FIGREF4"
+                }
+            ],
+            "section": "Corn Aptamer"
+        },
+        {
+            "text": "Over the last decades, among all the biological macromolecules, proteins have represented the target of choice for the development of new drug candidates. Nucleic acids, on the other hand, have so far represented a less attractive target due to the difficulty in guaranteeing a selective recognition mechanism. The recent discovery of peculiar and physiologically stable three-dimensional conformation characterizing RNAs oligomers has, however, paved the way for the investigation of SMIRNA. The increasing availability of structural data for a wide range of relevant therapeutic ribonucleic targets has promoted the application of wellvalidated SBDD computational approaches, such as molecular docking, also in this field. However, the remarkable flexibility and the peculiar electrostatic potential, which distinguish nucleic acids from proteins, have readily highlighted the limitation of many of these methodologies. MD simulations would allow us to overcome some of the aforementioned problems; however, the computational cost required to capture rare events such as ligand binding has so far limited their routine utilization.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "In this work, we have investigated the applicability domain of SuMD in the field of pharmaceutically relevant RNA polymers. The performances of the protocol were measured as the geometrical accuracy, expressed in terms of RMSD, with which an experimentally solved complex is predicted by the SuMD simulation. Case studies in this research were chosen in such a way as to span very different ribonucleic secondary, tertiary, and even quaternary structures, starting from small duplex stemloops up to pseudoknot or aptameric homodimers, which contain G-quadruplex motifs. Furthermore, the recognition of different ligands was investigated, both small organic molecules and folded \u03b1-helical peptides.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "Although this work must be considered as a preliminary investigation and the number of examples taken into consideration cannot guarantee statistical robustness, it is encouraging to note how, in all the six ribonucleic complexes simulated, SuMD correctly reproduced the experimentally solved final state starting from the unbound state in few hours of simulation. The accuracy of the protocol varies significantly in a system-dependent manner, but, in all the cases, it was possible to collect valuable interactive and energetic information about the nucleotides dynamically involved in the recognition process. Curiously, the RNA target in which the architecture of the binding site is not very complex, such as the stem-loop domain of Influenza A promoter and HIV-1 RRE, are those in which the computational protocol experienced the poorest geometric accuracy in reproducing the ligand-binding mode. A separate consideration must be made for the latter complex (PDB ID 1G70) since the recognition between two extremely flexible entities, i.e., the small peptide and the RNA duplex, represents a very challenging case. However, the results obtained, with an RMSD min lower than 5 \u00c5, are in line with those previously described when applying SuMD methodology to peptide-protein recognition. Moving toward more complex binding sites, such as the one that characterizes pseudoknot riboswitch structures or G-quadruple-shaped clefts, the geometric accuracy of the method progressively improves, with the best results obtained in the artificial aptameric structure (RMSD min 0.34 \u00c5). These findings are in agreement with a recent perspective work that assessed how the complexity of an RNA binding site, measured in terms of information content, could represent a valuable discriminant to individuate druggable oligonucleotides (Warner et al., 2018) . Indeed, the three-dimensional complexity of a binding site makes ribonucleic pocket more similar to a proteinlike environment rather than an ordered and repetitive structure like that characterizing DNA.",
+            "cite_spans": [
+                {
+                    "start": 1825,
+                    "end": 1846,
+                    "text": "(Warner et al., 2018)",
+                    "ref_id": "BIBREF57"
+                }
+            ],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "Furthermore, the high conformational flexibility that has characterized all the investigated ribonucleic structures (RMSD computed on RNA backbone are reported on Supplementary Material) during SuMD simulations has evidenced the importance of adopting techniques able to consider the flexibility of both macromolecules and ligands to better describe such complex molecular recognition. In conclusion, we have shown how SuMD can be a valid computational method to generate binding hypothesis for ribonucleic targets in a nanosecond timescale, explicitly considering both the role of the solvent and the flexibility of the macromolecule. SuMD simulation results could not only help with the interpretation and investigation of the complex mechanism of recognition characterizing SMIRNA, especially when structural information is not available, but they could also guide the rational discovery and optimization of these compounds.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "CONCLUSION"
+        },
+        {
+            "text": "The raw data supporting the conclusions of this article will be made available by the authors, without undue reservation, to any qualified researcher.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "DATA AVAILABILITY STATEMENT"
+        },
+        {
+            "text": "MB carried out the experiment. MB wrote the manuscript with support from MS. MS and SM supervised the project. MB and SM conceived the original idea.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "AUTHOR CONTRIBUTIONS"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "ProDy: protein dynamics inferred from theory and experiments",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bakan",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Meireles",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Bahar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Bioinformatics",
+            "volume": "27",
+            "issn": "",
+            "pages": "1575--1577",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/bioinformatics/btr168"
+                ]
+            }
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "G-quadruplex nucleic acids as therapeutic targets",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Balasubramanian",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Neidle",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Curr. Opin. Chem. Biol",
+            "volume": "13",
+            "issn": "",
+            "pages": "345--353",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.cbpa.2009.04.637"
+                ]
+            }
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "\u03b1 helix-RNA major groove recognition in an HIV-1 rev peptide-RRE RNA Complex",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Battiste",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Mao",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Rao",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Muhandiram",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Kay",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Science",
+            "volume": "273",
+            "issn": "",
+            "pages": "1547--1551",
+            "other_ids": {
+                "DOI": [
+                    "10.1126/science.273.5281.1547"
+                ]
+            }
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Molecular dynamics with coupling to an external bath",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "J C"
+                    ],
+                    "last": "Berendsen",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "P M"
+                    ],
+                    "last": "Postma",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Van Gunsteren",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dinola",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Haak",
+                    "suffix": ""
+                }
+            ],
+            "year": 1984,
+            "venue": "J. Chem. Phys",
+            "volume": "81",
+            "issn": "",
+            "pages": "3684--3690",
+            "other_ids": {
+                "DOI": [
+                    "10.1063/1.448118"
+                ]
+            }
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "The protein data bank",
+            "authors": [
+                {
+                    "first": "H",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Berman",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Westbrook",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Feng",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Gilliland",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "N"
+                    ],
+                    "last": "Bhat",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Weissig",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Nucleic Acids Res",
+            "volume": "28",
+            "issn": "",
+            "pages": "235--242",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/nar/28.1.235"
+                ]
+            }
+        },
+        "BIBREF5": {
+            "ref_id": "b5",
+            "title": "Aminoglycoside binding to the HIV-1 RNA dimerization initiation site: thermodynamics and effect on the kissing-loop to duplex conversion",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Bernacchi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Freisz",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Maechling",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [],
+                    "last": "Spiess",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Marquet",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Dumas",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Nucleic Acids Res",
+            "volume": "35",
+            "issn": "",
+            "pages": "7128--7139",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/nar/gkm856"
+                ]
+            }
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Revisiting the allosteric regulation of sodium cation on the binding of adenosine at the human A2A adenosine receptor: insights from supervised molecular dynamics (SuMD) simulations",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Bissaro",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Bolcato",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Deganutti",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sturlese",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Moro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "Molecules",
+            "volume": "24",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.3390/molecules24152752"
+                ]
+            }
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "The structure of a biologically active influenza virus ribonucleoprotein complex",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Coloma",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Valpuesta",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Arranz",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Carrascosa",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Ort\u00edn",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Mart\u00edn-Benito",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "PLoS Pathog",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1371/journal.ppat.1000491"
+                ]
+            }
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "The emerging role of RNA as a therapeutic target for small molecules",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Connelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Moon",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Schneekloth",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Cell Chem. Biol",
+            "volume": "23",
+            "issn": "",
+            "pages": "1077--1090",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.chembiol.2016.05.021"
+                ]
+            }
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Synthetic ligands for PreQ 1 riboswitches provide structural and mechanistic insights into targeting RNA tertiary structure",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Connelly",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Numata",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Boer",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Moon",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Sinniah",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Barchi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "Nat. Commun",
+            "volume": "10",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/s41467-019-09493-3"
+                ]
+            }
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "The dynamic landscapes of RNA architecture",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Cruz",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Westhof",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Cell",
+            "volume": "136",
+            "issn": "",
+            "pages": "604--609",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.cell.2009.02.003"
+                ]
+            }
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Deciphering the complexity of ligand-protein recognition pathways using supervised molecular dynamics (SuMD) simulations",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Cuzzolin",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sturlese",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Deganutti",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Salmaso",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sabbadin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Ciancetta",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "56",
+            "issn": "",
+            "pages": "687--705",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/acs.jcim.5b00702"
+                ]
+            }
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "Impact of 2 \u2032 -hydroxyl sampling on the conformational properties of RNA: update of the CHARMM all-atom additive force field for RNA",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Denning",
+                    "suffix": ""
+                },
+                {
+                    "first": "U",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Priyakumar",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Nilsson",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Mackerell",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J. Comput. Chem",
+            "volume": "32",
+            "issn": "",
+            "pages": "1929--1943",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/jcc.21777"
+                ]
+            }
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "The 3 \u2032 and 5 \u2032 -terminal sequences of influenza A, B and C virus RNA segments are highly conserved and show partial inverted complementarity",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Desselberger",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Racaniello",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Zazra",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Palese",
+                    "suffix": ""
+                }
+            ],
+            "year": 1980,
+            "venue": "Gene",
+            "volume": "8",
+            "issn": "",
+            "pages": "315--328",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/0378-1119(80)90007-4"
+                ]
+            }
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Implications of the HIV-1 Rev dimer structure at 3.2 \u00c5 resolution for multimeric binding to the Rev response element",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Dimattia",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Watts",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Stahl",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Rader",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Wingfield",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "I"
+                    ],
+                    "last": "Stuart",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proc. Natl. Acad. Sci. U.S.A",
+            "volume": "107",
+            "issn": "",
+            "pages": "5810--5814",
+            "other_ids": {
+                "DOI": [
+                    "10.1073/pnas.0914946107"
+                ]
+            }
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Targeting RNA with small molecules to capture opportunities at the intersection of chemistry, biology, and medicine",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Disney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "J. Am. Chem. Soc",
+            "volume": "141",
+            "issn": "",
+            "pages": "6776--6790",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/jacs.8b13419"
+                ]
+            }
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Inforna 2.0: a platform for the sequence-based design of small molecules targeting structured RNAs",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Disney",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Winkelsas",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Velagapudi",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Southern",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Fallahi",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Childs-Disney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "ACS Chem. Biol",
+            "volume": "11",
+            "issn": "",
+            "pages": "1720--1728",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/acschembio.6b00001"
+                ]
+            }
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "Methods to enable the design of bioactive small molecules targeting RNA",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Disney",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Yildirim",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Childs-Disney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Org. Biomol. Chem",
+            "volume": "12",
+            "issn": "",
+            "pages": "1029--1039",
+            "other_ids": {
+                "DOI": [
+                    "10.1039/C3OB42023J"
+                ]
+            }
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Targeting RNA in mammalian systems with small molecules",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Donlic",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Hargrove",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Wiley Interdiscip. Rev. RNA",
+            "volume": "9",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/wrna.1477"
+                ]
+            }
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Protein-RNA recognition",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Draper",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "Annu. Rev. Biochem",
+            "volume": "64",
+            "issn": "",
+            "pages": "593--620",
+            "other_ids": {
+                "DOI": [
+                    "10.1146/annurev.bi.64.070195.003113"
+                ]
+            }
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "RNA as a small-molecule drug target: doubling the value of genomics",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Ecker",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Griffey",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Drug Discov. Today",
+            "volume": "4",
+            "issn": "",
+            "pages": "420--429",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/S1359-6446(99)01389-6"
+                ]
+            }
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Structural basis for recognition of S-adenosylhomocysteine by riboswitches",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Edwards",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Reyes",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "H\u00e9roux",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Batey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "RNA",
+            "volume": "16",
+            "issn": "",
+            "pages": "2144--2155",
+            "other_ids": {
+                "DOI": [
+                    "10.1261/rna.2341610"
+                ]
+            }
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "Structure and function of preQ 1 riboswitches",
+            "authors": [
+                {
+                    "first": "C",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Eichhorn",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Feigon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Biochim. Biophys. Acta -Gene Regul. Mech",
+            "volume": "1839",
+            "issn": "",
+            "pages": "939--950",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.bbagrm.2014.04.019"
+                ]
+            }
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "A smooth particle mesh Ewald method",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Essmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Perera",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Berkowitz",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Darden",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Pedersen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1995,
+            "venue": "J. Chem. Phys",
+            "volume": "103",
+            "issn": "",
+            "pages": "8577--8593",
+            "other_ids": {
+                "DOI": [
+                    "10.1063/1.470117"
+                ]
+            }
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "Mammalian Y RNAs are modified at discrete guanosine residues with N-glycans",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Flynn",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "A H"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Johnson",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Pedram",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "George",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Malaker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1101/787614"
+                ]
+            }
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Molecular recognition of RNA: challenges for modelling interactions and plasticity",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Fulle",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Gohlke",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Mol. Recognit",
+            "volume": "23",
+            "issn": "",
+            "pages": "220--231",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/jmr.1000"
+                ]
+            }
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Peptide-triggered conformational switch in HIV-1 RRE RNA complexes",
+            "authors": [
+                {
+                    "first": "Y",
+                    "middle": [],
+                    "last": "Gosser",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Hermann",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Majumdar",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Frederick",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Jiang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2001,
+            "venue": "Nat. Struct. Biol",
+            "volume": "8",
+            "issn": "",
+            "pages": "146--150",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/84138"
+                ]
+            }
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "Selection of RNA-binding peptides in vivo",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Harada",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Martin",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Frankel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "Nature",
+            "volume": "380",
+            "issn": "",
+            "pages": "175--179",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/380175a0"
+                ]
+            }
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Molding a peptide into an RNA site by in vivo peptide evolution",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Harada",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Martin",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Frankel",
+                    "suffix": ""
+                }
+            ],
+            "year": 1997,
+            "venue": "Proc. Natl. Acad. Sci. U.S.A",
+            "volume": "94",
+            "issn": "",
+            "pages": "11887--11892",
+            "other_ids": {
+                "DOI": [
+                    "10.1073/pnas.94.22.11887"
+                ]
+            }
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "ACEMD: accelerating biomolecular dynamics in the microsecond time scale",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Harvey",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Giupponi",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Fabritiis",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "De",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "J. Chem. Theory Comput",
+            "volume": "5",
+            "issn": "",
+            "pages": "1632--1639",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/ct9000685"
+                ]
+            }
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Rational ligand design for RNA: the role of static structure and conformational flexibility in target recognition",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Hermann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2002,
+            "venue": "Biochimie",
+            "volume": "84",
+            "issn": "",
+            "pages": "869--875",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/S0300-9084(02)01460-8"
+                ]
+            }
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Small molecules targeting viral RNA",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [],
+                    "last": "Hermann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Wiley Interdiscip. Rev. RNA",
+            "volume": "7",
+            "issn": "",
+            "pages": "726--743",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/wrna.1373"
+                ]
+            }
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "VMD: Visual molecular dynamics",
+            "authors": [
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Humphrey",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Dalke",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Schulten",
+                    "suffix": ""
+                }
+            ],
+            "year": 1996,
+            "venue": "J. Mol. Graph",
+            "volume": "14",
+            "issn": "",
+            "pages": "33--38",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/0263-7855(96)00018-5"
+                ]
+            }
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Comparison of a PreQ 1 riboswitch aptamer in metabolite-bound and free states with implications for gene regulation",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Jenkins",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Krucinska",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Mccarty",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Bandarian",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Wedekind",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "J. Biol. Chem",
+            "volume": "286",
+            "issn": "",
+            "pages": "24626--24637",
+            "other_ids": {
+                "DOI": [
+                    "10.1074/jbc.M111.230375"
+                ]
+            }
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Protonate3D: assignment of ionization states and hydrogen coordinates to macromolecular structures",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Labute",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proteins",
+            "volume": "75",
+            "issn": "",
+            "pages": "187--205",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/prot.22234"
+                ]
+            }
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "A novel small-molecule binds to the influenza A virus RNA promoter and inhibits viral replication",
+            "authors": [
+                {
+                    "first": "M.-K",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Bottini",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Kim",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Bardaro",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Zhang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Pellecchia",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Chem. Commun",
+            "volume": "50",
+            "issn": "",
+            "pages": "368--370",
+            "other_ids": {
+                "DOI": [
+                    "10.1039/C3CC46973E"
+                ]
+            }
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "Langevin dynamics of peptides: the frictional dependence of isomerization rates of N-acetylalanyl-N \u2032 -methylamide",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Loncharich",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Brooks",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Pastor",
+                    "suffix": ""
+                }
+            ],
+            "year": 1992,
+            "venue": "Biopolymers",
+            "volume": "32",
+            "issn": "",
+            "pages": "523--535",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/bip.360320508"
+                ]
+            }
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "MMPBSA.py: an efficient program for end-state free energy calculations",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Miller",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Mcgee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Swails",
+                    "suffix": ""
+                },
+                {
+                    "first": "N",
+                    "middle": [],
+                    "last": "Homeyer",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [],
+                    "last": "Gohlke",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Roitberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "J. Chem. Theory Comput",
+            "volume": "8",
+            "issn": "",
+            "pages": "3314--3321",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/ct300418h"
+                ]
+            }
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "The rise of regulatory RNA",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Morris",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Mattick",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nat. Rev. Genet",
+            "volume": "15",
+            "issn": "",
+            "pages": "423--437",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/nrg3722"
+                ]
+            }
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "A highly specialized flavin mononucleotide riboswitch responds differently to similar ligands and confers roseoflavin resistance to Streptomyces davawensis",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Pedrolli",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Matern",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Ester",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Siedler",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Breaker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Nucleic Acids Res",
+            "volume": "40",
+            "issn": "",
+            "pages": "8662--8673",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/nar/gks616"
+                ]
+            }
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "Refinement of the AMBER force field for nucleic acids: improving the description of alpha/gamma conformers",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "P\u00e9rez",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "March\u00e1n",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Svozil",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Sponer",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Cheatham",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Laughton",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Biophys. J",
+            "volume": "92",
+            "issn": "",
+            "pages": "3817--3829",
+            "other_ids": {
+                "DOI": [
+                    "10.1529/biophysj.106.097782"
+                ]
+            }
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Folding of a transcriptionally acting PreQ 1 riboswitch",
+            "authors": [
+                {
+                    "first": "U",
+                    "middle": [],
+                    "last": "Rieder",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Kreutz",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Micura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proc. Natl. Acad. Sci. U.S.A",
+            "volume": "107",
+            "issn": "",
+            "pages": "10804--10809",
+            "other_ids": {
+                "DOI": [
+                    "10.1073/pnas.0914925107"
+                ]
+            }
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "A riboswitch selective for the queuosine precursor preQ 1 contains an unusually small aptamer domain",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Roth",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Winkler",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Regulski",
+                    "suffix": ""
+                },
+                {
+                    "first": "B",
+                    "middle": [
+                        "W K"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "I",
+                    "middle": [],
+                    "last": "Jona",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Nat. Struct. Mol. Biol",
+            "volume": "14",
+            "issn": "",
+            "pages": "308--317",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/nsmb1224"
+                ]
+            }
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Supervised molecular dynamics (SuMD) as a helpful tool to depict GPCR-ligand recognition pathway in a nanosecond time scale",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Sabbadin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Moro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "J. Chem. Inf. Model",
+            "volume": "54",
+            "issn": "",
+            "pages": "372--376",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/ci400766b"
+                ]
+            }
+        },
+        "BIBREF44": {
+            "ref_id": "b44",
+            "title": "Exploring protein-peptide recognition pathways using a supervised molecular dynamics approach",
+            "authors": [
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Salmaso",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Sturlese",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Cuzzolin",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Moro",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Structure",
+            "volume": "25",
+            "issn": "",
+            "pages": "655--662",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.str.2017.02.009"
+                ]
+            }
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Advances in the determination of nucleic acid conformational ensembles",
+            "authors": [
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Salmon",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Al-Hashimi",
+                    "middle": [],
+                    "last": "",
+                    "suffix": ""
+                },
+                {
+                    "first": "H",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Annu. Rev. Phys. Chem",
+            "volume": "65",
+            "issn": "",
+            "pages": "293--316",
+            "other_ids": {
+                "DOI": [
+                    "10.1146/annurev-physchem-040412-110059"
+                ]
+            }
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Riboswitch mediated gene regulation: novel RNA architectures dictate gene expression responses",
+            "authors": [
+                {
+                    "first": "A",
+                    "middle": [
+                        "V"
+                    ],
+                    "last": "Sherwood",
+                    "suffix": ""
+                },
+                {
+                    "first": "T",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Henkin",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Annu. Rev. Microbiol",
+            "volume": "70",
+            "issn": "",
+            "pages": "361--374",
+            "other_ids": {
+                "DOI": [
+                    "10.1146/annurev-micro-091014-104306"
+                ]
+            }
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "The general AMBER force field (GAFF) can accurately predict thermodynamic and transport properties of many ionic liquids",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Sprenger",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [
+                        "W"
+                    ],
+                    "last": "Jaeger",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Pfaendtner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "J. Phys. Chem. B",
+            "volume": "119",
+            "issn": "",
+            "pages": "5882--5895",
+            "other_ids": {
+                "DOI": [
+                    "10.1021/acs.jpcb.5b00689"
+                ]
+            }
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "RNA as a target for small molecules",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Sucheck",
+                    "suffix": ""
+                },
+                {
+                    "first": "C.-H",
+                    "middle": [],
+                    "last": "Wong",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Curr. Opin. Chem. Biol",
+            "volume": "4",
+            "issn": "",
+            "pages": "678--686",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/S1367-5931(00)00142-3"
+                ]
+            }
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "GFP: the green revolution",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Swaminathan",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Nat. Cell Biol",
+            "volume": "11",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/ncb1953"
+                ]
+            }
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "RNA force field with accuracy comparable to state-of-the-art protein force fields",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [],
+                    "last": "Tan",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "Piana",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Dirks",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Shaw",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Proc. Natl. Acad. Sci. U.S.A",
+            "volume": "115",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1073/pnas.1713027115"
+                ]
+            }
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "Tracking RNA with light: selection, structure, and design of fluorescence turn-on RNA aptamers",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Trachman",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Ferr\u00e9-D&apos;amar\u00e9",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "Q. Rev. Biophys",
+            "volume": "52",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1017/S0033583519000064"
+                ]
+            }
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Riboswitches as versatile gene control elements",
+            "authors": [
+                {
+                    "first": "B",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Tucker",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Breaker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Curr. Opin. Struct. Biol",
+            "volume": "15",
+            "issn": "",
+            "pages": "342--348",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.sbi.2005.05.003"
+                ]
+            }
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Sequence-based design of bioactive small molecules that target precursor microRNAs",
+            "authors": [
+                {
+                    "first": "S",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Velagapudi",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Gallo",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Disney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nat. Chem. Biol",
+            "volume": "10",
+            "issn": "",
+            "pages": "291--297",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/nchembio.1452"
+                ]
+            }
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "Automatic atom type and bond type perception in molecular mechanical calculations",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Kollman",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Case",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "J. Mol. Graph. Model",
+            "volume": "25",
+            "issn": "",
+            "pages": "247--260",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.jmgm.2005.12.005"
+                ]
+            }
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Riboswitches that sense S-adenosylhomocysteine and activate genes involved in coenzyme recycling",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Morales",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Breaker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2008,
+            "venue": "Mol. Cell",
+            "volume": "29",
+            "issn": "",
+            "pages": "691--702",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.molcel.2008.01.012"
+                ]
+            }
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "Structural basis for activity of highly efficient RNA mimics of green fluorescent protein",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Warner",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Song",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Strack",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Thorn",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Jaffrey",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Nat. Struct. Mol. Biol",
+            "volume": "21",
+            "issn": "",
+            "pages": "658--663",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/nsmb.2865"
+                ]
+            }
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Principles for targeting RNA with drug-like small molecules",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Warner",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Hajdin",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Weeks",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Nat. Rev. Drug Discov",
+            "volume": "17",
+            "issn": "",
+            "pages": "547--558",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/nrd.2018.93"
+                ]
+            }
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "A homodimer interface without base pairs in an RNA mimic of red fluorescent protein",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Warner",
+                    "suffix": ""
+                },
+                {
+                    "first": "L",
+                    "middle": [],
+                    "last": "Sjekloa",
+                    "suffix": ""
+                },
+                {
+                    "first": "W",
+                    "middle": [],
+                    "last": "Song",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Filonov",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Jaffrey",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Ferr\u00e9-D&apos;amar\u00e9",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Nat. Chem. Biol",
+            "volume": "13",
+            "issn": "",
+            "pages": "1195--1201",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/nchembio.2475"
+                ]
+            }
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "Comparative genomics reveals 104 candidate structured RNAs from bacteria, archaea, and their metagenomes",
+            "authors": [
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Weinberg",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "X"
+                    ],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Bogue",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Corbino",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Moy",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Genome Biol",
+            "volume": "11",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1186/gb-2010-11-3-r31"
+                ]
+            }
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "This panel summarizes the recognition pathway of the DPQ fragment with the Influenza A promoter region. (A) RMSD of DPQ heavy atoms against the PDB reference. (B) Superimposition between the experimental NMR complex (PDB ID 2LWK, green-colored DPQ molecule) and the SuMD conformation with lowest RMSD along the trajectory (orange-colored molecule). The nucleotides surrounding the binding site are reported. (C) Dynamic total interaction energy (electrostatic + vdW) computed for most contacted RNA nucleobase. (D) RMSD of RNA phosphate atoms belonging to the backbone, computed against the PDB reference.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "This panel summarizes the recognition pathway of RSG-1.2 peptide with HIV-1 REE. (A) RMSD of RSG-1.2 C\u03b1 atoms against the PDB reference. (B)",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "This panel summarizes the recognition pathway of the SAH molecule with SAH riboswitch. (A) RMSD of SAH heavy atoms against the PDB reference. (B) Superimposition between the experimental X-Ray complex (PDB ID 3NPQ, green-colored SAH molecule) and the SuMD conformation with lowest RMSD along the trajectory (orange-colored molecule). The nucleotides surrounding the binding site are reported. Within the circular window, the SuMD conformation sampled for SAH tail is compared to a different crystallographic reference (PDB ID 3NPN). (C) Dynamic total interaction energy (electrostatic + vdW) computed for most contacted RNA nucleobase.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF3": {
+            "text": "This panel summarizes the recognition pathway of the PreQ 1 molecule with PreQ 1 -1 riboswitch. (A) RMSD of PreQ 1 heavy atoms against the PDB reference. (B) Superimposition between the experimental X-Ray complex (PDB ID 3Q50, green-colored PreQ 1 molecule) and the SuMD conformation with lowest RMSD along the trajectory (orange-colored molecule). The nucleotides surrounding the binding site are reported. (C) Dynamic total interaction energy (electrostatic + vdW) computed for most contacted RNA nucleobase.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF4": {
+            "text": "This panel summarizes the recognition pathway of HMJ molecule with PreQ 1 -1 riboswitch. (A) RMSD of HMJ heavy atoms against the PDB reference. (B) Superimposition between the experimental X-Ray complex (PDB ID 6E1U, green-colored HMJ molecule) and the SuMD conformation with lowest RMSD along the trajectory (orange-colored molecule). The nucleotides surrounding the binding site are reported. (C) Dynamic total interaction energy (electrostatic + vdW) computed for most contacted RNA nucleobase.",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "This panel summarizes the recognition pathway of DFHO molecules with the Corn aptamer. (A) RMSD of DFHO heavy atoms against the PDB reference. (B) Superimposition between the experimental X-Ray complex (PDB ID 5BJO, green-colored DFHO molecule) and the SuMD conformation with lowest RMSD along the trajectory (orange-colored molecule). The nucleotides surrounding the binding site are reported. (C) Dynamic total interaction energy (electrostatic + vdW) computed for most contacted RNA nucleobase.",
+            "latex": null,
+            "type": "figure"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We are very grateful to Chemical Computing Group, OpenEye, and Acellera for the scientific and technical partnership, and we thank NVIDIA for the donation of the Titan Xp and Titan V GPUs used to perform the computational studies.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGMENTS"
+        },
+        {
+            "text": "The Supplementary Material for this article can be found online at: https://www.frontiersin.org/articles/10.3389/fchem. 2020.00107/full#supplementary-material",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "SUPPLEMENTARY MATERIAL"
+        },
+        {
+            "text": "The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.Copyright \u00a9 2020 Bissaro, Sturlese and Moro. This is an open-access article distributed under the terms of the Creative Commons Attribution License (CC BY). The use, distribution or reproduction in other forums is permitted, provided the original author(s) and the copyright owner(s) are credited and that the original publication in this journal is cited, in accordance with accepted academic practice. No use, distribution or reproduction is permitted which does not comply with these terms.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Conflict of Interest:"
+        }
+    ]
+}

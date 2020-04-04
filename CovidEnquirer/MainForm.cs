@@ -44,7 +44,7 @@ namespace CovidEnquirer
         {
             InitializeComponent();
 
-            var threadStarter = new ThreadStart(GetAllArticles);
+            var threadStarter = new ThreadStart(GetAllAbstracts);
             var thread = new Thread(threadStarter);
             thread.IsBackground = true;
             thread.Start();
@@ -76,8 +76,7 @@ namespace CovidEnquirer
             }
             else
             {
-                mi.Invoke();        
-            
+                mi.Invoke();  
             }
         }
 
@@ -100,9 +99,10 @@ namespace CovidEnquirer
 
         private void SearchResultsListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var articleClicked = FoundArticles[SearchResultsListBox.SelectedIndex];
+            var articleClicked = FoundArticles.FirstOrDefault(
+                x => Zipper.Unzip(x.ZippedTitle).Equals(SearchResultsListBox.SelectedItem.ToString()));
 
-            var unzippedJson = Zipper.Unzip(articleClicked.ZippedJson);
+            var unzippedJson = GetJsonArticle(articleClicked);
             var article = JObject.Parse(unzippedJson);
             var rtfContent = JsonArticleToDocument.JsonArticleToRtf(article);
             ArticleRichTextBox.Rtf = rtfContent;
@@ -122,9 +122,11 @@ namespace CovidEnquirer
 
         private void searchForArticleInGoogleToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SearchResultsListBox.SelectedIndex >= 0 && SearchResultsListBox.SelectedIndex < SearchResultsListBox.Items.Count)
+            if (SearchResultsListBox.SelectedIndex >= 0 && 
+                SearchResultsListBox.SelectedIndex < SearchResultsListBox.Items.Count)
             {
-                var article = FoundArticles[SearchResultsListBox.SelectedIndex];
+                var article = FoundArticles.FirstOrDefault(
+                    x => Zipper.Unzip(x.ZippedTitle).Equals(SearchResultsListBox.SelectedItem.ToString()));
                 var unzippedTitle = Zipper.Unzip(article.ZippedTitle);
                 System.Diagnostics.Process.Start("http://www.google.com.au/search?q=" + Uri.EscapeDataString(unzippedTitle));
             }
@@ -132,7 +134,8 @@ namespace CovidEnquirer
 
         private void saveArticleAsWordDocumentToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SearchResultsListBox.SelectedIndex < 0 ||  SearchResultsListBox.SelectedIndex >= SearchResultsListBox.Items.Count)
+            if (SearchResultsListBox.SelectedIndex < 0 || 
+                SearchResultsListBox.SelectedIndex >= SearchResultsListBox.Items.Count)
             {
                 return;
             }
@@ -145,8 +148,9 @@ namespace CovidEnquirer
                 // If the file name is not an empty string open it for saving.
                 if (!String.IsNullOrWhiteSpace(saveFileDialog.FileName))
                 {
-                    var selectedArticle = FoundArticles[SearchResultsListBox.SelectedIndex];
-                    var unzippedJson = Zipper.Unzip(selectedArticle.ZippedJson);
+                    var selectedArticle = FoundArticles.FirstOrDefault(
+                        x => Zipper.Unzip(x.ZippedTitle).Equals(SearchResultsListBox.SelectedItem.ToString()));
+                    var unzippedJson = GetJsonArticle(selectedArticle);
                     var jsonArticle = JObject.Parse(unzippedJson);
                     JsonArticleToDocument.JsonArticleToDocx(jsonArticle, saveFileDialog.FileName);
                 }
@@ -155,13 +159,15 @@ namespace CovidEnquirer
 
         private void openArticleInWordPadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SearchResultsListBox.SelectedIndex < 0 || SearchResultsListBox.SelectedIndex >= SearchResultsListBox.Items.Count)
+            if (SearchResultsListBox.SelectedIndex < 0 || 
+                SearchResultsListBox.SelectedIndex >= SearchResultsListBox.Items.Count)
             {
                 return;
             }
 
-            var selectedArticle = FoundArticles[SearchResultsListBox.SelectedIndex];
-            var unzippedJson = Zipper.Unzip(selectedArticle.ZippedJson);
+            var selectedArticle = FoundArticles.FirstOrDefault(
+                x => Zipper.Unzip(x.ZippedTitle).Equals(SearchResultsListBox.SelectedItem.ToString()));
+            var unzippedJson = GetJsonArticle(selectedArticle);
             var tempFileName = Path.GetTempFileName() + ".rtf";
 
             JObject article = JObject.Parse(unzippedJson);
@@ -197,13 +203,15 @@ namespace CovidEnquirer
             SetPhraseToSearchButtonEnabled(enabled);
             SetTranslateButtonEnabled(enabled);
             SetLanguagesListEnabled(enabled);
+            SetTitleSearchTextBoxEnabled(enabled);
         }
 
         private void TranslateButton_Click(object sender, EventArgs e)
         {
-            var articleClicked = FoundArticles[SearchResultsListBox.SelectedIndex];
+            var selectedArticle = FoundArticles.FirstOrDefault(
+                x => Zipper.Unzip(x.ZippedTitle).Equals(SearchResultsListBox.SelectedItem.ToString()));
             var targetLanguage = Languages[LanguagesComboBox.SelectedItem.ToString()];
-            var threadStarter = new ThreadStart(() => { Translate(articleClicked, targetLanguage); });
+            var threadStarter = new ThreadStart(() => { Translate(selectedArticle, targetLanguage); });
             var thread = new Thread(threadStarter);
             thread.IsBackground = true;
             thread.Start();
@@ -212,7 +220,7 @@ namespace CovidEnquirer
         private void Translate(Article articleClicked, string targetLanguage)
         {
             SetElementsEnabled(false);
-            var unzippedJson = Zipper.Unzip(articleClicked.ZippedJson);
+            var unzippedJson = GetJsonArticle(articleClicked);
             var article = JObject.Parse(unzippedJson);
             int howManyElementsToTranslate = JsonArticleToDocument.JsonArticleHowManyElementsToTranslate(article);
             SetProgressBarMaximum(howManyElementsToTranslate);
@@ -231,6 +239,43 @@ namespace CovidEnquirer
         private void translateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             TranslateButton_Click(sender, e);
+        }
+
+        private void TitleSearchTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (String.IsNullOrWhiteSpace(TitleSearchTextBox.Text))
+            {
+                if (FoundArticles.Count != SearchResultsListBox.Items.Count)
+                {
+                    SearchResultsListBox.Items.Clear();
+                    SearchResultsListBox.Items.AddRange(
+                        FoundArticles
+                            .Select(x => Zipper.Unzip(x.ZippedTitle)).ToArray());
+                    foreach (var article in FoundArticles)
+                    {
+                        SearchResultsListAppend(article);
+                    }
+                }
+            }
+            else
+            {
+                SearchResultsListBox.Items.Clear();
+                List<Article> list = FoundArticles.Where(
+                    article =>
+                    {
+                        var title = Zipper.Unzip(article.ZippedTitle);
+                        var result = false;
+                        if (!String.IsNullOrWhiteSpace(title) &&
+                            title.ToLower().IndexOf(TitleSearchTextBox.Text.ToLower()) != -1)
+                        {
+                            result = true;
+                        }
+
+                        return result;
+                    }).ToList();
+                SearchResultsListBox.Items.AddRange(
+                    list.Select(x => Zipper.Unzip(x.ZippedTitle)).ToArray());
+            }
         }
 
         #endregion UI
@@ -423,6 +468,22 @@ namespace CovidEnquirer
             }
         }
 
+        private void SetTitleSearchTextBoxEnabled(bool enabled)
+        {
+            MethodInvoker mi = new MethodInvoker(() =>
+            {
+                TitleSearchTextBox.Enabled = enabled;
+            });
+            if (TitleSearchTextBox.InvokeRequired)
+            {
+                TitleSearchTextBox.Invoke(mi);
+            }
+            else
+            {
+                mi.Invoke();
+            }
+        }
+
         private void SetLanguagesComboBox(List<string> languages)
 
         {
@@ -523,11 +584,11 @@ namespace CovidEnquirer
             SetElementsEnabled(true);
         }
 
-        private List<String> GetJsonArticles(string jsonZippedCollectionName)
+        private List<String> GetJsonArticles(string jsonZippedFileName)
         {
             var result = new List<String>();
 
-            using (var fs = new FileStream(jsonZippedCollectionName, FileMode.Open))
+            using (var fs = new FileStream(jsonZippedFileName, FileMode.Open))
             {
                 using (var zip = new ZipArchive(fs))
                 {
@@ -544,35 +605,70 @@ namespace CovidEnquirer
             return result;
         }
 
-        private void GetAllArticles()
+        private List<Article> GetAbstracts(string zippedAbstractFileName)
+        {
+            var result = new List<Article>();
+
+            using (var fs = new FileStream(zippedAbstractFileName, FileMode.Open))
+            {
+                using (var zip = new ZipArchive(fs))
+                {
+                    var entry = zip.Entries.First();
+
+                    using (StreamReader sr = new StreamReader(entry.Open()))
+                    {
+                        BinaryFormatter serializer = new BinaryFormatter();
+                        result = serializer.Deserialize(sr.BaseStream) as List<Article>;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private void GetAllAbstracts()
         {
             SetElementsEnabled(false);
+            SetOptionalMessage("Reading articles...");
 
             var baseDirForArticles = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                 "\\CovidArticles\\Articles\\";
-            var files = new DirectoryInfo(baseDirForArticles).GetFiles("*.bin.zip");
+            var zippedAbstracts = new DirectoryInfo(baseDirForArticles).GetFiles("index.bin.zip");
             AllArticles.Clear();
 
-            int progressValue = 0;
-            SetProgressBarMaximum(files.Count());
-            foreach (var file in files)
+            foreach (var zipFileSet in zippedAbstracts)
             {
-                progressValue++;
-                SetOptionalMessage(string.Format("Creating database - zipped article set {0} out of {1} articles sets", progressValue, files.Count()));
-
-                SetProgressBarValue(progressValue);
-
-                var listOfArticles = GetJsonArticles(file.FullName);
-                foreach (var jsonArticle in listOfArticles)
-                {
-                    var article = JsonArticleToDocument.GetArticle(jsonArticle);
-                    AllArticles.Add(article);
-                }
-                listOfArticles.Clear();
+                var listOfArticles = GetAbstracts(zipFileSet.FullName);
+                AllArticles.AddRange(listOfArticles);
             }
 
             SetElementsEnabled(true);
+            SetOptionalMessage("Reading articles finished. You can start searching now.");
             SetLanguagesComboBox(Languages.Keys.ToList());
+        }
+
+        private String GetJsonArticle(Article article)
+        {
+            string result = string.Empty;
+            var baseDirForArticles = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                "\\CovidArticles\\Articles\\";
+            var fileName = Zipper.Unzip(article.ZippedArchiveSetFileName);
+            var jsonArticlesSetFileName = baseDirForArticles + fileName;
+            var jsonArticles = GetJsonArticles(jsonArticlesSetFileName);
+            var unzippedTitle = Zipper.Unzip(article.ZippedTitle);
+
+            foreach (var jsonArticle in jsonArticles)
+            {
+                var candidateArticle = JsonArticleToDocument.GetArticle(jsonArticle, fileName);
+                var jsonArticleTitle = Zipper.Unzip(candidateArticle.ZippedTitle);
+                if (String.Equals(unzippedTitle, jsonArticleTitle))
+                {
+                    result = jsonArticle;
+                    break;
+                }
+            }
+
+            return result;
         }
 
         #endregion Articles Search

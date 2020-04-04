@@ -1,0 +1,3954 @@
+{
+    "paper_id": "22d12f509369047b9dcbb438042c93c5c044999d",
+    "metadata": {
+        "title": "Solubility-Weighted Index: fast and accurate prediction of protein solubility",
+        "authors": [
+            {
+                "first": "Bikash",
+                "middle": [
+                    "K"
+                ],
+                "last": "Bhandari",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Otago",
+                    "location": {
+                        "settlement": "Dunedin",
+                        "country": "New Zealand"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Paul",
+                "middle": [
+                    "P"
+                ],
+                "last": "Gardner",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Otago",
+                    "location": {
+                        "settlement": "Dunedin",
+                        "country": "New Zealand"
+                    }
+                },
+                "email": ""
+            },
+            {
+                "first": "Chun",
+                "middle": [
+                    "Shen"
+                ],
+                "last": "Lim",
+                "suffix": "",
+                "affiliation": {
+                    "laboratory": "",
+                    "institution": "University of Otago",
+                    "location": {
+                        "settlement": "Dunedin",
+                        "country": "New Zealand"
+                    }
+                },
+                "email": ""
+            }
+        ]
+    },
+    "abstract": [
+        {
+            "text": "Recombinant protein production is a widely used technique in the biotechnology and biomedical industries, yet only a quarter of target proteins are soluble and can therefore be purified.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "We have discovered that global structural flexibility, which can be modeled by normalised B-factors, accurately predicts the solubility of 12,216 recombinant proteins expressed in Escherichia coli . We have optimised B-factors, and derived a new set of values for solubility scoring that further improves prediction accuracy. We call this new predictor the 'Solubility-Weighted Index' (SWI). Importantly, SWI outperforms many existing protein solubility prediction tools. Furthermore, we have developed 'SoDoPE' (Soluble Domain for Protein Expression), a web interface that allows users to choose a protein region of interest for predicting and maximising both protein expression and solubility.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        },
+        {
+            "text": "The SoDoPE web server and source code are freely available at https://tisigner.com/sodope and https://github.com/Gardner-BinfLab/TISIGNER-ReactJS , respectively.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Abstract"
+        }
+    ],
+    "body_text": [
+        {
+            "text": "High levels of protein expression and solubility are two major requirements of successful recombinant protein production (Esposito and Chatterjee 2006) . However, recombinant protein production is a challenging process. Almost half of recombinant proteins fail to be expressed and half of the successfully expressed proteins are insoluble ( http://targetdb.rcsb.org/metrics/ ). These failures hamper protein research, with particular implications for structural, functional and pharmaceutical studies that require soluble and concentrated protein solutions (Kramer et al. 2012; Hou et al. 2018) . Therefore, solubility prediction and protein engineering for enhanced solubility is an active area of research. Notable protein engineering approaches include mutagenesis, truncation (i.e., expression of partial protein sequences), or fusion with a solubility-enhancing tag (Waldo 2003; Esposito and Chatterjee 2006; Trevino, Martin Scholtz, and Nick Pace 2007; Chan et al. 2010; Kramer et al. 2012; Costa et al. 2014 ) .",
+            "cite_spans": [
+                {
+                    "start": 121,
+                    "end": 151,
+                    "text": "(Esposito and Chatterjee 2006)",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 557,
+                    "end": 577,
+                    "text": "(Kramer et al. 2012;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 578,
+                    "end": 594,
+                    "text": "Hou et al. 2018)",
+                    "ref_id": "BIBREF23"
+                },
+                {
+                    "start": 871,
+                    "end": 883,
+                    "text": "(Waldo 2003;",
+                    "ref_id": "BIBREF62"
+                },
+                {
+                    "start": 884,
+                    "end": 913,
+                    "text": "Esposito and Chatterjee 2006;",
+                    "ref_id": "BIBREF15"
+                },
+                {
+                    "start": 914,
+                    "end": 958,
+                    "text": "Trevino, Martin Scholtz, and Nick Pace 2007;",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 959,
+                    "end": 976,
+                    "text": "Chan et al. 2010;",
+                    "ref_id": "BIBREF6"
+                },
+                {
+                    "start": 977,
+                    "end": 996,
+                    "text": "Kramer et al. 2012;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 997,
+                    "end": 1014,
+                    "text": "Costa et al. 2014",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "Protein solubility, at least in part, depends upon extrinsic factors such as ionic strength, temperature and pH, as well as intrinsic factors-the physicochemical properties of the protein sequence and structure, including molecular weight, amino acid composition, hydrophobicity, aromaticity, isoelectric point, structural propensities and the polarity of surface residues (Wilkinson and Harrison 1991; Chiti et al. 2003; Tartaglia et al. 2004; Diaz et al. 2010) . Many solubility prediction tools have been developed around these features using statistical models (e.g., linear and logistic regression) or other machine learning models (e.g., support vector machines and neural networks) (Hirose and Noguchi 2013; Habibi et al. 2014; Hebditch et al. 2017; Sormanni et al. 2017; Heckmann et al. 2018; Z. Wu et al. 2019; Yang, Wu, and Arnold 2019) .",
+            "cite_spans": [
+                {
+                    "start": 373,
+                    "end": 402,
+                    "text": "(Wilkinson and Harrison 1991;",
+                    "ref_id": "BIBREF67"
+                },
+                {
+                    "start": 403,
+                    "end": 421,
+                    "text": "Chiti et al. 2003;",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 422,
+                    "end": 444,
+                    "text": "Tartaglia et al. 2004;",
+                    "ref_id": "BIBREF56"
+                },
+                {
+                    "start": 445,
+                    "end": 462,
+                    "text": "Diaz et al. 2010)",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 689,
+                    "end": 714,
+                    "text": "(Hirose and Noguchi 2013;",
+                    "ref_id": "BIBREF22"
+                },
+                {
+                    "start": 715,
+                    "end": 734,
+                    "text": "Habibi et al. 2014;",
+                    "ref_id": "BIBREF17"
+                },
+                {
+                    "start": 735,
+                    "end": 756,
+                    "text": "Hebditch et al. 2017;",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 757,
+                    "end": 778,
+                    "text": "Sormanni et al. 2017;",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 779,
+                    "end": 800,
+                    "text": "Heckmann et al. 2018;",
+                    "ref_id": "BIBREF21"
+                },
+                {
+                    "start": 801,
+                    "end": 819,
+                    "text": "Z. Wu et al. 2019;",
+                    "ref_id": null
+                },
+                {
+                    "start": 820,
+                    "end": 846,
+                    "text": "Yang, Wu, and Arnold 2019)",
+                    "ref_id": "BIBREF73"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "In this study, we investigated the experimental outcomes of 12,216 recombinant proteins expressed in Escherichia coli from the 'Protein Structure Initiative:Biology' (PSI:Biology) (Chen et al. 2004; Acton et al. 2005) . We showed that protein structural flexibility is more accurate than other protein sequence properties in predicting solubility (Craveur et al. 2015; M. Vihinen, Torkkila, and Riikonen 1994) . Flexibility is a standard feature that appears to have been overlooked in previous solubility prediction attempts. On this basis, we derived a set of 20 values for the standard amino acid residues and used them to predict solubility. We call this new predictor the 'Solubility-Weighted Index' (SWI). SWI is a powerful predictor of solubility, and a good proxy for global structural flexibility. In addition, SWI outperforms many existing de novo protein solubility prediction tools.",
+            "cite_spans": [
+                {
+                    "start": 180,
+                    "end": 198,
+                    "text": "(Chen et al. 2004;",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 199,
+                    "end": 217,
+                    "text": "Acton et al. 2005)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 347,
+                    "end": 368,
+                    "text": "(Craveur et al. 2015;",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 369,
+                    "end": 409,
+                    "text": "M. Vihinen, Torkkila, and Riikonen 1994)",
+                    "ref_id": "BIBREF61"
+                }
+            ],
+            "ref_spans": [],
+            "section": "INTRODUCTION"
+        },
+        {
+            "text": "We sought to understand what makes a protein soluble, and develop a fast and accurate approach for solubility prediction. To determine which protein sequence properties accurately predict protein solubility, we analysed 12,216 target proteins from over 196 species that were expressed in E. coli (the PSI:Biology dataset; see Supplementary Fig S1 and Table S1A ) (Chen et al. 2004; Acton et al. 2005) . These proteins were expressed either with a C-terminal or N-terminal polyhistidine fusion tag (pET21_NESG and pET15_NESG expression vectors, N=8,780 and 3,436, respectively). They were previously curated and labeled as 'Protein_Soluble' or 'Tested_Not_Soluble' (Seiler et al. 2014) , based on the soluble analysis of cell lysate using SDS-PAGE (R. Xiao et al. 2010) . A total of 8,238 recombinant proteins were found to be soluble, in which 6,432 of them belong to the pET21_NESG dataset. Both the expression system and solubility analysis method are commonly used (Costa et al. 2014) . Therefore, this collection of data captures a broad range of protein solubility issues. ",
+            "cite_spans": [
+                {
+                    "start": 363,
+                    "end": 381,
+                    "text": "(Chen et al. 2004;",
+                    "ref_id": "BIBREF7"
+                },
+                {
+                    "start": 382,
+                    "end": 400,
+                    "text": "Acton et al. 2005)",
+                    "ref_id": "BIBREF0"
+                },
+                {
+                    "start": 664,
+                    "end": 684,
+                    "text": "(Seiler et al. 2014)",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 751,
+                    "end": 768,
+                    "text": "Xiao et al. 2010)",
+                    "ref_id": "BIBREF72"
+                },
+                {
+                    "start": 968,
+                    "end": 987,
+                    "text": "(Costa et al. 2014)",
+                    "ref_id": "BIBREF10"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 326,
+                    "end": 360,
+                    "text": "Supplementary Fig S1 and Table S1A",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Global structural flexibility performs well at predicting protein solubility"
+        },
+        {
+            "text": "Protein structural flexibility, in particular, the flexibility of local regions, is often associated with function (Craveur et al. 2015) . The calculation of flexibility is usually performed by assigning a set of 20 normalised B-factors-a measure of vibration of C-alpha atoms (see Supplementary Notes)-to a protein sequence and averaging the values by a sliding window approach (Ragone et al. 1989; Karplus and Schulz 1985; M. Vihinen, Torkkila, and Riikonen 1994; Smith et al. 2003) . We reasoned that such sliding window approach can be approximated by a more straightforward arithmetic mean for calculating global structural flexibility (see Supplementary Notes). We determined the correlation between flexibility (Vihinen et al. 's sliding window approach as implemented in Biopython) and solubility scores calculated as follows:",
+            "cite_spans": [
+                {
+                    "start": 115,
+                    "end": 136,
+                    "text": "(Craveur et al. 2015)",
+                    "ref_id": "BIBREF11"
+                },
+                {
+                    "start": 379,
+                    "end": 399,
+                    "text": "(Ragone et al. 1989;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 400,
+                    "end": 424,
+                    "text": "Karplus and Schulz 1985;",
+                    "ref_id": "BIBREF28"
+                },
+                {
+                    "start": 425,
+                    "end": 465,
+                    "text": "M. Vihinen, Torkkila, and Riikonen 1994;",
+                    "ref_id": "BIBREF61"
+                },
+                {
+                    "start": 466,
+                    "end": 484,
+                    "text": "Smith et al. 2003)",
+                    "ref_id": "BIBREF52"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The Solubility-Weighted Index (SWI) is an improved predictor of solubility"
+        },
+        {
+            "text": "where is the normalised B-factor of the amino acid residue at the position , and is the B i i L sequence length. We obtained a strong correlation for the PSI:Biology dataset (Spearman's 3 . CC-BY 4.0 International license author/funder. It is made available under a The copyright holder for this preprint (which was not peer-reviewed) is the . https://doi.org/10.1101/2020.02.15.951012 doi: bioRxiv preprint rho = 0.98, P-value below machine's underflow level). Therefore, we reasoned that the sliding window approach is not necessary for our purpose.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The Solubility-Weighted Index (SWI) is an improved predictor of solubility"
+        },
+        {
+            "text": "We applied this arithmetic mean approach (i.e., sequence composition scoring) to the PSI:Biology dataset and compared four sets of previously published, normalised B-factors (Bhaskaran and Ponnuswamy 1988; Ragone et al. 1989; M. Vihinen, Torkkila, and Riikonen 1994; Smith et al. 2003 ) Among these sets of B-factors, sequence composition scoring using the most recently published set of normalised B-factors produced the highest AUC score To improve the prediction accuracy of solubility, we iteratively refined the weights of amino acid residues using the Nelder-Mead optimisation algorithm (Nelder and Mead 1965) . To avoid testing and training on similar sequences, we generated 10 cross-validation sets with a maximised heterogeneity between these subsets (i.e. no similar sequences between subsets). We first clustered all 12,216 PSI:Biology protein sequences using a 40% similarity threshold using USEARCH to produce 5,050 clusters with remote similarity (see Methods and Supplementary Fig S4) . The clusters were grouped into 10 cross-validation sets of approximately 1,200 sequences each manually. We did not select a representative sequence for each cluster as about 12% of clusters contain a mix of soluble and insoluble proteins (Supplementary Fig S4C) . More importantly, to address the issues of sequence similarity and imbalanced classes, we performed 1,000 bootstrap resamplings for each cross-validation step (Fig 2A and Supplementary Fig S5) . We calculated the solubility scores using the optimised weights as Equation 1 and the AUC scores for each cross-validation step. Our training and test AUC scores were 0.72 \u00b1 0.00 and 0.71 \u00b1 0.01, respectively, showing an improvement over flexibility in solubility prediction (mean \u00b1 standard deviation; Fig 2B and Supplementary Table S3 ).",
+            "cite_spans": [
+                {
+                    "start": 174,
+                    "end": 205,
+                    "text": "(Bhaskaran and Ponnuswamy 1988;",
+                    "ref_id": "BIBREF4"
+                },
+                {
+                    "start": 206,
+                    "end": 225,
+                    "text": "Ragone et al. 1989;",
+                    "ref_id": "BIBREF46"
+                },
+                {
+                    "start": 226,
+                    "end": 266,
+                    "text": "M. Vihinen, Torkkila, and Riikonen 1994;",
+                    "ref_id": "BIBREF61"
+                },
+                {
+                    "start": 267,
+                    "end": 284,
+                    "text": "Smith et al. 2003",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 593,
+                    "end": 615,
+                    "text": "(Nelder and Mead 1965)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 993,
+                    "end": 1000,
+                    "text": "Fig S4)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1256,
+                    "end": 1264,
+                    "text": "Fig S4C)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1426,
+                    "end": 1459,
+                    "text": "(Fig 2A and Supplementary Fig S5)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1765,
+                    "end": 1775,
+                    "text": "Fig 2B and",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1790,
+                    "end": 1798,
+                    "text": "Table S3",
+                    "ref_id": null
+                }
+            ],
+            "section": "The Solubility-Weighted Index (SWI) is an improved predictor of solubility"
+        },
+        {
+            "text": "The final weights were derived from the arithmetic means of the weights for individual amino acid residues obtained cross-validation (Supplementary Table S4) . We observed over a 20% change on the weights for cysteine (C) and histidine (H) residues (Fig 2C and  Supplementary Table S4 ). These results are in agreement with the contributions of cysteine and histidine residues as shown in Supplementary Fig S2B. We call the solubility score of a protein sequence calculated using the final weights the Solubility-Weighted Index (SWI). (Smith et al. 2003) . The solubility score of a protein sequence was calculated using a sequence composition scoring approach (Equation 1, using optimised weights , W instead of normalised B-factors ). These scores were used to compute the AUC scores for B training and test datasets. (B) Training and test performance of solubility prediction using optimised weights for 20 amino acid residues in a 10-fold cross-validation (mean AUC \u00b1 standard deviation). Related data and figures are available as Supplementary Table S3 and Supplementary Fig S4 and S5 . (C) Comparison between the 20 initial and final weights for amino acid residues. The final weights are derived from the arithmetic mean of the optimised weights from cross-validation. These weights are used to calculate SWI, the solubility score of a protein sequence, in the subsequent analyses. Filled circles, which represent amino acid residues, are colored by hydrophobicity (Kyte and Doolittle 1982) . Solid black circles denote aromatic amino acid residues phenylalanine (F), tyrosine (Y), tryptophan (W). Dotted diagonal line represents no change in weight. See also Supplementary Table S4 and Fig S4. AUC, Area Under the ROC Curve; ROC, Receiver Operating Characteristic; , arithmetic W mean of the weights of an amino acid residue optimised from 1,000 bootstrap samples in a cross-validation step.",
+            "cite_spans": [
+                {
+                    "start": 535,
+                    "end": 554,
+                    "text": "(Smith et al. 2003)",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 1472,
+                    "end": 1497,
+                    "text": "(Kyte and Doolittle 1982)",
+                    "ref_id": "BIBREF32"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 148,
+                    "end": 157,
+                    "text": "Table S4)",
+                    "ref_id": null
+                },
+                {
+                    "start": 249,
+                    "end": 284,
+                    "text": "(Fig 2C and  Supplementary Table S4",
+                    "ref_id": null
+                },
+                {
+                    "start": 389,
+                    "end": 411,
+                    "text": "Supplementary Fig S2B.",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1035,
+                    "end": 1057,
+                    "text": "Supplementary Table S3",
+                    "ref_id": null
+                },
+                {
+                    "start": 1062,
+                    "end": 1089,
+                    "text": "Supplementary Fig S4 and S5",
+                    "ref_id": null
+                },
+                {
+                    "start": 1667,
+                    "end": 1701,
+                    "text": "Supplementary Table S4 and Fig S4.",
+                    "ref_id": null
+                }
+            ],
+            "section": "The Solubility-Weighted Index (SWI) is an improved predictor of solubility"
+        },
+        {
+            "text": ". CC-BY 4.0 International license author/funder. It is made available under a The copyright holder for this preprint (which was not peer-reviewed) is the . https://doi.org/10.1101/2020.02.15.951012 doi: bioRxiv preprint To validate the cross-validation results, we used a dataset independent of the PSI:Biology data known as eSOL (Niwa et al. 2009 ) . This dataset consists of the solubility percentages of E. coli proteins determined using an E. coli cell-free system (N = 3,198) . Our solubility scoring using the final weights showed a significant improved correlation with E. coli protein solubility over the initial weights (Smith et al. 's normalised B-factors) [Spearman's rho of 0.50 (P = 9.46 \u2715 10 -206 ) versus 0.40 (P = 4.57 \u2715 10 -120 )]. We repeated the correlation analysis by removing extra amino acid residues including His-tags from the eSOL sequences (MRGSHHHHHHTDPALRA and GLCGR at the N-and C-termini, respectively). This artificial dataset was created based on the assumption that His-tags have little effect on solubility. We observed a slight decrease in correlation for this artificial dataset (Spearman's rho = 0.47, P= 3.67 \u2715 10-176), which may be due to the effects of His-tag in solubility and/or the limitation(s) of our approach that may overfit to His-tag fusion proteins.",
+            "cite_spans": [
+                {
+                    "start": 330,
+                    "end": 347,
+                    "text": "(Niwa et al. 2009",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 469,
+                    "end": 480,
+                    "text": "(N = 3,198)",
+                    "ref_id": null
+                },
+                {
+                    "start": 629,
+                    "end": 667,
+                    "text": "(Smith et al. 's normalised B-factors)",
+                    "ref_id": null
+                }
+            ],
+            "ref_spans": [],
+            "section": "5"
+        },
+        {
+            "text": "We performed Spearman's correlation analysis for both the PSI:Biology and eSOL datasets. SWI shows the strongest correlation with solubility compared to the standard and 9,920 protein sequence properties (Fig 3 and Supplementary Fig S2, respectively) . SWI also strongly correlates with flexibility, suggesting that SWI is also a good proxy for global structural flexibility. We asked whether protein solubility can be predicted by surface amino acid residues. To address this question, we examined a previously published dataset for the protein surface 'stickiness' of 397 E. coli proteins (Levy, De, and Teichmann 2012) . This dataset has the annotation for surface residues based on previously solved protein crystal structures. We observed little correlation between the protein surface 'stickiness' and the solubility data from eSOL (Spearman's rho = 0.05, P = 0.34, N = 348; Supplementary Fig S6A) . Next, we evaluated if amino acid composition scoring using surface residues is sufficient, optimising only the weights of surface residues should achieve similar or better results than SWI. As above, we iteratively refined the weights of surface residues using the Nelder-Mead optimisation algorithm. The method was initialised with Smith et al. 's normalised B-factors and a maximised correlation coefficient was the target. However, a low correlation was obtained upon convergence (Spearman's rho = 0.18, P = 7.20 \u2715 10 -4 ; Supplementary Fig  S6B) . In contrast, the SWI of the full-length sequences has a much stronger correlation with solubility (Spearman's rho = 0.46, P = 2.97 \u2715 10 -19 ; Supplementary Fig S6C) . These results suggest that the full-length of sequences contributes to protein solubility, not just surface residues, in which solubility is modulated by cotranslational folding (Natan et al. 2018 ) .",
+            "cite_spans": [
+                {
+                    "start": 591,
+                    "end": 621,
+                    "text": "(Levy, De, and Teichmann 2012)",
+                    "ref_id": "BIBREF34"
+                },
+                {
+                    "start": 1803,
+                    "end": 1821,
+                    "text": "(Natan et al. 2018",
+                    "ref_id": "BIBREF39"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 204,
+                    "end": 250,
+                    "text": "(Fig 3 and Supplementary Fig S2, respectively)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 881,
+                    "end": 903,
+                    "text": "Supplementary Fig S6A)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1446,
+                    "end": 1455,
+                    "text": "Fig  S6B)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1600,
+                    "end": 1622,
+                    "text": "Supplementary Fig S6C)",
+                    "ref_id": null
+                }
+            ],
+            "section": "5"
+        },
+        {
+            "text": "To understand the properties of soluble and insoluble proteins, we determined the enrichment of amino acid residues in the PSI:Biology targets relative to the eSOL sequences (see Methods). We observed that the PSI:Biology targets are enriched in charged residues lysine (K), glutamate (E) and aspartate (D), and depleted in aromatic residues tryptophan (W), albeit to a lesser extend for insoluble proteins (Supplementary Fig S7A) . As expected, cysteine residues (C) are enriched in the PSI:Biology insoluble proteins, supporting previous findings that cysteine residues contribute to poor solubility in the E. coli expression system (Diaz et al. 2010; Wilkinson and Harrison 1991) .",
+            "cite_spans": [
+                {
+                    "start": 635,
+                    "end": 653,
+                    "text": "(Diaz et al. 2010;",
+                    "ref_id": "BIBREF13"
+                },
+                {
+                    "start": 654,
+                    "end": 682,
+                    "text": "Wilkinson and Harrison 1991)",
+                    "ref_id": "BIBREF67"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 407,
+                    "end": 430,
+                    "text": "(Supplementary Fig S7A)",
+                    "ref_id": null
+                }
+            ],
+            "section": "5"
+        },
+        {
+            "text": "In addition, we compared the SWI of random sequences with the PSI:Biology and eSOL sequences. We included an analysis of random sequences to confirm whether SWI can distinguish between biological and random sequences. We found that the SWI scores of soluble proteins are higher than those of insoluble proteins (Supplementary Fig S7B) , and that true biological sequences also tend to have higher SWI scores than random sequences, highlighting a potential evolutionary selection for solubility.",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 311,
+                    "end": 334,
+                    "text": "(Supplementary Fig S7B)",
+                    "ref_id": null
+                }
+            ],
+            "section": "5"
+        },
+        {
+            "text": "To confirm the usefulness of SWI in solubility prediction, we compared it with the existing tools Protein-Sol (Hebditch et al. 2017 ) , CamSol v2.1 (Sormanni, Aprile, and Vendruscolo 2015; Sormanni et al. 2017) , PaRSnIP ) , DeepSol v0.3 (Khurana et al. 2018) , the Wilkinson-Harrison model (Davis et al. 1999; Harrison 2000; Wilkinson and Harrison 1991) , and ccSOL omics (Agostini et al. 2014 ) . We did not include the specialised tools that model protein structural information such as surface geometry, surface charges and solvent accessibility because these tools require prior knowledge of protein tertiary Fig 4A) . Our SWI C program is also the fastest solubility prediction algorithm (Table 1, Fig 4B and Supplementary Table S7 ). The wall time was reported at the level of machine precision (mean seconds \u00b1 standard deviation). A total of 10 sequences were chosen from the PSI:Biology and eSOL datasets, related to Fig 4B and Supplementary Table S7 (see Methods).   b For SWI, mean AUC \u00b1 standard deviation was calculated from a 10-fold cross-validation (see Methods). For other tools, no cross-validations were done as the AUC scores were calculated directly from the individual subsets used for cross-validation. c DeepSol reports solubility prediction as probability and binary classes. The probability of solubility was used to calculate AUC and Spearman's correlation due to better results. AUC, Area Under the ROC Curve; NA, not applicable; PDB, Protein Data Bank; PSI:Biology, Protein Structure Initiative:Biology; ROC, Receiver Operating Characteristic; R s , Spearman's rho; SWI, Solubility-Weighted Index; s, seconds.",
+            "cite_spans": [
+                {
+                    "start": 110,
+                    "end": 131,
+                    "text": "(Hebditch et al. 2017",
+                    "ref_id": "BIBREF20"
+                },
+                {
+                    "start": 148,
+                    "end": 188,
+                    "text": "(Sormanni, Aprile, and Vendruscolo 2015;",
+                    "ref_id": "BIBREF54"
+                },
+                {
+                    "start": 189,
+                    "end": 210,
+                    "text": "Sormanni et al. 2017)",
+                    "ref_id": "BIBREF53"
+                },
+                {
+                    "start": 238,
+                    "end": 259,
+                    "text": "(Khurana et al. 2018)",
+                    "ref_id": "BIBREF29"
+                },
+                {
+                    "start": 291,
+                    "end": 310,
+                    "text": "(Davis et al. 1999;",
+                    "ref_id": "BIBREF12"
+                },
+                {
+                    "start": 311,
+                    "end": 325,
+                    "text": "Harrison 2000;",
+                    "ref_id": "BIBREF19"
+                },
+                {
+                    "start": 326,
+                    "end": 354,
+                    "text": "Wilkinson and Harrison 1991)",
+                    "ref_id": "BIBREF67"
+                },
+                {
+                    "start": 373,
+                    "end": 394,
+                    "text": "(Agostini et al. 2014",
+                    "ref_id": "BIBREF1"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 614,
+                    "end": 621,
+                    "text": "Fig 4A)",
+                    "ref_id": null
+                },
+                {
+                    "start": 694,
+                    "end": 737,
+                    "text": "(Table 1, Fig 4B and Supplementary Table S7",
+                    "ref_id": "TABREF2"
+                },
+                {
+                    "start": 926,
+                    "end": 936,
+                    "text": "Fig 4B and",
+                    "ref_id": null
+                },
+                {
+                    "start": 937,
+                    "end": 978,
+                    "text": "Supplementary Table S7 (see Methods).   b",
+                    "ref_id": "TABREF3"
+                }
+            ],
+            "section": "SWI outperforms many protein solubility prediction tools"
+        },
+        {
+            "text": "Prediction accuracy of solubility prediction tools using the above cross-validation sets (Fig 2A) . For SWI, the test AUC scores were calculated from a 10-fold cross-validation (i.e., a boxplot representation of Fig 2B) . For other tools, the test AUC scores were calculated directly from the individual subsets used for cross-validation. No cross-validations were done. CamSol and ccSOL omics are only available as web servers (no fill colors). (B) Wall time of protein solubility prediction tools per sequence (log scale). All command line tools were run three times using 10 sequences selected from the PSI:Biology and eSOL datasets. Related data is available as Supplementary To demonstrate a use case for SWI, we developed the Soluble Domain for Protein Expression (SoDoPE) web server (see Methods and https://tisigner.com/sodope ). Upon sequence submission, the SoDoPE web server enables users to navigate the protein sequence and its domains for predicting and maximising protein expression and solubility. ",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 89,
+                    "end": 97,
+                    "text": "(Fig 2A)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 212,
+                    "end": 219,
+                    "text": "Fig 2B)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "Fig 4. SWI outperforms existing protein solubility prediction tools. (A)"
+        },
+        {
+            "text": "Protein structural flexibility has been associated with conformal variations, functions, thermal stability, ligand binding and disordered regions (Mauno Vihinen 1987; Teague 2003; Ma 2005; Radivojac 2004; Schlessinger and Rost 2005; Yuan, Bailey, and Teasdale 2005; Yin, Li, and Li 2011) . However, the use of flexibility in solubility prediction has been overlooked although their relationship has previously been noted (Tsumoto et al. 2003) . In this study, we have shown that flexibility strongly correlates with solubility (Fig 3) . Based on the normalised B-factors used to compute flexibility, we have derived a new position and length independent weights to score the solubility of a given protein sequence (i.e., sequence composition based score). We call this protein solubility score as SWI.",
+            "cite_spans": [
+                {
+                    "start": 146,
+                    "end": 166,
+                    "text": "(Mauno Vihinen 1987;",
+                    "ref_id": "BIBREF60"
+                },
+                {
+                    "start": 167,
+                    "end": 179,
+                    "text": "Teague 2003;",
+                    "ref_id": "BIBREF57"
+                },
+                {
+                    "start": 180,
+                    "end": 188,
+                    "text": "Ma 2005;",
+                    "ref_id": "BIBREF35"
+                },
+                {
+                    "start": 189,
+                    "end": 204,
+                    "text": "Radivojac 2004;",
+                    "ref_id": "BIBREF45"
+                },
+                {
+                    "start": 205,
+                    "end": 232,
+                    "text": "Schlessinger and Rost 2005;",
+                    "ref_id": "BIBREF49"
+                },
+                {
+                    "start": 233,
+                    "end": 265,
+                    "text": "Yuan, Bailey, and Teasdale 2005;",
+                    "ref_id": "BIBREF75"
+                },
+                {
+                    "start": 266,
+                    "end": 287,
+                    "text": "Yin, Li, and Li 2011)",
+                    "ref_id": "BIBREF74"
+                },
+                {
+                    "start": 421,
+                    "end": 442,
+                    "text": "(Tsumoto et al. 2003)",
+                    "ref_id": "BIBREF59"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 527,
+                    "end": 534,
+                    "text": "(Fig 3)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Upon further inspection, we observe some interesting properties in SWI. SWI anti-correlates with helix propensity, GRAVY, aromaticity and isoelectric point (Fig 2C and 3) , suggesting that SWI incorporates the key propensities affecting solubility. Amino acid residues with a lower aromaticity or hydrophilic are known to improve protein solubility (Trevino, Martin Scholtz, and Nick Pace 2007; Niwa et al. 2009; Kramer et al. 2012; Warwicker, Charonis, and Curtis 2014; Han et al. 2019; Wilkinson and Harrison 1991) . Consistent with previous studies, the charged residues aspartate (D), glutamate (E) and lysine (K) are associated with high solubility, whereas the aromatic residues phenylalanine (F), tryptophan (W) and tyrosine (Y) are associated with low solubility (Fig 2C and Supplementary Fig S7A) . Cysteine residue (C) has the lowest weight probably because disulfide bonds couldn't be properly formed in the E. coli expression hosts (Stewart, Aslund, and Beckwith 1998; Rosano and Ceccarelli 2014; Jia and Jeon 2016; Aslund and Beckwith 1999) . The weights are likely different if the solubility analysis was done using the reductase-deficient, E. coli Origami host strains, or eukaryotic hosts.",
+            "cite_spans": [
+                {
+                    "start": 349,
+                    "end": 394,
+                    "text": "(Trevino, Martin Scholtz, and Nick Pace 2007;",
+                    "ref_id": "BIBREF58"
+                },
+                {
+                    "start": 395,
+                    "end": 412,
+                    "text": "Niwa et al. 2009;",
+                    "ref_id": "BIBREF41"
+                },
+                {
+                    "start": 413,
+                    "end": 432,
+                    "text": "Kramer et al. 2012;",
+                    "ref_id": "BIBREF30"
+                },
+                {
+                    "start": 433,
+                    "end": 470,
+                    "text": "Warwicker, Charonis, and Curtis 2014;",
+                    "ref_id": "BIBREF65"
+                },
+                {
+                    "start": 471,
+                    "end": 487,
+                    "text": "Han et al. 2019;",
+                    "ref_id": "BIBREF18"
+                },
+                {
+                    "start": 488,
+                    "end": 516,
+                    "text": "Wilkinson and Harrison 1991)",
+                    "ref_id": "BIBREF67"
+                },
+                {
+                    "start": 944,
+                    "end": 980,
+                    "text": "(Stewart, Aslund, and Beckwith 1998;",
+                    "ref_id": "BIBREF55"
+                },
+                {
+                    "start": 981,
+                    "end": 1008,
+                    "text": "Rosano and Ceccarelli 2014;",
+                    "ref_id": "BIBREF48"
+                },
+                {
+                    "start": 1009,
+                    "end": 1027,
+                    "text": "Jia and Jeon 2016;",
+                    "ref_id": "BIBREF27"
+                },
+                {
+                    "start": 1028,
+                    "end": 1053,
+                    "text": "Aslund and Beckwith 1999)",
+                    "ref_id": "BIBREF2"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 156,
+                    "end": 170,
+                    "text": "(Fig 2C and 3)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 771,
+                    "end": 805,
+                    "text": "(Fig 2C and Supplementary Fig S7A)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "Higher helix propensity has been reported to increase solubility (Idicula- Thomas and Balaji 2005; Huang et al. 2012 ) . However, our analysis has shown that helical and turn propensities anti-correlate with solubility, whereas sheet propensity lacks correlation with solubility, suggesting that disordered regions may tend to be more soluble (Fig 3) . In accordance with these, SWI has stronger negative correlations with helix and turn propensities. These findings also suggest that protein solubility can be largely explained by overall amino acid composition, not just the surface amino acid residues. This idea aligns with our understanding that protein solubility and folding are closely linked, and folding occurs cotranscriptionally, a complex process that is driven various intrinsic and extrinsic factors (Wilkinson and Harrison 1991; Chiti et al. 2003; Tartaglia et al. 2004; Diaz et al. 2010) . However, it is unclear why sheet propensity has little contribution to solubility because \u03b2-sheets have been shown to link closely with protein aggregation (Idicula-Thomas and Balaji 2005) .",
+            "cite_spans": [
+                {
+                    "start": 75,
+                    "end": 98,
+                    "text": "Thomas and Balaji 2005;",
+                    "ref_id": "BIBREF26"
+                },
+                {
+                    "start": 99,
+                    "end": 116,
+                    "text": "Huang et al. 2012",
+                    "ref_id": "BIBREF25"
+                },
+                {
+                    "start": 815,
+                    "end": 844,
+                    "text": "(Wilkinson and Harrison 1991;",
+                    "ref_id": "BIBREF67"
+                },
+                {
+                    "start": 845,
+                    "end": 863,
+                    "text": "Chiti et al. 2003;",
+                    "ref_id": "BIBREF8"
+                },
+                {
+                    "start": 864,
+                    "end": 886,
+                    "text": "Tartaglia et al. 2004;",
+                    "ref_id": "BIBREF56"
+                },
+                {
+                    "start": 887,
+                    "end": 904,
+                    "text": "Diaz et al. 2010)",
+                    "ref_id": "BIBREF13"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 343,
+                    "end": 350,
+                    "text": "(Fig 3)",
+                    "ref_id": "FIGREF2"
+                }
+            ],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "We conclude that SWI is a well-balanced index that is derived from a simple sequence composition scoring method. To demonstrate the usefulness of SWI, we developed a web server called SoDoPE (Soluble Domain for Protein Expression; https://tisigner.com/sodope ). SoDoPE calculates the probability of solubility of a user-selected region based on SWI, which can either be a full-length or a partial sequence (see Methods and Supplementary  Table S8 ). This implementation is based on our observation that some protein domains tend to be more soluble than the others. To demonstrate this point, we have analysed three commercial monoclonal antibodies and the severe acute respiratory syndrome coronavirus proteomes (SARS-CoV and SARS-CoV-2) (Wang et al. 2009; Marra et al. 2003; F. Wu et al. 2020) (Supplementary Fig S8 and S9 ). These soluble domains may enhance protein solubility as a whole. SoDoPE also provides options for solubility prediction at the presence of solubility fusion tags. Similarly, solubility tags may act as soluble 'protein domains' that can outweigh the aggregation propensity of insoluble proteins. However, some soluble fusion proteins may become insoluble after proteolytic cleavage of solubility tags (Lebendiker and Danieli 2014) . In addition, SoDoPE is integrated with TIsigner, a gene optimisation web service for protein expression. This pipeline provides a holistic approach to improve the outcome of recombinant protein expression.",
+            "cite_spans": [
+                {
+                    "start": 738,
+                    "end": 756,
+                    "text": "(Wang et al. 2009;",
+                    "ref_id": "BIBREF64"
+                },
+                {
+                    "start": 757,
+                    "end": 775,
+                    "text": "Marra et al. 2003;",
+                    "ref_id": "BIBREF36"
+                },
+                {
+                    "start": 776,
+                    "end": 794,
+                    "text": "F. Wu et al. 2020)",
+                    "ref_id": null
+                },
+                {
+                    "start": 1227,
+                    "end": 1256,
+                    "text": "(Lebendiker and Danieli 2014)",
+                    "ref_id": "BIBREF33"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 423,
+                    "end": 446,
+                    "text": "Supplementary  Table S8",
+                    "ref_id": null
+                },
+                {
+                    "start": 795,
+                    "end": 823,
+                    "text": "(Supplementary Fig S8 and S9",
+                    "ref_id": null
+                }
+            ],
+            "section": "DISCUSSION"
+        },
+        {
+            "text": "The standard protein sequence properties were calculated using the Bio.SeqUtils.ProtParam module of Biopython v1.73 (Cock et al. 2009 ) . All miscellaneous protein sequence properties were computed using the R package protr v1.6-2 (N. Xiao et al. 2015) .",
+            "cite_spans": [
+                {
+                    "start": 116,
+                    "end": 133,
+                    "text": "(Cock et al. 2009",
+                    "ref_id": "BIBREF9"
+                },
+                {
+                    "start": 235,
+                    "end": 252,
+                    "text": "Xiao et al. 2015)",
+                    "ref_id": "BIBREF71"
+                }
+            ],
+            "ref_spans": [],
+            "section": "Protein sequence properties"
+        },
+        {
+            "text": "We used the standard and miscellaneous protein sequence properties to predict the solubility of the PSI:Biology and eSOL targets (N=12,216 and 3,198, respectively) (Seiler et al. 2014; Niwa et al. 2009 ) . For method comparison, we chose the protein solubility prediction tools that are scalable (Table 1) . Default configurations were used for running the command line tools.",
+            "cite_spans": [
+                {
+                    "start": 129,
+                    "end": 163,
+                    "text": "(N=12,216 and 3,198, respectively)",
+                    "ref_id": null
+                },
+                {
+                    "start": 164,
+                    "end": 184,
+                    "text": "(Seiler et al. 2014;",
+                    "ref_id": "BIBREF51"
+                },
+                {
+                    "start": 185,
+                    "end": 201,
+                    "text": "Niwa et al. 2009",
+                    "ref_id": "BIBREF41"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 296,
+                    "end": 305,
+                    "text": "(Table 1)",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Protein solubility prediction"
+        },
+        {
+            "text": "To benchmark the wall time of solubility prediction tools, we selected 10 sequences that span a large range of lengths from the PSI:Biology and eSOL datasets (from 36 to 2389 residues). All the tools were run and timed using a single process without using GPUs on a high performance computer [ /usr/bin/time -f '%E' <command> ; CentOS Linux 7 (Core) operating system, 72 cores in 2\u00d7 Broadwell nodes (E5-2695v4, 2.1 GHz, dual socket 18 cores per socket), 528 GiB memory]. Single sequence fasta files were used as input files.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Protein solubility prediction"
+        },
+        {
+            "text": "To improve protein solubility prediction, we optimised the most recently published set of normalised B-factors using the PSI:Biology dataset (Smith et al. 2003) (Fig 2) . To avoid including homologous sequences in the test and training sets, we clustered the PSI:Biology targets using USEARCH v11.0.667, 32-bit (Edgar 2010) . His-tag sequences were removed from all sequences before clustering to avoid false cluster inclusions. We obtained 5,050 clusters using the parameters: -cluster_fast <input_file> -id 0.4 -msaout <output_file> -threads 4 . These clusters were divided into 10 subsets with approximately 1,200 sequences per subsets manually . The subsequent steps were done with His-tag sequences. We used Smith et al. 's normalised B-factors as the initial weights to maximise AUC using these 10 subsets with a 10-fold cross-validation. Since AUC is non-differentiable, we used the Nelder-Mead optimisation method (implemented in SciPy v1.2.0), which is a derivative-free, heuristic, simplex-based optimisation (Oliphant 2007; Millman and Aivazis 2011; Nelder and Mead 1965) . For each step in cross-validation, we used 1,000 bootstrap resamplings containing 1,000 soluble and 1,000 insoluble proteins. Optimisation was carried out for each sample, giving 1,000 sets of weights. The arithmetic mean of these weights was used to determine the training and test AUC for the cross-validation step (Fig 2A) .",
+            "cite_spans": [
+                {
+                    "start": 141,
+                    "end": 160,
+                    "text": "(Smith et al. 2003)",
+                    "ref_id": "BIBREF52"
+                },
+                {
+                    "start": 311,
+                    "end": 323,
+                    "text": "(Edgar 2010)",
+                    "ref_id": "BIBREF14"
+                },
+                {
+                    "start": 1019,
+                    "end": 1034,
+                    "text": "(Oliphant 2007;",
+                    "ref_id": "BIBREF42"
+                },
+                {
+                    "start": 1035,
+                    "end": 1060,
+                    "text": "Millman and Aivazis 2011;",
+                    "ref_id": "BIBREF38"
+                },
+                {
+                    "start": 1061,
+                    "end": 1082,
+                    "text": "Nelder and Mead 1965)",
+                    "ref_id": "BIBREF40"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 161,
+                    "end": 168,
+                    "text": "(Fig 2)",
+                    "ref_id": "FIGREF1"
+                },
+                {
+                    "start": 1402,
+                    "end": 1410,
+                    "text": "(Fig 2A)",
+                    "ref_id": "FIGREF1"
+                }
+            ],
+            "section": "SWI"
+        },
+        {
+            "text": "To examine the enrichment of amino acid residues in soluble and insoluble proteins, we compute the bit scores for each amino acid residue in the PSI:Biology soluble and insoluble groups ( Supplementary Fig S7A) , we normalised the count of each residue in each x) ( group by the total number of residues in that group. We used the normalised count of amino acid residues using the eSOL E. coli sequences as the background. The bit score of residue for soluble or insoluble group is then given by the following equation:",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 188,
+                    "end": 210,
+                    "text": "Supplementary Fig S7A)",
+                    "ref_id": null
+                }
+            ],
+            "section": "Bit score"
+        },
+        {
+            "text": "where is the normalised count of residue in the PSI:Biology soluble or insoluble (x) f i x) ( group and is the normalised count in the eSOL sequences. (x) f eSOL For a control, random protein sequences were generated by incrementing the length of sequence, starting from a length of 50 residues to 6,000 residues with a step size of 50 residues. A hundred random sequences were generated for each length, giving a total of 12,000 unique random sequences.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "Bit score"
+        },
+        {
+            "text": "To estimate the probability of solubility using SWI, we fitted the following logistic regression to the PSI:Biology dataset:",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SoDoPE web server"
+        },
+        {
+            "text": "(3) robability of solubility 1/(1 exp( ax b))) p = + \u2212 ( + where, is the SWI of a given protein sequence, and . The x 81.05812 a = \u2212 2.7775 b = 6 P-value of log-likelihood ratio test was less than machine precision. Equation 3 can be used to predict the solubility of a protein sequence given that the protein is successfully expressed in E. coli ( Supplementary Table S8 ).",
+            "cite_spans": [],
+            "ref_spans": [
+                {
+                    "start": 347,
+                    "end": 371,
+                    "text": "( Supplementary Table S8",
+                    "ref_id": null
+                }
+            ],
+            "section": "The SoDoPE web server"
+        },
+        {
+            "text": "full-length sequence) to examine the probability of solubility, flexibility and GRAVY. This functionality enables protein biochemists to plan their experiments and opt for the domains or regions with high probability of solubility. Furthermore, we implemented a simulated annealing algorithm that maximised the probability of solubility for a given region by generating a list of regions with extended boundaries. Users can also predict the improvement in solubility by selecting a commonly used solubility tag or a custom tag.",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "The SoDoPE web server"
+        },
+        {
+            "text": "We linked SoDoPE with TIsigner, which is our existing web server for maximising the accessibility of translation initiation sites (Bhandari, Lim, and Gardner 2019) . This pipeline allows users to predict and optimise both protein expression and solubility for a gene of interest. The SoDoPE web server is freely available at https://tisigner.com/sodope . ",
+            "cite_spans": [
+                {
+                    "start": 130,
+                    "end": 163,
+                    "text": "(Bhandari, Lim, and Gardner 2019)",
+                    "ref_id": "BIBREF3"
+                }
+            ],
+            "ref_spans": [],
+            "section": "The SoDoPE web server"
+        },
+        {
+            "text": "Jupyter notebook of our analysis can be found at https://github.com/Gardner-BinfLab/SoDoPE_paper_2020 . The source code for our solubility prediction server (SoDoPE) can be found at https://github.com/Gardner-BinfLab/TISIGNER-ReactJS .  532  533  534  535  536  537  538  539  540  541  542  543  544  545  546  547  548  549  550  551  552  553  554  555  556  557  558  559  560  561  562  563  564  565  566  567  568  569  570  571  572  573  574  575  576  577  578  579  580  581  582 . CC-BY 4.0 International license author/funder. It is made available under a The copyright holder for this preprint (which was not peer-reviewed) is the . https://doi.org/10.1101/2020.02.15.951012 doi: bioRxiv preprint . CC-BY 4.0 International license author/funder. It is made available under a The copyright holder for this preprint (which was not peer-reviewed) is the . https://doi.org/10. 1101 /2020 ",
+            "cite_spans": [
+                {
+                    "start": 887,
+                    "end": 891,
+                    "text": "1101",
+                    "ref_id": null
+                },
+                {
+                    "start": 892,
+                    "end": 897,
+                    "text": "/2020",
+                    "ref_id": "BIBREF68"
+                }
+            ],
+            "ref_spans": [
+                {
+                    "start": 234,
+                    "end": 490,
+                    "text": ".  532  533  534  535  536  537  538  539  540  541  542  543  544  545  546  547  548  549  550  551  552  553  554  555  556  557  558  559  560  561  562  563  564  565  566  567  568  569  570  571  572  573  574  575  576  577  578  579  580  581  582",
+                    "ref_id": "TABREF2"
+                }
+            ],
+            "section": "Code and data availability"
+        }
+    ],
+    "bib_entries": {
+        "BIBREF0": {
+            "ref_id": "b0",
+            "title": "Robotic Cloning and Protein Production Platform of the Northeast Structural Genomics Consortium",
+            "authors": [
+                {
+                    "first": "Thomas",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Acton",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Kristin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Rong",
+                    "middle": [],
+                    "last": "Gunsalus",
+                    "suffix": ""
+                },
+                {
+                    "first": "Li",
+                    "middle": [
+                        "Chung"
+                    ],
+                    "last": "Xiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "James",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "Michael",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Aramini",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yi-Wen",
+                    "middle": [],
+                    "last": "Baran",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Chiang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Methods in Enzymology",
+            "volume": "394",
+            "issn": "",
+            "pages": "210--253",
+            "other_ids": {}
+        },
+        "BIBREF1": {
+            "ref_id": "b1",
+            "title": "ccSOL Omics: A Webserver for Solubility Prediction of Endogenous and Heterologous Expression in Escherichia Coli",
+            "authors": [
+                {
+                    "first": "Federico",
+                    "middle": [],
+                    "last": "Agostini",
+                    "suffix": ""
+                },
+                {
+                    "first": "Davide",
+                    "middle": [],
+                    "last": "Cirillo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Carmen",
+                    "middle": [
+                        "Maria"
+                    ],
+                    "last": "Livi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Riccardo",
+                    "middle": [
+                        "Delli"
+                    ],
+                    "last": "Ponti",
+                    "suffix": ""
+                },
+                {
+                    "first": "Gian",
+                    "middle": [
+                        "Gaetano"
+                    ],
+                    "last": "Tartaglia",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Bioinformatics",
+            "volume": "30",
+            "issn": "20",
+            "pages": "2975--77",
+            "other_ids": {}
+        },
+        "BIBREF2": {
+            "ref_id": "b2",
+            "title": "The Thioredoxin Superfamily: Redundancy, Specificity, and Gray-Area Genomics",
+            "authors": [
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Aslund",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Beckwith",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Journal of Bacteriology",
+            "volume": "181",
+            "issn": "5",
+            "pages": "1375--79",
+            "other_ids": {}
+        },
+        "BIBREF3": {
+            "ref_id": "b3",
+            "title": "Highly Accessible Translation Initiation Sites Are Predictive of Successful Heterologous Protein Expression",
+            "authors": [
+                {
+                    "first": "Bikash",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Bhandari",
+                    "suffix": ""
+                },
+                {
+                    "first": "Paul",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Chun Shen Lim",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Gardner",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1101/726752"
+                ]
+            }
+        },
+        "BIBREF4": {
+            "ref_id": "b4",
+            "title": "Positional Flexibilities of Amino Acid Residues in Globular Proteins",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Bhaskaran",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Ponnuswamy",
+                    "suffix": ""
+                }
+            ],
+            "year": 1988,
+            "venue": "International Journal of Peptide and Protein Research",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1111/j.1399-3011.1988.tb01258.x"
+                ]
+            }
+        },
+        "BIBREF6": {
+            "ref_id": "b6",
+            "title": "Learning to Predict Expression Efficacy of Vectors in Recombinant Protein Production",
+            "authors": [
+                {
+                    "first": "Wen-Ching",
+                    "middle": [],
+                    "last": "Chan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Po-Huang",
+                    "middle": [],
+                    "last": "Liang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yan-Ping",
+                    "middle": [],
+                    "last": "Shih",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ueng-Cheng",
+                    "middle": [],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Wen-Chang",
+                    "middle": [],
+                    "last": "Lin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Chun-Nan",
+                    "middle": [],
+                    "last": "Hsu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "BMC Bioinformatics",
+            "volume": "11",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF7": {
+            "ref_id": "b7",
+            "title": "TargetDB: A Target Registration Database for Structural Genomics Projects",
+            "authors": [
+                {
+                    "first": "Li",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Rose",
+                    "middle": [],
+                    "last": "Oughtred",
+                    "suffix": ""
+                },
+                {
+                    "first": "Helen",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Berman",
+                    "suffix": ""
+                },
+                {
+                    "first": "John",
+                    "middle": [],
+                    "last": "Westbrook",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Bioinformatics",
+            "volume": "20",
+            "issn": "16",
+            "pages": "2860--62",
+            "other_ids": {}
+        },
+        "BIBREF8": {
+            "ref_id": "b8",
+            "title": "Rationalization of the Effects of Mutations on Peptide and Protein Aggregation Rates",
+            "authors": [
+                {
+                    "first": "Fabrizio",
+                    "middle": [],
+                    "last": "Chiti",
+                    "suffix": ""
+                },
+                {
+                    "first": "Massimo",
+                    "middle": [],
+                    "last": "Stefani",
+                    "suffix": ""
+                },
+                {
+                    "first": "Niccol\u00f2",
+                    "middle": [],
+                    "last": "Taddei",
+                    "suffix": ""
+                },
+                {
+                    "first": "Giampietro",
+                    "middle": [],
+                    "last": "Ramponi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Christopher",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Dobson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nature",
+            "volume": "424",
+            "issn": "6950",
+            "pages": "805--813",
+            "other_ids": {}
+        },
+        "BIBREF9": {
+            "ref_id": "b9",
+            "title": "Biopython: Freely Available Python Tools for Computational Molecular Biology and Bioinformatics",
+            "authors": [
+                {
+                    "first": "Peter",
+                    "middle": [
+                        "J A"
+                    ],
+                    "last": "Cock",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tiago",
+                    "middle": [],
+                    "last": "Antao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jeffrey",
+                    "middle": [
+                        "T"
+                    ],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Brad",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Chapman",
+                    "suffix": ""
+                },
+                {
+                    "first": "Cymon",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Cox",
+                    "suffix": ""
+                },
+                {
+                    "first": "Andrew",
+                    "middle": [],
+                    "last": "Dalke",
+                    "suffix": ""
+                },
+                {
+                    "first": "Iddo",
+                    "middle": [],
+                    "last": "Friedberg",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "",
+            "volume": "25",
+            "issn": "",
+            "pages": "1422--1445",
+            "other_ids": {}
+        },
+        "BIBREF10": {
+            "ref_id": "b10",
+            "title": "Fusion Tags for Protein Solubility, Purification and Immunogenicity in Escherichia Coli: The Novel Fh8 System",
+            "authors": [
+                {
+                    "first": "Sofia",
+                    "middle": [],
+                    "last": "Costa",
+                    "suffix": ""
+                },
+                {
+                    "first": "Andr\u00e9",
+                    "middle": [],
+                    "last": "Almeida",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ant\u00f3nio",
+                    "middle": [],
+                    "last": "Castro",
+                    "suffix": ""
+                },
+                {
+                    "first": "Luc\u00edlia",
+                    "middle": [],
+                    "last": "Domingues",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Frontiers in Microbiology",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF11": {
+            "ref_id": "b11",
+            "title": "Protein Flexibility in the Light of Structural Alphabets",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Craveur",
+                    "suffix": ""
+                },
+                {
+                    "first": "Agnel",
+                    "middle": [
+                        "P"
+                    ],
+                    "last": "Pierrick",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jeremy",
+                    "middle": [],
+                    "last": "Joseph",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Esque",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Tarun",
+                    "suffix": ""
+                },
+                {
+                    "first": "Floriane",
+                    "middle": [],
+                    "last": "Narwani",
+                    "suffix": ""
+                },
+                {
+                    "first": "Nicolas",
+                    "middle": [],
+                    "last": "No\u00ebl",
+                    "suffix": ""
+                },
+                {
+                    "first": "Matthieu",
+                    "middle": [],
+                    "last": "Shinada",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Goguet",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Frontiers in Molecular Biosciences",
+            "volume": "2",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF12": {
+            "ref_id": "b12",
+            "title": "New Fusion Protein Systems Designed to Give Soluble Expression in Escherichia Coli",
+            "authors": [
+                {
+                    "first": "G",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Davis",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [],
+                    "last": "Elisee",
+                    "suffix": ""
+                },
+                {
+                    "first": "D",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Newham",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Harrison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1999,
+            "venue": "Biotechnology and Bioengineering",
+            "volume": "65",
+            "issn": "4",
+            "pages": "382--88",
+            "other_ids": {}
+        },
+        "BIBREF13": {
+            "ref_id": "b13",
+            "title": "Prediction of Protein Solubility in Escherichia Coli Using Logistic Regression",
+            "authors": [
+                {
+                    "first": "Armando",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Diaz",
+                    "suffix": ""
+                },
+                {
+                    "first": "Emanuele",
+                    "middle": [],
+                    "last": "Tomba",
+                    "suffix": ""
+                },
+                {
+                    "first": "Reese",
+                    "middle": [],
+                    "last": "Lennarson",
+                    "suffix": ""
+                },
+                {
+                    "first": "Rex",
+                    "middle": [],
+                    "last": "Richard",
+                    "suffix": ""
+                },
+                {
+                    "first": "Miguel",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Bagajewicz",
+                    "suffix": ""
+                },
+                {
+                    "first": "Roger",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Harrison",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Biotechnology and Bioengineering",
+            "volume": "105",
+            "issn": "2",
+            "pages": "374--83",
+            "other_ids": {}
+        },
+        "BIBREF14": {
+            "ref_id": "b14",
+            "title": "Search and Clustering Orders of Magnitude Faster than BLAST",
+            "authors": [
+                {
+                    "first": "Robert",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Edgar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Bioinformatics",
+            "volume": "26",
+            "issn": "",
+            "pages": "2460--61",
+            "other_ids": {}
+        },
+        "BIBREF15": {
+            "ref_id": "b15",
+            "title": "Enhancement of Soluble Protein Expression through the Use of Fusion Tags",
+            "authors": [
+                {
+                    "first": "Dominic",
+                    "middle": [],
+                    "last": "Esposito",
+                    "suffix": ""
+                },
+                {
+                    "first": "Deb",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Chatterjee",
+                    "suffix": ""
+                }
+            ],
+            "year": 2006,
+            "venue": "Current Opinion in Biotechnology",
+            "volume": "17",
+            "issn": "4",
+            "pages": "353--58",
+            "other_ids": {}
+        },
+        "BIBREF16": {
+            "ref_id": "b16",
+            "title": "Prediction of Peptide and Protein Propensity for Amyloid Formation",
+            "authors": [
+                {
+                    "first": "Carlos",
+                    "middle": [],
+                    "last": "Fam\u00edlia",
+                    "suffix": ""
+                },
+                {
+                    "first": "Sarah",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Dennison",
+                    "suffix": ""
+                },
+                {
+                    "first": "Alexandre",
+                    "middle": [],
+                    "last": "Quintas",
+                    "suffix": ""
+                },
+                {
+                    "first": "David",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Phoenix",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "PloS One",
+            "volume": "10",
+            "issn": "8",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF17": {
+            "ref_id": "b17",
+            "title": "A Review of Machine Learning Methods to Predict the Solubility of Overexpressed Recombinant Proteins in Escherichia Coli",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Habibi",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Narjeskhatoon",
+                    "suffix": ""
+                },
+                {
+                    "first": "Z",
+                    "middle": [],
+                    "last": "Siti",
+                    "suffix": ""
+                },
+                {
+                    "first": "Alireza",
+                    "middle": [],
+                    "last": "Mohd Hashim",
+                    "suffix": ""
+                },
+                {
+                    "first": "Mohammed Razip",
+                    "middle": [],
+                    "last": "Norouzi",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Samian",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "BMC Bioinformatics",
+            "volume": "15",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF18": {
+            "ref_id": "b18",
+            "title": "Improve Protein Solubility and Activity Based on Machine Learning Models",
+            "authors": [
+                {
+                    "first": "Xi",
+                    "middle": [],
+                    "last": "Han",
+                    "suffix": ""
+                },
+                {
+                    "first": "Wenbo",
+                    "middle": [],
+                    "last": "Ning",
+                    "suffix": ""
+                },
+                {
+                    "first": "Xiaoqiang",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                },
+                {
+                    "first": "Xiaonan",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Kang",
+                    "middle": [],
+                    "last": "Zhou",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1101/817890"
+                ]
+            }
+        },
+        "BIBREF19": {
+            "ref_id": "b19",
+            "title": "Expression of Soluble Heterologous Proteins via Fusion with NusA Protein",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Harrison",
+                    "suffix": ""
+                }
+            ],
+            "year": 2000,
+            "venue": "Innovations",
+            "volume": "11",
+            "issn": "",
+            "pages": "4--7",
+            "other_ids": {}
+        },
+        "BIBREF20": {
+            "ref_id": "b20",
+            "title": "Protein-Sol: A Web Tool for Predicting Protein Solubility from Sequence",
+            "authors": [
+                {
+                    "first": "Max",
+                    "middle": [],
+                    "last": "Hebditch",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Carballo-Amador",
+                    "suffix": ""
+                },
+                {
+                    "first": "Spyros",
+                    "middle": [],
+                    "last": "Charonis",
+                    "suffix": ""
+                },
+                {
+                    "first": "Robin",
+                    "middle": [],
+                    "last": "Curtis",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jim",
+                    "middle": [],
+                    "last": "Warwicker",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Bioinformatics",
+            "volume": "33",
+            "issn": "",
+            "pages": "3098--3100",
+            "other_ids": {}
+        },
+        "BIBREF21": {
+            "ref_id": "b21",
+            "title": "Machine Learning Applied to Enzyme Turnover Numbers Reveals Protein Structural Correlates and Improves Metabolic Models",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Heckmann",
+                    "suffix": ""
+                },
+                {
+                    "first": "Colton",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "David",
+                    "suffix": ""
+                },
+                {
+                    "first": "Nathan",
+                    "middle": [],
+                    "last": "Lloyd",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yuanchi",
+                    "middle": [],
+                    "last": "Mih",
+                    "suffix": ""
+                },
+                {
+                    "first": "Daniel",
+                    "middle": [
+                        "C"
+                    ],
+                    "last": "Ha",
+                    "suffix": ""
+                },
+                {
+                    "first": "Zachary",
+                    "middle": [
+                        "B"
+                    ],
+                    "last": "Zielinski",
+                    "suffix": ""
+                },
+                {
+                    "first": "Abdelmoneim",
+                    "middle": [
+                        "Amer"
+                    ],
+                    "last": "Haiman",
+                    "suffix": ""
+                },
+                {
+                    "first": "Martin",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Desouki",
+                    "suffix": ""
+                },
+                {
+                    "first": "Bernhard",
+                    "middle": [
+                        "O"
+                    ],
+                    "last": "Lercher",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Palsson",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Nature Communications",
+            "volume": "9",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF22": {
+            "ref_id": "b22",
+            "title": "ESPRESSO: A System for Estimating Protein Expression and Solubility in Protein Expression Systems",
+            "authors": [
+                {
+                    "first": "Shuichi",
+                    "middle": [],
+                    "last": "Hirose",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tamotsu",
+                    "middle": [],
+                    "last": "Noguchi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2013,
+            "venue": "Proteomics",
+            "volume": "13",
+            "issn": "9",
+            "pages": "1444--56",
+            "other_ids": {}
+        },
+        "BIBREF23": {
+            "ref_id": "b23",
+            "title": "Computational Analysis of the Amino Acid Interactions That Promote or Decrease Protein Solubility",
+            "authors": [
+                {
+                    "first": "Qingzhen",
+                    "middle": [],
+                    "last": "Hou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Rapha\u00ebl",
+                    "middle": [],
+                    "last": "Bourgeas",
+                    "suffix": ""
+                },
+                {
+                    "first": "Fabrizio",
+                    "middle": [],
+                    "last": "Pucci",
+                    "suffix": ""
+                },
+                {
+                    "first": "Marianne",
+                    "middle": [],
+                    "last": "Rooman",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Scientific Reports",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1038/s41598-018-32988-w"
+                ]
+            }
+        },
+        "BIBREF24": {
+            "ref_id": "b24",
+            "title": "SOLart: A Structure-Based Method to Predict Protein Solubility and Aggregation",
+            "authors": [
+                {
+                    "first": "Qingzhen",
+                    "middle": [],
+                    "last": "Hou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jean-Marc",
+                    "middle": [],
+                    "last": "Kwasigroch",
+                    "suffix": ""
+                },
+                {
+                    "first": "Marianne",
+                    "middle": [],
+                    "last": "Rooman",
+                    "suffix": ""
+                },
+                {
+                    "first": "Fabrizio",
+                    "middle": [],
+                    "last": "Pucci",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "Bioinformatics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/bioinformatics/btz773"
+                ]
+            }
+        },
+        "BIBREF25": {
+            "ref_id": "b25",
+            "title": "Prediction and Analysis of Protein Solubility Using a Novel Scoring Card Method with Dipeptide Composition",
+            "authors": [
+                {
+                    "first": "Hui-Ling",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Phasit",
+                    "middle": [],
+                    "last": "Charoenkwan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Te-Fen",
+                    "middle": [],
+                    "last": "Kao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Hua-Chin",
+                    "middle": [],
+                    "last": "Lee",
+                    "suffix": ""
+                },
+                {
+                    "first": "Fang-Lin",
+                    "middle": [],
+                    "last": "Chang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Wen-Lin",
+                    "middle": [],
+                    "last": "Huang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Shinn-Jang",
+                    "middle": [],
+                    "last": "Ho",
+                    "suffix": ""
+                },
+                {
+                    "first": "Li-Sun",
+                    "middle": [],
+                    "last": "Shu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Wen-Liang",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Shinn-Ying",
+                    "middle": [],
+                    "last": "Ho",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "BMC Bioinformatics",
+            "volume": "13",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF26": {
+            "ref_id": "b26",
+            "title": "Understanding the Relationship between the Primary Structure of Proteins and Its Propensity to Be Soluble on Overexpression in Escherichia Coli",
+            "authors": [
+                {
+                    "first": "Susan",
+                    "middle": [],
+                    "last": "Idicula-Thomas",
+                    "suffix": ""
+                },
+                {
+                    "first": "V",
+                    "middle": [],
+                    "last": "Petety",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Balaji",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Protein Science: A Publication of the Protein Society",
+            "volume": "14",
+            "issn": "3",
+            "pages": "582--92",
+            "other_ids": {}
+        },
+        "BIBREF27": {
+            "ref_id": "b27",
+            "title": "High-Throughput Recombinant Protein Expression in Escherichia Coli: Current Status and Future Perspectives",
+            "authors": [
+                {
+                    "first": "Baolei",
+                    "middle": [],
+                    "last": "Jia",
+                    "suffix": ""
+                },
+                {
+                    "first": "Che",
+                    "middle": [
+                        "Ok"
+                    ],
+                    "last": "Jeon",
+                    "suffix": ""
+                }
+            ],
+            "year": 2016,
+            "venue": "Open Biology",
+            "volume": "6",
+            "issn": "8",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1098/rsob.160196"
+                ]
+            }
+        },
+        "BIBREF28": {
+            "ref_id": "b28",
+            "title": "Prediction of Chain Flexibility in Proteins",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Karplus",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Schulz",
+                    "suffix": ""
+                }
+            ],
+            "year": 1985,
+            "venue": "Die Naturwissenschaften",
+            "volume": "72",
+            "issn": "4",
+            "pages": "212--225",
+            "other_ids": {}
+        },
+        "BIBREF29": {
+            "ref_id": "b29",
+            "title": "DeepSol: A Deep Learning Framework for Sequence-Based Protein Solubility Prediction",
+            "authors": [
+                {
+                    "first": "Sameer",
+                    "middle": [],
+                    "last": "Khurana",
+                    "suffix": ""
+                },
+                {
+                    "first": "Reda",
+                    "middle": [],
+                    "last": "Rawi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Khalid",
+                    "middle": [],
+                    "last": "Kunji",
+                    "suffix": ""
+                },
+                {
+                    "first": "Gwo-Yu",
+                    "middle": [],
+                    "last": "Chuang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Halima Bensmail, and Raghvendra Mall",
+            "volume": "34",
+            "issn": "",
+            "pages": "2605--2618",
+            "other_ids": {}
+        },
+        "BIBREF30": {
+            "ref_id": "b30",
+            "title": "Toward a Molecular Understanding of Protein Solubility: Increased Negative Surface Charge Correlates with Increased Solubility",
+            "authors": [
+                {
+                    "first": "Ryan",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Kramer",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Varad",
+                    "suffix": ""
+                },
+                {
+                    "first": "Nicole",
+                    "middle": [],
+                    "last": "Shende",
+                    "suffix": ""
+                },
+                {
+                    "first": "C",
+                    "middle": [
+                        "Nick"
+                    ],
+                    "last": "Motl",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "Martin"
+                    ],
+                    "last": "Pace",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Scholtz",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Biophysical Journal",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.bpj.2012.01.060"
+                ]
+            }
+        },
+        "BIBREF31": {
+            "ref_id": "b31",
+            "title": "Aggrescan3D (A3D) 2.0: Prediction and Engineering of Protein Solubility",
+            "authors": [
+                {
+                    "first": "Aleksander",
+                    "middle": [],
+                    "last": "Kuriata",
+                    "suffix": ""
+                },
+                {
+                    "first": "Valentin",
+                    "middle": [],
+                    "last": "Iglesias",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jordi",
+                    "middle": [],
+                    "last": "Pujols",
+                    "suffix": ""
+                },
+                {
+                    "first": "Mateusz",
+                    "middle": [],
+                    "last": "Kurcinski",
+                    "suffix": ""
+                },
+                {
+                    "first": "Sebastian",
+                    "middle": [],
+                    "last": "Kmiecik",
+                    "suffix": ""
+                },
+                {
+                    "first": "Salvador",
+                    "middle": [],
+                    "last": "Ventura",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "Nucleic Acids Research",
+            "volume": "47",
+            "issn": "W1",
+            "pages": "300--307",
+            "other_ids": {}
+        },
+        "BIBREF32": {
+            "ref_id": "b32",
+            "title": "A Simple Method for Displaying the Hydropathic Character of a Protein",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Kyte",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "F"
+                    ],
+                    "last": "Doolittle",
+                    "suffix": ""
+                }
+            ],
+            "year": 1982,
+            "venue": "Journal of Molecular Biology",
+            "volume": "157",
+            "issn": "1",
+            "pages": "105--137",
+            "other_ids": {}
+        },
+        "BIBREF33": {
+            "ref_id": "b33",
+            "title": "Production of Prone-to-Aggregate Proteins",
+            "authors": [
+                {
+                    "first": "Mario",
+                    "middle": [],
+                    "last": "Lebendiker",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tsafi",
+                    "middle": [],
+                    "last": "Danieli",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "FEBS Letters",
+            "volume": "588",
+            "issn": "2",
+            "pages": "236--282",
+            "other_ids": {}
+        },
+        "BIBREF34": {
+            "ref_id": "b34",
+            "title": "Cellular Crowding Imposes Global Constraints on the Chemistry and Evolution of Proteomes",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Levy",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [],
+                    "last": "De",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Teichmann",
+                    "suffix": ""
+                }
+            ],
+            "year": 2012,
+            "venue": "Proceedings of the National Academy of Sciences",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1073/pnas.1209312109"
+                ]
+            }
+        },
+        "BIBREF35": {
+            "ref_id": "b35",
+            "title": "Usefulness and Limitations of Normal Mode Analysis in Modeling Dynamics of Biomolecular Complexes",
+            "authors": [
+                {
+                    "first": "Jianpeng",
+                    "middle": [],
+                    "last": "Ma",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Structure",
+            "volume": "13",
+            "issn": "3",
+            "pages": "373--80",
+            "other_ids": {}
+        },
+        "BIBREF36": {
+            "ref_id": "b36",
+            "title": "The Genome Sequence of the SARS-Associated Coronavirus",
+            "authors": [
+                {
+                    "first": "Marco",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Marra",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Steven",
+                    "suffix": ""
+                },
+                {
+                    "first": "Caroline",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Jones",
+                    "suffix": ""
+                },
+                {
+                    "first": "Robert",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Astell",
+                    "suffix": ""
+                },
+                {
+                    "first": "Angela",
+                    "middle": [],
+                    "last": "Holt",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yaron",
+                    "middle": [
+                        "S N"
+                    ],
+                    "last": "Brooks-Wilson",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jaswinder",
+                    "middle": [],
+                    "last": "Butterfield",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Khattra",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Science",
+            "volume": "300",
+            "issn": "",
+            "pages": "1399--1404",
+            "other_ids": {}
+        },
+        "BIBREF37": {
+            "ref_id": "b37",
+            "title": "Data Structures for Statistical Computing in Python",
+            "authors": [
+                {
+                    "first": "Wes",
+                    "middle": [],
+                    "last": "Mckinney",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 9th Python in Science Conference",
+            "volume": "",
+            "issn": "",
+            "pages": "51--56",
+            "other_ids": {}
+        },
+        "BIBREF38": {
+            "ref_id": "b38",
+            "title": "Python for Scientists and Engineers",
+            "authors": [
+                {
+                    "first": "K",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Millman",
+                    "suffix": ""
+                },
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Aivazis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Computing in Science Engineering",
+            "volume": "13",
+            "issn": "2",
+            "pages": "9--12",
+            "other_ids": {}
+        },
+        "BIBREF39": {
+            "ref_id": "b39",
+            "title": "Cotranslational Protein Assembly Imposes Evolutionary Constraints on Homomeric Proteins",
+            "authors": [
+                {
+                    "first": "Eviatar",
+                    "middle": [],
+                    "last": "Natan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tamaki",
+                    "middle": [],
+                    "last": "Endoh",
+                    "suffix": ""
+                },
+                {
+                    "first": "Liora",
+                    "middle": [],
+                    "last": "Haim-Vilmovsky",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tilman",
+                    "middle": [],
+                    "last": "Flock",
+                    "suffix": ""
+                },
+                {
+                    "first": "Guilhem",
+                    "middle": [],
+                    "last": "Chalancon",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jonathan",
+                    "middle": [
+                        "T S"
+                    ],
+                    "last": "Hopper",
+                    "suffix": ""
+                },
+                {
+                    "first": "B\u00e1lint",
+                    "middle": [],
+                    "last": "Kintses",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Nature Structural & Molecular Biology",
+            "volume": "25",
+            "issn": "3",
+            "pages": "279--88",
+            "other_ids": {}
+        },
+        "BIBREF40": {
+            "ref_id": "b40",
+            "title": "A Simplex Method for Function Minimization",
+            "authors": [
+                {
+                    "first": "J",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Nelder",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Mead",
+                    "suffix": ""
+                }
+            ],
+            "year": 1965,
+            "venue": "Computer Journal",
+            "volume": "7",
+            "issn": "4",
+            "pages": "308--321",
+            "other_ids": {}
+        },
+        "BIBREF41": {
+            "ref_id": "b41",
+            "title": "Bimodal Protein Solubility Distribution Revealed by an Aggregation Analysis of the Entire Ensemble of Escherichia Coli Proteins",
+            "authors": [
+                {
+                    "first": "Tatsuya",
+                    "middle": [],
+                    "last": "Niwa",
+                    "suffix": ""
+                },
+                {
+                    "first": "Bei-Wen",
+                    "middle": [],
+                    "last": "Ying",
+                    "suffix": ""
+                },
+                {
+                    "first": "Katsuyo",
+                    "middle": [],
+                    "last": "Saito",
+                    "suffix": ""
+                },
+                {
+                    "first": "Wenzhen",
+                    "middle": [],
+                    "last": "Jin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Shoji",
+                    "middle": [],
+                    "last": "Takada",
+                    "suffix": ""
+                },
+                {
+                    "first": "Takuya",
+                    "middle": [],
+                    "last": "Ueda",
+                    "suffix": ""
+                },
+                {
+                    "first": "Hideki",
+                    "middle": [],
+                    "last": "Taguchi",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "Proceedings of the National Academy of Sciences of the United States of America",
+            "volume": "106",
+            "issn": "11",
+            "pages": "4201--4207",
+            "other_ids": {}
+        },
+        "BIBREF42": {
+            "ref_id": "b42",
+            "title": "Python for Scientific Computing",
+            "authors": [
+                {
+                    "first": "T",
+                    "middle": [
+                        "E"
+                    ],
+                    "last": "Oliphant",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Computing in Science Engineering",
+            "volume": "9",
+            "issn": "3",
+            "pages": "10--20",
+            "other_ids": {}
+        },
+        "BIBREF43": {
+            "ref_id": "b43",
+            "title": "Scikit-Learn: Machine Learning in Python",
+            "authors": [
+                {
+                    "first": "Fabian",
+                    "middle": [],
+                    "last": "Pedregosa",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ga\u00ebl",
+                    "middle": [],
+                    "last": "Varoquaux",
+                    "suffix": ""
+                },
+                {
+                    "first": "Alexandre",
+                    "middle": [],
+                    "last": "Gramfort",
+                    "suffix": ""
+                },
+                {
+                    "first": "Vincent",
+                    "middle": [],
+                    "last": "Michel",
+                    "suffix": ""
+                },
+                {
+                    "first": "Bertrand",
+                    "middle": [],
+                    "last": "Thirion",
+                    "suffix": ""
+                },
+                {
+                    "first": "Olivier",
+                    "middle": [],
+                    "last": "Grisel",
+                    "suffix": ""
+                },
+                {
+                    "first": "Mathieu",
+                    "middle": [],
+                    "last": "Blondel",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Journal of Machine Learning Research: JMLR",
+            "volume": "12",
+            "issn": "",
+            "pages": "2825--2855",
+            "other_ids": {}
+        },
+        "BIBREF45": {
+            "ref_id": "b45",
+            "title": "Protein Flexibility and Intrinsic Disorder",
+            "authors": [
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Radivojac",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Protein Science",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1110/ps.03128904"
+                ]
+            }
+        },
+        "BIBREF46": {
+            "ref_id": "b46",
+            "title": "Protein Engineering, Design and Selection",
+            "authors": [
+                {
+                    "first": "R",
+                    "middle": [],
+                    "last": "Ragone",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Facchiano",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [],
+                    "last": "Facchiano",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "M"
+                    ],
+                    "last": "Facchiano",
+                    "suffix": ""
+                },
+                {
+                    "first": "G",
+                    "middle": [],
+                    "last": "Colonna",
+                    "suffix": ""
+                }
+            ],
+            "year": 1989,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/protein/2.7.497"
+                ]
+            }
+        },
+        "BIBREF47": {
+            "ref_id": "b47",
+            "title": "PaRSnIP: Sequence-Based Protein Solubility Prediction Using Gradient Boosting Machine",
+            "authors": [
+                {
+                    "first": "Reda",
+                    "middle": [],
+                    "last": "Rawi",
+                    "suffix": ""
+                },
+                {
+                    "first": "Raghvendra",
+                    "middle": [],
+                    "last": "Mall",
+                    "suffix": ""
+                },
+                {
+                    "first": "Khalid",
+                    "middle": [],
+                    "last": "Kunji",
+                    "suffix": ""
+                },
+                {
+                    "first": "Chen-Hsiang",
+                    "middle": [],
+                    "last": "Shen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Peter",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Kwong",
+                    "suffix": ""
+                },
+                {
+                    "first": "Gwo-Yu",
+                    "middle": [],
+                    "last": "Chuang",
+                    "suffix": ""
+                }
+            ],
+            "year": 2018,
+            "venue": "Bioinformatics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/bioinformatics/btx662"
+                ]
+            }
+        },
+        "BIBREF48": {
+            "ref_id": "b48",
+            "title": "Recombinant Protein Expression in Escherichia Coli: Advances and Challenges",
+            "authors": [
+                {
+                    "first": "Germ\u00e1n",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Rosano",
+                    "suffix": ""
+                },
+                {
+                    "first": "Eduardo",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Ceccarelli",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Frontiers in Microbiology",
+            "volume": "5",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF49": {
+            "ref_id": "b49",
+            "title": "Protein Flexibility and Rigidity Predicted from Sequence",
+            "authors": [
+                {
+                    "first": "Avner",
+                    "middle": [],
+                    "last": "Schlessinger",
+                    "suffix": ""
+                },
+                {
+                    "first": "Burkhard",
+                    "middle": [],
+                    "last": "Rost",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proteins",
+            "volume": "61",
+            "issn": "1",
+            "pages": "115--141",
+            "other_ids": {}
+        },
+        "BIBREF50": {
+            "ref_id": "b50",
+            "title": "Statsmodels: Econometric and Statistical Modeling with Python",
+            "authors": [
+                {
+                    "first": "Skipper",
+                    "middle": [],
+                    "last": "Seabold",
+                    "suffix": ""
+                },
+                {
+                    "first": "Josef",
+                    "middle": [],
+                    "last": "Perktold",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Proceedings of the 9th Python in Science Conference",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF51": {
+            "ref_id": "b51",
+            "title": "DNASU Plasmid and PSI:Biology-Materials Repositories: Resources to Accelerate Biological Research",
+            "authors": [
+                {
+                    "first": "Catherine",
+                    "middle": [
+                        "Y"
+                    ],
+                    "last": "Seiler",
+                    "suffix": ""
+                },
+                {
+                    "first": "Jin",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Park",
+                    "suffix": ""
+                },
+                {
+                    "first": "Amit",
+                    "middle": [],
+                    "last": "Sharma",
+                    "suffix": ""
+                },
+                {
+                    "first": "Preston",
+                    "middle": [],
+                    "last": "Hunter",
+                    "suffix": ""
+                },
+                {
+                    "first": "Padmini",
+                    "middle": [],
+                    "last": "Surapaneni",
+                    "suffix": ""
+                },
+                {
+                    "first": "Casey",
+                    "middle": [],
+                    "last": "Sedillo",
+                    "suffix": ""
+                },
+                {
+                    "first": "James",
+                    "middle": [],
+                    "last": "Field",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "",
+            "volume": "42",
+            "issn": "",
+            "pages": "1253--60",
+            "other_ids": {}
+        },
+        "BIBREF52": {
+            "ref_id": "b52",
+            "title": "Improved Amino Acid Flexibility Parameters",
+            "authors": [
+                {
+                    "first": "David",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Smith",
+                    "suffix": ""
+                },
+                {
+                    "first": "Zoran",
+                    "middle": [],
+                    "last": "Predrag Radivojac",
+                    "suffix": ""
+                },
+                {
+                    "first": "A",
+                    "middle": [
+                        "Keith"
+                    ],
+                    "last": "Obradovic",
+                    "suffix": ""
+                },
+                {
+                    "first": "Guang",
+                    "middle": [],
+                    "last": "Dunker",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Zhu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Protein Science: A Publication of the Protein Society",
+            "volume": "12",
+            "issn": "5",
+            "pages": "1060--72",
+            "other_ids": {}
+        },
+        "BIBREF53": {
+            "ref_id": "b53",
+            "title": "Rapid and Accurate in Silico Solubility Screening of a Monoclonal Antibody Library",
+            "authors": [
+                {
+                    "first": "Pietro",
+                    "middle": [],
+                    "last": "Sormanni",
+                    "suffix": ""
+                },
+                {
+                    "first": "Leanne",
+                    "middle": [],
+                    "last": "Amery",
+                    "suffix": ""
+                },
+                {
+                    "first": "Sofia",
+                    "middle": [],
+                    "last": "Ekizoglou",
+                    "suffix": ""
+                },
+                {
+                    "first": "Michele",
+                    "middle": [],
+                    "last": "Vendruscolo",
+                    "suffix": ""
+                },
+                {
+                    "first": "Bojana",
+                    "middle": [],
+                    "last": "Popovic",
+                    "suffix": ""
+                }
+            ],
+            "year": 2017,
+            "venue": "Scientific Reports",
+            "volume": "7",
+            "issn": "1",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF54": {
+            "ref_id": "b54",
+            "title": "The CamSol Method of Rational Design of Protein Mutants with Enhanced Solubility",
+            "authors": [
+                {
+                    "first": "Pietro",
+                    "middle": [],
+                    "last": "Sormanni",
+                    "suffix": ""
+                },
+                {
+                    "first": "Francesco",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Aprile",
+                    "suffix": ""
+                },
+                {
+                    "first": "Michele",
+                    "middle": [],
+                    "last": "Vendruscolo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Journal of Molecular Biology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.jmb.2014.09.026"
+                ]
+            }
+        },
+        "BIBREF55": {
+            "ref_id": "b55",
+            "title": "Disulfide Bond Formation in the Escherichia Coli Cytoplasm: An in Vivo Role Reversal for the Thioredoxins",
+            "authors": [
+                {
+                    "first": "E",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Stewart",
+                    "suffix": ""
+                },
+                {
+                    "first": "F",
+                    "middle": [],
+                    "last": "Aslund",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [],
+                    "last": "Beckwith",
+                    "suffix": ""
+                }
+            ],
+            "year": 1998,
+            "venue": "The EMBO Journal",
+            "volume": "17",
+            "issn": "",
+            "pages": "5543--50",
+            "other_ids": {}
+        },
+        "BIBREF56": {
+            "ref_id": "b56",
+            "title": "The Role of Aromaticity, Exposed Surface, and Dipole Moment in Determining Protein Aggregation Rates",
+            "authors": [
+                {
+                    "first": "Gian",
+                    "middle": [],
+                    "last": "Tartaglia",
+                    "suffix": ""
+                },
+                {
+                    "first": "Andrea",
+                    "middle": [],
+                    "last": "Gaetano",
+                    "suffix": ""
+                },
+                {
+                    "first": "Riccardo",
+                    "middle": [],
+                    "last": "Cavalli",
+                    "suffix": ""
+                },
+                {
+                    "first": "Amedeo",
+                    "middle": [],
+                    "last": "Pellarin",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Caflisch",
+                    "suffix": ""
+                }
+            ],
+            "year": 2004,
+            "venue": "Protein Science: A Publication of the Protein Society",
+            "volume": "13",
+            "issn": "7",
+            "pages": "",
+            "other_ids": {}
+        },
+        "BIBREF57": {
+            "ref_id": "b57",
+            "title": "Implications of Protein Flexibility for Drug Discovery",
+            "authors": [
+                {
+                    "first": "Simon",
+                    "middle": [
+                        "J"
+                    ],
+                    "last": "Teague",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Nature Reviews. Drug Discovery",
+            "volume": "2",
+            "issn": "7",
+            "pages": "527--568",
+            "other_ids": {}
+        },
+        "BIBREF58": {
+            "ref_id": "b58",
+            "title": "Amino Acid Contribution to Protein Solubility: Asp, Glu, and Ser Contribute More Favorably than the Other Hydrophilic Amino Acids in RNase Sa",
+            "authors": [
+                {
+                    "first": "Saul",
+                    "middle": [
+                        "R"
+                    ],
+                    "last": "Trevino",
+                    "suffix": ""
+                },
+                {
+                    "first": "J",
+                    "middle": [
+                        "Martin"
+                    ],
+                    "last": "Scholtz",
+                    "suffix": ""
+                },
+                {
+                    "first": "C. Nick",
+                    "middle": [],
+                    "last": "Pace",
+                    "suffix": ""
+                }
+            ],
+            "year": 2007,
+            "venue": "Journal of Molecular Biology",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1016/j.jmb.2006.10.026"
+                ]
+            }
+        },
+        "BIBREF59": {
+            "ref_id": "b59",
+            "title": "Practical Considerations in Refolding Proteins from Inclusion Bodies",
+            "authors": [
+                {
+                    "first": "Kouhei",
+                    "middle": [],
+                    "last": "Tsumoto",
+                    "suffix": ""
+                },
+                {
+                    "first": "Daisuke",
+                    "middle": [],
+                    "last": "Ejima",
+                    "suffix": ""
+                },
+                {
+                    "first": "Izumi",
+                    "middle": [],
+                    "last": "Kumagai",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tsutomu",
+                    "middle": [],
+                    "last": "Arakawa",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Protein Expression and Purification",
+            "volume": "28",
+            "issn": "1",
+            "pages": "1--8",
+            "other_ids": {}
+        },
+        "BIBREF60": {
+            "ref_id": "b60",
+            "title": "Relationship of Protein Flexibility to Thermostability",
+            "authors": [
+                {
+                    "first": "Mauno",
+                    "middle": [],
+                    "last": "Vihinen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1987,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1093/protein/1.6.477"
+                ]
+            }
+        },
+        "BIBREF61": {
+            "ref_id": "b61",
+            "title": "Accuracy of Protein Flexibility Predictions",
+            "authors": [
+                {
+                    "first": "M",
+                    "middle": [],
+                    "last": "Vihinen",
+                    "suffix": ""
+                },
+                {
+                    "first": "E",
+                    "middle": [],
+                    "last": "Torkkila",
+                    "suffix": ""
+                },
+                {
+                    "first": "P",
+                    "middle": [],
+                    "last": "Riikonen",
+                    "suffix": ""
+                }
+            ],
+            "year": 1994,
+            "venue": "Proteins",
+            "volume": "19",
+            "issn": "2",
+            "pages": "141--190",
+            "other_ids": {}
+        },
+        "BIBREF62": {
+            "ref_id": "b62",
+            "title": "Genetic Screens and Directed Evolution for Protein Solubility",
+            "authors": [
+                {
+                    "first": "Geoffrey",
+                    "middle": [
+                        "S"
+                    ],
+                    "last": "Waldo",
+                    "suffix": ""
+                }
+            ],
+            "year": 2003,
+            "venue": "Current Opinion in Chemical Biology",
+            "volume": "7",
+            "issn": "1",
+            "pages": "33--38",
+            "other_ids": {}
+        },
+        "BIBREF63": {
+            "ref_id": "b63",
+            "title": "The NumPy Array: A Structure for Efficient Numerical Computation",
+            "authors": [
+                {
+                    "first": "St\u00e9fan",
+                    "middle": [],
+                    "last": "Walt",
+                    "suffix": ""
+                },
+                {
+                    "first": "S",
+                    "middle": [
+                        "Chris"
+                    ],
+                    "last": "Van Der",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ga\u00ebl",
+                    "middle": [],
+                    "last": "Colbert",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Varoquaux",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Computing in Science & Engineering",
+            "volume": "13",
+            "issn": "2",
+            "pages": "22--30",
+            "other_ids": {}
+        },
+        "BIBREF64": {
+            "ref_id": "b64",
+            "title": "Potential Aggregation Prone Regions in Biotherapeutics: A Survey of Commercial Monoclonal Antibodies",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Tapan",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Xiaoling",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Das",
+                    "suffix": ""
+                },
+                {
+                    "first": "K",
+                    "middle": [],
+                    "last": "Satish",
+                    "suffix": ""
+                },
+                {
+                    "first": "Sandeep",
+                    "middle": [],
+                    "last": "Singh",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Kumar",
+                    "suffix": ""
+                }
+            ],
+            "year": 2009,
+            "venue": "mAbs",
+            "volume": "1",
+            "issn": "3",
+            "pages": "254--67",
+            "other_ids": {}
+        },
+        "BIBREF65": {
+            "ref_id": "b65",
+            "title": "Lysine and Arginine Content of Proteins: Computational Analysis Suggests a New Tool for Solubility Design",
+            "authors": [
+                {
+                    "first": "Jim",
+                    "middle": [],
+                    "last": "Warwicker",
+                    "suffix": ""
+                },
+                {
+                    "first": "Spyros",
+                    "middle": [],
+                    "last": "Charonis",
+                    "suffix": ""
+                },
+                {
+                    "first": "Robin",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Curtis",
+                    "suffix": ""
+                }
+            ],
+            "year": 2014,
+            "venue": "Molecular Pharmaceutics",
+            "volume": "11",
+            "issn": "1",
+            "pages": "294--303",
+            "other_ids": {}
+        },
+        "BIBREF67": {
+            "ref_id": "b67",
+            "title": "Predicting the Solubility of Recombinant Proteins in Escherichia Coli",
+            "authors": [
+                {
+                    "first": "D",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Wilkinson",
+                    "suffix": ""
+                },
+                {
+                    "first": "R",
+                    "middle": [
+                        "G"
+                    ],
+                    "last": "Harrison",
+                    "suffix": ""
+                }
+            ],
+            "year": 1991,
+            "venue": "Bio/technology",
+            "volume": "9",
+            "issn": "5",
+            "pages": "443--491",
+            "other_ids": {}
+        },
+        "BIBREF68": {
+            "ref_id": "b68",
+            "title": "Complete Genome Characterisation of a Novel Coronavirus Associated with Severe Human Respiratory Disease in Wuhan, China",
+            "authors": [
+                {
+                    "first": "Fan",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Su",
+                    "middle": [],
+                    "last": "Zhao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Bin",
+                    "middle": [],
+                    "last": "Yu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yan-Mei",
+                    "middle": [],
+                    "last": "Chen",
+                    "suffix": ""
+                },
+                {
+                    "first": "Wen",
+                    "middle": [],
+                    "last": "Wang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yi",
+                    "middle": [],
+                    "last": "Hu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Zhi-Gang",
+                    "middle": [],
+                    "last": "Song",
+                    "suffix": ""
+                }
+            ],
+            "year": 2020,
+            "venue": "",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1101/2020.01.24.919183"
+                ]
+            }
+        },
+        "BIBREF70": {
+            "ref_id": "b70",
+            "title": "Proceedings of the National Academy of Sciences of the United States of America",
+            "authors": [],
+            "year": null,
+            "venue": "",
+            "volume": "116",
+            "issn": "",
+            "pages": "8852--58",
+            "other_ids": {}
+        },
+        "BIBREF71": {
+            "ref_id": "b71",
+            "title": "protr/ProtrWeb: R Package and Web Server for Generating Various Numerical Representation Schemes of Protein Sequences",
+            "authors": [
+                {
+                    "first": "Nan",
+                    "middle": [],
+                    "last": "Xiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Dong-Sheng",
+                    "middle": [],
+                    "last": "Cao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Min-Feng",
+                    "middle": [],
+                    "last": "Zhu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Qing-Song",
+                    "middle": [],
+                    "last": "Xu",
+                    "suffix": ""
+                }
+            ],
+            "year": 2015,
+            "venue": "Bioinformatics",
+            "volume": "31",
+            "issn": "11",
+            "pages": "1857--59",
+            "other_ids": {}
+        },
+        "BIBREF72": {
+            "ref_id": "b72",
+            "title": "The High-Throughput Protein Sample Production Platform of the Northeast Structural Genomics Consortium",
+            "authors": [
+                {
+                    "first": "Rong",
+                    "middle": [],
+                    "last": "Xiao",
+                    "suffix": ""
+                },
+                {
+                    "first": "Stephen",
+                    "middle": [],
+                    "last": "Anderson",
+                    "suffix": ""
+                },
+                {
+                    "first": "James",
+                    "middle": [],
+                    "last": "Aramini",
+                    "suffix": ""
+                },
+                {
+                    "first": "Rachel",
+                    "middle": [],
+                    "last": "Belote",
+                    "suffix": ""
+                },
+                {
+                    "first": "William",
+                    "middle": [
+                        "A"
+                    ],
+                    "last": "Buchwald",
+                    "suffix": ""
+                },
+                {
+                    "first": "Colleen",
+                    "middle": [],
+                    "last": "Ciccosanti",
+                    "suffix": ""
+                },
+                {
+                    "first": "Ken",
+                    "middle": [],
+                    "last": "Conover",
+                    "suffix": ""
+                }
+            ],
+            "year": 2010,
+            "venue": "Journal of Structural Biology",
+            "volume": "172",
+            "issn": "1",
+            "pages": "21--33",
+            "other_ids": {}
+        },
+        "BIBREF73": {
+            "ref_id": "b73",
+            "title": "Machine-Learning-Guided Directed Evolution for Protein Engineering",
+            "authors": [
+                {
+                    "first": "Kevin",
+                    "middle": [
+                        "K"
+                    ],
+                    "last": "Yang",
+                    "suffix": ""
+                },
+                {
+                    "first": "Zachary",
+                    "middle": [],
+                    "last": "Wu",
+                    "suffix": ""
+                },
+                {
+                    "first": "Frances",
+                    "middle": [
+                        "H"
+                    ],
+                    "last": "Arnold",
+                    "suffix": ""
+                }
+            ],
+            "year": 2019,
+            "venue": "Nature Methods",
+            "volume": "16",
+            "issn": "8",
+            "pages": "687--94",
+            "other_ids": {}
+        },
+        "BIBREF74": {
+            "ref_id": "b74",
+            "title": "On the Relation between Residue Flexibility and Residue Interactions in Proteins",
+            "authors": [
+                {
+                    "first": "Hui",
+                    "middle": [],
+                    "last": "Yin",
+                    "suffix": ""
+                },
+                {
+                    "first": "Yi-Zhou",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                },
+                {
+                    "first": "Meng-Long",
+                    "middle": [],
+                    "last": "Li",
+                    "suffix": ""
+                }
+            ],
+            "year": 2011,
+            "venue": "Protein and Peptide Letters",
+            "volume": "18",
+            "issn": "5",
+            "pages": "450--56",
+            "other_ids": {}
+        },
+        "BIBREF75": {
+            "ref_id": "b75",
+            "title": "Prediction of Protein B-Factor Profiles",
+            "authors": [
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Yuan",
+                    "suffix": ""
+                },
+                {
+                    "first": "Timothy",
+                    "middle": [
+                        "L"
+                    ],
+                    "last": "Zheng",
+                    "suffix": ""
+                },
+                {
+                    "first": "Rohan",
+                    "middle": [
+                        "D"
+                    ],
+                    "last": "Bailey",
+                    "suffix": ""
+                },
+                {
+                    "first": "",
+                    "middle": [],
+                    "last": "Teasdale",
+                    "suffix": ""
+                }
+            ],
+            "year": 2005,
+            "venue": "Proteins: Structure, Function, and Bioinformatics",
+            "volume": "",
+            "issn": "",
+            "pages": "",
+            "other_ids": {
+                "DOI": [
+                    "10.1002/prot.20375"
+                ]
+            }
+        }
+    },
+    "ref_entries": {
+        "FIGREF0": {
+            "text": "(Supplementary Fig S3, AUC = 0.66).",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF1": {
+            "text": "Derivation of the Solubility-Weighted Index (SWI). (A) Flow chart shows an iterative refinement of the most recently published set of normalised B-factors for solubility prediction",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF2": {
+            "text": "SWI strongly correlates with solubility. (A) Correlation matrix plot of the solubility of recombinant proteins expressed in E. coli and their standard protein sequence properties and SWI. These recombinant proteins are the PSI:Biology targets (N = 12,216) with a binary solubility status of 'Protein_Soluble' or 'Tested_Not_Soluble' . Related data is available as SupplementaryTable S5. (B) Correlation matrix plot of the solubility percentages of E. coli proteins and their standard protein sequence properties and SWI. The solubility percentages were previously determined using an E. coli cell-free system(eSOL, N = 3,198). Related data is available asSupplementary Table S6. GRAVY, Grand Average of Hydropathy;",
+            "latex": null,
+            "type": "figure"
+        },
+        "FIGREF5": {
+            "text": "Data analysis was done using Pandas v0.25.3 (McKinney 2010) , scikit-learn v0.20.2 (Pedregosa et al. 2011) , numpy v1.16.2 (van der Walt, Colbert, and Varoquaux 2011) and statsmodel v0.10.1 (Seabold and Perktold 2010) . Plots were generated using Matplotlib v3.0.2 (Caswell et al. 2018) and Seaborn v0.9.0 (Waskom et al. 2014) .",
+            "latex": null,
+            "type": "figure"
+        },
+        "TABREF0": {
+            "text": "Strikingly, protein structural flexibility outperformed other features in solubility prediction [Area Under the ROC Curve (AUC) = 0.67; Fig 1, Supplementary Fig S2 andTable S2].Fig 1. Global structural flexibility outperforms the other standard protein sequence properties in protein solubility prediction. ROC analysis of the standard protein sequence features for predicting the solubility of 12,216 recombinant proteins expressed in E. coli (the PSI:Biology dataset). AUC scores (perfect = 1.00, random = 0.50) are shown in parentheses. The ROC curves are shown in two separate panels for clarity. Dashed lines denote the performance of random classifiers. See also Supplementary Fig S2 and Table S2. AUC, Area Under the ROC Curve; GRAVY, Grand Average of Hydropathy; PSI:Biology, Protein Structure Initiative:Biology; ROC, Receiver Operating Characteristic.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF1": {
+            "text": "structure. For example, Aggrescan3D and SOLart accept only PDB files that can be downloaded from the Protein Data Bank or produced using a homology modeling program(Kuriata et al. 2019;Hou et al. 2019) . SWI outperforms other tools except for Protein-Sol in predicting E. coli protein solubility(Table 1,",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF2": {
+            "text": "Comparison of protein solubility prediction methods and software.",
+            "latex": null,
+            "type": "table"
+        },
+        "TABREF3": {
+            "text": "AUC, Area Under the ROC Curve; PSI:Biology, Protein Structure Initiative:Biology; ROC, Receiver Operating Characteristic; SWI, Solubility-Weighted Index; s, seconds.",
+            "latex": null,
+            "type": "table"
+        }
+    },
+    "back_matter": [
+        {
+            "text": "We evaluated nine standard and 9,920 miscellaneous protein sequence properties using the Biopython's ProtParam module and 'protr' R package, respectively (Cock et al. 2009; N. Xiao et al. 2015) . For example, the standard properties include the Grand Average of Hydropathy (GRAVY), secondary structure propensities, protein structural flexibility etc., whereas miscellaneous properties include amino acid composition, autocorrelation, etc.",
+            "cite_spans": [
+                {
+                    "start": 154,
+                    "end": 172,
+                    "text": "(Cock et al. 2009;",
+                    "ref_id": "BIBREF9"
+                }
+            ],
+            "ref_spans": [],
+            "section": "acknowledgement"
+        },
+        {
+            "text": "We thank New Zealand eScience Infrastructure for providing a high performance computing platform. We are grateful to Harry Biggs for proofreading our manuscript and providing feedback for the web server. This work was supported by the Ministry of Business, Innovation and Employment, New Zealand (MBIE grant: UOOX1709).",
+            "cite_spans": [],
+            "ref_spans": [],
+            "section": "ACKNOWLEDGEMENTS"
+        }
+    ]
+}

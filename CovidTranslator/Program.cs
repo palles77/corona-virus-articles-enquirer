@@ -18,29 +18,40 @@ namespace CovidTranslator
             {
                 Directory.CreateDirectory("Articles.Out");
             }
-            var listOfArticles = new List<String>();
-            int convertedAritclesIndex = 0;
+            var listOfJsonArticles = new List<String>();
+            var listOfArticleAbstracts = new List<Article>();
+
+            int convertedArticlesIndex = 0;
+            string baseOutputFileName;
+            string outputFileName;
             foreach (var file in files)
             {
+                baseOutputFileName = "converted_articles_" + convertedArticlesIndex + ".bin";
                 string articleContent = File.ReadAllText(file.FullName);
-                listOfArticles.Add(articleContent);
-                if (listOfArticles.Count > 1000)
+                var article = JsonArticleToDocument.GetArticle(articleContent, baseOutputFileName + ".zip");
+                listOfArticleAbstracts.Add(article);
+                listOfJsonArticles.Add(articleContent);
+                if (listOfJsonArticles.Count > 100)
                 {
-                    var outputFileName = "Articles.Out\\converted_articles_" + convertedAritclesIndex + ".bin";
-                    SerialiseListOfConvertedArticles(listOfArticles, outputFileName);
-                    convertedAritclesIndex++;
+                    outputFileName = "Articles.Out\\" + baseOutputFileName;
+                    SerialiseList(listOfJsonArticles, outputFileName);
+                    convertedArticlesIndex++;
+                    Console.WriteLine("Converted {0} out of {1} articles.", convertedArticlesIndex * 100, files.Length);
                 }
             }
 
-            if (listOfArticles.Count > 0)
+            if (listOfJsonArticles.Count > 0)
             {
-                var outputFileName = "converted_articles_" + convertedAritclesIndex + ".bin";
-                SerialiseListOfConvertedArticles(listOfArticles, outputFileName);
-                convertedAritclesIndex++;
+                baseOutputFileName = "converted_articles_" + convertedArticlesIndex + ".bin";
+                outputFileName = "Articles.Out\\" + baseOutputFileName;
+                SerialiseList(listOfJsonArticles, outputFileName);
             }
+
+            var indexFileName = "Articles.Out\\index.bin";
+            SerialiseList(listOfArticleAbstracts, indexFileName);
         }
 
-        static void SerialiseListOfConvertedArticles(List<String> listOfArticles, string outputFileName)
+        private static void SerialiseList<T>(List<T> listOfArticles, string outputFileName)
         {     
             using (var memoryStream = new MemoryStream())
             {
