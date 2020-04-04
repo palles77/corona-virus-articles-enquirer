@@ -14,7 +14,7 @@ This project will be updated as the time goes by,so please check this website of
 # To use this project 
 Go to:
 
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirerSetup-1.0.0.3.zip
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirer-1.0.0.3.zip
 
 Install it, wait for the database of articles to be set up and then start searching.
 
@@ -38,7 +38,7 @@ https://github.com/palles77/corona-virus-articles-enquirer/issues
 # How to use
 
 1. Install it from 
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirerSetup-1.0.0.3.zip
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirer-1.0.0.3.zip
 Unpack ZIP and click setup.exe.
 2. After installation run 'Covid Enquirer 1.0.0.3' will be automatically run. It can also be run from Desktop icon or by typing 'Covid Enquirer' from Search panel in your Windows.
 3. After a short wait the database will finish loading.
@@ -53,8 +53,6 @@ The sample article can be seen below:
 6. You can translate a selected article using Google into your language. Available languages include: : Chinese, Czech, French, German, Greek, Italian, Japanese, Polish, Portuguese,
  Russian, Spanish. Note that translation takes a couple of minutes due to limitations imposed by Google on their free translation service. However the translations are actually pretty good from scientific point of view.
 ![Translation of selected aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerTranslatedInPolish.png)
-7. You can do more detailed filtering of titles by typing into text below the label: 'Filter Search Results as in the image below:
-![Filtering titles](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerTranslatedInPolish.png)
 
 # Other functionaliy
 The program also offers you a context menu for each of the articles which allows:

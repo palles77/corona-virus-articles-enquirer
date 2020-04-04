@@ -14,7 +14,7 @@ Ten projekt będzie aktualizowany w miarę upływu czasu, dlatego prosimy częst
 # Aby skorzystać z tego projektu
 Iść do:
 
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirerSetup-1.0.0.3.zip
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirer-1.0.0.3.zip
 
 Zainstaluj go, poczekaj na skonfigurowanie bazy danych artykułów, a następnie rozpocznij wyszukiwanie.
 
@@ -38,7 +38,7 @@ https://github.com/palles77/corona-virus-articles-enquirer/issues
 # Jak używać
 
 1. Zainstaluj go z
-https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirerSetup-1.0.0.3.zip
+https://github.com/palles77/corona-virus-articles-enquirer/releases/download/1.0.0.3/CovidEnquirer-1.0.0.3.zip
 Rozpakuj archiwum ZIP i kliknij setup.exe.
 2. Po zakończeniu instalacji program „Covid Enquirer 1.0.0.3” zostanie uruchomiony automatycznie. Można go również uruchomić z ikony na pulpicie lub wpisując „Covid Enquirer” z panelu wyszukiwania w systemie Windows.
 3. Po krótkim oczekiwaniu baza danych zakończy ładowanie.
@@ -52,8 +52,6 @@ Przykładowy artykuł można zobaczyć poniżej:
 ![Podgląd wybranego aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/Images/CovidEnquirerSearchingResult.png)
 6. Możesz przetłumaczyć wybrany artykuł za pomocą Google na swój język. Dostępne języki to: chiński, czeski, francuski, niemiecki, grecki, włoski, japoński, polski, portugalski, rosyjski, hiszpański. Pamiętaj, że tłumaczenie zajmuje kilka minut z powodu ograniczeń nałożonych przez Google na ich bezpłatną usługę tłumaczeniową. Jednak tłumaczenia są całkiem dobre z naukowego punktu widzenia.
 ! Tłumaczenie wybranego aritcle](https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/Images/CovidEnquirerTranslatedInPolish.png)
-7. Możesz przeprowadzić bardziej szczegółowe filtrowanie tytułów, wpisując tekst pod etykietą: „Filtruj wyniki wyszukiwania jak na obrazku poniżej:
-! [Filtrowanie tytułów] (https://github.com/palles77/corona-virus-articles-enquirer/blob/master/Images/CovidEnquirerTranslatedInPolish.png)
 
 # Inne funkcjonalizacje
 Program oferuje także menu kontekstowe dla każdego z artykułów, które pozwala:
