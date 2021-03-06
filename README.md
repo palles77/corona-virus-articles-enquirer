@@ -1,6 +1,6 @@
 # Corona Virus Covid-19 Enquirer
 
-This is a project for searching through 36856 academic articles provided by World Health Organisation to help academics around the world to get up to date quick access to latest advances in medicine and science.
+This is a project for searching through 270 000 academic articles provided by World Health Organisation to help academics around the world to get up to date quick access to latest advances in medicine and science.
 
 https://pages.semanticscholar.org/coronavirus-research
 
@@ -73,4 +73,4 @@ I would like to thank to the following projects:
 silesiaresearch at gmail dot com
 
 # Last update
-28 February 2021
+05 March 2021

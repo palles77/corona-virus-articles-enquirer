@@ -1,6 +1,6 @@
 # Corona Virus Covid-19 Enquirer
 
-Jest to projekt polegający na przeszukaniu 36856 artykułów naukowych dostarczonych przez Światową Organizację Zdrowia, aby pomóc naukowcom z całego świata w uzyskaniu szybkiego dostępu do najnowszych osiągnięć medycyny i nauki.
+Jest to projekt polegający na przeszukaniu 270 000 artykułów naukowych dostarczonych przez Światową Organizację Zdrowia, aby pomóc naukowcom z całego świata w uzyskaniu szybkiego dostępu do najnowszych osiągnięć medycyny i nauki.
 
 https://pages.semanticscholar.org/coronavirus-research
 
@@ -72,4 +72,4 @@ Chciałbym podziękować za następujące projekty:
 silesiaresearch at gmail dot com
 
 # Ostatnia modyfikacja
-4 kwietnia 2020
+05 marzec 2021
